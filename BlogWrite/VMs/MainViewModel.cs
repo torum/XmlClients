@@ -547,13 +547,19 @@ namespace BlogWrite.VMs
                         bool b = await this.DeleteEntry(selectedEntry); ;
                         if (b)
                         {
-                            // TODO: remove item from list.
-                            selectedEntry.NodeEntry.List.Remove(selectedEntry);
+                            if (selectedEntry.NodeEntry == null)
+                                return;
 
-                            NotifyPropertyChanged(nameof(Entry));
-                            NotifyPropertyChanged(nameof(EntryHTML));
-                            NotifyPropertyChanged(nameof(IsContentText));
-                            NotifyPropertyChanged(nameof(IsContentHTML));
+                            // remove item from the list.
+                            try {
+                                Application.Current.Dispatcher.Invoke(() => selectedEntry.NodeEntry.List.Remove(selectedEntry));
+                            }
+                            catch (Exception e)
+                            {
+                                System.Diagnostics.Debug.WriteLine("Error @NodeEntry.List.Remove" + e.Message);
+                            }
+
+                            NotifyPropertyChanged(nameof(Entries));
                         }
                     });
                 }
