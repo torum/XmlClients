@@ -4,11 +4,12 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
-namespace WpfMPD.Common
+namespace BlogWrite.Common
 {
-    // http://stackoverflow.com/questions/21821762/relaycommand-wont-execute-on-button-click
+
     public class GenericRelayCommand<T> : ICommand
     {
         private readonly Action<T> execute;
@@ -57,7 +58,6 @@ namespace WpfMPD.Common
         }
     }
 
-    // http://www.kellydun.com/wpf-relaycommand-with-parameter/
     public class RelayCommandWithParam<T> : ICommand
     {
         #region Fields
@@ -130,9 +130,6 @@ namespace WpfMPD.Common
         #endregion
     }
 
-    //// http://sourcechord.hatenablog.com/entry/2014/01/13/200039
-
-    //// http://docs.telerik.com/data-access/quick-start-scenarios/wpf/quickstart-wpf-viewmodelbase-and-relaycommand
     public class RelayCommand : ICommand
     {
         private Action methodToExecute;
@@ -175,36 +172,4 @@ namespace WpfMPD.Common
     }
 
 
-    public class SimpleCommand : ICommand
-    {
-        public event EventHandler CanExecuteChanged
-        {
-            add { CommandManager.RequerySuggested += value; }
-            remove { CommandManager.RequerySuggested -= value; }
-        }
-
-        public Predicate<object> CanExecuteDelegate { get; set; }
-
-        public Action<object> ExecuteDelegate { get; set; }
-
-        public bool CanExecute(object parameter)
-        {
-            if (this.CanExecuteDelegate != null)
-            {
-                return this.CanExecuteDelegate(parameter);
-            }
-            else
-            {
-                return true; // if there is no can execute default to true
-            }
-        }
-
-        public void Execute(object parameter)
-        {
-            if (this.ExecuteDelegate != null)
-            {
-                this.ExecuteDelegate(parameter);
-            }
-        }
-    }
 }

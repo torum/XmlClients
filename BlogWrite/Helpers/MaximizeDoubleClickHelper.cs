@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
-namespace WpfApp1.Helpers
+namespace BlogWrite.Helpers
 {
     /// <summary>
     /// Enable maximizing the window on double click for a control

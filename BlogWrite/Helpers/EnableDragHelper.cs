@@ -7,7 +7,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 
-namespace WpfApp1.Helpers
+namespace BlogWrite.Helpers
 {
     /// <summary>
     /// Enable drag for a control
@@ -53,6 +53,8 @@ namespace WpfApp1.Helpers
                     avoidInfiniteLoop++;
                     if (avoidInfiniteLoop == 1000)
                     {
+                        System.Diagnostics.Debug.WriteLine(" Something is wrong - we could not find the parent window.");
+
                         // Something is wrong - we could not find the parent window.
                         return;
                     }

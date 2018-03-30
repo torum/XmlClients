@@ -23,17 +23,20 @@ namespace BlogWrite.Common
     /// </summary>
     public abstract class ViewModelBase : INotifyPropertyChanged, IDataErrorInfo
     {
+
+        public ViewModelBase() {}    
+
         #region == INotifyPropertyChanged ==
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        private void NotifyPropertyChanged(string info)
+        protected void NotifyPropertyChanged(string propertyName)
         {
-            //this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
+            //this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
             Application.Current.Dispatcher.Invoke(() =>
             {
-                this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
+                this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             });
         }
 
