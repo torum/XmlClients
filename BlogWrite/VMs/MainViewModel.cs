@@ -34,6 +34,7 @@ using System.Xml.Linq;
 using BlogWrite.Common;
 using BlogWrite.Models;
 using System.Globalization;
+using BlogWrite.Models.Clients;
 
 
 namespace BlogWrite.VMs

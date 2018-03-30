@@ -8,7 +8,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using BlogWrite.Models;
 
-namespace BlogWrite
+namespace BlogWrite.Models.Clients
 {
 
     public abstract class BlogClient

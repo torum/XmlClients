@@ -26,6 +26,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using BlogWrite.Common;
 using BlogWrite.Models;
+using BlogWrite.Models.Clients;
 
 namespace BlogWrite.VMs
 {

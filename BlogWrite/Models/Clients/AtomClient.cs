@@ -7,8 +7,9 @@ using System.Xml.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using BlogWrite.Models;
+using BlogWrite.Models.Clients;
 
-namespace BlogWrite.Models
+namespace BlogWrite.Models.Clients
 {
     class AtomClient : BlogClient
     {

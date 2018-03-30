@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using BlogWrite.Models.Clients;
 
 namespace BlogWrite.Models
 {
