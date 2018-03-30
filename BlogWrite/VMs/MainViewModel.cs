@@ -44,7 +44,7 @@ namespace BlogWrite.VMs
         private ServiceTreeBuilder _services = new ServiceTreeBuilder();
         private object _selectedNode = null;
         private object _selectedItem = null;
-        private BlogClient _bc;
+        //private BlogClient _bc;
 
         #region == Properties ==
 
@@ -323,6 +323,7 @@ namespace BlogWrite.VMs
 
         #region == Methods ==
 
+        /*
         public async void Do()
         {
             string accountName = "Account Name";
@@ -348,6 +349,7 @@ namespace BlogWrite.VMs
             // Save settings.
             Properties.Settings.Default.Save();
         }
+        */
 
         public async void GetEntries(NodeTree selectedNode)
         {

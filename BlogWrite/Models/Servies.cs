@@ -46,6 +46,8 @@ namespace BlogWrite.Models
                     var userName = s.Attributes["UserName"].Value;
                     var userPassword = s.Attributes["UserPassword"].Value;
                     var endpoint = s.Attributes["EndPoint"].Value;
+                    string api = (s.Attributes["Api"] != null) ? s.Attributes["Api"].Value : "Atom";
+
                     var selecteds = string.IsNullOrEmpty(s.Attributes["Selected"].Value) ? "" : s.Attributes["Selected"].Value;
                     var expandeds = string.IsNullOrEmpty(s.Attributes["Expanded"].Value) ? "" : s.Attributes["Expanded"].Value;
                     bool isSelecteds = (selecteds == "true") ? true : false;
@@ -56,7 +58,21 @@ namespace BlogWrite.Models
                         && (!string.IsNullOrEmpty(userPassword))
                         && (!string.IsNullOrEmpty(endpoint)))
                     {
-                        NodeServies account = new NodeServies(accountName, userName, userPassword, new Uri(endpoint));
+                        NodeServies.ApiTypes at;
+                        switch (api)
+                        {
+                            case "Atom":
+                                at = NodeServies.ApiTypes.atAtom;
+                                break;
+                            case "XML-RPC":
+                                at = NodeServies.ApiTypes.atXMLRPC;
+                                break;
+                            default:
+                                at = NodeServies.ApiTypes.atAtom;
+                                break;
+                        }
+
+                        NodeServies account = new NodeServies(accountName, userName, userPassword, new Uri(endpoint), at);
                         account.Selected = isSelecteds;
                         account.Expanded = isExpandeds;
                         account.Parent = null;
@@ -149,6 +165,19 @@ namespace BlogWrite.Models
                 attrse.Value = ((NodeServies)s).EndPoint.AbsoluteUri;
                 service.SetAttributeNode(attrse);
 
+                XmlAttribute atapi = doc.CreateAttribute("Api");
+                switch (((NodeServies)s).Api)
+                {
+                    case NodeServies.ApiTypes.atAtom:
+                        atapi.Value = "Atom";
+                        service.SetAttributeNode(atapi);
+                        break;
+                    case NodeServies.ApiTypes.atXMLRPC:
+                        atapi.Value = "XML-RPC";
+                        service.SetAttributeNode(atapi);
+                        break;
+                }
+
                 root.AppendChild(service);
 
                 foreach (var w in s.Children)
@@ -220,18 +249,35 @@ namespace BlogWrite.Models
         public Uri EndPoint {get;set;}
         public string UserName { get; set; }
         public string UserPassword { get; set; }
+        public ApiTypes Api { get; set; }
+
+        public enum ApiTypes
+        {
+            atAtom,
+            atXMLRPC
+        }
 
         public BlogClient Client { get; }
         public string ID { get; }
 
-        public NodeServies(string name, string username, string password, Uri endPoint) : base(name)
+        public NodeServies(string name, string username, string password, Uri endPoint, ApiTypes api) : base(name)
         {
             UserName = username;
             UserPassword = password;
             EndPoint = endPoint;
             PathIcon = "M12,19.2C9.5,19.2 7.29,17.92 6,16C6.03,14 10,12.9 12,12.9C14,12.9 17.97,14 18,16C16.71,17.92 14.5,19.2 12,19.2M12,5A3,3 0 0,1 15,8A3,3 0 0,1 12,11A3,3 0 0,1 9,8A3,3 0 0,1 12,5M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12C22,6.47 17.5,2 12,2Z";
 
-            Client = new BlogClient(UserName, UserPassword, EndPoint);
+            switch (api)
+            {
+                case ApiTypes.atAtom:
+                    Client = new AtomClient(UserName, UserPassword, EndPoint);
+                    break;
+                case ApiTypes.atXMLRPC:
+                    Client = new XmlRpcClient(UserName, UserPassword, EndPoint);
+                    break;
+            }
+            Api = api;
+
             ID = Guid.NewGuid().ToString();
         }
 
