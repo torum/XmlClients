@@ -8,5 +8,7 @@ C#/WPF port of good ol' "BlogWrite" made with Delphi.
 * Hatena extention: work in progress.
 
 #### XML-RPC
-* Movable Type extention: not yet started.
-* Word Press extention: not yet started.
+* Blogger API: not yet started.
+* metaWeblog API: not yet started.
+* Movable Type API: not yet started.
+* WordPress API: not yet started.
