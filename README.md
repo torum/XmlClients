@@ -1,6 +1,6 @@
 # BlogWrite
 
-C#/WPF port of good ol' "BlogWrite" made with Delphi.
+C#/WPF port of "BlogWrite" made with Delphi.
 
 ## Supported protocol
 
