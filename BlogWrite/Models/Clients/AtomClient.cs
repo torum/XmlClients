@@ -52,7 +52,7 @@ namespace BlogWrite.Models.Clients
 				    <service xmlns="http://www.w3.org/2007/app">
 				      <workspace>
 				        <atom:title xmlns:atom="http://www.w3.org/2005/Atom">hoge</atom:title>
-				        <collection href="https://blog.hatena.ne.jp/torum/torum.hatenablog.com/atom/entry">
+				        <collection href="https://127.0.0.1/atom/entry">
 				          <atom:title xmlns:atom="http://www.w3.org/2005/Atom">fuga</atom:title>
 				          <accept>application/atom+xml;type=entry</accept>
 				        </collection>
@@ -84,7 +84,7 @@ namespace BlogWrite.Models.Clients
                     XmlNode accountTitle = n.SelectSingleNode("atom:title", atomNsMgr);
                     if (accountTitle == null)
                     {
-                        System.Diagnostics.Debug.WriteLine("atom:title: is null. ");
+                        System.Diagnostics.Debug.WriteLine("atom:title is null. ");
                         continue;
                     }
 
@@ -175,35 +175,51 @@ namespace BlogWrite.Models.Clients
 
             System.Diagnostics.Debug.WriteLine("GET entries: " + s);
             /*
-			<?xml version="1.0" encoding="utf-8"?>
-			<feed xmlns="http://www.w3.org/2005/Atom" xmlns:app="http://www.w3.org/2007/app">
-				<link rel="first" href="https://127.0.0.1/app/" />
-				<title>hoge</title>
-				<link rel="alternate" href="https://127.0.0.1/html/"/>
-				<updated></updated>
-				<author>
-					<name>hoge</name>
-				</author>
-				<generator uri="https://127.0.0.1/app/" version="hoge">hoge</generator>
-				<id>hoge</id>
-				<entry>
-					<id>hoge</id>
-					<link rel="edit" href="https://127.0.0.1/app/entry/17391345971628358314"/>
-					<link rel="alternate" type="text/html" href="https://127.0.0.1/htm/entry/2018/03/22/221846"/>
-					<author><name>hoge</name></author>
-					<title>test title</title>
-					<updated>2018-03-22T22:18:46+09:00</updated>
-					<published>2018-03-22T22:18:46+09:00</published>
-					<app:edited>2018-03-22T22:18:46+09:00</app:edited>
-					<summary type="text">asdf</summary>
-					<content type="text/html">asdf</content>
-					<hatena:formatted-content type="text/html" xmlns:hatena="http://www.hatena.ne.jp/info/xmlns#">&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/asdf&quot;&gt;asdf&lt;/a&gt;</hatena:formatted-content>
-				<category term="test" />
-				<app:control>
-					<app:draft>yes</app:draft>
-				</app:control>
-			  </entry>
-			</feed>
+   <?xml version="1.0" encoding="utf-8"?>
+   <feed xmlns="http://www.w3.org/2005/Atom">
+     <title type="text">dive into mark</title>
+     <subtitle type="html">
+       A &lt;em&gt;lot&lt;/em&gt; of effort
+       went into making this effortless
+     </subtitle>
+     <updated>2005-07-31T12:29:29Z</updated>
+     <id>tag:example.org,2003:3</id>
+     <link rel="alternate" type="text/html"
+      hreflang="en" href="http://example.org/"/>
+     <link rel="self" type="application/atom+xml"
+      href="http://example.org/feed.atom"/>
+     <rights>Copyright (c) 2003, Mark Pilgrim</rights>
+     <generator uri="http://www.example.com/" version="1.0">
+       Example Toolkit
+     </generator>
+     <entry>
+       <title>Atom draft-07 snapshot</title>
+       <link rel="alternate" type="text/html"
+        href="http://example.org/2005/04/02/atom"/>
+       <link rel="enclosure" type="audio/mpeg" length="1337"
+        href="http://example.org/audio/ph34r_my_podcast.mp3"/>
+       <id>tag:example.org,2003:3.2397</id>
+       <updated>2005-07-31T12:29:29Z</updated>
+       <published>2003-12-13T08:29:29-04:00</published>
+       <author>
+         <name>Mark Pilgrim</name>
+         <uri>http://example.org/</uri>
+         <email>f8dy@example.com</email>
+       </author>
+       <contributor>
+         <name>Sam Ruby</name>
+       </contributor>
+       <contributor>
+         <name>Joe Gregorio</name>
+       </contributor>
+       <content type="xhtml" xml:lang="en"
+        xml:base="http://diveintomark.org/">
+         <div xmlns="http://www.w3.org/1999/xhtml">
+           <p><i>[Update: The Atom draft is finished.]</i></p>
+         </div>
+       </content>
+     </entry>
+   </feed>
             */
 
             XmlDocument xdoc = new XmlDocument();
@@ -402,6 +418,12 @@ namespace BlogWrite.Models.Clients
                 {
                     case "text":
                         entry.ContentType = EntryFull.ContentTypes.text;
+                        break;
+                    case "html":
+                        entry.ContentType = EntryFull.ContentTypes.textHtml;
+                        break;
+                    case "xhtml":
+                        entry.ContentType = EntryFull.ContentTypes.textHtml;
                         break;
                     case "text/plain":
                         entry.ContentType = EntryFull.ContentTypes.text;

@@ -5,11 +5,13 @@ using BlogWrite.Common;
 
 namespace BlogWrite.ViewModels
 {
-    public class ServiceDiscoveryVewModel : ViewModelBase
+    public class ServiceDiscoveryViewModel : ViewModelBase
     {
         private HttpClient _httpClient;
         private bool _isBusy;
-        private string _websiteOrEndpoint;
+        private string _websiteOrEndpointUrl;
+
+        #region == Properties ==
 
         public bool IsBusy {
             get
@@ -36,26 +38,27 @@ namespace BlogWrite.ViewModels
             }
         }
 
-        public string WebsiteOrEndpoint
+        public string WebsiteOrEndpointUrl
         {
             get
             {
-                return _websiteOrEndpoint;
+                return _websiteOrEndpointUrl;
             }
             set
             {
-                if (_websiteOrEndpoint == value)
+                if (_websiteOrEndpointUrl == value)
                     return;
 
-                _websiteOrEndpoint = value;
+                _websiteOrEndpointUrl = value;
 
-                NotifyPropertyChanged(nameof(WebsiteOrEndpoint));
+                NotifyPropertyChanged(nameof(_websiteOrEndpointUrl));
             }
         }
 
+        #endregion
 
-
-        public ServiceDiscoveryVewModel()
+        /// <summary>Constructor.</summary>
+        public ServiceDiscoveryViewModel()
         {
             _httpClient = new HttpClient();
 
@@ -63,24 +66,32 @@ namespace BlogWrite.ViewModels
 
         }
 
+        #region == Events ==
 
+        #endregion
+
+        #region == Methods ==
+
+        #endregion
+
+        #region == ICommands ==
 
         public ICommand CheckEndpointCommand { get; }
 
         public bool CheckEndpointCommand_CanExecute()
         {
-            return String.IsNullOrEmpty(WebsiteOrEndpoint)? false : true;
+            return String.IsNullOrEmpty(WebsiteOrEndpointUrl)? false : true;
         }
 
         public async void CheckEndpointCommand_Execute()
         {
-            if (String.IsNullOrEmpty(WebsiteOrEndpoint))
+            if (String.IsNullOrEmpty(WebsiteOrEndpointUrl))
                 return;
 
             IsBusy = true;
             try
             {
-                var HTTPResponseMessage = await _httpClient.GetAsync(WebsiteOrEndpoint);
+                var HTTPResponseMessage = await _httpClient.GetAsync(WebsiteOrEndpointUrl);
 
                 if (HTTPResponseMessage.IsSuccessStatusCode)
                 {
@@ -96,6 +107,8 @@ namespace BlogWrite.ViewModels
 
             
         }
+
+        #endregion
 
     }
 }

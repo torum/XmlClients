@@ -3,11 +3,16 @@
 /// BlogWrite
 /// https://github.com/torum/BlogWrite
 /// 
+/// Copyright by torum unless otherwise stated.
+/// 
 /// TODO:
 /// -- Priority 1 --
 ///  Add Service form.
 ///  
 ///  Atom Publishing protocol:
+///  https://tools.ietf.org/html/rfc4287
+///  https://tools.ietf.org/html/rfc5023
+///  
 ///    Manage Category document.
 ///    
 ///  Wordpress XML-RPC API:
@@ -27,7 +32,8 @@
 ///
 /// Known issues:
 /// 
-/// 
+/// Hatena: no service discovery, no category doc in service doc, no media files support.
+
 
 using System;
 using System.Collections.Generic;

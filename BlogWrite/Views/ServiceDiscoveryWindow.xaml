@@ -56,7 +56,7 @@
         <TextBox Grid.Row="2" Grid.Column="2"
                 VerticalAlignment="Center"
                 HorizontalAlignment="Stretch"
-                 Text="{Binding WebsiteOrEndpoint,UpdateSourceTrigger=PropertyChanged}"
+                 Text="{Binding WebsiteOrEndpointUrl, UpdateSourceTrigger=PropertyChanged}"
                  Margin="4">
             <TextBox.Style>
                 <Style TargetType="TextBox" BasedOn="{StaticResource TransparentTextBoxStyle}" 

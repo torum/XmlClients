@@ -75,13 +75,14 @@
     <Compile Include="Helpers\RichTextBoxDocumentHelper.cs" />
     <Compile Include="Helpers\WebBrowserBindHTMLBehavior.cs" />
     <Compile Include="Models\Clients\AtomClient.cs" />
+    <Compile Include="Models\Clients\DiscoveryClient.cs" />
     <Compile Include="Models\Clients\XmlRpcClient.cs" />
     <Compile Include="Models\Discovery.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Views\EditorWindow.xaml.cs">
       <DependentUpon>EditorWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ViewModels\ServiceDiscoveryVewModel.cs" />
+    <Compile Include="ViewModels\ServiceDiscoveryViewModel.cs" />
     <Page Include="Controls\DiscoveryWebBrowser.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

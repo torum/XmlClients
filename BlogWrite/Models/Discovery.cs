@@ -14,7 +14,8 @@ namespace BlogWrite.Models
         /*
         <link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://torum.jp/ja/xmlrpc.php?rsd" />
 
-        <?xml version="1.0" encoding="UTF-8"?><rsd version="1.0" xmlns="http://archipelago.phrasewise.com/rsd">
+        <?xml version="1.0" encoding="UTF-8"?>
+        <rsd version="1.0" xmlns="http://archipelago.phrasewise.com/rsd">
           <service>
             <engineName>WordPress</engineName>
             <engineLink>https://wordpress.org/</engineLink>

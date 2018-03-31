@@ -77,7 +77,6 @@ namespace BlogWrite
 
             var win = new EditorWindow();
             win.DataContext = new EditorViewModel(arg.Entry);
-            //(win.DataContext as EditorViewModel)
 
             App app = App.Current as App;
             app.WindowList.Add(win);
@@ -160,9 +159,11 @@ namespace BlogWrite
 
         public void LaunchServiceDiscoveryWindow(Window owner)
         {
-            //
+            // Before opening the window, make sure no other window is open.
+            // If a user minimize and restore, Modal window can get behind of the child window.
+
             var win = new ServiceDiscoveryWindow();
-            win.DataContext = new ServiceDiscoveryVewModel();
+            win.DataContext = new ServiceDiscoveryViewModel();
             win.Owner = owner;
             win.ShowDialog();
         }
