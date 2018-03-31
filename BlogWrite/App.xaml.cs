@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Threading;
 using BlogWrite.Views;
-using BlogWrite.VMs;
+using BlogWrite.ViewModels;
 
 namespace BlogWrite
 {
@@ -70,13 +70,14 @@ namespace BlogWrite
         public List<Window> WindowList = new List<Window>();
 
         /// <summary> Create an Editor Window.</summary>
-        public void CreateEditorNewWindow(BlogEntryEventArgs arg)
+        public void CreateNewEditorWindow(BlogEntryEventArgs arg)
         {
             if (arg.Entry == null)
                 return;
 
             var win = new EditorWindow();
             win.DataContext = new EditorViewModel(arg.Entry);
+            //(win.DataContext as EditorViewModel)
 
             App app = App.Current as App;
             app.WindowList.Add(win);
@@ -149,6 +150,21 @@ namespace BlogWrite
             win.ShowActivated = true;
             win.Visibility = Visibility.Visible;
             win.Activate();
+        }
+
+        /// <summary> Remove an Editor Window from WindowList.</summary>
+        public void RemoveEditorWindow(EditorWindow editor)
+        {
+            WindowList.Remove(editor);
+        }
+
+        public void LaunchServiceDiscoveryWindow(Window owner)
+        {
+            //
+            var win = new ServiceDiscoveryWindow();
+            win.DataContext = new ServiceDiscoveryVewModel();
+            win.Owner = owner;
+            win.ShowDialog();
         }
 
     }

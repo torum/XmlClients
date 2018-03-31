@@ -11,26 +11,17 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using BlogWrite.Views;
 
 namespace BlogWrite.Views
 {
     /// <summary>
-    /// EditorWindow.xaml code behind.
+    /// ServiceDiscovery.xaml の相互作用ロジック
     /// </summary>
-    public partial class EditorWindow
+    public partial class ServiceDiscoveryWindow
     {
-        public EditorWindow()
+        public ServiceDiscoveryWindow()
         {
             InitializeComponent();
-        }
-
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            App app = App.Current as App;
-
-            app.RemoveEditorWindow(this);
-
         }
     }
 }

@@ -5,7 +5,7 @@
 /// 
 /// TODO:
 /// -- Priority 1 --
-///  Let MainWindow that post has been made and let it update preview.
+///  Let MainWindow know that post has been made and let it update preview.
 ///  
 /// -- Priority 2 --
 ///  Better error messages for users.
@@ -13,9 +13,6 @@
 /// Known issues:
 /// Hatena does not let draft=no once it is published.
 /// 
-
-
-
 
 using System;
 using System.Collections.Generic;
@@ -28,8 +25,11 @@ using BlogWrite.Common;
 using BlogWrite.Models;
 using BlogWrite.Models.Clients;
 
-namespace BlogWrite.VMs
+namespace BlogWrite.ViewModels
 {
+    /// <summary>
+    /// Editor ViewModel 
+    /// </summary>
     class EditorViewModel : ViewModelBase
     {
         private EntryFull _ent;

@@ -14,7 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using BlogWrite.Views;
-using BlogWrite.VMs;
+using BlogWrite.ViewModels;
 
 namespace BlogWrite.Views
 {
@@ -33,9 +33,12 @@ namespace BlogWrite.Views
             {
                 App app = App.Current as App;
 
+                vm.LaunchServiceDiscovery += (sender, arg) => { app.LaunchServiceDiscoveryWindow(this); };
+
                 vm.OpenEditorView += (sender, arg) => { app.CreateOrBringToFrontEditorWindow(arg); };
 
-                vm.OpenEditorNewView += (sender, arg) => { app.CreateEditorNewWindow(arg); };
+                vm.OpenEditorNewView += (sender, arg) => { app.CreateNewEditorWindow(arg); };
+
             }
         }
 
@@ -92,11 +95,11 @@ namespace BlogWrite.Views
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
-            // TODO: when MainWindow try to close itself, confirm to close all the child windows. 
+            // TODO: When MainWindow try to close itself, confirm to close all the child windows. 
 
             App app = App.Current as App;
 
-            // The Key now is to use app.Windows this time.
+            // Now, use "app.Windows" this time.
             foreach (var w in app.Windows)
             {
                 if (!(w is EditorWindow))

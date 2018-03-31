@@ -424,14 +424,14 @@ namespace BlogWrite.Models.Clients
             entry.Content = cont.InnerText;
 
 
+            /*
+            // Hatena's formatted-content
             XmlNode formattedContent = entryNode.SelectSingleNode("hatena:formatted-content", atomNsMgr);
             if (formattedContent != null)
             {
                 entry.FormattedContent = formattedContent.InnerText;
             }
-
-
-            //formatted-content
+            */
 
             return entry;
         }

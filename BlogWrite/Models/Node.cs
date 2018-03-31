@@ -10,7 +10,6 @@ using System.Windows.Data;
 
 namespace BlogWrite.Models
 {
-
     /// <summary>
     /// Base class for Treeview Node and Listview Item.
     /// </summary>
@@ -138,6 +137,5 @@ namespace BlogWrite.Models
         }
 
     }
-
 
 }

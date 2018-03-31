@@ -2,7 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:BlogWrite"
-             xmlns:vms ="clr-namespace:BlogWrite.VMs"
+             xmlns:vms ="clr-namespace:BlogWrite.ViewModels"
              StartupUri="Views\MainWindow.xaml"
              Startup="AppOnStartup">
     <Application.Resources>
@@ -18,6 +18,9 @@
                 https://github.com/sourcechord/FluentWPF -->
                 <ResourceDictionary Source="pack://application:,,,/FluentWPF;component/Styles/Controls.xaml" />
 
+                <!-- Colors -->
+                <ResourceDictionary Source="Styles\Colors.xaml" />
+                
                 <!-- TreeView -->
                 <ResourceDictionary>
 
@@ -496,13 +499,14 @@
                         <Setter Property="Foreground" Value="Gainsboro"/>
                         <Setter Property="TextElement.Foreground" Value="Gainsboro"/>
                         <Setter Property="Padding" Value="4"/>
+                        <Setter Property="CaretBrush" Value="WhiteSmoke"/>
                     </Style>
 
                     <Style x:Key="FlatTextBoxEditStyle" TargetType="{x:Type TextBox}">
-                        <Setter Property="Background" Value="Silver"/>
+                        <Setter Property="Background" Value="Transparent"/>
                         <Setter Property="BorderThickness" Value="0"/>
-                        <Setter Property="Foreground" Value="Black"/>
-                        <Setter Property="TextElement.Foreground" Value="Black"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="TextElement.Foreground" Value="White"/>
                         <Setter Property="Padding" Value="4"/>
                         <Setter Property="IsReadOnly" Value="False"/>
                         <Setter Property="TextWrapping" Value="Wrap"/>
@@ -510,8 +514,18 @@
                         <Setter Property="AcceptsReturn" Value="True"/>
                         <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
                         <Setter Property="AutoWordSelection" Value="True"/>
+                        <Setter Property="CaretBrush" Value="WhiteSmoke"/>
                     </Style>
-                    
+
+                    <Style x:Key="TransparentTextBoxStyle" TargetType="{x:Type TextBox}">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderThickness" Value="0 0 0 1"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="TextElement.Foreground" Value="White"/>
+                        <Setter Property="Padding" Value="4"/>
+                        <Setter Property="CaretBrush" Value="WhiteSmoke"/>
+                    </Style>
+
                 </ResourceDictionary>
                 
                 <!-- Flat ComboBox -->
@@ -702,7 +716,7 @@
                     <Color x:Key="ContentAreaColorDark">#FF7381F9</Color>
 
                     <Color x:Key="DisabledControlLightColor">#FFE8EDF9</Color>
-                    <Color x:Key="DisabledControlDarkColor">#FFC5CBF9</Color>
+                    <Color x:Key="DisabledControlDarkColor">Gray</Color>
                     <Color x:Key="DisabledForegroundColor">#FF888888</Color>
 
                     <Color x:Key="SelectedBackgroundColor">#FFC5CBF9</Color>
@@ -710,7 +724,7 @@
 
                     <Color x:Key="ControlLightColor">White</Color>
                     <Color x:Key="ControlMediumColor">Silver</Color>
-                    <Color x:Key="ControlDarkColor">Gray</Color>
+                    <Color x:Key="ControlDarkColor">#FFC5CBF9</Color>
 
                     <Color x:Key="ControlMouseOverColor">White</Color>
                     <Color x:Key="ControlPressedColor">Gray</Color>
@@ -1455,7 +1469,24 @@
                         </Grid>
                     </ControlTemplate>
 
+                    <!-- FocusVisual -->
+                    <Style x:Key="GridSplitterFocusVisual">
+                        <Setter Property="Control.Template">
+                            <Setter.Value>
+                                <ControlTemplate>
+                                    <Border>
+                                        <Rectangle Margin="2"
+                     StrokeThickness="1"
+                     Stroke="#CCCCCC"
+                     StrokeDashArray="1 2" />
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+
                     <Style x:Key="GridSplitterStyle" TargetType="{x:Type GridSplitter}">
+                        <Setter Property="FocusVisualStyle" Value="{StaticResource GridSplitterFocusVisual}"/>
                         <Setter Property="Template" Value="{StaticResource VerticalSplitter}"/>
                         <Style.Triggers>
                             <Trigger Property="ResizeDirection" Value="Rows">

@@ -12,7 +12,7 @@ using BlogWrite.Models.Clients;
 namespace BlogWrite.Models
 {
     /// <summary>
-    /// Base class for EntryNode child (for treeview).
+    /// class for EntryNode child (for treeview).
     /// </summary>
     public class NodeEntries : NodeTree
     {
@@ -20,7 +20,7 @@ namespace BlogWrite.Models
     }
 
     /// <summary>
-    /// Base class for EntryNode (for treeview).
+    /// class for EntryNode (for treeview).
     /// </summary>
     public class NodeEntry : NodeTree
     {
@@ -58,7 +58,7 @@ namespace BlogWrite.Models
     }
 
     /// <summary>
-    /// Base class for Entry (for listview index).
+    /// class for Entry for listview index.
     /// </summary>
     public class EntryItem : Node
     {
@@ -161,7 +161,7 @@ namespace BlogWrite.Models
     }
 
     /// <summary>
-    /// Blog Entry class, which represents the whole Entry.
+    /// Base class for a Blog Entry class, which represents the whole Entry.
     /// </summary>
     public abstract class EntryFull : EntryItem
     {
@@ -207,30 +207,11 @@ namespace BlogWrite.Models
     }
 
     /// <summary>
-    /// Blog Entry class, which represents Atom Entry.
+    /// Atom Blog Entry class, which represents Atom Entry.
     /// </summary>
     public class AtomEntry : EntryFull
     {
-        protected string _formattedContent = "";
-
         public string ContentTypeString { get; set; }
-
-        public string FormattedContent
-        {
-            get
-            {
-                return _formattedContent;
-            }
-            set
-            {
-                if (value == _formattedContent)
-                    return;
-
-                _formattedContent = value;
-
-                NotifyPropertyChanged(nameof(FormattedContent));
-            }
-        }
 
         public AtomEntry(string title, BlogClient bc) : base(title, bc)
         {
@@ -324,9 +305,47 @@ namespace BlogWrite.Models
             }
         }
 
+    }
+
+    /// <summary>
+    /// Hatena Blog Atom Entry class.
+    /// </summary>
+    public class AtomEntryHatena : AtomEntry
+    {
+        protected string _formattedContent = "";
+
+        public string FormattedContent
+        {
+            get
+            {
+                return _formattedContent;
+            }
+            set
+            {
+                if (value == _formattedContent)
+                    return;
+
+                _formattedContent = value;
+
+                NotifyPropertyChanged(nameof(FormattedContent));
+            }
+        }
+
+        public AtomEntryHatena(string title, BlogClient bc) : base(title, bc)
+        {
+
+        }
+
+        //public XmlDocument AsXmlDoc(){ }
+
+        //public string AsXml(){}
 
     }
 
+
+    /// <summary>
+    /// StringWriter With Encoding.
+    /// </summary>
     public class StringWriterWithEncoding : StringWriter
     {
         public StringWriterWithEncoding(StringBuilder sb, Encoding encoding)

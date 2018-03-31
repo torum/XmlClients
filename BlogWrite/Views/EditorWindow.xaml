@@ -9,13 +9,11 @@
         Background="Transparent"
         
         BorderBrush="#202020"          
-        BorderThickness="0.8 0 0.8 0.8"
+        BorderThickness="0.8 0.8 0.8 0.8"
 
         xmlns:fw="clr-namespace:SourceChord.FluentWPF;assembly=FluentWPF"
-        fw:AcrylicWindow.Enabled="True"
         fw:AcrylicWindow.ShowTitleBar="True"
         fw:AcrylicWindow.ExtendViewIntoTitleBar="True"
-
         fw:AcrylicWindow.TintOpacity="0.4"
         fw:AcrylicWindow.TintColor="Silver"
         fw:AcrylicWindow.FallbackColor="Gainsboro"
@@ -157,9 +155,34 @@
 
         <Border Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"
                 Padding="0 4 0 4">
-            <TextBox Text="{Binding Path=EntryTitle,Mode=TwoWay}"
-                     Style="{StaticResource FlatTextBoxEditStyle}"
+            <TextBox Text="{Binding Path=EntryTitle, Mode=TwoWay}"
                      AcceptsReturn="False" AcceptsTab="False">
+                <TextBox.Style>
+                    <Style TargetType="TextBox" BasedOn="{StaticResource TransparentTextBoxStyle}" 
+                           xmlns:sys="clr-namespace:System;assembly=mscorlib">
+                        <Setter Property="Background" Value="Transparent" />
+                        <Style.Resources>
+                            <VisualBrush x:Key="CueBannerBrush"
+                                                         AlignmentX="Left"
+                                                         AlignmentY="Center"
+                                                         Stretch="None">
+                                <VisualBrush.Visual>
+                                    <Label Content="Title"
+                                                           FontStyle="Italic"
+                                                           Foreground="DarkGray" />
+                                </VisualBrush.Visual>
+                            </VisualBrush>
+                        </Style.Resources>
+                        <Style.Triggers>
+                            <Trigger Property="Text" Value="{x:Static sys:String.Empty}">
+                                <Setter Property="Background" Value="{StaticResource CueBannerBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter Property="Background" Value="Transparent" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBox.Style>
             </TextBox>
         </Border>
         <!--
@@ -213,8 +236,35 @@
             <ctr:HTMLBrowserEdit/>
             -->
             <TextBox 
-                Text="{Binding EntryContent,Mode=TwoWay}"
-                Style="{StaticResource FlatTextBoxEditStyle}"/>
+                Text="{Binding EntryContent,Mode=TwoWay}">
+                <TextBox.Style>
+                    <Style TargetType="TextBox" BasedOn="{StaticResource FlatTextBoxEditStyle}" 
+                           xmlns:sys="clr-namespace:System;assembly=mscorlib">
+                        <Setter Property="Background" Value="Transparent" />
+                        <Style.Resources>
+                            <VisualBrush x:Key="CueBannerBrush"
+                                                         AlignmentX="Left"
+                                                         AlignmentY="Top"
+                                                         Stretch="None">
+                                <VisualBrush.Visual>
+                                    <Label Content="..."
+                                                           FontStyle="Italic"
+                                                           Foreground="DarkGray" />
+                                </VisualBrush.Visual>
+                            </VisualBrush>
+                        </Style.Resources>
+                        <Style.Triggers>
+                            <Trigger Property="Text" Value="{x:Static sys:String.Empty}">
+                                <Setter Property="Background" Value="{StaticResource CueBannerBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter Property="Background" Value="Transparent" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBox.Style>
+
+            </TextBox>
             <!--
             <helpers:RichTextBoxDocumentHelper AcceptsReturn="True" AcceptsTab="True" Background="Gainsboro"
                                                Document="{Binding EntryContent}">

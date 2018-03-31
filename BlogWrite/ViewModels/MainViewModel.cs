@@ -5,7 +5,22 @@
 /// 
 /// TODO:
 /// -- Priority 1 --
+///  Add Service form.
 ///  
+///  Atom Publishing protocol:
+///    Manage Category document.
+///    
+///  Wordpress XML-RPC API:
+///    https://codex.wordpress.org/XML-RPC_WordPress_API
+///    
+///  Movable Type API:
+///    https://codex.wordpress.org/XML-RPC_MovableType_API
+///    
+///  MetaWeblog API
+///    https://codex.wordpress.org/XML-RPC_MetaWeblog_API
+///    
+///  Blogger API
+///    https://codex.wordpress.org/XML-RPC_Blogger_API
 ///  
 /// -- Priority 2 --
 ///  Better error messages for users.
@@ -24,11 +39,6 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
-using System.Windows.Threading;
-using System.Configuration;
-using System.Net;
-using System.Security.Cryptography;
-using System.Windows.Controls;
 using System.Xml;
 using System.Xml.Linq;
 using BlogWrite.Common;
@@ -37,15 +47,16 @@ using System.Globalization;
 using BlogWrite.Models.Clients;
 
 
-namespace BlogWrite.VMs
+namespace BlogWrite.ViewModels
 {
-
+    /// <summary>
+    /// Main ViewModel 
+    /// </summary>
     public class MainViewModel : ViewModelBase
     {
         private ServiceTreeBuilder _services = new ServiceTreeBuilder();
         private object _selectedNode = null;
         private object _selectedItem = null;
-        //private BlogClient _bc;
 
         #region == Properties ==
 
@@ -263,6 +274,7 @@ namespace BlogWrite.VMs
 
         #region == Events ==
 
+        public event EventHandler<ServiceDiscoveryEventArgs> LaunchServiceDiscovery;
         public event EventHandler<BlogEntryEventArgs> OpenEditorView;
         public event EventHandler<BlogEntryEventArgs> OpenEditorNewView;
 
@@ -294,6 +306,8 @@ namespace BlogWrite.VMs
             ListviewEnterKeyCommand = new GenericRelayCommand<EntryItem>(
                 param => ListviewEnterKeyCommand_Execute(param),
                 param => ListviewEnterKeyCommand_CanExecute());
+
+            ServiceAddCommand = new RelayCommand(ServiceAddCommand_Execute, ServiceAddCommand_CanExecute);
 
             OpenEditorAsNewCommand = new RelayCommand(OpenEditorAsNewCommand_Execute, OpenEditorAsNewCommand_CanExecute);
             RefreshEntriesCommand = new RelayCommand(RefreshEntriesCommand_Execute, RefreshEntriesCommand_CanExecute);
@@ -352,7 +366,7 @@ namespace BlogWrite.VMs
         }
         */
 
-        public async void GetEntries(NodeTree selectedNode)
+        private async void GetEntries(NodeTree selectedNode)
         {
             if (selectedNode == null)
                 return;
@@ -388,7 +402,7 @@ namespace BlogWrite.VMs
 
         }
 
-        public async Task<bool> GetEntry(EntryItem selectedEntry)
+        private async Task<bool> GetEntry(EntryItem selectedEntry)
         {
             if (selectedEntry == null)
                 return false;
@@ -412,7 +426,7 @@ namespace BlogWrite.VMs
             return true;
         }
 
-        public async Task<bool> DeleteEntry(EntryItem selectedEntry)
+        private async Task<bool> DeleteEntry(EntryItem selectedEntry)
         {
             if (selectedEntry == null)
                 return false;
@@ -662,15 +676,39 @@ namespace BlogWrite.VMs
 
         }
 
+        public ICommand ServiceAddCommand { get; }
 
+        public bool ServiceAddCommand_CanExecute()
+        {
+            return true;
+        }
+
+        public void ServiceAddCommand_Execute()
+        {
+
+            // TODO: Ask to close all editor windows before launching.
+
+            ServiceDiscoveryEventArgs ag = new ServiceDiscoveryEventArgs();
+
+            LaunchServiceDiscovery?.Invoke(this, ag);
+        }
+
+        
         #endregion
 
     }
 
+    /// <summary>
+    /// BlogEntryEventArgs. 
+    /// </summary>
     public class BlogEntryEventArgs : EventArgs
     {
         public EntryFull Entry;
-        //public BlogClient BlogClient;
+    }
+
+    public class ServiceDiscoveryEventArgs : EventArgs
+    {
+        
     }
 
     /// <summary>

@@ -10,7 +10,7 @@
         Background="Transparent"
                   
         BorderBrush="#202020"          
-        BorderThickness="0.5 0 0.5 0.5"
+        BorderThickness="0.5 0.5 0.5 0.5"
                   
         xmlns:fw="clr-namespace:SourceChord.FluentWPF;assembly=FluentWPF"
         fw:AcrylicWindow.ShowTitleBar="True"
@@ -58,7 +58,8 @@
         <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
             <Button x:Name="PlusOutlineButton"
                 Style="{StaticResource PathButton}" 
-                    ToolTip="Settings" ToolTipService.ToolTip="Settings"
+                    Command="{Binding ServiceAddCommand}"
+                    ToolTip="Add Service" ToolTipService.ToolTip="Add Service"
                 Foreground="#999999" Background="Transparent" 
                 Height="24" Width="24" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="39 4 4 4">
                 M4,9H9V4H15V9H20V15H15V20H9V15H4V9M11,13V18H13V13H18V11H13V6H11V11H6V13H11Z
@@ -127,7 +128,7 @@
             <Button x:Name="RefreshButton"
                 Style="{StaticResource PathButton}" 
                     Command="{Binding RefreshEntriesCommand}"
-                    ToolTip="Refresh entries" ToolTipService.ToolTip="Refresh entries"
+                    ToolTip="Refresh Entries" ToolTipService.ToolTip="Refresh Entries"
                 Foreground="#999999" Background="Transparent" 
                 Height="24" Width="24" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="6 4 4 4">
                 M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z
@@ -135,7 +136,7 @@
             <Button x:Name="PlusCircleOutlineButton"
                 Style="{StaticResource PathButton}" 
                     Command="{Binding OpenEditorAsNewCommand}"
-                    ToolTip="New entry" ToolTipService.ToolTip="New entry"
+                    ToolTip="New Entry" ToolTipService.ToolTip="New Entry"
                 Foreground="#999999" Background="Transparent" 
                 Height="24" Width="24" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="4">
                 M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M13,7H11V11H7V13H11V17H13V13H17V11H13V7Z
@@ -251,7 +252,7 @@
             </TreeView.ItemContainerStyle>
         </helpers:TreeViewSelectedItemHelper>
 
-        <GridSplitter Grid.Row="0" Grid.RowSpan="4" Grid.Column="1" 
+        <GridSplitter Grid.Row="1" Grid.RowSpan="3" Grid.Column="1" 
                       ResizeDirection="Columns"
                       Style="{StaticResource GridSplitterStyle}">
         </GridSplitter>
@@ -449,6 +450,7 @@
                 <TextBox x:Name="ContentPreviewTextBox"
                      TextWrapping="Wrap" 
                      IsReadOnly="True"
+                         IsTabStop="False"
                      Margin="4"
                      MinHeight="24"
                      Style="{StaticResource FlatTextBoxStyle}"

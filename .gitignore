@@ -68,3 +68,10 @@ BlogWrite/obj/Debug/VIews/MainWindow.g.i.cs
 BlogWrite/obj/Debug/VIews/Window1.g.i.cs
 packages/FluentWPF.0.2.2/FluentWPF.0.2.2.nupkg
 packages/FluentWPF.0.2.2/lib/net45/FluentWPF.dll
+BlogWrite/obj/Debug/Controls/DiscoveryWebBrowser.baml
+BlogWrite/obj/Debug/Controls/DiscoveryWebBrowser.g.cs
+BlogWrite/obj/Debug/Controls/DiscoveryWebBrowser.g.i.cs
+BlogWrite/obj/Debug/VIews/ServiceDiscovery.g.i.cs
+BlogWrite/obj/Debug/VIews/ServiceDiscoveryWindow.baml
+BlogWrite/obj/Debug/VIews/ServiceDiscoveryWindow.g.cs
+BlogWrite/obj/Debug/VIews/ServiceDiscoveryWindow.g.i.cs

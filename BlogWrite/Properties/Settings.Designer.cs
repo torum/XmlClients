@@ -25,17 +25,6 @@ namespace BlogWrite.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        public global::BlogWrite.VMs.ProfileSettings Profiles {
-            get {
-                return ((global::BlogWrite.VMs.ProfileSettings)(this["Profiles"]));
-            }
-            set {
-                this["Profiles"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string DefaultProfileID {
             get {
@@ -91,6 +80,17 @@ namespace BlogWrite.Properties {
             }
             set {
                 this["MainWindow_Width"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::BlogWrite.ViewModels.ProfileSettings Profiles {
+            get {
+                return ((global::BlogWrite.ViewModels.ProfileSettings)(this["Profiles"]));
+            }
+            set {
+                this["Profiles"] = value;
             }
         }
     }

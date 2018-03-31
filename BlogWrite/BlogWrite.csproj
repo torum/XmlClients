@@ -66,6 +66,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Controls\DiscoveryWebBrowser.xaml.cs">
+      <DependentUpon>DiscoveryWebBrowser.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\HTMLBrowserEdit.xaml.cs">
       <DependentUpon>HTMLBrowserEdit.xaml</DependentUpon>
     </Compile>
@@ -73,11 +76,21 @@
     <Compile Include="Helpers\WebBrowserBindHTMLBehavior.cs" />
     <Compile Include="Models\Clients\AtomClient.cs" />
     <Compile Include="Models\Clients\XmlRpcClient.cs" />
+    <Compile Include="Models\Discovery.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Views\EditorWindow.xaml.cs">
       <DependentUpon>EditorWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ViewModels\ServiceDiscoveryVewModel.cs" />
+    <Page Include="Controls\DiscoveryWebBrowser.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Controls\HTMLBrowserEdit.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Styles\Colors.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -93,8 +106,11 @@
     <Compile Include="Common\RelayCommamd.cs" />
     <Compile Include="Common\ViewModelBase.cs" />
     <Compile Include="Helpers\TreeViewSelectedItemHelper.cs" />
-    <Compile Include="VMs\EditorViewModel.cs" />
-    <Compile Include="VMs\MainViewModel.cs" />
+    <Compile Include="Views\ServiceDiscoveryWindow.xaml.cs">
+      <DependentUpon>ServiceDiscoveryWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ViewModels\EditorViewModel.cs" />
+    <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="Helpers\EnableDragHelper.cs" />
     <Compile Include="Helpers\MaximizeDoubleClickHelper.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">
@@ -102,6 +118,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="Views\EditorWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ServiceDiscoveryWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -2,9 +2,6 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="BlogWrite.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="Profiles" Type="BlogWrite.VMs.ProfileSettings" Scope="User">
-      <Value Profile="(Default)" />
-    </Setting>
     <Setting Name="DefaultProfileID" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
@@ -19,6 +16,9 @@
     </Setting>
     <Setting Name="MainWindow_Width" Type="System.Double" Scope="User">
       <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="Profiles" Type="BlogWrite.ViewModels.ProfileSettings" Scope="User">
+      <Value Profile="(Default)" />
     </Setting>
   </Settings>
 </SettingsFile>
