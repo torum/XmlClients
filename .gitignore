@@ -77,3 +77,5 @@ BlogWrite/obj/Debug/VIews/ServiceDiscoveryWindow.g.cs
 BlogWrite/obj/Debug/VIews/ServiceDiscoveryWindow.g.i.cs
 BlogWrite/obj/Debug/Styles
 BlogWrite/obj/Debug/Styles/Colors.baml
+.vs/BlogWrite/v15/Server/sqlite3/storage.ide-shm
+.vs/BlogWrite/v15/Server/sqlite3/storage.ide-wal

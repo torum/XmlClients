@@ -6,6 +6,8 @@
         xmlns:local="clr-namespace:BlogWrite.Views"
         mc:Ignorable="d"
         Background="Black"
+                  
+        BorderThickness="0.8 0.8 0.8 0.8"
         
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
                   

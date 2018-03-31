@@ -31,21 +31,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
+using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Xml;
-using System.Xml.Linq;
 using BlogWrite.Common;
 using BlogWrite.Models;
-using System.Globalization;
 using BlogWrite.Models.Clients;
-
 
 namespace BlogWrite.ViewModels
 {
@@ -667,8 +660,16 @@ namespace BlogWrite.ViewModels
         {
             System.Diagnostics.Debug.WriteLine("WindowClosingCommand");
 
+            if (_services == null)
+                return;
 
-            BlogWrite.Properties.Settings.Default.Profiles.Profiles = null;
+            if (Properties.Settings.Default.Profiles == null)
+                return;
+
+            if (Properties.Settings.Default.Profiles.Profiles == null)
+                return;
+
+                BlogWrite.Properties.Settings.Default.Profiles.Profiles = null;
             BlogWrite.Properties.Settings.Default.Profiles.Profiles = _services.AsXmlDoc();
 
             // Save settings.
