@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BlogWrite.Views"
         mc:Ignorable="d"
-        Background="Black"
+        Background="Transparent"
                   
         BorderThickness="0.8 0.8 0.8 0.8"
         

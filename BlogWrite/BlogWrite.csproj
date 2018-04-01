@@ -74,7 +74,9 @@
     </Compile>
     <Compile Include="Helpers\RichTextBoxDocumentHelper.cs" />
     <Compile Include="Helpers\WebBrowserBindHTMLBehavior.cs" />
-    <Compile Include="Models\Clients\AtomClient.cs" />
+    <Compile Include="Models\Atom\AtomPublishingProtocol.cs" />
+    <Compile Include="Models\Atom\AtomSyndicationFormat.cs" />
+    <Compile Include="Models\Clients\AtomPubClient.cs" />
     <Compile Include="Models\Clients\DiscoveryClient.cs" />
     <Compile Include="Models\Clients\XmlRpcClient.cs" />
     <Compile Include="Models\Discovery.cs" />
@@ -128,7 +130,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Models\Servies.cs" />
+    <Compile Include="Models\Service.cs" />
     <Compile Include="Models\Collection.cs" />
     <Compile Include="Models\Entry.cs" />
     <Compile Include="Models\Node.cs" />

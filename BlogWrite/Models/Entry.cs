@@ -1,13 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
+﻿/// 
+/// 
+/// BlogWrite 
+///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
+/// https://github.com/torum/BlogWrite
+/// 
+/// 
+
+using BlogWrite.Models.Clients;
+using System;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
-using System.Xml.Linq;
-using BlogWrite.Models.Clients;
 
 namespace BlogWrite.Models
 {
@@ -49,10 +53,10 @@ namespace BlogWrite.Models
                     return null;
                 if (this.Parent.Parent == null)
                     return null;
-                if (!(this.Parent.Parent is NodeServies))
+                if (!(this.Parent.Parent is NodeService))
                     return null;
 
-                return (this.Parent.Parent as NodeServies).Client;
+                return (this.Parent.Parent as NodeService).Client;
             }
         }
     }

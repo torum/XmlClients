@@ -1,4 +1,12 @@
-﻿using System;
+﻿/// 
+/// 
+/// BlogWrite 
+///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
+/// https://github.com/torum/BlogWrite
+/// 
+/// 
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,9 +24,9 @@ namespace BlogWrite.Models.Clients
 
         }
 
-        public override async Task<NodeServies> GetAccount(string accountName)
+        public override async Task<NodeService> GetAccount(string accountName)
         {
-            NodeServies account = new NodeServies(accountName, _userName, _userPassword, _endpoint, NodeServies.ApiTypes.atXMLRPC);
+            NodeService account = new NodeService(accountName, _userName, _userPassword, _endpoint, NodeService.ApiTypes.atXMLRPC);
 
             NodeCollections blogs = await GetBlogs();
 

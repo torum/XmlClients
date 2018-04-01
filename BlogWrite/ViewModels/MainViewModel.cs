@@ -1,20 +1,20 @@
 ﻿/// 
 /// 
-/// BlogWrite
+/// BlogWrite 
+///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
 /// https://github.com/torum/BlogWrite
 /// 
-/// Copyright by torum unless otherwise stated.
 /// 
 /// TODO:
 /// -- Priority 1 --
-///  Add Service form.
+///  Add Service form and Service Discovery.
 ///  
-///  Atom Publishing protocol:
-///  https://tools.ietf.org/html/rfc4287
+///
+/// Atom Publishing protocol:
 ///  https://tools.ietf.org/html/rfc5023
 ///  
 ///    Manage Category document.
-///    
+///        
 ///  Wordpress XML-RPC API:
 ///    https://codex.wordpress.org/XML-RPC_WordPress_API
 ///    
@@ -26,13 +26,20 @@
 ///    
 ///  Blogger API
 ///    https://codex.wordpress.org/XML-RPC_Blogger_API
+///    
+///  AtomAPI
+///    //
 ///  
 /// -- Priority 2 --
-///  Better error messages for users.
-///
+/// 
+/// 
+/// 
 /// Known issues:
 /// 
-/// Hatena: no service discovery, no category doc in service doc, no media files support.
+/// Hatena AtomPub:
+///   No service discovery in HTML, no category suport in Srv Doc, no media files support in protocol.
+///   PubContrl draft "no" is not allowed once published.
+///   
 
 
 using System;

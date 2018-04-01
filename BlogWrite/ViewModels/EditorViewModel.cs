@@ -1,8 +1,10 @@
-﻿
+﻿/// 
 /// 
-/// 
-/// BlogWrite
+/// BlogWrite 
+///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
 /// https://github.com/torum/BlogWrite
+/// 
+/// 
 /// 
 /// TODO:
 /// -- Priority 1 --

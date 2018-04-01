@@ -1,13 +1,22 @@
-﻿using System;
+﻿/// 
+/// 
+/// BlogWrite 
+///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
+/// https://github.com/torum/BlogWrite
+/// 
+/// 
+
+using System;
 using System.Windows.Input;
 using System.Net.Http;
 using BlogWrite.Common;
+using BlogWrite.Models.Clients;
 
 namespace BlogWrite.ViewModels
 {
     public class ServiceDiscoveryViewModel : ViewModelBase
     {
-        private HttpClient _httpClient;
+        private DiscoveryClient _dClient;
         private bool _isBusy;
         private string _websiteOrEndpointUrl;
 
@@ -42,7 +51,7 @@ namespace BlogWrite.ViewModels
         {
             get
             {
-                return _websiteOrEndpointUrl;
+                return "http://torum.jp/";//_websiteOrEndpointUrl;
             }
             set
             {
@@ -60,7 +69,7 @@ namespace BlogWrite.ViewModels
         /// <summary>Constructor.</summary>
         public ServiceDiscoveryViewModel()
         {
-            _httpClient = new HttpClient();
+            _dClient = new DiscoveryClient();
 
             CheckEndpointCommand = new RelayCommand(CheckEndpointCommand_Execute, CheckEndpointCommand_CanExecute);
 
@@ -88,17 +97,23 @@ namespace BlogWrite.ViewModels
             if (String.IsNullOrEmpty(WebsiteOrEndpointUrl))
                 return;
 
+            Uri uri;
+            try
+            { 
+                uri = new Uri(WebsiteOrEndpointUrl);
+            }
+            catch
+            {
+                // TODO make use of ErrorInfo
+                return;
+            }
+
             IsBusy = true;
             try
             {
-                var HTTPResponseMessage = await _httpClient.GetAsync(WebsiteOrEndpointUrl);
+                
+                _dClient.DiscoverService(uri);
 
-                if (HTTPResponseMessage.IsSuccessStatusCode)
-                {
-                    string s = await HTTPResponseMessage.Content.ReadAsStringAsync();
-
-                    System.Diagnostics.Debug.WriteLine("GET returned: " + s);
-                }
             }
             finally
             {

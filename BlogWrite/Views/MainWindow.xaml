@@ -244,10 +244,10 @@
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
             <TreeView.ItemContainerStyle>
-                <Style TargetType="TreeViewItem" BasedOn="{StaticResource TreeviewStyle}">
+                <Style TargetType="TreeViewItem" BasedOn="{StaticResource TreeviewItemStyle}">
                     <Setter Property="OverridesDefaultStyle" Value="False" />
-                    <Setter Property="IsExpanded" Value="{Binding Expanded}"/>
-                    <Setter Property="IsSelected" Value="{Binding Selected}"/>
+                    <Setter Property="IsExpanded" Value="{Binding Expanded, Mode=TwoWay}"/>
+                    <Setter Property="IsSelected" Value="{Binding Selected, Mode=TwoWay}"/>
                 </Style>
             </TreeView.ItemContainerStyle>
         </helpers:TreeViewSelectedItemHelper>

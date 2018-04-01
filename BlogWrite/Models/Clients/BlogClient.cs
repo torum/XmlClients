@@ -1,4 +1,12 @@
-﻿using System;
+﻿/// 
+/// 
+/// BlogWrite 
+///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
+/// https://github.com/torum/BlogWrite
+/// 
+/// 
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,7 +36,7 @@ namespace BlogWrite.Models.Clients
 
         }
 
-        public abstract Task<NodeServies> GetAccount(string accountName);
+        public abstract Task<NodeService> GetAccount(string accountName);
 
         public abstract Task<NodeCollections> GetBlogs();
 
@@ -73,9 +81,7 @@ namespace BlogWrite.Models.Clients
 
         private HTTPConnection()
         {
-
             _httpClient = new HttpClient();
-
         }
 
 

@@ -159,7 +159,7 @@ namespace BlogWrite
 
         public void LaunchServiceDiscoveryWindow(Window owner)
         {
-            // Before opening the window, make sure no other window is open.
+            // TODO: Before opening the window, make sure no other window is open.
             // If a user minimize and restore, Modal window can get behind of the child window.
 
             var win = new ServiceDiscoveryWindow();

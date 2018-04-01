@@ -1,8 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿/// 
+/// 
+/// BlogWrite 
+///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
+/// https://github.com/torum/BlogWrite
+/// 
+/// 
+
+using System;
 
 namespace BlogWrite.Models
 {

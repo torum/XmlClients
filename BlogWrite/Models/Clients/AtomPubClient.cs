@@ -1,4 +1,18 @@
-﻿using System;
+﻿/// 
+/// 
+/// BlogWrite 
+///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
+/// https://github.com/torum/BlogWrite
+/// 
+/// 
+/// Atom Syndication Format:
+///  https://tools.ietf.org/html/rfc4287
+/// Atom Publishing protocol:
+///  https://tools.ietf.org/html/rfc5023
+///  
+/// 
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,9 +25,9 @@ using BlogWrite.Models.Clients;
 
 namespace BlogWrite.Models.Clients
 {
-    class AtomClient : BlogClient
+    class AtomPubClient : BlogClient
     {
-        public AtomClient(string userName, string userPassword, Uri endpoint) : base(userName, userPassword, endpoint)
+        public AtomPubClient(string userName, string userPassword, Uri endpoint) : base(userName, userPassword, endpoint)
         {
             //TODO:
             _HTTPConn.Client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
@@ -21,9 +35,9 @@ namespace BlogWrite.Models.Clients
                 Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", userName, userPassword))));
         }
 
-        public override async Task<NodeServies> GetAccount(string accountName)
+        public override async Task<NodeService> GetAccount(string accountName)
         {
-            NodeServies account = new NodeServies(accountName, _userName, _userPassword, _endpoint, NodeServies.ApiTypes.atAtom);
+            NodeService account = new NodeService(accountName, _userName, _userPassword, _endpoint, NodeService.ApiTypes.atAtomPub);
 
             NodeCollections blogs = await GetBlogs();
             foreach (var item in blogs.Children)

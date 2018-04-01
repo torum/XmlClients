@@ -1,23 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
+﻿/// 
+/// 
+/// BlogWrite 
+///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
+/// https://github.com/torum/BlogWrite
+/// 
+/// 
+
 using BlogWrite.Models.Clients;
+using System;
+using System.Xml;
 
 namespace BlogWrite.Models
 {
-    /*
-    public class NodeServies : NodeTree
-    {
-        public NodeServies() {}
-    }
-    */
 
-    public class NodeServies : NodeTree
+    public class NodeService : NodeTree
     {
         public Uri EndPoint {get;set;}
         public string UserName { get; set; }
@@ -26,14 +22,15 @@ namespace BlogWrite.Models
 
         public enum ApiTypes
         {
-            atAtom,
-            atXMLRPC
+            atAtomPub,
+            atXMLRPC,
+            atAtomAPI
         }
 
         public BlogClient Client { get; }
         public string ID { get; }
 
-        public NodeServies(string name, string username, string password, Uri endPoint, ApiTypes api) : base(name)
+        public NodeService(string name, string username, string password, Uri endPoint, ApiTypes api) : base(name)
         {
             UserName = username;
             UserPassword = password;
@@ -42,8 +39,8 @@ namespace BlogWrite.Models
 
             switch (api)
             {
-                case ApiTypes.atAtom:
-                    Client = new AtomClient(UserName, UserPassword, EndPoint);
+                case ApiTypes.atAtomPub:
+                    Client = new AtomPubClient(UserName, UserPassword, EndPoint);
                     break;
                 case ApiTypes.atXMLRPC:
                     Client = new XmlRpcClient(UserName, UserPassword, EndPoint);
@@ -98,21 +95,24 @@ namespace BlogWrite.Models
                         && (!string.IsNullOrEmpty(userPassword))
                         && (!string.IsNullOrEmpty(endpoint)))
                     {
-                        NodeServies.ApiTypes at;
+                        NodeService.ApiTypes at;
                         switch (api)
                         {
                             case "Atom":
-                                at = NodeServies.ApiTypes.atAtom;
+                                at = NodeService.ApiTypes.atAtomPub;
                                 break;
                             case "XML-RPC":
-                                at = NodeServies.ApiTypes.atXMLRPC;
+                                at = NodeService.ApiTypes.atXMLRPC;
+                                break;
+                            case "AtomAPI":
+                                at = NodeService.ApiTypes.atAtomAPI;
                                 break;
                             default:
-                                at = NodeServies.ApiTypes.atAtom;
+                                at = NodeService.ApiTypes.atAtomPub;
                                 break;
                         }
 
-                        NodeServies account = new NodeServies(accountName, userName, userPassword, new Uri(endpoint), at);
+                        NodeService account = new NodeService(accountName, userName, userPassword, new Uri(endpoint), at);
                         account.Selected = isSelecteds;
                         account.Expanded = isExpandeds;
                         account.Parent = null;
@@ -177,7 +177,7 @@ namespace BlogWrite.Models
 
             foreach (var s in this.Children)
             {
-                if (!(s is NodeServies)) continue;
+                if (!(s is NodeService)) continue;
 
                 XmlElement service = doc.CreateElement(string.Empty, "Service", string.Empty);
 
@@ -194,26 +194,30 @@ namespace BlogWrite.Models
                 service.SetAttributeNode(attrss);
 
                 XmlAttribute attrsn = doc.CreateAttribute("UserName");
-                attrsn.Value = ((NodeServies)s).UserName;
+                attrsn.Value = ((NodeService)s).UserName;
                 service.SetAttributeNode(attrsn);
 
                 XmlAttribute attrsp = doc.CreateAttribute("UserPassword");
-                attrsp.Value = ((NodeServies)s).UserPassword;
+                attrsp.Value = ((NodeService)s).UserPassword;
                 service.SetAttributeNode(attrsp);
 
                 XmlAttribute attrse = doc.CreateAttribute("EndPoint");
-                attrse.Value = ((NodeServies)s).EndPoint.AbsoluteUri;
+                attrse.Value = ((NodeService)s).EndPoint.AbsoluteUri;
                 service.SetAttributeNode(attrse);
 
                 XmlAttribute atapi = doc.CreateAttribute("Api");
-                switch (((NodeServies)s).Api)
+                switch (((NodeService)s).Api)
                 {
-                    case NodeServies.ApiTypes.atAtom:
+                    case NodeService.ApiTypes.atAtomPub:
                         atapi.Value = "Atom";
                         service.SetAttributeNode(atapi);
                         break;
-                    case NodeServies.ApiTypes.atXMLRPC:
+                    case NodeService.ApiTypes.atXMLRPC:
                         atapi.Value = "XML-RPC";
+                        service.SetAttributeNode(atapi);
+                        break;
+                    case NodeService.ApiTypes.atAtomAPI:
+                        atapi.Value = "AtomAPI";
                         service.SetAttributeNode(atapi);
                         break;
                 }
