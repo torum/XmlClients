@@ -18,72 +18,133 @@ using System.IO;
 using System.Runtime.InteropServices.ComTypes;
 using System.Diagnostics;
 
-namespace BlogWrite.Models.Clients
+namespace BlogWrite.Models
 {
-    public class DiscoveryClient
+    /// <summary>
+    /// 
+    /// </summary>
+    class ServiceResult
     {
-        private HTTPConnection _HTTPConn;
+        private ServiceDiscovery.ServiceTypes _service;
 
-        private ServiceDocumentKind _serviceDocKind;
+
+        public ServiceDiscovery.ServiceTypes ServiceType
+        {
+            get
+            {
+                return _service;
+            }
+        }
+
+        public Uri EndpointUri;
+
+
+        public string Err { get; set; }
+
+        public ServiceResult(ServiceDiscovery.ServiceTypes type, Uri ep)
+        {
+            _service = type;
+            EndpointUri = ep;
+        }
+
+        public ServiceResult()
+        {
+            _service = ServiceDiscovery.ServiceTypes.Unknown;
+            EndpointUri = null;
+        }
+
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    class ServiceDiscovery
+    {
+        private HttpClient _httpClient;
+        private _serviceDocumentKind _serviceDocKind;
         private string _serviceDocUrl;
+        private Uri _endpointUrl;
 
-        public enum ServiceDocumentKind
+        private enum _serviceDocumentKind
         {
             RSD,
             AtomSrv,
             Unknown
         }
 
-        
-        public enum RsdApiType
+        private enum _rsdApiType
         {
-            WordPress,
-            MovableType,
-            MetaWeblog,
-            Blogger,
-            WPAPI,
-            AtomAPI
+            WordPress,      // WordPress XML-RPC
+            MovableType,    // Movable Type XML-RPC
+            MetaWeblog,     // Used with Movable Type XML-RPC API
+            Blogger,        // Deprecated. May be used with Movable Type XML-RPC API
+            WPAPI,          // WordPress REST Jason API
+            AtomAPI         // Deprecated Atom 0.3 API
         }
 
-        public DiscoveryClient()
+        private enum _atomType
         {
-
-            _HTTPConn = HTTPConnection.Instance;
-
-            _serviceDocKind = ServiceDocumentKind.Unknown;
-
+            atomFeed,
+            atomPub,
+            atomAPI,
+            atomGData
         }
 
-        public async void DiscoverService(Uri addr)
+        public enum ServiceTypes
         {
-            var HTTPResponseMessage = await _HTTPConn.Client.GetAsync(addr);
+            AtomPub,
+            AtomPub_Hatena,
+            XmlRpc_WordPress,
+            XmlRpc_MovableType,
+            AtomApi,
+            AtomApi_GData,
+            Unknown
+        }
+
+        public ServiceDiscovery()
+        {
+            _httpClient = new HttpClient();
+
+            _serviceDocKind = _serviceDocumentKind.Unknown;
+        }
+
+        #region == Methods ==
+
+        public async Task<ServiceResult> DiscoverService(Uri addr)
+        {
+            ServiceResult sr = new ServiceResult();
+
+            var HTTPResponseMessage = await _httpClient.GetAsync(addr);
 
             if (HTTPResponseMessage.IsSuccessStatusCode)
             {
                 if (HTTPResponseMessage.Content == null)
-                    return;
+                {
+                    sr.Err = "Did not return any content. Content empty.";
+                    return sr;
+                }
 
                 string contenTypeString =  HTTPResponseMessage.Content.Headers.GetValues("Content-Type").FirstOrDefault();
 
                 if (!string.IsNullOrEmpty(contenTypeString))
                 {
                     System.Diagnostics.Debug.WriteLine("GET Content-Type header is: " + contenTypeString);
-                    //text/html; charset=UTF-8
 
                     if (contenTypeString.StartsWith("text/html"))
                     {
 
                         ParseHTML(HTTPResponseMessage.Content);
 
-                        if (_serviceDocKind == ServiceDocumentKind.AtomSrv)
+                        if (_serviceDocKind == _serviceDocumentKind.AtomSrv)
                         {
                             // return
                         }
-                        else if (_serviceDocKind == ServiceDocumentKind.RSD)
+                        else if (_serviceDocKind == _serviceDocumentKind.RSD)
                         {
                             //
+                            ParseRSD(HTTPResponseMessage.Content);
                         }
-                        else
+                        else 
                         {
                             //could be xml-rpc endpoint
                             //http://torum.jp/ja/xmlrpc.php
@@ -95,7 +156,7 @@ namespace BlogWrite.Models.Clients
                     }
                     else if (contenTypeString.StartsWith("application/atomsvc+xml"))
                     {
-                        _serviceDocKind = ServiceDocumentKind.AtomSrv;
+                        _serviceDocKind = _serviceDocumentKind.AtomSrv;
                         _serviceDocUrl = addr.AbsoluteUri;
 
                         // return
@@ -106,14 +167,17 @@ namespace BlogWrite.Models.Clients
                         ParseRSD(HTTPResponseMessage.Content);
                     }
 
-
+                }
+                else
+                {
+                    sr.Err = "Content-Type did not match.";
+                    return sr;
                 }
 
-
-
             }
-        }
 
+            return sr;
+        }
 
         private async void ParseHTML(HttpContent content)
         {
@@ -163,7 +227,7 @@ namespace BlogWrite.Models.Clients
                                 string hf = (e as IHTMLElement).getAttribute("href", 0);
                                 if (!string.IsNullOrEmpty(hf))
                                 {
-                                    _serviceDocKind = ServiceDocumentKind.RSD;
+                                    _serviceDocKind = _serviceDocumentKind.RSD;
                                     _serviceDocUrl = hf;
 
                                     Debug.WriteLine("ServiceDocumentKind is: RSD " + _serviceDocUrl);
@@ -179,7 +243,7 @@ namespace BlogWrite.Models.Clients
                                         string hf = (e as IHTMLElement).getAttribute("href", 0);
                                         if (!string.IsNullOrEmpty(hf))
                                         {
-                                            _serviceDocKind = ServiceDocumentKind.AtomSrv;
+                                            _serviceDocKind = _serviceDocumentKind.AtomSrv;
                                             _serviceDocUrl = hf;
 
                                             Debug.WriteLine("ServiceDocumentKind is: AtomSrv " + _serviceDocUrl);
@@ -202,7 +266,63 @@ namespace BlogWrite.Models.Clients
             //
         }
 
+        #endregion
     }
+
+
+    // RSD XML-RPC or AtomAPI
+    // Content-Type: application/rsd+xml
+
+    /*
+    <?xml version="1.0" encoding="UTF-8"?>
+    <rsd version="1.0" xmlns="http://archipelago.phrasewise.com/rsd">
+      <service>
+        <engineName>WordPress</engineName>
+        <engineLink>https://wordpress.org/</engineLink>
+        <homePageLink>http://1270.0.0.1</homePageLink>
+        <apis>
+          <api name="WordPress" blogID="1" preferred="true" apiLink="http://1270.0.0.1/xmlrpc.php" />
+          <api name="Movable Type" blogID="1" preferred="false" apiLink="http://1270.0.0.1/xmlrpc.php" />
+          <api name="MetaWeblog" blogID="1" preferred="false" apiLink="http://1270.0.0.1xmlrpc.php" />
+          <api name="Blogger" blogID="1" preferred="false" apiLink="http://1270.0.0.1/xmlrpc.php" />
+          <api name="WP-API" blogID="1" preferred="false" apiLink="http://1270.0.0.1/wp-json/" />
+        </apis>
+      </service>
+    </rsd>
+    */
+
+    // AtomAPI at vox
+    // Content-Type: application/atom+xml
+
+    /*
+    <?xml version="1.0" encoding="utf-8"?>
+    <feed xmlns="http://purl.org/atom/ns#">
+        <link xmlns="http://purl.org/atom/ns#" rel="service.post" href="http://www.vox.com/services/atom/svc=post/collection_id=6a00c2251f52cd549d00c2251f5478604a" title="blog" type="application/x.atom+xml"/>
+        <link xmlns="http://purl.org/atom/ns#" rel="alternate" href="http://marumoto.vox.com/" title="blog" type="text/html"/>
+        <link xmlns="http://purl.org/atom/ns#" rel="service.feed" href="http://www.vox.com/services/atom/svc=asset/6p00c2251f52cd549d" title="blog" type="application/atom+xml"/>
+        <link xmlns="http://purl.org/atom/ns#" rel="service.upload" href="http://www.vox.com/services/atom/svc=asset" title="blog" type="application/atom+xml"/>
+        <link xmlns="http://purl.org/atom/ns#" rel="replies" href="http://www.vox.com/services/atom/svc=asset/6p00c2251f52cd549d/type=Comment" title="blog" type="application/atom+xml"/>
+    </feed>
+    */
+
+    // AtomAPI at livedoor http://cms.blog.livedoor.com/atom
+    // Content-Type: application/x.atom+xml
+
+    /*
+    <?xml version="1.0" encoding="UTF-8"?>
+    <feed xmlns="http://purl.org/atom/ns#">
+        <link xmlns="http://purl.org/atom/ns#" type="application/x.atom+xml" rel="service.post" href="http://cms.blog.livedoor.com/atom/blog_id=95864" title="hepcat de　ブログ"/>
+        <link xmlns="http://purl.org/atom/ns#" type="application/x.atom+xml" rel="service.feed" href="http://cms.blog.livedoor.com/atom/blog_id=95864" title="hepcat de　ブログ"/>
+        <link xmlns="http://purl.org/atom/ns#" type="application/x.atom+xml" rel="service.categories" href="http://cms.blog.livedoor.com/atom/blog_id=95864/svc=categories" title="hepcat de　ブログ"/>
+        <link xmlns="http://purl.org/atom/ns#" type="application/x.atom+xml" rel="service.upload" href="http://cms.blog.livedoor.com/atom/blog_id=95864/svc=upload" title="hepcat de　ブログ"/>
+    </feed>
+    */
+
+
+
+
+
+
 
     // TStreamAdapter
 
@@ -410,3 +530,4 @@ namespace BlogWrite.Models.Clients
         void InitNew();
     }
 }
+

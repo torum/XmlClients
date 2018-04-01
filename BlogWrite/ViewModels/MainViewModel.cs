@@ -16,6 +16,8 @@
 ///    Manage Category document.
 ///        
 ///  Wordpress XML-RPC API:
+///   https://codex.wordpress.org/XML-RPC_Support
+///   
 ///    https://codex.wordpress.org/XML-RPC_WordPress_API
 ///    
 ///  Movable Type API:

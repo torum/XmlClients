@@ -10,13 +10,13 @@ using System;
 using System.Windows.Input;
 using System.Net.Http;
 using BlogWrite.Common;
-using BlogWrite.Models.Clients;
+using BlogWrite.Models;
 
 namespace BlogWrite.ViewModels
 {
     public class ServiceDiscoveryViewModel : ViewModelBase
     {
-        private DiscoveryClient _dClient;
+        private ServiceDiscovery _serviceDiscovery;
         private bool _isBusy;
         private string _websiteOrEndpointUrl;
 
@@ -69,7 +69,7 @@ namespace BlogWrite.ViewModels
         /// <summary>Constructor.</summary>
         public ServiceDiscoveryViewModel()
         {
-            _dClient = new DiscoveryClient();
+            _serviceDiscovery = new ServiceDiscovery();
 
             CheckEndpointCommand = new RelayCommand(CheckEndpointCommand_Execute, CheckEndpointCommand_CanExecute);
 
@@ -111,16 +111,52 @@ namespace BlogWrite.ViewModels
             IsBusy = true;
             try
             {
-                
-                _dClient.DiscoverService(uri);
+                // 
+                ServiceResult sr = await _serviceDiscovery.DiscoverService(uri);
 
+                if (sr.Err != "")
+                {
+                    // ErrorInfo
+                    return;
+                }
+
+                //sr.EndpointUri
+
+                switch (sr.ServiceType)
+                {
+                    case ServiceDiscovery.ServiceTypes.AtomPub:
+                        //
+                        break;
+                    case ServiceDiscovery.ServiceTypes.AtomPub_Hatena:
+                        //
+                        break;
+                    case ServiceDiscovery.ServiceTypes.XmlRpc_WordPress:
+                        //
+                        break;
+                    case ServiceDiscovery.ServiceTypes.XmlRpc_MovableType:
+                        //
+                        break;
+                    case ServiceDiscovery.ServiceTypes.AtomApi:
+                        //
+                        break;
+                    case ServiceDiscovery.ServiceTypes.AtomApi_GData:
+                        //
+                        break;
+                    case ServiceDiscovery.ServiceTypes.Unknown:
+                        //
+                        break;
+
+                }
             }
             finally
             {
                 IsBusy = false;
             }
 
-            
+
+
+
+
         }
 
         #endregion

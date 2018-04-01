@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace XML.Atom
 {
@@ -41,6 +42,47 @@ namespace XML.Atom
 
 }
 
+/*
+<?xml version="1.0" encoding="UTF-8"?>
+<rsd version="1.0" xmlns="http://archipelago.phrasewise.com/rsd">
+  <service>
+    <engineName>WordPress</engineName>
+    <engineLink>https://wordpress.org/</engineLink>
+    <homePageLink>http://1270.0.0.1</homePageLink>
+    <apis>
+      <api name="WordPress" blogID="1" preferred="true" apiLink="http://1270.0.0.1/xmlrpc.php" />
+      <api name="Movable Type" blogID="1" preferred="false" apiLink="http://1270.0.0.1/xmlrpc.php" />
+      <api name="MetaWeblog" blogID="1" preferred="false" apiLink="http://1270.0.0.1xmlrpc.php" />
+      <api name="Blogger" blogID="1" preferred="false" apiLink="http://1270.0.0.1/xmlrpc.php" />
+      <api name="WP-API" blogID="1" preferred="false" apiLink="http://1270.0.0.1/wp-json/" />
+    </apis>
+  </service>
+</rsd>
+*/
+
+// HTML Head
+
+/////////////////////////////////////////////////////////////////////////
+
+/*
+AtomPub
+<link rel="SERVICE" type="application/atomsvc+xml" title="Atom" href="http://1270.0.0.1/app" />
+*/
+
+/*
+RSD XML-RPC or AtomAPI
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://1270.0.0.1/rsd" />
+*/
+
+/////////////////////////////////////////////////////////////////////////
+
+// Service documents
+
+// AtomAPI_NS='http://purl.org/atom/ns#';
+// Atom_NS='http://www.w3.org/2005/Atom';
+// Atom_APP_NS='http://www.w3.org/2007/app';
+
+/////////////////////////////////////////////////////////////////////////
 
 //Service Documents are identified with the "application/atomsvc+xml" media type
 
@@ -84,7 +126,6 @@ namespace XML.Atom
  */
 
 
-
 // AtomPub at wordpress
 // Content-Type: application/atomsvc+xml
 
@@ -124,6 +165,7 @@ namespace XML.Atom
 
 
 
+
 //Category Documents are identified with the "application/atomcat+xml" media type
 
 /*
@@ -138,8 +180,11 @@ namespace XML.Atom
        </app:categories>
      */
 
-    
+
 ///////////////////////////////////////////////////////////////////////////
+
+
+
 
 /*
  type

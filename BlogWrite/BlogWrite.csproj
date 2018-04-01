@@ -77,9 +77,8 @@
     <Compile Include="Models\Atom\AtomPublishingProtocol.cs" />
     <Compile Include="Models\Atom\AtomSyndicationFormat.cs" />
     <Compile Include="Models\Clients\AtomPubClient.cs" />
-    <Compile Include="Models\Clients\DiscoveryClient.cs" />
     <Compile Include="Models\Clients\XmlRpcClient.cs" />
-    <Compile Include="Models\Discovery.cs" />
+    <Compile Include="Models\ServiceDiscovery.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Views\EditorWindow.xaml.cs">
       <DependentUpon>EditorWindow.xaml</DependentUpon>
@@ -130,7 +129,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Models\Service.cs" />
+    <Compile Include="Models\ServiceTree.cs" />
     <Compile Include="Models\Collection.cs" />
     <Compile Include="Models\Entry.cs" />
     <Compile Include="Models\Node.cs" />
