@@ -1,14 +1,5 @@
 # BlogWrite
 
-C#/WPF port of "BlogWrite" made with Delphi.
+A C#/WPF port of "BlogWrite" made with Delphi.
 
-## Supported protocol
 
-#### Atom Publishing protocol 
-* Hatena extention: work in progress.
-
-#### XML-RPC
-* Blogger API: not yet started.
-* metaWeblog API: not yet started.
-* Movable Type API: not yet started.
-* WordPress API: not yet started.
