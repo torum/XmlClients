@@ -165,6 +165,7 @@ namespace BlogWrite
             var win = new ServiceDiscoveryWindow();
             win.DataContext = new ServiceDiscoveryViewModel();
             win.Owner = owner;
+            win.ResizeMode = ResizeMode.NoResize;
             win.ShowDialog();
         }
 

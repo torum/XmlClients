@@ -37,7 +37,7 @@ namespace BlogWrite.Models.Clients
 
         public override async Task<NodeService> GetAccount(string accountName)
         {
-            NodeService account = new NodeService(accountName, _userName, _userPassword, _endpoint, NodeService.ApiTypes.atAtomPub);
+            NodeService account = new NodeService(accountName, _userName, _userPassword, _endpoint, ApiTypes.atAtomPub);
 
             NodeCollections blogs = await GetBlogs();
             foreach (var item in blogs.Children)
@@ -382,6 +382,9 @@ namespace BlogWrite.Models.Clients
 
         public override async Task<EntryFull> GetFullEntry(Uri entryUri)
         {
+            // TODO: 
+            // ETAG If-None-Match 
+
             var HTTPResponseMessage = await _HTTPConn.Client.GetAsync(entryUri);
 
             string s = await HTTPResponseMessage.Content.ReadAsStringAsync();
@@ -459,6 +462,9 @@ namespace BlogWrite.Models.Clients
 
             entry.Content = cont.InnerText;
 
+
+            //TODO: Save ETag
+            //HTTPResponseMessage.Content
 
             /*
             // Hatena's formatted-content

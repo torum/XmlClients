@@ -26,7 +26,7 @@ namespace BlogWrite.Models.Clients
 
         public override async Task<NodeService> GetAccount(string accountName)
         {
-            NodeService account = new NodeService(accountName, _userName, _userPassword, _endpoint, NodeService.ApiTypes.atXMLRPC);
+            NodeService account = new NodeService(accountName, _userName, _userPassword, _endpoint, ApiTypes.atXMLRPC);
 
             NodeCollections blogs = await GetBlogs();
 

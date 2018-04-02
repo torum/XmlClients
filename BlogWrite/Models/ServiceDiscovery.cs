@@ -17,46 +17,38 @@ using System.Runtime.InteropServices;
 using System.IO;
 using System.Runtime.InteropServices.ComTypes;
 using System.Diagnostics;
+using System.Xml.Linq;
+using System.Xml;
 
 namespace BlogWrite.Models
 {
     /// <summary>
-    /// 
+    /// Service Discovery Result class.
     /// </summary>
     class ServiceResult
     {
-        private ServiceDiscovery.ServiceTypes _service;
-
-
-        public ServiceDiscovery.ServiceTypes ServiceType
-        {
-            get
-            {
-                return _service;
-            }
-        }
+        public ServiceTypes Service {get;set;}
 
         public Uri EndpointUri;
 
-
         public string Err { get; set; }
 
-        public ServiceResult(ServiceDiscovery.ServiceTypes type, Uri ep)
+        public ServiceResult(ServiceTypes type, Uri ep)
         {
-            _service = type;
+            Service = type;
             EndpointUri = ep;
         }
 
         public ServiceResult()
         {
-            _service = ServiceDiscovery.ServiceTypes.Unknown;
+            Service = ServiceTypes.Unknown;
             EndpointUri = null;
         }
 
     }
 
     /// <summary>
-    /// 
+    /// Service Discovery class.
     /// </summary>
     class ServiceDiscovery
     {
@@ -64,11 +56,13 @@ namespace BlogWrite.Models
         private _serviceDocumentKind _serviceDocKind;
         private string _serviceDocUrl;
         private Uri _endpointUrl;
+        private ServiceTypes _serviceTypes;
 
         private enum _serviceDocumentKind
         {
             RSD,
             AtomSrv,
+            AtomApi,
             Unknown
         }
 
@@ -82,6 +76,7 @@ namespace BlogWrite.Models
             AtomAPI         // Deprecated Atom 0.3 API
         }
 
+        /*
         private enum _atomType
         {
             atomFeed,
@@ -89,24 +84,24 @@ namespace BlogWrite.Models
             atomAPI,
             atomGData
         }
-
-        public enum ServiceTypes
-        {
-            AtomPub,
-            AtomPub_Hatena,
-            XmlRpc_WordPress,
-            XmlRpc_MovableType,
-            AtomApi,
-            AtomApi_GData,
-            Unknown
-        }
+        */
 
         public ServiceDiscovery()
         {
             _httpClient = new HttpClient();
 
             _serviceDocKind = _serviceDocumentKind.Unknown;
+
+            _serviceTypes = ServiceTypes.Unknown;
         }
+
+        #region == Events ==
+
+        public delegate void ServiceDiscoveryStatusUpdate(ServiceDiscovery sender, string data);
+
+        public event ServiceDiscoveryStatusUpdate StatusUpdate;
+
+        #endregion
 
         #region == Methods ==
 
@@ -114,42 +109,49 @@ namespace BlogWrite.Models
         {
             ServiceResult sr = new ServiceResult();
 
-            var HTTPResponseMessage = await _httpClient.GetAsync(addr);
+            UpdateStatus(">> Trying to access given URL...");// + addr.AbsoluteUri);
 
-            if (HTTPResponseMessage.IsSuccessStatusCode)
+            var HTTPResponse = await _httpClient.GetAsync(addr);
+
+            if (HTTPResponse.IsSuccessStatusCode)
             {
-                if (HTTPResponseMessage.Content == null)
+                if (HTTPResponse.Content == null)
                 {
+                    UpdateStatus("<< Received no content.");
                     sr.Err = "Did not return any content. Content empty.";
                     return sr;
                 }
 
-                string contenTypeString =  HTTPResponseMessage.Content.Headers.GetValues("Content-Type").FirstOrDefault();
+                string contenTypeString = HTTPResponse.Content.Headers.GetValues("Content-Type").FirstOrDefault();
 
                 if (!string.IsNullOrEmpty(contenTypeString))
                 {
-                    System.Diagnostics.Debug.WriteLine("GET Content-Type header is: " + contenTypeString);
+                    Debug.WriteLine("GET Content-Type header is: " + contenTypeString);
 
                     if (contenTypeString.StartsWith("text/html"))
                     {
+                        UpdateStatus("<< Returned a HTML webpage.");
 
-                        ParseHTML(HTTPResponseMessage.Content);
+                        bool x = await ParseHTML(HTTPResponse.Content);
 
                         if (_serviceDocKind == _serviceDocumentKind.AtomSrv)
                         {
-                            // return
+                            _endpointUrl = new Uri(_serviceDocUrl);
+                            _serviceTypes = ServiceTypes.AtomPub;
                         }
                         else if (_serviceDocKind == _serviceDocumentKind.RSD)
                         {
-                            //
-                            ParseRSD(HTTPResponseMessage.Content);
+                            bool y = await GetRSD();
                         }
-                        else 
+                        else
                         {
-                            //could be xml-rpc endpoint
-                            //http://torum.jp/ja/xmlrpc.php
+                            UpdateStatus(">> Did not find a service document link.");
 
-                            // try post some method.
+                            // Could be xml-rpc endpoint.
+                            UpdateStatus(">> Trying to test a few things...");
+
+                            // TODO: Try POST some method.
+                            UpdateStatus("Could not determine API from the HTML webpage.");
 
                         }
 
@@ -159,32 +161,73 @@ namespace BlogWrite.Models
                         _serviceDocKind = _serviceDocumentKind.AtomSrv;
                         _serviceDocUrl = addr.AbsoluteUri;
 
-                        // return
+                        // This is the AtomPub endpoint.
+                        _endpointUrl = addr;
+                        _serviceTypes = ServiceTypes.AtomPub;
+
+                        UpdateStatus("Found an Atom Publishing Protocol service document.");
+
                     }
                     else if (contenTypeString.StartsWith("application/rsd+xml"))
                     {
-                        //
-                        ParseRSD(HTTPResponseMessage.Content);
+                        bool y = await GetRSD();
+                    }
+                    else if (contenTypeString.StartsWith("application/atom+xml"))
+                    {
+                        // TODO:
+                        // Possibly AtomApi endopoint. Or Atom Feed...
+
+                        UpdateStatus("<< Atom format returned... Atom Feed is not supported.");
+                    }
+                    else if (contenTypeString.StartsWith("application/x.atom+xml"))
+                    {
+                        // TODO:
+                        // Possibly AtomApi endopoint.
+                        UpdateStatus("<< Atom format returned... Atom 0.3 is deprecated.");
+                    }
+                    else
+                    {
+                        UpdateStatus("<< Unknown Content-Type returned. " + contenTypeString + " is not supported.");
+                        sr.Err = "Content-Type unknown.";
                     }
 
                 }
                 else
                 {
                     sr.Err = "Content-Type did not match.";
+                    UpdateStatus("<< No Content-Type returned. ");
                     return sr;
                 }
 
             }
+            else
+            {
+                UpdateStatus("<< HTTP error: " + HTTPResponse.StatusCode.ToString());
+                UpdateStatus("Could not retrieve any content. ");
+
+                //TODO: If 401 Unauthorized,
+
+            }
+
+            sr.Service = _serviceTypes;
+            sr.EndpointUri = _endpointUrl;
+
+            Debug.WriteLine("EndpointUri: " + _endpointUrl + " Service: " + _serviceTypes.ToString());
+
+            UpdateStatus(Environment.NewLine +  "Finished.");
 
             return sr;
         }
 
-        private async void ParseHTML(HttpContent content)
+        private async Task<bool> ParseHTML(HttpContent content)
         {
+            UpdateStatus(">> Trying to parse a HTML document...");
 
             //Stream st = content.ReadAsStreamAsync().Result;
 
             string s = await content.ReadAsStringAsync();
+
+            UpdateStatus(">> Loading a HTML document...");
 
             mshtml.HTMLDocument hd = new mshtml.HTMLDocument();
             mshtml.IHTMLDocument2 hdoc = (mshtml.IHTMLDocument2)hd;
@@ -214,7 +257,9 @@ namespace BlogWrite.Models
 
             if (hdoc.readyState == "complete")
             {
-                
+
+                UpdateStatus(">> Checking HTML link tags...");
+
                 IHTMLElementCollection ElementCollection = hdoc.all;
                 foreach (var e in ElementCollection)
                 {
@@ -231,6 +276,9 @@ namespace BlogWrite.Models
                                     _serviceDocUrl = hf;
 
                                     Debug.WriteLine("ServiceDocumentKind is: RSD " + _serviceDocUrl);
+
+                                    UpdateStatus("Found a link to a RSD documnet.");
+
                                 }
                             }
                             else if (re.ToUpper() == "SERVICE")
@@ -247,6 +295,8 @@ namespace BlogWrite.Models
                                             _serviceDocUrl = hf;
 
                                             Debug.WriteLine("ServiceDocumentKind is: AtomSrv " + _serviceDocUrl);
+
+                                            UpdateStatus("Found a link to an Atom service documnet.");
                                         }
                                     }
                                 }
@@ -258,38 +308,163 @@ namespace BlogWrite.Models
                 
             }
 
+            return true;
+        }
+
+        private async Task<bool> GetRSD()
+        {
+            UpdateStatus(">> Trying to access the RSD document...");
+            
+            var HTTPResponse = await _httpClient.GetAsync(_serviceDocUrl);
+
+            if (!HTTPResponse.IsSuccessStatusCode)
+            {
+                UpdateStatus("<< HTTP error: " + HTTPResponse.StatusCode.ToString());
+                UpdateStatus("Failed to retrive the RSD document.");
+                return false;
+            }
+                
+            if (HTTPResponse.Content == null)
+            {
+                UpdateStatus("<< Returned no content.");
+                return false;
+            }
+
+            UpdateStatus("<< Returned a response.");
+
+            UpdateStatus(">> Loading a RSD document...");
+
+            var st = await HTTPResponse.Content.ReadAsStreamAsync();
+            if (st == null)
+                return false;
+
+            XmlDocument xdoc = new XmlDocument();
+            try
+            {
+                xdoc.Load(st);
+            }
+            catch (Exception e)
+            {
+                UpdateStatus("Load RSD failed.  Xml document error: " + e.Message);
+
+                Debug.WriteLine("LoadXml failed: " + e.Message);
+            }
+
+            // RSD: XML-RPC or AtomAPI or WP json
+            // Content-Type: application/rsd+xml
+
+            /*
+            <?xml version="1.0" encoding="UTF-8"?>
+            <rsd version="1.0" xmlns="http://archipelago.phrasewise.com/rsd">
+              <service>
+                <engineName>WordPress</engineName>
+                <engineLink>https://wordpress.org/</engineLink>
+                <homePageLink>http://1270.0.0.1</homePageLink>
+                <apis>
+                  <api name="WordPress" blogID="1" preferred="true" apiLink="http://1270.0.0.1/xmlrpc.php" />
+                  <api name="Movable Type" blogID="1" preferred="false" apiLink="http://1270.0.0.1/xmlrpc.php" />
+                  <api name="MetaWeblog" blogID="1" preferred="false" apiLink="http://1270.0.0.1xmlrpc.php" />
+                  <api name="Blogger" blogID="1" preferred="false" apiLink="http://1270.0.0.1/xmlrpc.php" />
+                  <api name="WP-API" blogID="1" preferred="false" apiLink="http://1270.0.0.1/wp-json/" />
+                </apis>
+              </service>
+            </rsd>
+            */
+
+            UpdateStatus(">> Trying to parsing the RSD documnet...");
+
+            XmlNamespaceManager NsMgr = new XmlNamespaceManager(xdoc.NameTable);
+            NsMgr.AddNamespace("rsd", "http://archipelago.phrasewise.com/rsd");
+
+            XmlNodeList apis = xdoc.SelectNodes("//rsd:rsd/rsd:service/rsd:apis/rsd:api", NsMgr);
+            if (apis == null)
+                return false;
+
+            var api = "";
+            foreach (XmlNode a in apis)
+            {
+                var apiLink = a.Attributes["apiLink"].Value;
+                if (!string.IsNullOrEmpty(apiLink))
+                {
+                    var nm = "";
+                    
+                    var pref = a.Attributes["preferred"].Value;
+                    if (pref.ToLower() == "true")
+                    {
+                        api = apiLink;
+                        
+                        nm = a.Attributes["name"].Value;
+                        if (!string.IsNullOrEmpty(nm))
+                        {
+                            if (nm.ToLower() == "wordpress")
+                            {
+                                _serviceTypes = ServiceTypes.XmlRpc_WordPress;
+
+                                UpdateStatus("Found WordPress API.");
+
+                                break;
+                            }
+                            else if (nm.ToLower() == "movable type")
+                            {
+                                _serviceTypes = ServiceTypes.XmlRpc_MovableType;
+
+                                UpdateStatus("Found Movable Type API.");
+
+                                break;
+                            }
+                        }
+                    }
+
+                    api = apiLink;
+
+                    nm = a.Attributes["name"].Value;
+                    if (!string.IsNullOrEmpty(nm))
+                    {
+                        if (nm.ToLower() == "wordpress")
+                        {
+                            _serviceTypes = ServiceTypes.XmlRpc_WordPress;
+
+                            UpdateStatus("Found WordPress API.");
+
+                            break;
+                        }
+                        else if (nm.ToLower() == "movable type")
+                        {
+                            _serviceTypes = ServiceTypes.XmlRpc_MovableType;
+
+                            UpdateStatus("Found Movable Type API.");
+
+                            break;
+                        }
+                    }
+
+                    
+                }
+            }
+
+            if (!string.IsNullOrEmpty(api))
+            {
+                _endpointUrl = new Uri(api);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
 
         }
 
-        private async void ParseRSD(HttpContent content)
+        private async void UpdateStatus(string data)
         {
-            //
+            await Task.Run(() => { StatusUpdate?.Invoke(this, data); });
         }
 
         #endregion
     }
 
 
-    // RSD XML-RPC or AtomAPI
-    // Content-Type: application/rsd+xml
+    ////////////////////////////////////////////////////////////////////////////////
 
-    /*
-    <?xml version="1.0" encoding="UTF-8"?>
-    <rsd version="1.0" xmlns="http://archipelago.phrasewise.com/rsd">
-      <service>
-        <engineName>WordPress</engineName>
-        <engineLink>https://wordpress.org/</engineLink>
-        <homePageLink>http://1270.0.0.1</homePageLink>
-        <apis>
-          <api name="WordPress" blogID="1" preferred="true" apiLink="http://1270.0.0.1/xmlrpc.php" />
-          <api name="Movable Type" blogID="1" preferred="false" apiLink="http://1270.0.0.1/xmlrpc.php" />
-          <api name="MetaWeblog" blogID="1" preferred="false" apiLink="http://1270.0.0.1xmlrpc.php" />
-          <api name="Blogger" blogID="1" preferred="false" apiLink="http://1270.0.0.1/xmlrpc.php" />
-          <api name="WP-API" blogID="1" preferred="false" apiLink="http://1270.0.0.1/wp-json/" />
-        </apis>
-      </service>
-    </rsd>
-    */
 
     // AtomAPI at vox
     // Content-Type: application/atom+xml
@@ -318,189 +493,7 @@ namespace BlogWrite.Models
     </feed>
     */
 
-
-
-
-
-
-
-    // TStreamAdapter
-
-    // https://msdn.microsoft.com/en-us/library/jj200585(v=vs.85).aspx
-
-    public class StreamWrapper : Stream
-    {
-        private IStream m_stream;
-
-        private void CheckDisposed()
-        {
-            if (m_stream == null)
-            {
-                throw new ObjectDisposedException("StreamWrapper");
-            }
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (m_stream != null)
-            {
-                Marshal.ReleaseComObject(m_stream);
-                m_stream = null;
-            }
-        }
-
-        public StreamWrapper(IStream stream)
-        {
-            if (stream == null)
-            {
-                throw new ArgumentNullException();
-            }
-
-            m_stream = stream;
-        }
-
-        public override bool CanRead
-        {
-            get
-            {
-                return true;
-            }
-        }
-
-        public override bool CanSeek
-        {
-            get
-            {
-                return true;
-            }
-        }
-
-        public override bool CanWrite
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        public override void Flush()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override long Length
-        {
-            get
-            {
-                CheckDisposed();
-
-                System.Runtime.InteropServices.ComTypes.STATSTG stat;
-                m_stream.Stat(out stat, 1); //STATFLAG_NONAME
-
-                return stat.cbSize;
-            }
-        }
-
-        public override long Position
-        {
-            get
-            {
-                return Seek(0, SeekOrigin.Current);
-            }
-            set
-            {
-                Seek(value, SeekOrigin.Begin);
-            }
-        }
-
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            CheckDisposed();
-
-            if (offset < 0 || count < 0 || offset + count > buffer.Length)
-            {
-                throw new ArgumentOutOfRangeException();
-            }
-
-            byte[] localBuffer = buffer;
-
-            if (offset > 0)
-            {
-                localBuffer = new byte[count];
-            }
-
-            IntPtr bytesReadPtr = Marshal.AllocCoTaskMem(sizeof(int));
-
-            try
-            {
-                m_stream.Read(localBuffer, count, bytesReadPtr);
-                int bytesRead = Marshal.ReadInt32(bytesReadPtr);
-
-                if (offset > 0)
-                {
-                    Array.Copy(localBuffer, 0, buffer, offset, bytesRead);
-                }
-
-                return bytesRead;
-            }
-            finally
-            {
-                Marshal.FreeCoTaskMem(bytesReadPtr);
-            }
-        }
-
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            CheckDisposed();
-
-            int dwOrigin;
-
-            switch (origin)
-            {
-                case SeekOrigin.Begin:
-
-                    dwOrigin = 0;   // STREAM_SEEK_SET
-                    break;
-
-                case SeekOrigin.Current:
-
-                    dwOrigin = 1;   // STREAM_SEEK_CUR
-                    break;
-
-                case SeekOrigin.End:
-
-                    dwOrigin = 2;   // STREAM_SEEK_END
-                    break;
-
-                default:
-
-                    throw new ArgumentOutOfRangeException();
-
-            }
-
-            IntPtr posPtr = Marshal.AllocCoTaskMem(sizeof(long));
-
-            try
-            {
-                m_stream.Seek(offset, dwOrigin, posPtr);
-                return Marshal.ReadInt64(posPtr);
-            }
-            finally
-            {
-                Marshal.FreeCoTaskMem(posPtr);
-            }
-        }
-
-        public override void SetLength(long value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            throw new NotImplementedException();
-        }
-    }
+    ////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -530,4 +523,5 @@ namespace BlogWrite.Models
         void InitNew();
     }
 }
+
 

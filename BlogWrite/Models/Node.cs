@@ -32,6 +32,7 @@ namespace BlogWrite.Models
                     return;
 
                 _name = value;
+
                 NotifyPropertyChanged("Name");
             }
         }
@@ -81,10 +82,10 @@ namespace BlogWrite.Models
                 if (_pathData == value)
                     return;
                 _pathData = value;
+
                 NotifyPropertyChanged("PathIcon");
             }
         }
-
 
         public bool Selected { get; set; }
 
@@ -98,7 +99,9 @@ namespace BlogWrite.Models
             {
                 if (_expanded == value)
                     return;
+
                 _expanded = value;
+
                 NotifyPropertyChanged("Expanded");
             }
         }
@@ -114,7 +117,10 @@ namespace BlogWrite.Models
             {
                 if (_parent == value)
                     return;
+
+
                 _parent = value;
+
                 NotifyPropertyChanged("Parent");
             }
         }
@@ -128,6 +134,7 @@ namespace BlogWrite.Models
             set
             {
                 _children = value;
+
                 NotifyPropertyChanged("Children");
             }
         }

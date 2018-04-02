@@ -6,28 +6,30 @@
 /// 
 /// 
 /// TODO:
+/// 
 /// -- Priority 1 --
-///  Add Service form and Service Discovery.
-///  
+///  Service Discovery.
+///  AtomPub Manage Category document.
 ///
-/// Atom Publishing protocol:
+/// 
+///  Atom Publishing protocol:
 ///  https://tools.ietf.org/html/rfc5023
 ///  
-///    Manage Category document.
-///        
-///  Wordpress XML-RPC API:
-///   https://codex.wordpress.org/XML-RPC_Support
+///  Problem Details for HTTP APIs
+///  https://tools.ietf.org/html/rfc7807
 ///   
-///    https://codex.wordpress.org/XML-RPC_WordPress_API
+///  Wordpress XML-RPC API:
+///  https://codex.wordpress.org/XML-RPC_Support
+///  https://codex.wordpress.org/XML-RPC_WordPress_API
 ///    
 ///  Movable Type API:
-///    https://codex.wordpress.org/XML-RPC_MovableType_API
+///  https://codex.wordpress.org/XML-RPC_MovableType_API
 ///    
 ///  MetaWeblog API
-///    https://codex.wordpress.org/XML-RPC_MetaWeblog_API
+///  https://codex.wordpress.org/XML-RPC_MetaWeblog_API
 ///    
 ///  Blogger API
-///    https://codex.wordpress.org/XML-RPC_Blogger_API
+///  https://codex.wordpress.org/XML-RPC_Blogger_API
 ///    
 ///  AtomAPI
 ///    //
@@ -739,4 +741,5 @@ namespace BlogWrite.ViewModels
             Profiles = new XmlDocument();
         }
     }
+
 }

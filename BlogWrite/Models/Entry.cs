@@ -70,6 +70,8 @@ namespace BlogWrite.Models
         private string _esDraft = "M6,2C4.89,2 4,2.9 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6M13,3.5L18.5,9H13V3.5M12,11A3,3 0 0,1 15,14V15H16V19H8V15H9V14C9,12.36 10.34,11 12,11M12,13A1,1 0 0,0 11,14V15H13V14C13,13.47 12.55,13 12,13Z";
         private string _esNormal = "M13,9H18.5L13,3.5V9M6,2H14L20,8V20A2,2 0 0,1 18,22H6C4.89,22 4,21.1 4,20V4C4,2.89 4.89,2 6,2M15,18V16H6V18H15M18,14V12H6V14H18Z";
         private string _esUpdating = "M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M12,18C9.95,18 8.19,16.76 7.42,15H9.13C9.76,15.9 10.81,16.5 12,16.5A3.5,3.5 0 0,0 15.5,13A3.5,3.5 0 0,0 12,9.5C10.65,9.5 9.5,10.28 8.9,11.4L10.5,13H6.5V9L7.8,10.3C8.69,8.92 10.23,8 12,8A5,5 0 0,1 17,13A5,5 0 0,1 12,18Z";
+        private string _esQueueUpdate = "M14,2H6C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M12.54,19.37V17.37H8.54V15.38H12.54V13.38L15.54,16.38L12.54,19.37M13,9V3.5L18.5,9H13Z";
+        private string _esQueuePost = "M13,9H18.5L13,3.5V9M6,2H14L20,8V20A2,2 0 0,1 18,22H6C4.89,22 4,21.1 4,20V4C4,2.89 4.89,2 6,2M11,15V12H9V15H6V17H9V20H11V17H14V15H11Z";
         private EntryStatus _es;
 
         // System unique id used for file name or unique id for table in db. We auto-generate at constructer.
@@ -111,7 +113,9 @@ namespace BlogWrite.Models
             esNew,
             esDraft,
             esNormal,
-            esUpdating
+            esUpdating,
+            esQueueUpdate,
+            esQueuePost
         }
 
         public EntryStatus Status {
@@ -145,6 +149,10 @@ namespace BlogWrite.Models
                         return _esNormal;
                     case EntryStatus.esUpdating:
                         return _esUpdating;
+                    case EntryStatus.esQueueUpdate:
+                        return _esQueueUpdate;
+                    case EntryStatus.esQueuePost:
+                        return _esQueuePost;
                     default: return _esNew;
                 }
             }
@@ -216,6 +224,7 @@ namespace BlogWrite.Models
     public class AtomEntry : EntryFull
     {
         public string ContentTypeString { get; set; }
+        public string ETag { get; set; }
 
         public AtomEntry(string title, BlogClient bc) : base(title, bc)
         {

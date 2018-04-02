@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Net.Http;
 using BlogWrite.Common;
 using BlogWrite.Models;
+using System.Windows;
 
 namespace BlogWrite.ViewModels
 {
@@ -19,6 +20,7 @@ namespace BlogWrite.ViewModels
         private ServiceDiscovery _serviceDiscovery;
         private bool _isBusy;
         private string _websiteOrEndpointUrl;
+        private string _statusString;
 
         #region == Properties ==
 
@@ -51,7 +53,7 @@ namespace BlogWrite.ViewModels
         {
             get
             {
-                return "http://torum.jp/";//_websiteOrEndpointUrl;
+                return _websiteOrEndpointUrl;
             }
             set
             {
@@ -64,12 +66,31 @@ namespace BlogWrite.ViewModels
             }
         }
 
+        public string StatusText
+        {
+            get
+            {
+                return _statusString;
+            }
+            private set
+            {
+                if (_statusString == value)
+                    return;
+
+                _statusString = value;
+
+                NotifyPropertyChanged(nameof(StatusText));
+            }
+        }
+
         #endregion
 
         /// <summary>Constructor.</summary>
         public ServiceDiscoveryViewModel()
         {
             _serviceDiscovery = new ServiceDiscovery();
+
+            _serviceDiscovery.StatusUpdate += new ServiceDiscovery.ServiceDiscoveryStatusUpdate(OnStatusUpdate);
 
             CheckEndpointCommand = new RelayCommand(CheckEndpointCommand_Execute, CheckEndpointCommand_CanExecute);
 
@@ -80,6 +101,14 @@ namespace BlogWrite.ViewModels
         #endregion
 
         #region == Methods ==
+
+        private void OnStatusUpdate(ServiceDiscovery sender, string data)
+        {
+            System.Diagnostics.Debug.WriteLine(data);
+
+            StatusText = StatusText + Environment.NewLine + data;
+
+        }
 
         #endregion
 
@@ -116,33 +145,34 @@ namespace BlogWrite.ViewModels
 
                 if (sr.Err != "")
                 {
-                    // ErrorInfo
+                    // TODO ErrorInfo
                     return;
                 }
 
+                //
                 //sr.EndpointUri
 
-                switch (sr.ServiceType)
+                switch (sr.Service)
                 {
-                    case ServiceDiscovery.ServiceTypes.AtomPub:
+                    case ServiceTypes.AtomPub:
                         //
                         break;
-                    case ServiceDiscovery.ServiceTypes.AtomPub_Hatena:
+                    case ServiceTypes.AtomPub_Hatena:
                         //
                         break;
-                    case ServiceDiscovery.ServiceTypes.XmlRpc_WordPress:
+                    case ServiceTypes.XmlRpc_WordPress:
                         //
                         break;
-                    case ServiceDiscovery.ServiceTypes.XmlRpc_MovableType:
+                    case ServiceTypes.XmlRpc_MovableType:
                         //
                         break;
-                    case ServiceDiscovery.ServiceTypes.AtomApi:
+                    case ServiceTypes.AtomApi:
                         //
                         break;
-                    case ServiceDiscovery.ServiceTypes.AtomApi_GData:
+                    case ServiceTypes.AtomApi_GData:
                         //
                         break;
-                    case ServiceDiscovery.ServiceTypes.Unknown:
+                    case ServiceTypes.Unknown:
                         //
                         break;
 

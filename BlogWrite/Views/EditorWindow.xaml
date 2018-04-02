@@ -236,6 +236,8 @@
             <ctr:HTMLBrowserEdit/>
             -->
             <TextBox 
+                BorderThickness="1 0 0 0"
+                Padding="4"
                 Text="{Binding EntryContent,Mode=TwoWay}">
                 <TextBox.Style>
                     <Style TargetType="TextBox" BasedOn="{StaticResource FlatTextBoxEditStyle}" 
