@@ -19,9 +19,8 @@ using BlogWrite.Models;
 namespace BlogWrite.Models.Clients
 {
 
-    public abstract class BlogClient
+    public abstract class BlogClient : BaseClient
     {
-        protected HTTPConnection _HTTPConn;
         protected string _userName = "";
         protected string _userPassword = "";
         protected Uri _endpoint;
@@ -32,15 +31,13 @@ namespace BlogWrite.Models.Clients
             _userPassword = userPassword;
             _endpoint = endpoint;
 
-            _HTTPConn = HTTPConnection.Instance;
-
         }
 
         public abstract Task<NodeService> GetAccount(string accountName);
 
         public abstract Task<NodeCollections> GetBlogs();
 
-        public abstract Task<List<EntryItem>> GetEntries(Uri entriesUrl);
+        //public abstract Task<List<EntryItem>> GetEntries(Uri entriesUrl);
 
         public abstract Task<EntryFull> GetFullEntry(Uri entryUri);
 
@@ -52,40 +49,7 @@ namespace BlogWrite.Models.Clients
 
     }
 
-    /// <summary>
-    /// Holds HTTP connection. Singleton.
-    /// https://qiita.com/laughter/items/e6be52db15d7326b46b9
-    /// </summary>
-    public class HTTPConnection
-    {
-        private HttpClient _httpClient;
 
-        public HttpClient Client
-        {
-            get
-            {
-                return _httpClient;
-            }
-        }
-
-        public static HTTPConnection Instance
-        {
-            get { return SingletonHolder._Instance; }
-        }
-
-        private static class SingletonHolder
-        {
-            static SingletonHolder() { }
-            internal static readonly HTTPConnection _Instance = new HTTPConnection();
-        }
-
-        private HTTPConnection()
-        {
-            _httpClient = new HttpClient();
-        }
-
-
-    }
 
 
 }

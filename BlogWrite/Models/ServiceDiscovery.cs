@@ -25,13 +25,46 @@ namespace BlogWrite.Models
     /// <summary>
     /// Service Discovery Result class.
     /// </summary>
-    class ServiceResult
+    abstract class ServiceResultBase
     {
-        public ServiceTypes Service {get;set;}
+        
+    }
+
+    class ServiceResultErr : ServiceResultBase
+    {
+        public string Err { get; set; }
+
+        public ServiceResultErr(string e)
+        {
+            Err = e;
+        }
+    }
+
+    class ServiceResultAuthRequired : ServiceResultBase
+    {
+        public Uri Addr { get; set; }
+
+        public ServiceResultAuthRequired(Uri addr)
+        {
+            Addr = addr;
+        }
+    }
+
+    class ServiceResultAtomFeed : ServiceResultBase
+    {
+        public Uri AtomFeedUrl;
+
+        public ServiceResultAtomFeed(Uri addr)
+        {
+            AtomFeedUrl = addr;
+        }
+    }
+
+    abstract class ServiceResult : ServiceResultBase
+    {
+        public ServiceTypes Service { get; set; }
 
         public Uri EndpointUri;
-
-        public string Err { get; set; }
 
         public ServiceResult(ServiceTypes type, Uri ep)
         {
@@ -44,7 +77,22 @@ namespace BlogWrite.Models
             Service = ServiceTypes.Unknown;
             EndpointUri = null;
         }
+    }
 
+    class ServiceResultAtomPub: ServiceResult
+    {
+        
+    }
+
+    class ServiceResultAtomAPI : ServiceResult
+    {
+
+    }
+
+    class ServiceResultXmlRpc: ServiceResult
+    {
+        // XML-RPC specific blogid. 
+        public string BlogID { get; set; }
     }
 
     /// <summary>
@@ -56,6 +104,8 @@ namespace BlogWrite.Models
         private _serviceDocumentKind _serviceDocKind;
         private string _serviceDocUrl;
         private Uri _endpointUrl;
+        private Uri _atomFeedUrl;
+        private string _blogId="";
         private ServiceTypes _serviceTypes;
 
         private enum _serviceDocumentKind
@@ -105,11 +155,17 @@ namespace BlogWrite.Models
 
         #region == Methods ==
 
-        public async Task<ServiceResult> DiscoverService(Uri addr)
+        public async Task<ServiceResultBase> DiscoverService(Uri addr)
         {
-            ServiceResult sr = new ServiceResult();
+            // Initialize variables.
+            _serviceDocKind = _serviceDocumentKind.Unknown;
+            _serviceDocUrl = null;
+            _endpointUrl =null;
+            _atomFeedUrl = null;
+            _blogId = "";
+            _serviceTypes= ServiceTypes.Unknown;
 
-            UpdateStatus(">> Trying to access given URL...");// + addr.AbsoluteUri);
+            UpdateStatus(">> Trying to access given URL...");
 
             var HTTPResponse = await _httpClient.GetAsync(addr);
 
@@ -118,8 +174,8 @@ namespace BlogWrite.Models
                 if (HTTPResponse.Content == null)
                 {
                     UpdateStatus("<< Received no content.");
-                    sr.Err = "Did not return any content. Content empty.";
-                    return sr;
+                    ServiceResultErr re = new ServiceResultErr("Did not return any content. Content empty.");
+                    return re;
                 }
 
                 string contenTypeString = HTTPResponse.Content.Headers.GetValues("Content-Type").FirstOrDefault();
@@ -136,87 +192,149 @@ namespace BlogWrite.Models
 
                         if (_serviceDocKind == _serviceDocumentKind.AtomSrv)
                         {
-                            _endpointUrl = new Uri(_serviceDocUrl);
-                            _serviceTypes = ServiceTypes.AtomPub;
+                            ServiceResultAtomPub ap = new ServiceResultAtomPub();
+                            ap.EndpointUri = new Uri(_serviceDocUrl);
+                            ap.Service = ServiceTypes.AtomPub;
+                            return ap;
                         }
                         else if (_serviceDocKind == _serviceDocumentKind.RSD)
                         {
                             bool y = await GetRSD();
+                            
+                            if ((_serviceTypes == ServiceTypes.XmlRpc_WordPress) ||
+                                    (_serviceTypes == ServiceTypes.XmlRpc_MovableType) &&
+                                    (_endpointUrl !=null))
+                            {
+                                ServiceResultXmlRpc xp = new ServiceResultXmlRpc();
+                                xp.Service = _serviceTypes;
+                                xp.EndpointUri = _endpointUrl;
+                                xp.BlogID = _blogId;
+                                return xp;
+                            }
+                            else
+                            {
+                                UpdateStatus("Could not determin service type. [WordPress,MovableType] not found.");
+                                ServiceResultErr re = new ServiceResultErr("Could not determin service type.");
+                                return re;
+                            }
                         }
                         else
                         {
-                            UpdateStatus(">> Did not find a service document link.");
 
-                            // Could be xml-rpc endpoint.
-                            UpdateStatus(">> Trying to test a few things...");
+                            UpdateStatus("Could not find any service document from HTML webpage.");
 
-                            // TODO: Try POST some method.
-                            UpdateStatus("Could not determine API from the HTML webpage.");
+                            if (_atomFeedUrl != null)
+                            {
+                                UpdateStatus("Atom feed link is present.");
 
+                                ServiceResultAtomFeed ap = new ServiceResultAtomFeed(_atomFeedUrl);
+                                return ap;
+                            }
+                            else
+                            {
+                                UpdateStatus(">> Did not find a service document link.");
+
+                                // Could be xml-rpc endpoint.
+
+
+                                // TODO: 
+                                // A user entered xml-rpc endpoint.
+                                // Try POST some method.
+                                UpdateStatus("TODO: Could not determine API from the HTML webpage.");
+                                // For now.
+                                ServiceResultErr re = new ServiceResultErr("Could not determine API from the HTML webpage.");
+                                return re;
+
+                                //UpdateStatus(">> Trying to test a few things...");
+                            }
                         }
-
                     }
                     else if (contenTypeString.StartsWith("application/atomsvc+xml"))
                     {
-                        _serviceDocKind = _serviceDocumentKind.AtomSrv;
-                        _serviceDocUrl = addr.AbsoluteUri;
-
                         // This is the AtomPub endpoint.
-                        _endpointUrl = addr;
-                        _serviceTypes = ServiceTypes.AtomPub;
 
                         UpdateStatus("Found an Atom Publishing Protocol service document.");
+
+                        ServiceResultAtomPub ap = new ServiceResultAtomPub();
+                        ap.EndpointUri = addr;
+                        ap.Service = ServiceTypes.AtomPub; ;
+                        return ap;
 
                     }
                     else if (contenTypeString.StartsWith("application/rsd+xml"))
                     {
                         bool y = await GetRSD();
+
+                        if (((_serviceTypes == ServiceTypes.XmlRpc_WordPress) || (_serviceTypes == ServiceTypes.XmlRpc_MovableType)) 
+                            && (_endpointUrl != null))
+                        {
+                            ServiceResultXmlRpc xp = new ServiceResultXmlRpc();
+                            xp.Service = _serviceTypes;
+                            xp.EndpointUri = _endpointUrl;
+                            xp.BlogID = _blogId;
+                            return xp;
+                        }
+                        else
+                        {
+                            UpdateStatus("Could not determin service type. [WordPress,MovableType] not found.");
+                            ServiceResultErr re = new ServiceResultErr("Could not determin service type.");
+                            return re;
+                        }
                     }
                     else if (contenTypeString.StartsWith("application/atom+xml"))
                     {
                         // TODO:
                         // Possibly AtomApi endopoint. Or Atom Feed...
 
-                        UpdateStatus("<< Atom format returned... Atom Feed is not supported.");
+                        UpdateStatus("<< Atom format returned...");
+
+                        ServiceResultAtomFeed ap = new ServiceResultAtomFeed(addr);
+                        return ap;
+
                     }
                     else if (contenTypeString.StartsWith("application/x.atom+xml"))
                     {
                         // TODO:
                         // Possibly AtomApi endopoint.
-                        UpdateStatus("<< Atom format returned... Atom 0.3 is deprecated.");
+                        UpdateStatus("<< Old Atom format returned... ");
+
+                        ServiceResultAtomAPI ap = new ServiceResultAtomAPI();
+                        ap.EndpointUri = addr;
+                        ap.Service = ServiceTypes.AtomApi;
+                        return ap;
                     }
                     else
                     {
                         UpdateStatus("<< Unknown Content-Type returned. " + contenTypeString + " is not supported.");
-                        sr.Err = "Content-Type unknown.";
+                        ServiceResultErr re = new ServiceResultErr("Content-Type unknown.");
+                        return re;
                     }
 
                 }
                 else
                 {
-                    sr.Err = "Content-Type did not match.";
                     UpdateStatus("<< No Content-Type returned. ");
-                    return sr;
+                    ServiceResultErr re = new ServiceResultErr("Content-Type did not match.");
+                    return re;
                 }
 
             }
             else
             {
                 UpdateStatus("<< HTTP error: " + HTTPResponse.StatusCode.ToString());
-                UpdateStatus("Could not retrieve any content. ");
+                UpdateStatus("Could not retrieve any service document. ");
 
                 //TODO: If 401 Unauthorized,
+                // A user may or may not enter an AtomPub endpoint which require auth to get service document.
 
+                ServiceResultAuthRequired rea = new ServiceResultAuthRequired(addr);
+                return rea;
             }
 
-            sr.Service = _serviceTypes;
-            sr.EndpointUri = _endpointUrl;
+            //UpdateStatus(Environment.NewLine + "Finished.");
+            //Debug.WriteLine("EndpointUri: " + _endpointUrl + " Service: " + _serviceTypes.ToString());
 
-            Debug.WriteLine("EndpointUri: " + _endpointUrl + " Service: " + _serviceTypes.ToString());
 
-            UpdateStatus(Environment.NewLine +  "Finished.");
-
-            return sr;
         }
 
         private async Task<bool> ParseHTML(HttpContent content)
@@ -240,7 +358,7 @@ namespace BlogWrite.Models
             hdoc.write(s);
             hdoc.close();
 
-            // In delphi, it's just
+            // In Delphi, it's just
             // hdoc:= CreateComObject(Class_HTMLDocument) as IHTMLDocument2;
             // (hdoc as IPersistStreamInit).Load(TStreamAdapter.Create(Response.Stream));
 
@@ -302,6 +420,29 @@ namespace BlogWrite.Models
                                 }
 
                             }
+                            else if (re.ToUpper() == "ALTERNATE")
+                            {
+                                string ty = (e as IHTMLElement).getAttribute("type", 0);
+                                if (!string.IsNullOrEmpty(ty))
+                                {
+                                    if (ty == "application/atom+xml")
+                                    {
+                                        string hf = (e as IHTMLElement).getAttribute("href", 0);
+                                        if (!string.IsNullOrEmpty(hf))
+                                        {
+                                            Debug.WriteLine("Atom feed found.");
+                                            try
+                                            {
+                                                _atomFeedUrl = new Uri(hf);
+                                            }
+                                            catch { }
+
+                                            UpdateStatus("Found a link to an Atom feed.");
+                                        }
+                                    }
+                                }
+                            }
+
                         }
                     }
                 }
@@ -329,9 +470,7 @@ namespace BlogWrite.Models
                 UpdateStatus("<< Returned no content.");
                 return false;
             }
-
-            UpdateStatus("<< Returned a response.");
-
+            
             UpdateStatus(">> Loading a RSD document...");
 
             var st = await HTTPResponse.Content.ReadAsStreamAsync();
@@ -371,7 +510,7 @@ namespace BlogWrite.Models
             </rsd>
             */
 
-            UpdateStatus(">> Trying to parsing the RSD documnet...");
+            UpdateStatus(">> Trying to parse the RSD documnet...");
 
             XmlNamespaceManager NsMgr = new XmlNamespaceManager(xdoc.NameTable);
             NsMgr.AddNamespace("rsd", "http://archipelago.phrasewise.com/rsd");
@@ -400,6 +539,11 @@ namespace BlogWrite.Models
                             {
                                 _serviceTypes = ServiceTypes.XmlRpc_WordPress;
 
+                                var id = a.Attributes["blogID"].Value;
+                                if (!string.IsNullOrEmpty(id)) {
+                                    _blogId = id;
+                                }
+
                                 UpdateStatus("Found WordPress API.");
 
                                 break;
@@ -407,6 +551,12 @@ namespace BlogWrite.Models
                             else if (nm.ToLower() == "movable type")
                             {
                                 _serviceTypes = ServiceTypes.XmlRpc_MovableType;
+
+                                var id = a.Attributes["blogID"].Value;
+                                if (!string.IsNullOrEmpty(id))
+                                {
+                                    _blogId = id;
+                                }
 
                                 UpdateStatus("Found Movable Type API.");
 
@@ -424,6 +574,12 @@ namespace BlogWrite.Models
                         {
                             _serviceTypes = ServiceTypes.XmlRpc_WordPress;
 
+                            var id = a.Attributes["blogID"].Value;
+                            if (!string.IsNullOrEmpty(id))
+                            {
+                                _blogId = id;
+                            }
+
                             UpdateStatus("Found WordPress API.");
 
                             break;
@@ -431,6 +587,12 @@ namespace BlogWrite.Models
                         else if (nm.ToLower() == "movable type")
                         {
                             _serviceTypes = ServiceTypes.XmlRpc_MovableType;
+
+                            var id = a.Attributes["blogID"].Value;
+                            if (!string.IsNullOrEmpty(id))
+                            {
+                                _blogId = id;
+                            }
 
                             UpdateStatus("Found Movable Type API.");
 

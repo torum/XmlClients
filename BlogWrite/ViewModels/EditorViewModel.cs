@@ -174,7 +174,7 @@ namespace BlogWrite.ViewModels
         public EditorViewModel(EntryFull ent)
         {
             _ent = ent;
-            _bc = ent.Client;
+            _bc = ent.Client as BlogClient;
 
             PublishStatus.Add("Publish");
             PublishStatus.Add("Draft");

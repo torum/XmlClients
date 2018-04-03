@@ -76,7 +76,9 @@
     <Compile Include="Helpers\WebBrowserBindHTMLBehavior.cs" />
     <Compile Include="Models\Atom\AtomPublishingProtocol.cs" />
     <Compile Include="Models\Atom\AtomSyndicationFormat.cs" />
+    <Compile Include="Models\Clients\AtomFeedClient.cs" />
     <Compile Include="Models\Clients\AtomPubClient.cs" />
+    <Compile Include="Models\Clients\BaseClient.cs" />
     <Compile Include="Models\Clients\XmlRpcClient.cs" />
     <Compile Include="Models\ServiceDiscovery.cs" />
     <Compile Include="Settings.cs" />

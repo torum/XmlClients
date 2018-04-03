@@ -158,7 +158,7 @@ namespace BlogWrite.Models.Clients
                 {
                     if (a.InnerText == "application/atom+xml;type=entry")
                     {
-                        NodeEntry entry = new NodeEntry(title.InnerText, new Uri(hrefAttr));
+                        NodeEntryCollection entry = new NodeEntryCollection(title.InnerText, new Uri(hrefAttr));
                         entry.AcceptTypes.Add(a.InnerText);
                         entries.Children.Add(entry);
                     }
@@ -268,114 +268,17 @@ namespace BlogWrite.Models.Clients
             return list;
         }
 
-        public void FillEntryItemFromXML(EntryItem ent, XmlNode entryNode, XmlNamespaceManager atomNsMgr)
+        private void FillEntryItemFromXML(EntryItem entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr)
         {
-            /*
-			<entry>
-				<id>hoge</id>
-				<link rel="edit" href="https://127.0.0.1/app/entry/17391345971628358314"/>
-				<link rel="alternate" type="text/html" href="https://127.0.0.1/htm/entry/2018/03/22/221846"/>
-				<author>
-                    <name>hoge</name>
-                </author>
-				<title>test title</title>
-				<updated>2018-03-22T22:18:46+09:00</updated>
-				<published>2018-03-22T22:18:46+09:00</published>
-				<app:edited>2018-03-22T22:18:46+09:00</app:edited>
-				<summary type="text">asdf</summary>
-				<content type="text/html">asdf</content>
-				<hatena:formatted-content type="text/html" xmlns:hatena="http://www.hatena.ne.jp/info/xmlns#">&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/asdf&quot;&gt;asdf&lt;/a&gt;</hatena:formatted-content>
-				<category term="test" />
-				<app:control>
-					<app:draft>yes</app:draft>
-				</app:control>
-			  </entry>
-             */
 
-            XmlNode entryTitle = entryNode.SelectSingleNode("atom:title", atomNsMgr);
-            if (entryTitle == null)
-            {
-                System.Diagnostics.Debug.WriteLine("atom:title: is null. ");
-                //return;
-            }
+            AtomEntry entry = CreateAtomEntryFromXML(entryNode, atomNsMgr);
 
-            XmlNode entryID = entryNode.SelectSingleNode("atom:id", atomNsMgr);
-            if (entryID == null)
-            {
-                System.Diagnostics.Debug.WriteLine("atom:id: is null. ");
-                //return;
-            }
-
-            XmlNodeList entryLinkUris = entryNode.SelectNodes("atom:link", atomNsMgr);
-            string relAttr;
-            string hrefAttr;
-            Uri editUri = null;
-            Uri altUri = null;
-            if (entryLinkUris == null)
-            {
-                System.Diagnostics.Debug.WriteLine("atom:link: is null. ");
-                //continue;
-            }
-            else
-            {
-                foreach (XmlNode u in entryLinkUris)
-                {
-                    relAttr = u.Attributes["rel"].Value;
-                    hrefAttr = u.Attributes["href"].Value;
-
-                    if ((!string.IsNullOrEmpty(relAttr)) && (!string.IsNullOrEmpty(hrefAttr)))
-                    {
-
-                        switch (relAttr)
-                        {
-                            case "edit":
-                                try
-                                {
-                                    editUri = new Uri(hrefAttr);
-                                    break;
-                                }
-                                catch
-                                {
-                                    break;
-                                }
-                            case "alternate":
-                                try
-                                {
-                                    altUri = new Uri(hrefAttr);
-                                    break;
-                                }
-                                catch
-                                {
-                                    break;
-                                }
-                        }
-                    }
-                }
-            }
-
-            //updated
-            //published
-            //app:edited
-            //summary
-
-
-            //content
-            //category
-
-            ent.Name = (entryTitle != null) ? entryTitle.InnerText : "";
-            ent.EntryID = (entryID != null) ? entryID.InnerText : "";
-            ent.EditUri = editUri;
-            ent.AltUri = altUri;
-
-
-            //app:control/app:draft(yes/no)
-            XmlNode entryDraft = entryNode.SelectSingleNode("app:control/app:draft", atomNsMgr);
-            if (entryDraft == null) System.Diagnostics.Debug.WriteLine("app:draft: is null.");
-
-
-            string draft = entryDraft?.InnerText;
-            ent.IsDraft = (String.Compare(draft, "yes", true) == 0) ? true : false;
-            ent.Status = ent.IsDraft ? EntryItem.EntryStatus.esDraft : EntryItem.EntryStatus.esNormal;
+            entItem.Name = entry.Name;
+            //entItem.ID = entry.ID;
+            entItem.EntryID = entry.EntryID;
+            entItem.EditUri = entry.EditUri;
+            entItem.AltHTMLUri = entry.AltHTMLUri;
+            entItem.EntryBody = entry;
 
 
         }
@@ -422,50 +325,141 @@ namespace BlogWrite.Models.Clients
                 return null;
             }
 
-            AtomEntry entry = new AtomEntry("", this);
+            AtomEntry entry = CreateAtomEntryFromXML(entryNode, atomNsMgr);
 
-            FillEntryItemFromXML(entry, entryNode, atomNsMgr);
-
-            string contype = cont.Attributes["type"].Value;
-            if (!string.IsNullOrEmpty(contype))
-            {
-                entry.ContentTypeString = contype;
-
-                switch (contype)
-                {
-                    case "text":
-                        entry.ContentType = EntryFull.ContentTypes.text;
-                        break;
-                    case "html":
-                        entry.ContentType = EntryFull.ContentTypes.textHtml;
-                        break;
-                    case "xhtml":
-                        entry.ContentType = EntryFull.ContentTypes.textHtml;
-                        break;
-                    case "text/plain":
-                        entry.ContentType = EntryFull.ContentTypes.text;
-                        break;
-                    case "text/html":
-                        entry.ContentType = EntryFull.ContentTypes.textHtml;
-                        break;
-                    case "text/x-markdown":
-                        entry.ContentType = EntryFull.ContentTypes.markdown;
-                        break;
-                    case "text/x-hatena-syntax":
-                        entry.ContentType = EntryFull.ContentTypes.hatena;
-                        break;
-                    default:
-                        entry.ContentType = EntryFull.ContentTypes.text;
-                        break;
-                }
-            }
-
-            entry.Content = cont.InnerText;
 
 
             //TODO: Save ETag
             //HTTPResponseMessage.Content
 
+
+            return entry;
+        }
+
+        private AtomEntry CreateAtomEntryFromXML(XmlNode entryNode, XmlNamespaceManager atomNsMgr)
+        {
+            /*
+			<entry>
+				<id>hoge</id>
+				<link rel="edit" href="https://127.0.0.1/app/entry/17391345971628358314"/>
+				<link rel="alternate" type="text/html" href="https://127.0.0.1/htm/entry/2018/03/22/221846"/>
+				<author>
+                    <name>hoge</name>
+                </author>
+				<title>test title</title>
+				<updated>2018-03-22T22:18:46+09:00</updated>
+				<published>2018-03-22T22:18:46+09:00</published>
+				<app:edited>2018-03-22T22:18:46+09:00</app:edited>
+				<summary type="text">asdf</summary>
+				<content type="text/html">asdf</content>
+				<hatena:formatted-content type="text/html" xmlns:hatena="http://www.hatena.ne.jp/info/xmlns#">&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/asdf&quot;&gt;asdf&lt;/a&gt;</hatena:formatted-content>
+				<category term="test" />
+				<app:control>
+					<app:draft>yes</app:draft>
+				</app:control>
+			  </entry>
+             */
+
+            XmlNode entryTitle = entryNode.SelectSingleNode("atom:title", atomNsMgr);
+            if (entryTitle == null)
+            {
+                System.Diagnostics.Debug.WriteLine("atom:title: is null. ");
+                //return;
+            }
+
+            XmlNode entryID = entryNode.SelectSingleNode("atom:id", atomNsMgr);
+            if (entryID == null)
+            {
+                System.Diagnostics.Debug.WriteLine("atom:id: is null. ");
+                //return;
+            }
+
+            XmlNodeList entryLinkUris = entryNode.SelectNodes("atom:link", atomNsMgr);
+            string relAttr;
+            string hrefAttr;
+            string typeAttr;
+            Uri editUri = null;
+            Uri altUri = null;
+            if (entryLinkUris == null)
+            {
+                System.Diagnostics.Debug.WriteLine("atom:link: is null. ");
+                //continue;
+            }
+            else
+            {
+                foreach (XmlNode u in entryLinkUris)
+                {
+                    relAttr = (u.Attributes["rel"] != null) ? u.Attributes["rel"].Value : "";
+                    hrefAttr = (u.Attributes["href"] != null) ? u.Attributes["href"].Value : "";
+                    typeAttr = (u.Attributes["type"] != null) ? u.Attributes["type"].Value : "";
+
+                    if ((!string.IsNullOrEmpty(relAttr)) && (!string.IsNullOrEmpty(hrefAttr)))
+                    {
+
+                        switch (relAttr)
+                        {
+                            case "edit":
+                                try
+                                {
+                                    editUri = new Uri(hrefAttr);
+                                    break;
+                                }
+                                catch
+                                {
+                                    break;
+                                }
+                            case "alternate":
+                                try
+                                {
+                                    if (!string.IsNullOrEmpty(typeAttr))
+                                    {
+                                        if (typeAttr == "text/html")
+                                        {
+                                            altUri = new Uri(hrefAttr);
+                                        }
+                                    }
+                                    break;
+                                }
+                                catch
+                                {
+                                    break;
+                                }
+                            case "": //same as alternate
+                                try
+                                {
+                                    if (!string.IsNullOrEmpty(typeAttr))
+                                    {
+                                        if (typeAttr == "text/html")
+                                        {
+                                            altUri = new Uri(hrefAttr);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // I am not happy but let's assume it is html.
+                                        altUri = new Uri(hrefAttr);
+                                    }
+                                    break;
+                                }
+                                catch
+                                {
+                                    break;
+                                }
+                        }
+                    }
+                }
+            }
+
+            // TODO:
+            //updated
+            //published
+            //app:edited
+            //summary
+            //category
+
+            AtomEntry entry = new AtomEntry("", this);
+            // TODO:
+            //AtomEntryHatena
             /*
             // Hatena's formatted-content
             XmlNode formattedContent = entryNode.SelectSingleNode("hatena:formatted-content", atomNsMgr);
@@ -474,6 +468,67 @@ namespace BlogWrite.Models.Clients
                 entry.FormattedContent = formattedContent.InnerText;
             }
             */
+
+
+            entry.Name = (entryTitle != null) ? entryTitle.InnerText : "";
+            entry.EntryID = (entryID != null) ? entryID.InnerText : "";
+            entry.EditUri = editUri;
+            entry.AltHTMLUri = altUri;
+
+            XmlNode cont = entryNode.SelectSingleNode("atom:content", atomNsMgr);
+            if (cont == null)
+            {
+                System.Diagnostics.Debug.WriteLine("//atom:content is null.");
+            }
+            else
+            {
+
+                string contype = cont.Attributes["type"].Value;
+                if (!string.IsNullOrEmpty(contype))
+                {
+                    entry.ContentTypeString = contype;
+
+                    switch (contype)
+                    {
+                        case "text":
+                            entry.ContentType = EntryFull.ContentTypes.text;
+                            break;
+                        case "html":
+                            entry.ContentType = EntryFull.ContentTypes.textHtml;
+                            break;
+                        case "xhtml":
+                            entry.ContentType = EntryFull.ContentTypes.textHtml;
+                            break;
+                        case "text/plain":
+                            entry.ContentType = EntryFull.ContentTypes.text;
+                            break;
+                        case "text/html":
+                            entry.ContentType = EntryFull.ContentTypes.textHtml;
+                            break;
+                        case "text/x-markdown":
+                            entry.ContentType = EntryFull.ContentTypes.markdown;
+                            break;
+                        case "text/x-hatena-syntax":
+                            entry.ContentType = EntryFull.ContentTypes.hatena;
+                            break;
+                        default:
+                            entry.ContentType = EntryFull.ContentTypes.text;
+                            break;
+                    }
+                }
+
+                entry.Content = cont.InnerText;
+
+            }
+
+            //app:control/app:draft(yes/no)
+            XmlNode entryDraft = entryNode.SelectSingleNode("app:control/app:draft", atomNsMgr);
+            if (entryDraft == null) System.Diagnostics.Debug.WriteLine("app:draft: is null.");
+
+            string draft = entryDraft?.InnerText;
+            entry.IsDraft = (String.Compare(draft, "yes", true) == 0) ? true : false;
+            entry.Status = entry.IsDraft ? EntryItem.EntryStatus.esDraft : EntryItem.EntryStatus.esNormal;
+
 
             return entry;
         }

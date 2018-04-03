@@ -126,6 +126,8 @@ namespace BlogWrite.ViewModels
             if (String.IsNullOrEmpty(WebsiteOrEndpointUrl))
                 return;
 
+            StatusText = "";
+
             Uri uri;
             try
             { 
@@ -141,17 +143,32 @@ namespace BlogWrite.ViewModels
             try
             {
                 // 
-                ServiceResult sr = await _serviceDiscovery.DiscoverService(uri);
+                ServiceResultBase sr = await _serviceDiscovery.DiscoverService(uri);
 
-                if (sr.Err != "")
+                if (sr == null)
+                    return;
+
+                if (sr is ServiceResultErr)
                 {
                     // TODO ErrorInfo
+                    //(sr as ServiceResultErr).Err
                     return;
                 }
 
-                //
+                if (sr is ServiceResultAtomFeed)
+                {
+                    //(sr as ServiceResultAtomFeed).AtomFeedUrl
+                }
+
+                //ServiceResultAuthRequired
+
+                //ServiceResultAtomPub
+                //ServiceResultXmlRpc
+                //ServiceResultAtomAPI
+
                 //sr.EndpointUri
 
+                /*
                 switch (sr.Service)
                 {
                     case ServiceTypes.AtomPub:
@@ -177,6 +194,8 @@ namespace BlogWrite.ViewModels
                         break;
 
                 }
+
+                */
             }
             finally
             {

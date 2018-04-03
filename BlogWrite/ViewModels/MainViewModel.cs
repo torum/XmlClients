@@ -66,7 +66,7 @@ namespace BlogWrite.ViewModels
     {
         private ServiceTreeBuilder _services = new ServiceTreeBuilder();
         private object _selectedNode = null;
-        private object _selectedItem = null;
+        private EntryItem _selectedItem = null;
 
         #region == Properties ==
 
@@ -91,11 +91,18 @@ namespace BlogWrite.ViewModels
                 _selectedNode = value;
                 NotifyPropertyChanged(nameof(SelectedNode));
 
-                if (_selectedNode is NodeEntry)
+                if (_selectedNode is NodeEntryCollection)
                 {
-                    if ((_selectedNode as NodeEntry).List.Count == 0)
+                    if ((_selectedNode as NodeEntryCollection).List.Count == 0)
                     {
-                        Task.Run(() => GetEntries((_selectedNode as NodeEntry)));
+                        Task.Run(() => GetEntries((_selectedNode as NodeEntryCollection)));
+                    }
+                }
+                else if (_selectedNode is NodeFeed)
+                {
+                    if ((_selectedNode as NodeFeed).List.Count == 0)
+                    {
+                        Task.Run(() => GetEntries((_selectedNode as NodeFeed)));
                     }
                 }
 
@@ -111,9 +118,13 @@ namespace BlogWrite.ViewModels
                 if (_selectedNode == null)
                     return null;
 
-                if (_selectedNode is NodeEntry)
+                if (_selectedNode is NodeEntryCollection)
                 {
-                    return (_selectedNode as NodeEntry).List;
+                    return (_selectedNode as NodeEntryCollection).List;
+                }
+                else if (_selectedNode is NodeFeed)
+                {
+                    return (_selectedNode as NodeFeed).List;
                 }
                 else
                 {
@@ -122,7 +133,7 @@ namespace BlogWrite.ViewModels
             }
         }
 
-        public object SelectedItem
+        public EntryItem SelectedItem
         {
             get { return _selectedItem; }
             set
@@ -344,9 +355,24 @@ namespace BlogWrite.ViewModels
             //Task.Run(() => Do());
 
 
+
         }
 
         #region == Methods ==
+
+
+        public async void Do()
+        {
+            NodeService a = new NodeService("test", new Uri("http://torum.hatenablog.com/feed"), ApiTypes.atAtomFeed);
+
+            // Add Account Node to internal (virtual) Treeview.
+            Application.Current.Dispatcher.Invoke(() => Services.Add(a));
+
+            Properties.Settings.Default.Profiles.Profiles = _services.AsXmlDoc();
+
+            // Save settings.
+            Properties.Settings.Default.Save();
+        }
 
         /*
         public async void Do()
@@ -381,34 +407,61 @@ namespace BlogWrite.ViewModels
             if (selectedNode == null)
                 return;
 
-            if (!(selectedNode is NodeEntry))
-                return;
-
-            var bc = (selectedNode as NodeEntry).Client;
-            if (bc == null)
-                return;
-
-            // TODO: 
-            // HTTP Head, if_modified_since or etag or something... then  UpdateEntries();
-
-            List<EntryItem> entLi = await bc.GetEntries((selectedNode as NodeEntry).Uri);
-
-            // Minimize the time to block UI thread.
-            Application.Current.Dispatcher.Invoke(() =>
+            if (selectedNode is NodeFeed)
             {
+                if ((selectedNode as NodeFeed).Api != ApiTypes.atAtomFeed)
+                    return;
 
-                (selectedNode as NodeEntry).List.Clear();
-                foreach (EntryItem ent in entLi)
+                var fc = (selectedNode as NodeFeed).Client;
+                if (fc == null)
+                    return;
+
+                List<EntryItem> entLi = await fc.GetEntries((selectedNode as NodeFeed).EndPoint);
+
+                // Minimize the time to block UI thread.
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    ent.NodeEntry = (selectedNode as NodeEntry);
 
-                    (selectedNode as NodeEntry).List.Add(ent);
-                }
+                    (selectedNode as NodeFeed).List.Clear();
+                    foreach (EntryItem ent in entLi)
+                    {
+                        //ent.NodeEntry = (selectedNode as NodeEntry);
 
-            });
+                        (selectedNode as NodeFeed).List.Add(ent);
+                    }
 
-            // This updates listview.
-            NotifyPropertyChanged(nameof(Entries));
+                });
+
+                // This updates listview.
+                NotifyPropertyChanged(nameof(Entries));
+
+            }
+            else if (selectedNode is NodeEntryCollection)
+            {
+                var bc = (selectedNode as NodeEntryCollection).Client;
+                if (bc == null)
+                    return;
+
+                List<EntryItem> entLi = await bc.GetEntries((selectedNode as NodeEntryCollection).Uri);
+
+                // Minimize the time to block UI thread.
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+
+                    (selectedNode as NodeEntryCollection).List.Clear();
+                    foreach (EntryItem ent in entLi)
+                    {
+                        ent.NodeEntry = (selectedNode as NodeEntryCollection);
+
+                        (selectedNode as NodeEntryCollection).List.Add(ent);
+                    }
+
+                });
+
+                // This updates listview.
+                NotifyPropertyChanged(nameof(Entries));
+
+            }
 
         }
 
@@ -416,7 +469,11 @@ namespace BlogWrite.ViewModels
         {
             if (selectedEntry == null)
                 return false;
-            BlogClient bc = selectedEntry.Client;
+
+            if (!(_selectedNode is NodeEntryCollection))
+                return false;
+
+            BlogClient bc = selectedEntry.Client as BlogClient;
             if (bc == null)
                 return false;
 
@@ -441,7 +498,7 @@ namespace BlogWrite.ViewModels
             if (selectedEntry == null)
                 return false;
 
-            BlogClient bc = selectedEntry.Client;
+            BlogClient bc = selectedEntry.Client as BlogClient;
 
             if (bc == null)
                 return false;
@@ -491,11 +548,21 @@ namespace BlogWrite.ViewModels
         {
             if (selectedNode == null)
                 return;
-
+            
             selectedNode.Expanded = selectedNode.Expanded ? false : true;
 
-            if (selectedNode is NodeEntry) { 
+            if (selectedNode is NodeEntryCollection)
+            {
                 this.GetEntries(selectedNode);
+            }
+            else if (selectedNode is NodeFeed)
+            {
+
+                if ((selectedNode as NodeFeed).Api == ApiTypes.atAtomFeed)
+                {
+                    this.GetEntries(selectedNode);
+                }
+
             }
         }
 
@@ -527,7 +594,11 @@ namespace BlogWrite.ViewModels
 
         public ICommand OpenEditorCommand { get; }
 
-        public bool OpenEditorCommand_CanExecute() { return true; }
+        public bool OpenEditorCommand_CanExecute()
+        {
+            if (SelectedNode == null) return false;
+            return (SelectedNode is NodeEntryCollection) ? true : false;
+        }
 
         public void OpenEditorCommand_Execute(EntryItem selectedEntry)
         {
@@ -556,7 +627,11 @@ namespace BlogWrite.ViewModels
 
         public ICommand DeleteEntryCommand { get; }
 
-        public bool DeleteEntryCommand_CanExecute() { return true; }
+        public bool DeleteEntryCommand_CanExecute()
+        {
+            if (SelectedNode == null) return false;
+            return (SelectedNode is NodeEntryCollection) ? true : false;
+        }
 
         public void DeleteEntryCommand_Execute(EntryItem selectedEntry)
         {
@@ -599,7 +674,7 @@ namespace BlogWrite.ViewModels
         public bool OpenEditorAsNewCommand_CanExecute()
         {
             if (SelectedNode == null) return false;
-            return (SelectedNode is NodeEntry) ? true : false;
+            return (SelectedNode is NodeEntryCollection) ? true : false;
         }
 
         public void OpenEditorAsNewCommand_Execute()
@@ -607,14 +682,14 @@ namespace BlogWrite.ViewModels
             if (SelectedNode == null)
                 return;
 
-            if (!(SelectedNode is NodeEntry))
+            if (!(SelectedNode is NodeEntryCollection))
                 return;
 
             // TODO: Check "accept".
 
             // TODO: AtomEntry...
-            EntryFull newEntry = new AtomEntry("", (SelectedNode as NodeEntry).Client);
-            newEntry.PostUri = (SelectedNode as NodeEntry).Uri;
+            EntryFull newEntry = new AtomEntry("", ((SelectedNode as NodeEntryCollection).Client as BlogClient));
+            newEntry.PostUri = (SelectedNode as NodeEntryCollection).Uri;
 
             BlogEntryEventArgs ag = new BlogEntryEventArgs
             {
@@ -630,7 +705,9 @@ namespace BlogWrite.ViewModels
         public bool RefreshEntriesCommand_CanExecute()
         {
             if (SelectedNode == null) return false;
-            return (SelectedNode is NodeEntry) ? true : false;
+            if ((SelectedNode is NodeEntryCollection) || (SelectedNode is NodeFeed))
+                return true;
+            return false;
         }
 
         public void RefreshEntriesCommand_Execute()
@@ -638,19 +715,28 @@ namespace BlogWrite.ViewModels
             if (SelectedNode == null)
                 return;
 
-            if (!(SelectedNode is NodeEntry))
-                return;
+            if ((SelectedNode is NodeEntryCollection) || (SelectedNode is NodeFeed))
+            {
+                this.GetEntries(SelectedNode as NodeTree);
+            }
 
-            this.GetEntries((SelectedNode as NodeEntry));
         }
         
         public ICommand OpenInBrowserCommand { get; }
 
-        public bool OpenInBrowserCommand_CanExecute() { return true; }
+        public bool OpenInBrowserCommand_CanExecute()
+        {
+            if (SelectedItem == null) return false;
+            if (SelectedItem.AltHTMLUri == null) return false;
+            return true;
+        }
 
         public void OpenInBrowserCommand_Execute(EntryItem selectedEntry)
         {
-            //
+            if (selectedEntry.AltHTMLUri != null) { 
+                //
+                System.Diagnostics.Process.Start(selectedEntry.AltHTMLUri.AbsoluteUri);
+            }
         }
 
         public ICommand ShowSettingsCommand { get; }

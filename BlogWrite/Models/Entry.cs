@@ -26,7 +26,7 @@ namespace BlogWrite.Models
     /// <summary>
     /// class for EntryNode (for treeview).
     /// </summary>
-    public class NodeEntry : NodeTree
+    public class NodeEntryCollection : NodeTree
     {
         public Uri Uri { get; set; }
 
@@ -37,7 +37,7 @@ namespace BlogWrite.Models
         public Collection<string> AcceptTypes = new Collection<string>();
 
         // Constructor.
-        public NodeEntry(string name, Uri uri) : base(name)
+        public NodeEntryCollection(string name, Uri uri) : base(name)
         {
             Uri = uri;
             PathIcon = "M4,5V7H21V5M4,11H21V9H4M4,19H21V17H4M4,15H21V13H4V15Z";
@@ -45,7 +45,7 @@ namespace BlogWrite.Models
 
         public ObservableCollection<EntryItem> List { get; } = new ObservableCollection<EntryItem>();
 
-        public BlogClient Client
+        public BaseClient Client
         {
             get
             {
@@ -78,11 +78,12 @@ namespace BlogWrite.Models
         public string ID { get; }
         // Entry's id provided by services.
         public string EntryID { get; set; }
-        public NodeEntry NodeEntry { get; set; }
+        // for Editor window.
+        public NodeEntryCollection NodeEntry { get; set; }
 
         public Uri PostUri { get; set; }
         public Uri EditUri { get; set; }
-        public Uri AltUri { get; set; }
+        public Uri AltHTMLUri { get; set; }
 
         // TODO:
         // created
@@ -158,12 +159,12 @@ namespace BlogWrite.Models
             }
         }
 
-        public BlogClient Client { get; } = null;
+        public BaseClient Client { get; } = null;
 
         public EntryFull EntryBody { get; set; }
 
         // Constructor.
-        public EntryItem(string title, BlogClient bc) : base(title)
+        public EntryItem(string title, BaseClient bc) : base(title)
         {
             Client = bc;
             ID = Guid.NewGuid().ToString();
@@ -211,7 +212,7 @@ namespace BlogWrite.Models
             }
         }
 
-        protected EntryFull(string title, BlogClient bc) : base(title, bc)
+        protected EntryFull(string title, BaseClient bc) : base(title, bc)
         {
 
         }
@@ -226,7 +227,7 @@ namespace BlogWrite.Models
         public string ContentTypeString { get; set; }
         public string ETag { get; set; }
 
-        public AtomEntry(string title, BlogClient bc) : base(title, bc)
+        public AtomEntry(string title, BaseClient bc) : base(title, bc)
         {
 
         }
