@@ -260,6 +260,7 @@ namespace BlogWrite.Models.Clients
             foreach (XmlNode l in entryList)
             {
                 EntryItem ent = new EntryItem("", this);
+
                 FillEntryItemFromXML(ent, l, atomNsMgr);
 
                 list.Add(ent);
@@ -280,7 +281,7 @@ namespace BlogWrite.Models.Clients
             entItem.AltHTMLUri = entry.AltHTMLUri;
             entItem.EntryBody = entry;
 
-
+            entItem.Status = entry.Status;
         }
 
         public override async Task<EntryFull> GetFullEntry(Uri entryUri)
@@ -527,6 +528,7 @@ namespace BlogWrite.Models.Clients
 
             string draft = entryDraft?.InnerText;
             entry.IsDraft = (String.Compare(draft, "yes", true) == 0) ? true : false;
+
             entry.Status = entry.IsDraft ? EntryItem.EntryStatus.esDraft : EntryItem.EntryStatus.esNormal;
 
 
@@ -671,4 +673,5 @@ namespace BlogWrite.Models.Clients
         }
 
     }
+
 }

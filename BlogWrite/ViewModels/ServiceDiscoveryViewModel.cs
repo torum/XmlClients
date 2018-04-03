@@ -17,6 +17,7 @@ namespace BlogWrite.ViewModels
 {
     public class ServiceDiscoveryViewModel : ViewModelBase
     {
+
         private ServiceDiscovery _serviceDiscovery;
         private bool _isBusy;
         private string _websiteOrEndpointUrl;
@@ -211,4 +212,5 @@ namespace BlogWrite.ViewModels
         #endregion
 
     }
+
 }

@@ -11,6 +11,7 @@ using BlogWrite.ViewModels;
 
 namespace BlogWrite
 {
+
     /// <summary>
     /// App
     /// </summary>
@@ -167,7 +168,9 @@ namespace BlogWrite
             win.Owner = owner;
             win.ResizeMode = ResizeMode.NoResize;
             win.ShowDialog();
+
         }
 
     }
+
 }

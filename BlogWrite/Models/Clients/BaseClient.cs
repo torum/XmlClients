@@ -20,6 +20,7 @@ namespace BlogWrite.Models.Clients
         }
 
         public abstract Task<List<EntryItem>> GetEntries(Uri entriesUrl);
+
     }
 
     /// <summary>
@@ -28,15 +29,7 @@ namespace BlogWrite.Models.Clients
     /// </summary>
     public class HTTPConnection
     {
-        private HttpClient _httpClient;
-
-        public HttpClient Client
-        {
-            get
-            {
-                return _httpClient;
-            }
-        }
+        public HttpClient Client { get; }
 
         public static HTTPConnection Instance
         {
@@ -51,9 +44,8 @@ namespace BlogWrite.Models.Clients
 
         private HTTPConnection()
         {
-            _httpClient = new HttpClient();
+            Client = new HttpClient();
         }
-
 
     }
 }

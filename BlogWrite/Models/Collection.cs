@@ -10,6 +10,7 @@ using System;
 
 namespace BlogWrite.Models
 {
+
     public class NodeCollections : NodeTree
     {
         public NodeCollections(){}
@@ -27,4 +28,5 @@ namespace BlogWrite.Models
         }
 
     }
+
 }

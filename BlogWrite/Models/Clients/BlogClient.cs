@@ -49,7 +49,4 @@ namespace BlogWrite.Models.Clients
 
     }
 
-
-
-
 }

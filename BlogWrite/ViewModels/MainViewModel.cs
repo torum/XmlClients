@@ -9,6 +9,7 @@
 /// 
 /// -- Priority 1 --
 ///  Service Discovery.
+///  xaml style for treeview and textbox's scrollbar
 ///  AtomPub Manage Category document.
 ///
 /// 
@@ -64,6 +65,7 @@ namespace BlogWrite.ViewModels
     /// </summary>
     public class MainViewModel : ViewModelBase
     {
+
         private ServiceTreeBuilder _services = new ServiceTreeBuilder();
         private object _selectedNode = null;
         private EntryItem _selectedItem = null;
@@ -301,7 +303,9 @@ namespace BlogWrite.ViewModels
 
         #endregion
 
-        /// <summary>Constructor.</summary>
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         public MainViewModel()
         {
             TreeviewLeftDoubleClickCommand = new GenericRelayCommand<NodeTree>(
@@ -575,8 +579,18 @@ namespace BlogWrite.ViewModels
 
         public void ListviewLeftDoubleClickCommand_Execute(EntryItem selectedEntry)
         {
-            if (OpenEditorCommand_CanExecute())
-                OpenEditorCommand.Execute(selectedEntry);
+            if (SelectedNode == null)
+                return;
+            if (selectedEntry == null)
+                return;
+
+            if (SelectedNode is NodeFeed) { 
+                if (OpenInBrowserCommand_CanExecute())
+                    OpenInBrowserCommand_Execute(selectedEntry);
+            }
+            else if (SelectedNode is NodeEntryCollection)
+                if (OpenEditorCommand_CanExecute())
+                    OpenEditorCommand.Execute(selectedEntry);
         }
 
         public ICommand ListviewEnterKeyCommand { get; }
@@ -734,7 +748,6 @@ namespace BlogWrite.ViewModels
         public void OpenInBrowserCommand_Execute(EntryItem selectedEntry)
         {
             if (selectedEntry.AltHTMLUri != null) { 
-                //
                 System.Diagnostics.Process.Start(selectedEntry.AltHTMLUri.AbsoluteUri);
             }
         }

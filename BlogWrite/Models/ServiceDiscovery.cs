@@ -334,7 +334,6 @@ namespace BlogWrite.Models
             //UpdateStatus(Environment.NewLine + "Finished.");
             //Debug.WriteLine("EndpointUri: " + _endpointUrl + " Service: " + _serviceTypes.ToString());
 
-
         }
 
         private async Task<bool> ParseHTML(HttpContent content)

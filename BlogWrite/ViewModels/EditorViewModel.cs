@@ -31,6 +31,7 @@ namespace BlogWrite.ViewModels
     /// </summary>
     class EditorViewModel : ViewModelBase
     {
+
         private EntryFull _ent;
         private BlogClient _bc;
         private int _publishStatusIndex = 0;
@@ -335,6 +336,6 @@ namespace BlogWrite.ViewModels
 
         #endregion
 
-
     }
+
 }

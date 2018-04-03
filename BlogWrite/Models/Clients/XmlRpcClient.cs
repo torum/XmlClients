@@ -17,8 +17,10 @@ using System.Threading.Tasks;
 
 namespace BlogWrite.Models.Clients
 {
+
     class XmlRpcClient : BlogClient
     {
+
         public XmlRpcClient(string userName, string userPassword, Uri endpoint) : base(userName, userPassword, endpoint)
         {
 
@@ -78,5 +80,7 @@ namespace BlogWrite.Models.Clients
             return true;
 
         }
+
     }
+
 }

@@ -89,7 +89,6 @@ namespace BlogWrite.Models.Clients
             atomNsMgr.AddNamespace("atom", "http://www.w3.org/2005/Atom");
             atomNsMgr.AddNamespace("app", "http://www.w3.org/2007/app");
 
-
             XmlNodeList entryList;
             entryList = xdoc.SelectNodes("//atom:feed/atom:entry", atomNsMgr);
             if (entryList == null)
@@ -119,6 +118,8 @@ namespace BlogWrite.Models.Clients
             entItem.EditUri = entry.EditUri;
             entItem.AltHTMLUri = entry.AltHTMLUri;
             entItem.EntryBody = entry;
+
+            entItem.Status = entry.Status;
 
         }
 
