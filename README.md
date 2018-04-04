@@ -24,3 +24,5 @@ https://codex.wordpress.org/XML-RPC_Blogger_API
 Wordpress REST Json API  
 https://developer.wordpress.org/rest-api/  
   
+AtomAPI (0.3) including GData is deprecated. Update to Atom Publishing Protocol.   
+  
