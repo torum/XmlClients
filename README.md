@@ -5,7 +5,7 @@ C#/WPF port of "BlogWrite" made with Delphi.
 
 #### Implements following REST & RPC Web APIs:  
 
-Atom Publishing protocol  
+Atom Publishing Protocol  
 https://tools.ietf.org/html/rfc5023  
 https://tools.ietf.org/html/rfc4287  
   
