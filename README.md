@@ -21,3 +21,6 @@ https://codex.wordpress.org/XML-RPC_MovableType_API
 https://codex.wordpress.org/XML-RPC_MetaWeblog_API  
 https://codex.wordpress.org/XML-RPC_Blogger_API  
   
+Wordpress REST Json API  
+https://developer.wordpress.org/rest-api/  
+  
