@@ -9,7 +9,7 @@ Atom Publishing Protocol
 https://tools.ietf.org/html/rfc5023  
 https://tools.ietf.org/html/rfc4287  
   
-Wordpress REST Json API  
+Wordpress REST API  
 https://developer.wordpress.org/rest-api/  
   
 Problem Details for HTTP APIs  
@@ -19,7 +19,7 @@ Wordpress XML-RPC API
 https://codex.wordpress.org/XML-RPC_Support  
 https://codex.wordpress.org/XML-RPC_WordPress_API  
   
-Movable Type API, MetaWeblog API, Blogger API  
+Movable Type API, MetaWeblog API 
 https://codex.wordpress.org/XML-RPC_MovableType_API  
 https://codex.wordpress.org/XML-RPC_MetaWeblog_API  
 https://codex.wordpress.org/XML-RPC_Blogger_API  
