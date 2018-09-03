@@ -1,6 +1,6 @@
 # BlogWrite
 
-C#/WPF port of "BlogWrite" made with Delphi.
+C#/WPF port of "BlogWrite" (under developement).
 
 
 #### Implements following REST protocols & RPC Web API specifications:  
