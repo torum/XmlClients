@@ -14,7 +14,7 @@ Wordpress XML-RPC API
 https://codex.wordpress.org/XML-RPC_Support  
 https://codex.wordpress.org/XML-RPC_WordPress_API  
   
-Movable Type API, MetaWeblog API 
+Movable Type API, MetaWeblog API  
 https://codex.wordpress.org/XML-RPC_MovableType_API  
 https://codex.wordpress.org/XML-RPC_MetaWeblog_API  
 https://codex.wordpress.org/XML-RPC_Blogger_API  
