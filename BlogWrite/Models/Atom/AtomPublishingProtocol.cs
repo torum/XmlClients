@@ -5,7 +5,6 @@
 /// https://github.com/torum/BlogWrite
 /// 
 /// 
-
 /// Atom Syndication Format:
 ///  https://tools.ietf.org/html/rfc4287
 /// Atom Publishing protocol:

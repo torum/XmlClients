@@ -4,6 +4,13 @@
 ///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
 /// https://github.com/torum/BlogWrite
 /// 
+/// ServiceDiscoveryViewModel
+/// 
+/// TODO:
+///  Needs refactoring.
+/// 
+/// 
+/// Known issues:
 /// 
 
 using System;
@@ -17,14 +24,11 @@ namespace BlogWrite.ViewModels
 {
     public class ServiceDiscoveryViewModel : ViewModelBase
     {
-
         private ServiceDiscovery _serviceDiscovery;
-        private bool _isBusy;
-        private string _websiteOrEndpointUrl;
-        private string _statusString;
-
+        
         #region == Properties ==
 
+        private bool _isBusy;
         public bool IsBusy {
             get
             {
@@ -50,6 +54,7 @@ namespace BlogWrite.ViewModels
             }
         }
 
+        private string _websiteOrEndpointUrl;
         public string WebsiteOrEndpointUrl
         {
             get
@@ -67,6 +72,7 @@ namespace BlogWrite.ViewModels
             }
         }
 
+        private string _statusString;
         public string StatusText
         {
             get
@@ -86,7 +92,9 @@ namespace BlogWrite.ViewModels
 
         #endregion
 
-        /// <summary>Constructor.</summary>
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         public ServiceDiscoveryViewModel()
         {
             _serviceDiscovery = new ServiceDiscovery();
@@ -105,7 +113,7 @@ namespace BlogWrite.ViewModels
 
         private void OnStatusUpdate(ServiceDiscovery sender, string data)
         {
-            System.Diagnostics.Debug.WriteLine(data);
+            //System.Diagnostics.Debug.WriteLine(data);
 
             StatusText = StatusText + Environment.NewLine + data;
 

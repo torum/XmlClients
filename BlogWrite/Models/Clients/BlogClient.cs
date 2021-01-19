@@ -18,7 +18,10 @@ using BlogWrite.Models;
 
 namespace BlogWrite.Models.Clients
 {
-
+    /// <summary>
+    /// BlogClient 
+    /// Base HTTP Blog client
+    /// </summary>
     public abstract class BlogClient : BaseClient
     {
         protected string _userName = "";
@@ -30,22 +33,45 @@ namespace BlogWrite.Models.Clients
             _userName = userName;
             _userPassword = userPassword;
             _endpoint = endpoint;
-
         }
 
         public abstract Task<NodeService> GetAccount(string accountName);
 
-        public abstract Task<NodeCollections> GetBlogs();
+        public abstract Task<NodeWorkspaces> GetBlogs();
 
+        // This has been moved to BaseClient.
         //public abstract Task<List<EntryItem>> GetEntries(Uri entriesUrl);
 
-        public abstract Task<EntryFull> GetFullEntry(Uri entryUri);
+        public abstract Task<EntryFull> GetFullEntry(Uri entryUri, string postid = "");
 
         public abstract Task<bool> UpdateEntry(EntryFull entry);
 
         public abstract Task<bool> PostEntry(EntryFull entry);
 
         public abstract Task<bool> DeleteEntry(Uri editUri);
+
+        public string AsUTF8Xml(XmlDocument xdoc)
+        {
+            var sb = new StringBuilder();
+            using (var stringWriter = new StringWriterWithEncoding(sb, Encoding.UTF8))
+            using (var xmlTextWriter = XmlWriter.Create(stringWriter))
+            {
+                xdoc.WriteTo(xmlTextWriter);
+                xmlTextWriter.Flush();
+                return stringWriter.GetStringBuilder().ToString();
+            }
+        }
+
+        public string AsUTF16Xml(XmlDocument xdoc)
+        {
+            using (var stringWriter = new System.IO.StringWriter())
+            using (var xmlTextWriter = XmlWriter.Create(stringWriter))
+            {
+                xdoc.WriteTo(xmlTextWriter);
+                xmlTextWriter.Flush();
+                return stringWriter.GetStringBuilder().ToString();
+            }
+        }
 
     }
 

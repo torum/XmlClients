@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27428.2005
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30907.101
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlogWrite", "BlogWrite\BlogWrite.csproj", "{7D114488-12B7-47C0-A141-7C9E93255DC5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlogWrite", "BlogWrite\BlogWrite.csproj", "{D80BF3D5-C7C7-430C-AA4C-D614BF2E26B2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7D114488-12B7-47C0-A141-7C9E93255DC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7D114488-12B7-47C0-A141-7C9E93255DC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7D114488-12B7-47C0-A141-7C9E93255DC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7D114488-12B7-47C0-A141-7C9E93255DC5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D80BF3D5-C7C7-430C-AA4C-D614BF2E26B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D80BF3D5-C7C7-430C-AA4C-D614BF2E26B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D80BF3D5-C7C7-430C-AA4C-D614BF2E26B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D80BF3D5-C7C7-430C-AA4C-D614BF2E26B2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {90E238A6-E6E4-46AE-BAC3-06F2AEA275E8}
+		SolutionGuid = {B1126581-617F-478A-B124-8E0852C386FC}
 	EndGlobalSection
 EndGlobal

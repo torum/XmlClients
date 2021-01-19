@@ -14,7 +14,6 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
-using mshtml;
 
 namespace BlogWrite.Controls
 {
@@ -26,14 +25,14 @@ namespace BlogWrite.Controls
         public HTMLBrowserEdit()
         {
             InitializeComponent();
-
+            /*
             HTMLBrowser.LoadCompleted += HTMLBrowser_LoadCompleted;
 
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
-
+            */
         }
-
+        /*
         public bool DocumentIsReady
         {
             get
@@ -41,7 +40,7 @@ namespace BlogWrite.Controls
                 return HtmlDocument != null && HtmlDocument.readyState == "complete";
             }
         }
-
+        
         private IHTMLDocument2 HtmlDocument
         {
             get
@@ -116,7 +115,8 @@ namespace BlogWrite.Controls
             doc.designMode = "On";
         }
 
-
         #endregion
+        
+        */
     }
 }

@@ -4,29 +4,109 @@
 ///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
 /// https://github.com/torum/BlogWrite
 /// 
+/// TODO:
+/// 
+/// need Atom NodeMediaCollection
 /// 
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Collections.ObjectModel;
+using BlogWrite.Models.Clients;
 
 namespace BlogWrite.Models
 {
-
-    public class NodeCollections : NodeTree
+    /// <summary>
+    /// class for EntryNode child (for treeview).
+    /// </summary>
+    public class NodeEntries : NodeTree
     {
-        public NodeCollections(){}
+        public NodeEntries() { }
     }
 
-    public class NodeCollection : NodeTree
+    /// <summary>
+    /// class for EntryNode (for treeview).
+    /// </summary>
+    public class NodeEntryCollection : NodeTree
     {
+        /// <summary>
+        /// entries resource URI or xml-rpc URL for a blog.
+        /// </summary>
+        public Uri Uri { get; set; }
 
-        public Uri Uri { get;set;}
-        public string Accept { get; set; }
-
-        public NodeCollection(string name) : base(name)
+        // Constructor.
+        public NodeEntryCollection(string name, Uri uri) : base(name)
         {
-            PathIcon = "M20,18H4V8H20M20,6H12L10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6Z";
+            Uri = uri;
+            PathIcon = "M4,5V7H21V5M4,11H21V9H4M4,19H21V17H4M4,15H21V13H4V15Z";
         }
 
+        public ObservableCollection<EntryItem> List { get; } = new ObservableCollection<EntryItem>();
+
+        public BaseClient Client
+        {
+            get
+            {
+                if (this.Parent == null)
+                    return null;
+
+                if (this.Parent is NodeService)
+                {
+                    return (this.Parent as NodeService).Client;
+                }
+
+                if (this.Parent.Parent == null)
+                    return null;
+
+                if (!(this.Parent.Parent is NodeService))
+                    return null;
+
+                return (this.Parent.Parent as NodeService).Client;
+            }
+        }
+    }
+
+    public class NodeAtomPubEntryCollection : NodeEntryCollection
+    {
+        public Uri CategoriesUri { get; set; }
+
+        public bool CategoryIsFixed { get; set; }
+
+        public string CategoryScheme { get; set; }
+
+        //TODO: enum supported AcceptTypes
+        // "application/atom+xml"
+        // "application/atom+xml;type=entry"
+        // "application/atomcat+xml"
+        public Collection<string> AcceptTypes = new Collection<string>();
+
+        // Constructor.
+        public NodeAtomPubEntryCollection(string name, Uri uri) : base(name, uri)
+        {
+            Uri = uri;
+            PathIcon = "M4,5V7H21V5M4,11H21V9H4M4,19H21V17H4M4,15H21V13H4V15Z";
+        }
+    }
+
+    public class NodeXmlRpcMTEntryCollection : NodeEntryCollection
+    {
+        // Constructor.
+        public NodeXmlRpcMTEntryCollection(string name, Uri uri) : base(name, uri)
+        {
+            PathIcon = "M4,5V7H21V5M4,11H21V9H4M4,19H21V17H4M4,15H21V13H4V15Z";
+        }
+    }
+
+    public class NodeXmlRpcWPEntryCollection : NodeEntryCollection
+    {
+        // Constructor.
+        public NodeXmlRpcWPEntryCollection(string name, Uri uri) : base(name, uri)
+        {
+            PathIcon = "M4,5V7H21V5M4,11H21V9H4M4,19H21V17H4M4,15H21V13H4V15Z";
+        }
     }
 
 }

@@ -25,13 +25,13 @@ namespace BlogWrite.Controls
         public DiscoveryWebBrowser()
         {
             InitializeComponent();
-
+            /*
             DWB.Navigated += new NavigatedEventHandler(WebBrowserNavigated);
             DWB.LoadCompleted += WebBrowserLoadCompleted;
-
+            */
             //DWB.Navigate("http://torum.jp/");
         }
-
+        /*
         private void WebBrowserNavigated(object sender, NavigationEventArgs e)
         {
             SetSilent(DWB, true); // make it silent
@@ -85,6 +85,6 @@ namespace BlogWrite.Controls
             [PreserveSig]
             int QueryService([In] ref Guid guidService, [In] ref Guid riid, [MarshalAs(UnmanagedType.IDispatch)] out object ppvObject);
         }
-
+        */
     }
 }

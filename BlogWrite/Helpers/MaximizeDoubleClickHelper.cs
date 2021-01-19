@@ -48,7 +48,12 @@ namespace BlogWrite.Helpers
                     var parentWindow = Window.GetWindow(uiElement);
                     if (parentWindow != null && parentWindow.WindowState == WindowState.Normal)
                     {
-                        parentWindow.WindowState = WindowState.Maximized;
+                        if (parentWindow.ResizeMode != ResizeMode.NoResize)
+                        {
+                            parentWindow.WindowState = WindowState.Maximized;
+                        }
+
+                        
                     }
                     else if (parentWindow != null && parentWindow.WindowState == WindowState.Maximized)
                     {

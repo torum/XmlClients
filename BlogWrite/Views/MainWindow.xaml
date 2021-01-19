@@ -1,80 +1,144 @@
-﻿<fw:AcrylicWindow x:Class="BlogWrite.Views.MainWindow"
+﻿<Window x:Class="BlogWrite.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                  xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
-        mc:Ignorable="d"
-        
-        xmlns:local="clr-namespace:BlogWrite.Views"
-        Background="Transparent"
-                  
-        BorderBrush="#202020"          
-        BorderThickness="0.5 0.5 0.5 0.5"
-                  
-        xmlns:fw="clr-namespace:SourceChord.FluentWPF;assembly=FluentWPF"
-        fw:AcrylicWindow.ShowTitleBar="True"
-        fw:AcrylicWindow.ExtendViewIntoTitleBar="True"
-                  
-        fw:AcrylicWindow.TintOpacity="0.4"
-        fw:AcrylicWindow.TintColor="Silver"
-        fw:AcrylicWindow.FallbackColor="Transparent"
-                  
+        xmlns:local="clr-namespace:BlogWrite"
         xmlns:helpers="clr-namespace:BlogWrite.Helpers"
-        helpers:MaximizeDoubleClickHelper.MaximizeDoubleClick="True" 
-
-        WindowStartupLocation="CenterScreen"
-        Title="BlogWrite - Design, Usability, Functionality" 
-        Height="450" Width="800"
+        mc:Ignorable="d"
+        WindowStyle="None"
+        Background="{DynamicResource WindowBackgroundBaseColorBrush}"
         DataContext="{StaticResource MainViewModel}"
-                  Closing="Window_Closing">
-    <i:Interaction.Triggers>
-        <i:EventTrigger EventName="Closing">
-            <i:InvokeCommandAction  Command="{Binding WindowClosingCommand}"/>
-        </i:EventTrigger>
-    </i:Interaction.Triggers>
+        Title="{Binding AppTitle}"
+        StateChanged="Window_StateChanged"
+        Closing="MainWindow_Closing"
+        Height="450" Width="800">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="32" ResizeBorderThickness="{x:Static SystemParameters.WindowResizeBorderThickness}"/>
+    </WindowChrome.WindowChrome>
+    <Window.Style>
+        <Style TargetType="Window">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                    <Setter Property="Cursor" Value="Wait" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsWorking}" Value="True">
+                    <Setter Property="Cursor" Value="AppStarting" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Style>
+    <Border Style="{StaticResource WindowMainPanelStyle}" UseLayoutRounding="True">
+        <Grid x:Name="LayoutGrid" Background="{DynamicResource BoardBackgroundColorBrush}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="32"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="0"/>
+                <RowDefinition Height="0"/>
+                <RowDefinition Height="28"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="8"/>
+                <ColumnDefinition Width="4*"/>
+            </Grid.ColumnDefinitions>
 
-    <Grid x:Name="LayoutGrid">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="32"/>
-            <RowDefinition Height="32"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="32"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="30*" MinWidth="0"/>
-            <ColumnDefinition Width="auto"/>
-            <ColumnDefinition Width="70*" MinWidth="0"/>
-        </Grid.ColumnDefinitions>
-        
-        <Rectangle Grid.Row="0" Grid.Column="0"
-                   Grid.RowSpan="4" Grid.ColumnSpan="3"
-                   HorizontalAlignment="Stretch"
-                   VerticalAlignment="Stretch"
-                   Fill="{StaticResource ContentAreaBackgroundBrush}" Opacity="0.8"
-                   helpers:EnableDragHelper.EnableDrag="True">
-        </Rectangle>
+            <!-- App title bar-->
+            <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="32"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- App icon -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Button ToolTip="{Binding AppTitle}" IsHitTestVisible="True" WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Button.Style>
+                            <Style TargetType="{x:Type Button}">
+                                <Setter Property="OverridesDefaultStyle" Value="true" />
+                                <Setter Property="Background" Value="{DynamicResource BoardBackgroundColorBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource ControlForegroundColorBrush}"/>
+                                <!--
+                                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                                -->
+                                <Setter Property="Focusable" Value="False" />
+                                <Setter Property="BorderThickness" Value="0" />
+                                <Setter Property="Margin" Value="0" />
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="Border" CornerRadius="0" BorderThickness="0" Background="{TemplateBinding Background}">
+                                                <Viewbox Width="16" Height="16" Margin="6 0 6 0">
+                                                    <Canvas Width="24" Height="24">
+                                                        <Canvas.RenderTransform>
+                                                            <TranslateTransform X="0" Y="0"/>
+                                                        </Canvas.RenderTransform>
+                                                        
+                                                    </Canvas>
+                                                </Viewbox>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </StackPanel>
 
-            <Button x:Name="PlusOutlineButton"
-                Style="{StaticResource PathButton}" 
-                    Command="{Binding ServiceAddCommand}"
-                    ToolTip="Add Service" ToolTipService.ToolTip="Add Service"
-                Foreground="#999999" Background="Transparent" 
-                Height="24" Width="24" HorizontalAlignment="Left" VerticalAlignment="Center" 
-                    Margin="19 4 4 4">
-                M15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4M15,5.9C16.16,5.9 17.1,6.84 17.1,8C17.1,9.16 16.16,10.1 15,10.1A2.1,2.1 0 0,1 12.9,8A2.1,2.1 0 0,1 15,5.9M4,7V10H1V12H4V15H6V12H9V10H6V7H4M15,13C12.33,13 7,14.33 7,17V20H23V17C23,14.33 17.67,13 15,13M15,14.9C17.97,14.9 21.1,16.36 21.1,17V18.1H8.9V17C8.9,16.36 12,14.9 15,14.9Z
-            </Button>
-            <Button x:Name="ReloadButton"
-                Style="{StaticResource PathButton}" 
-                    ToolTip="Reload" ToolTipService.ToolTip="Reload"
-                Foreground="#999999" Background="Transparent" 
-                Height="24" Width="24" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="4">
-                M19,12H22.32L17.37,16.95L12.42,12H16.97C17,10.46 16.42,8.93 15.24,7.75C12.9,5.41 9.1,5.41 6.76,7.75C4.42,10.09 4.42,13.9 6.76,16.24C8.6,18.08 11.36,18.47 13.58,17.41L15.05,18.88C12,20.69 8,20.29 5.34,17.65C2.22,14.53 2.23,9.47 5.35,6.35C8.5,3.22 13.53,3.21 16.66,6.34C18.22,7.9 19,9.95 19,12Z
-            </Button>
-            
-            <!--
+                <!-- System icons -->
+                <StackPanel Orientation="Horizontal" Grid.Column="2" HorizontalAlignment="Right" Margin="0">
+
+                    <Button x:Name="SettingsButton" Style="{DynamicResource PathSysButton}" Command="{Binding ShowSettingsCommand}" WindowChrome.IsHitTestVisibleInChrome="True"
+                                Content="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,
+8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,
+11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,
+4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,
+2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,
+5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,
+12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,
+18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,
+21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,
+18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z">
+                    </Button>
+
+                    <Button x:Name="MinimizeButton" Style="{StaticResource PathSysButton}" Click="MinimizeButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
+                        M20,14H4V10H20
+                    </Button>
+
+                    <Button x:Name="RestoreButton" Style="{StaticResource PathSysButton}" Click="RestoreButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
+                        M4,8H8V4H20V16H16V20H4V8M16,8V14H18V6H10V8H16M6,12V18H14V12H6Z
+                    </Button>
+
+                    <Button x:Name="MaxButton" Style="{StaticResource PathSysButton}" Click="MaxButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
+                        M4,4H20V20H4V4M6,8V18H18V8H6Z
+                    </Button>
+
+                    <Button x:Name="CloseButton" Style="{StaticResource PathSysButtonClose}" Click="CloseButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
+                        M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z
+                    </Button>
+
+                </StackPanel>
+
+            </Grid>
+
+            <Grid Grid.Row="1" Grid.Column="0" >
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                    <Button x:Name="PlusOutlineButton" Style="{StaticResource PathButton}" Command="{Binding ServiceAddCommand}" ToolTip="Add Service" ToolTipService.ToolTip="Add Service">
+                        M15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4M15,5.9C16.16,5.9 17.1,6.84 17.1,8C17.1,9.16 16.16,10.1 15,10.1A2.1,2.1 0 0,1 12.9,8A2.1,2.1 0 0,1 15,5.9M4,7V10H1V12H4V15H6V12H9V10H6V7H4M15,13C12.33,13 7,14.33 7,17V20H23V17C23,14.33 17.67,13 15,13M15,14.9C17.97,14.9 21.1,16.36 21.1,17V18.1H8.9V17C8.9,16.36 12,14.9 15,14.9Z
+                    </Button>
+                    <Button x:Name="ReloadButton" Style="{StaticResource PathButton}" ToolTip="Reload" ToolTipService.ToolTip="Reload">
+                        M19,12H22.32L17.37,16.95L12.42,12H16.97C17,10.46 16.42,8.93 15.24,7.75C12.9,5.41 9.1,5.41 6.76,7.75C4.42,10.09 4.42,13.9 6.76,16.24C8.6,18.08 11.36,18.47 13.58,17.41L15.05,18.88C12,20.69 8,20.29 5.34,17.65C2.22,14.53 2.23,9.47 5.35,6.35C8.5,3.22 13.53,3.21 16.66,6.34C18.22,7.9 19,9.95 19,12Z
+                    </Button>
+
+                    <!--
             <Button x:Name="PlusOutlineButton"
                 Style="{StaticResource PathButton}" 
                     Command="{Binding ServiceAddCommand}"
@@ -85,7 +149,7 @@
                 M4,9H9V4H15V9H20V15H15V20H9V15H4V9M11,13V18H13V13H18V11H13V6H11V11H6V13H11Z
             </Button>
             -->
-            <!--
+                    <!--
             <Button x:Name="AccountCircleButton"
                 Style="{StaticResource PathButton}" 
                     ToolTip="Settings" ToolTipService.ToolTip="Settings"
@@ -116,7 +180,7 @@
             </Button>
             
             -->
-            <!--
+                    <!--
             <Button x:Name="AlertAttentionButton"
                 Style="{StaticResource PathButton}" 
                     ToolTip="Settings" ToolTipService.ToolTip="Settings"
@@ -134,10 +198,14 @@
             -->
 
 
-        </StackPanel>
-        
-        <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-            <!--
+                </StackPanel>
+
+            </Grid>
+
+            <Grid Grid.Row="1" Grid.Column="2">
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <!--
             <Button x:Name="PlusCircleButton"
                 Style="{StaticResource PathButton}" 
                     ToolTip="Settings" ToolTipService.ToolTip="Settings"
@@ -146,25 +214,19 @@
                 M17,13H13V17H11V13H7V11H11V7H13V11H17M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z
             </Button>
             -->
-            <Button x:Name="RefreshButton"
-                Style="{StaticResource PathButton}" 
-                    Command="{Binding RefreshEntriesCommand}"
-                    ToolTip="Refresh Entries" ToolTipService.ToolTip="Refresh Entries"
-                Foreground="#999999" Background="Transparent" 
-                Height="24" Width="24" HorizontalAlignment="Left" VerticalAlignment="Center" 
-                    Margin="6 4 4 4">
-                M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z
-            </Button>
-            <Button x:Name="PlusCircleOutlineButton"
+                    <Button x:Name="PlusCircleOutlineButton"
                 Style="{StaticResource PathButton}" 
                     Command="{Binding OpenEditorAsNewCommand}"
-                    ToolTip="New Entry" ToolTipService.ToolTip="New Entry"
-                Foreground="#999999" Background="Transparent" 
-                Height="24" Width="24" HorizontalAlignment="Left" VerticalAlignment="Center" 
-                    Margin="4">
-                M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M13,7H11V11H7V13H11V17H13V13H17V11H13V7Z
-            </Button>
-            <!--
+                    ToolTip="New Entry" ToolTipService.ToolTip="New Entry">
+                        M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M13,7H11V11H7V13H11V17H13V13H17V11H13V7Z
+                    </Button>
+                    <Button x:Name="RefreshButton"
+                Style="{StaticResource PathButton}" 
+                    Command="{Binding RefreshEntriesCommand}"
+                    ToolTip="Refresh Entries" ToolTipService.ToolTip="Refresh Entries">
+                        M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z
+                    </Button>
+                    <!--
             <Button x:Name="AutoRenewButton"
                 Style="{StaticResource PathButton}" 
                     ToolTip="Settings" ToolTipService.ToolTip="Settings"
@@ -181,35 +243,29 @@
             </Button>
             -->
 
-            <Button x:Name="EditButton"
+                    <Button x:Name="EditButton"
                 Style="{StaticResource PathButton}" 
                     Command="{Binding OpenEditorCommand}"
                     CommandParameter="{Binding SelectedItem}"
-                    ToolTip="Edit" ToolTipService.ToolTip="Edit"
-                Foreground="#999999" Background="Transparent" 
-                Height="24" Width="24" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="4">
-                M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z
-            </Button>
-            <Button x:Name="OpenInButton"
+                    ToolTip="Edit" ToolTipService.ToolTip="Edit">
+                        M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z
+                    </Button>
+                    <Button x:Name="OpenInButton"
                 Style="{StaticResource PathButton}" 
                     Command="{Binding OpenInBrowserCommand}"
                     CommandParameter="{Binding SelectedItem}"
-                    ToolTip="Open in Browser" ToolTipService.ToolTip="Open in Browser"
-                Foreground="#999999" Background="Transparent" 
-                Height="24" Width="24" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="4">
-                M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z
-            </Button>
-            <Button x:Name="DeleteForeverButton"
+                    ToolTip="Open in Browser" ToolTipService.ToolTip="Open in Browser">
+                        M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z
+                    </Button>
+                    <Button x:Name="DeleteForeverButton"
                 Style="{StaticResource PathButton}" 
                     Command="{Binding DeleteEntryCommand}"
                     CommandParameter="{Binding SelectedItem}"
-                    ToolTip="Delete" ToolTipService.ToolTip="Delete"
-                Foreground="#999999" Background="Transparent" 
-                Height="24" Width="24" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="4">
-                M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19M8.46,11.88L9.87,10.47L12,12.59L14.12,10.47L15.53,11.88L13.41,14L15.53,16.12L14.12,17.53L12,15.41L9.88,17.53L8.47,16.12L10.59,14L8.46,11.88M15.5,4L14.5,3H9.5L8.5,4H5V6H19V4H15.5Z
-            </Button>
+                    ToolTip="Delete" ToolTipService.ToolTip="Delete">
+                        M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19M8.46,11.88L9.87,10.47L12,12.59L14.12,10.47L15.53,11.88L13.41,14L15.53,16.12L14.12,17.53L12,15.41L9.88,17.53L8.47,16.12L10.59,14L8.46,11.88M15.5,4L14.5,3H9.5L8.5,4H5V6H19V4H15.5Z
+                    </Button>
 
-            <!--
+                    <!--
             <Button x:Name="EntryNewButton"
                 Style="{StaticResource PathButton}" 
                     ToolTip="Settings" ToolTipService.ToolTip="Settings"
@@ -247,247 +303,338 @@
             </Button>
             -->
 
-        </StackPanel>
-        
-        <helpers:TreeViewSelectedItemHelper Grid.Row="2" Grid.Column="0" x:Name="AccountTreeview"
-                MinWidth="240" 
-                Background="Transparent"
-                Foreground="Gray"
-                BorderThickness="0"
-                Padding="24 0 0 0"
-                SelectedNode="{Binding Path=SelectedNode,Mode=TwoWay}"
-                ItemsSource="{Binding Services}">
-            <TreeView.ItemTemplate>
-                <HierarchicalDataTemplate DataType="local:NodeTree"
-                        ItemsSource="{Binding Path=Children}">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                        <Viewbox Width="12" Height="12" Margin="0 0 4 2">
-                            <Canvas Width="18" Height="18">
-                                <Path Data="{Binding PathIcon}"
-                                                  Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}" />
+                </StackPanel>
 
-                            </Canvas>
-                        </Viewbox>
-                        <TextBlock Text="{Binding Path=Name}" Padding="4"/>
-                    </StackPanel>
-                </HierarchicalDataTemplate>
-            </TreeView.ItemTemplate>
-            <TreeView.ItemContainerStyle>
-                <Style TargetType="TreeViewItem" BasedOn="{StaticResource TreeviewItemStyle}">
-                    <Setter Property="OverridesDefaultStyle" Value="False" />
-                    <Setter Property="IsExpanded" Value="{Binding Expanded, Mode=TwoWay}"/>
-                    <Setter Property="IsSelected" Value="{Binding Selected, Mode=TwoWay}"/>
-                </Style>
-            </TreeView.ItemContainerStyle>
-        </helpers:TreeViewSelectedItemHelper>
-
-        <GridSplitter Grid.Row="1" Grid.RowSpan="3" Grid.Column="1" 
-                      ResizeDirection="Columns"
-                      Style="{StaticResource GridSplitterStyle}">
-        </GridSplitter>
-
-        <Grid Grid.Row="2" Grid.RowSpan="2" Grid.Column="2" MinWidth="24">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="0"/>
-                <RowDefinition Height="30*" MinHeight="24"/>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="70*" MinHeight="0"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <Grid Grid.Row="0" Grid.Column="0" 
-                  Margin="0 0 8 0" 
-                  HorizontalAlignment="Stretch"
-                  Visibility="Hidden">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="0" MinWidth="0"  MaxWidth="1" />
-                    <ColumnDefinition Width="*" MinWidth="240"/>
-                    <ColumnDefinition Width="80" MinWidth="60" MaxWidth="80"/>
-                    <ColumnDefinition Width="80" MinWidth="60" MaxWidth="80"/>
-                    <ColumnDefinition Width="0" MinWidth="0" MaxWidth="0" />
-                    <ColumnDefinition Width="0" MinWidth="0" MaxWidth="0"/>
-                    <ColumnDefinition Width="35" MinWidth="35" MaxWidth="35"/>
-                </Grid.ColumnDefinitions>
-
-                <Grid x:Name="hwidth0" Grid.Column="0" />
-                <Grid x:Name="hwidth1" Grid.Column="1" />
-                <Grid x:Name="hwidth2" Grid.Column="2" />
-                <Grid x:Name="hwidth3" Grid.Column="3" />
-                <Grid x:Name="hwidth4" Grid.Column="4" />
-                <Grid x:Name="hwidth5" Grid.Column="5" />
-                <Grid x:Name="hwidth6" Grid.Column="6" />
             </Grid>
 
-            <ListView Grid.Row="1" Grid.Column="0" x:Name="EntryListView"
-                          MinHeight="80"
-                      BorderThickness="0"
-                          Foreground="LightGray" Background="Transparent"
-                          Margin="0 0 8 0"
+            <!-- Left -->
+            <Grid Grid.Row="2" Grid.Column="0" Background="{DynamicResource WindowBackgroundBaseColorBrush}">
+                <TreeView Margin="0 1 0 0" Style="{DynamicResource TreeViewMenuStyle}" ItemsSource="{Binding Services}" helpers:TreeViewHelper.SelectedItem="{Binding SelectedNode, Mode=TwoWay}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <TreeView.Resources>
+                        <ContextMenu x:Key="TreeviewMenuItemContextMenu">
+                        </ContextMenu>
+                        <Style TargetType="{x:Type ScrollBar}">
+                            <Setter Property="Margin" Value="0,0,0,0" />
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Style.Triggers>
+                                <Trigger Property="Orientation" Value="Vertical">
+                                    <Setter Property="Width" Value="18"/>
+                                    <Setter Property="Height" Value="Auto" />
+                                    <Setter Property="Template" Value="{StaticResource VerticalScrollBar}" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TreeView.Resources>
+                    <TreeView.ItemTemplate>
+                        <HierarchicalDataTemplate DataType="local:NodeTree" ItemsSource="{Binding Path=Children}">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <Viewbox Width="12" Height="12" Margin="0 0 4 2">
+                                    <Canvas Width="18" Height="18">
+                                        <Path Data="{Binding PathIcon}" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}" />
+                                    </Canvas>
+                                </Viewbox>
+                                <TextBlock Text="{Binding Path=Name}" Padding="4"/>
+                            </StackPanel>
+                        </HierarchicalDataTemplate>
+                    </TreeView.ItemTemplate>
+                    <TreeView.ItemContainerStyle>
+                        <Style TargetType="TreeViewItem" BasedOn="{StaticResource TreeViewMenuItemStyle}">
+                            <Setter Property="OverridesDefaultStyle" Value="False" />
+                            <Setter Property="IsExpanded" Value="{Binding Expanded, Mode=TwoWay}"/>
+                            <Setter Property="IsSelected" Value="{Binding Selected, Mode=TwoWay}"/>
+                            <Setter Property="ContextMenu" Value="{StaticResource TreeviewMenuItemContextMenu}"/>
+                        </Style>
+                    </TreeView.ItemContainerStyle>
+                </TreeView>
+            </Grid>
+
+            <GridSplitter Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" ResizeDirection="Columns" Style="{StaticResource GridSplitterStyle}"></GridSplitter>
+
+            <!-- Right -->
+            <Grid Grid.Row="2" Grid.Column="2" MinWidth="24">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="0"/>
+                    <RowDefinition Height="35*" MinHeight="24"/>
+                    <RowDefinition Height="8"/>
+                    <RowDefinition Height="65*" MinHeight="0"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Grid Grid.Row="0" Grid.Column="0" Margin="0 0 8 0" HorizontalAlignment="Stretch" Visibility="Hidden">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="0" MinWidth="0"  MaxWidth="1" />
+                        <ColumnDefinition Width="*" MinWidth="180"/>
+                        <ColumnDefinition Width="90" MinWidth="90" MaxWidth="90"/>
+                        <ColumnDefinition Width="110" MinWidth="110" MaxWidth="110"/>
+                        <ColumnDefinition Width="0" MinWidth="0" MaxWidth="0" />
+                        <ColumnDefinition Width="0" MinWidth="0" MaxWidth="0"/>
+                        <ColumnDefinition Width="0" MinWidth="0" MaxWidth="0"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid x:Name="hwidth0" Grid.Column="0" />
+                    <Grid x:Name="hwidth1" Grid.Column="1" />
+                    <Grid x:Name="hwidth2" Grid.Column="2" />
+                    <Grid x:Name="hwidth3" Grid.Column="3" />
+                    <Grid x:Name="hwidth4" Grid.Column="4" />
+                    <Grid x:Name="hwidth5" Grid.Column="5" />
+                    <Grid x:Name="hwidth6" Grid.Column="6" />
+                </Grid>
+
+                <ListView Grid.Row="1" Grid.Column="0" x:Name="EntryListView" MinHeight="80" BorderThickness="0" Padding="0"
+                          Foreground="LightGray" Background="{DynamicResource WindowBackgroundBaseColorBrush}"
+                          Margin="0"
                           ItemsSource="{Binding Entries}" 
                           SelectedItem="{Binding Mode=TwoWay,Path=SelectedItem}" 
                           SelectionMode="Extended"
                           SelectionChanged="EntryListView_SelectionChanged"
                           HorizontalAlignment="Stretch"
                           VerticalAlignment="Stretch"
+                          AlternationCount="2"
                           ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                           ScrollViewer.VerticalScrollBarVisibility="Visible">
-                <ListView.InputBindings>
-                    <KeyBinding Key="Enter"
+                    <ListView.InputBindings>
+                        <KeyBinding Key="Enter"
                                 Command="{Binding Path=DataContext.ListviewEnterKeyCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}"
                                 CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" />
-                </ListView.InputBindings>
-                <ListView.Resources>
-                    <ContextMenu x:Key="ItemContextMenu">
-                        <MenuItem Header="Edit"
+                    </ListView.InputBindings>
+                    <ListView.Resources>
+                        <ContextMenu x:Key="ItemContextMenu">
+                            <MenuItem Header="Edit"
                                   Command="{Binding Path=DataContext.OpenEditorCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}"
                                   CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}">
-                            <MenuItem.Resources>
-                                <ControlTemplate x:Key="EditIcon">
-                                    <Canvas Background="Transparent" >
-                                        <Path Fill="#373737"
+                                <MenuItem.Resources>
+                                    <ControlTemplate x:Key="EditIcon">
+                                        <Canvas Background="Transparent" >
+                                            <Path Fill="#373737"
                           Width="14.3775"
                           Height="14"
                           Canvas.Left="0.311264"
                           Canvas.Top="0.500005"
                           Stretch="Uniform"
                           Data="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" />
-                                    </Canvas>
-                                </ControlTemplate>
-                            </MenuItem.Resources>
-                            <MenuItem.Icon>
-                                <ContentControl Template="{StaticResource EditIcon}" />
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Delete"
-                                  Command="{Binding Path=DataContext.DeleteEntryCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}"
+                                        </Canvas>
+                                    </ControlTemplate>
+                                </MenuItem.Resources>
+                                <MenuItem.Icon>
+                                    <ContentControl Template="{StaticResource EditIcon}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Reload"
+                                  Command="{Binding Path=DataContext.GetEntryCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}"
                                   CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}">
-                            <MenuItem.Resources>
-                                <ControlTemplate x:Key="DeleteForeverIcon">
-                                    <Canvas Background="Transparent">
-                                        <Path Fill="#373737" 
+                                <MenuItem.Resources>
+                                    <ControlTemplate x:Key="GetEntry">
+                                        <Canvas Background="Transparent" >
+                                            <Path Fill="#373737"
                           Width="14.3775"
                           Height="14"
                           Canvas.Left="0.311264"
                           Canvas.Top="0.500005"
                           Stretch="Uniform"
-                          Data="M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19M8.46,11.88L9.87,10.47L12,12.59L14.12,10.47L15.53,11.88L13.41,14L15.53,16.12L14.12,17.53L12,15.41L9.88,17.53L8.47,16.12L10.59,14L8.46,11.88M15.5,4L14.5,3H9.5L8.5,4H5V6H19V4H15.5Z" />
-                                    </Canvas>
-                                </ControlTemplate>
-                            </MenuItem.Resources>
-                            <MenuItem.Icon>
-                                <ContentControl Template="{StaticResource DeleteForeverIcon}" />
-                            </MenuItem.Icon>
-                        </MenuItem>
-                        <MenuItem Header="Open in Browser..."
+                          Data="M12,6V9L16,5L12,1V4A8,8 0 0,0 4,12C4,13.57 4.46,15.03 5.24,16.26L6.7,14.8C6.25,13.97 6,13 6,12A6,6 0 0,1 12,6M18.76,7.74L17.3,9.2C17.74,10.04 18,11 18,12A6,6 0 0,1 12,18V15L8,19L12,23V20A8,8 0 0,0 20,12C20,10.43 19.54,8.97 18.76,7.74Z" />
+                                        </Canvas>
+                                    </ControlTemplate>
+                                </MenuItem.Resources>
+                                <MenuItem.Icon>
+                                    <ContentControl Template="{StaticResource GetEntry}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Open in Browser..."
                                   Command="{Binding Path=DataContext.OpenInBrowserCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}"
                                   CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}">
-                            <MenuItem.Resources>
-                                <ControlTemplate x:Key="OpenInBrowser">
-                                    <Canvas Background="Transparent" >
-                                        <Path Fill="#373737"
+                                <MenuItem.Resources>
+                                    <ControlTemplate x:Key="OpenInBrowser">
+                                        <Canvas Background="Transparent" >
+                                            <Path Fill="#373737"
                           Width="14.3775"
                           Height="14"
                           Canvas.Left="0.311264"
                           Canvas.Top="0.500005"
                           Stretch="Uniform"
                           Data="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z" />
-                                    </Canvas>
-                                </ControlTemplate>
-                            </MenuItem.Resources>
-                            <MenuItem.Icon>
-                                <ContentControl Template="{StaticResource OpenInBrowser}" />
-                            </MenuItem.Icon>
-                        </MenuItem>
-                    </ContextMenu>
-                    <Style TargetType="{x:Type ScrollBar}">
-                        <Setter Property="Margin" Value="0,0,0,0" />
-                        <Setter Property="BorderThickness" Value="0" />
-                        <Style.Triggers>
-                            <Trigger Property="Orientation" Value="Vertical">
-                                <Setter Property="Width" Value="18"/>
-                                <Setter Property="Height" Value="Auto" />
-                                <Setter Property="Template" Value="{StaticResource VerticalScrollBar}" />
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </ListView.Resources>
-                <ListView.View>
-                    <GridView>
-                        <GridView.ColumnHeaderContainerStyle>
-                            <Style TargetType="GridViewColumnHeader" BasedOn="{StaticResource GridViewColumnHeaderStyle}">
-                                <Setter Property="Visibility" Value="Visible" />
-                            </Style>
-                        </GridView.ColumnHeaderContainerStyle>
+                                        </Canvas>
+                                    </ControlTemplate>
+                                </MenuItem.Resources>
+                                <MenuItem.Icon>
+                                    <ContentControl Template="{StaticResource OpenInBrowser}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Delete"
+                                  Command="{Binding Path=DataContext.DeleteEntryCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}"
+                                  CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}">
+                                <MenuItem.Resources>
+                                    <ControlTemplate x:Key="DeleteForeverIcon">
+                                        <Canvas Background="Transparent">
+                                            <Path Fill="#373737" 
+                          Width="14.3775"
+                          Height="14"
+                          Canvas.Left="0.311264"
+                          Canvas.Top="0.500005"
+                          Stretch="Uniform"
+                          Data="M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19M8.46,11.88L9.87,10.47L12,12.59L14.12,10.47L15.53,11.88L13.41,14L15.53,16.12L14.12,17.53L12,15.41L9.88,17.53L8.47,16.12L10.59,14L8.46,11.88M15.5,4L14.5,3H9.5L8.5,4H5V6H19V4H15.5Z" />
+                                        </Canvas>
+                                    </ControlTemplate>
+                                </MenuItem.Resources>
+                                <MenuItem.Icon>
+                                    <ContentControl Template="{StaticResource DeleteForeverIcon}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                        </ContextMenu>
+                        <Style TargetType="{x:Type ScrollBar}">
+                            <Setter Property="Margin" Value="0,0,0,0" />
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Style.Triggers>
+                                <Trigger Property="Orientation" Value="Vertical">
+                                    <Setter Property="Width" Value="18"/>
+                                    <Setter Property="Height" Value="Auto" />
+                                    <Setter Property="Template" Value="{StaticResource VerticalScrollBar}" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListView.Resources>
+                    <ListView.View>
+                        <GridView>
+                            <GridView.ColumnHeaderContainerStyle>
+                                <Style TargetType="GridViewColumnHeader" BasedOn="{StaticResource GridViewColumnHeaderStyle}">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </Style>
+                            </GridView.ColumnHeaderContainerStyle>
 
-                        <GridViewColumn Header="" 
-                                        Width="{Binding ElementName=hwidth0, Path=ActualWidth}">
-                        </GridViewColumn>
-                        <GridViewColumn Header="Title"                                        
-                                        Width="{Binding ElementName=hwidth1, Path=ActualWidth}">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0">
-                                        <Viewbox Width="12" Height="12" Margin="0 0 4 2">
-                                            <Canvas Width="18" Height="18">
-                                                <Path Data="{Binding PathIcon}"
-                                                  Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}}" />
+                            <GridViewColumn Header="" Width="{Binding ElementName=hwidth0, Path=ActualWidth}">
+                            </GridViewColumn>
+                            <GridViewColumn Header="Title" Width="{Binding ElementName=hwidth1, Path=ActualWidth}">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0">
+                                            <Viewbox Width="12" Height="12" Margin="0 0 4 2">
+                                                <Canvas Width="18" Height="18">
+                                                    <Path Data="{Binding PathIcon}" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}}" />
+                                                </Canvas>
+                                            </Viewbox>
+                                            <TextBlock Text="{Binding Path=Name}" Padding="3" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <!-- DisplayMemberBinding="{Binding Path=EntryUpdatedDT}" -->
+                            <GridViewColumn Header="Updated" Width="{Binding ElementName=hwidth2, Path=ActualWidth}">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="" Padding="3" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Published" Width="{Binding ElementName=hwidth3, Path=ActualWidth}">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="" Padding="3" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Author" Width="{Binding ElementName=hwidth4, Path=ActualWidth}">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="" Padding="3" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="">
+                            </GridViewColumn>
+                            <GridViewColumn Header="">
+                            </GridViewColumn>
+                            <GridViewColumn Header="" Width="35">
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem" BasedOn="{StaticResource ListViewItemStyle}">
+                            <Setter Property="Margin" Value="0 0 0 0"/>
+                            <Setter Property="Padding" Value="1"/>
+                            <Setter Property="ContextMenu" Value="{StaticResource ItemContextMenu}" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type ListViewItem}">
+                                        <Border Name="Border" Margin="{TemplateBinding Margin}" Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" ClipToBounds="{TemplateBinding ClipToBounds}" CornerRadius="0" SnapsToDevicePixels="true">
+                                            <Border.InputBindings>
+                                                <MouseBinding Command="{Binding Path=DataContext.ListviewLeftDoubleClickCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" Gesture="LeftDoubleClick" />
+                                            </Border.InputBindings>
+                                            <GridViewRowPresenter VerticalAlignment="{TemplateBinding VerticalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                </ListView>
 
-                                            </Canvas>
-                                        </Viewbox>
-                                        <TextBlock Text="{Binding Path=Name}" Padding="3" />
-                                    </StackPanel>
+                <GridSplitter Grid.Row="2" Grid.Column="0" ResizeDirection="Rows" Style="{StaticResource GridSplitterStyle}">
+                </GridSplitter>
 
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                        <!-- DisplayMemberBinding="{Binding Path=EntryUpdatedDT}" -->
-                        <GridViewColumn Header="Updated" 
-                                        Width="{Binding ElementName=hwidth2, Path=ActualWidth}">
-                        </GridViewColumn>
-                        <GridViewColumn Header="Published" 
-                                        Width="{Binding ElementName=hwidth3, Path=ActualWidth}">
-                        </GridViewColumn>
-                        <GridViewColumn Header="Author"
-                                        Width="{Binding ElementName=hwidth4, Path=ActualWidth}">
-                        </GridViewColumn>
-                        <GridViewColumn Header="">
-                        </GridViewColumn>
-                        <GridViewColumn Header="">
-                        </GridViewColumn>
-                        <GridViewColumn Header=""
-                                        Width="35">
-                        </GridViewColumn>
-                    </GridView>
-                </ListView.View>
-                <ListView.ItemContainerStyle>
-                    <Style TargetType="ListViewItem" BasedOn="{StaticResource ListViewItemStyle}">
-                        <Setter Property="Margin" Value="0 0 0 0"/>
-                        <Setter Property="ContextMenu" Value="{StaticResource ItemContextMenu}" />
-                    </Style>
-                </ListView.ItemContainerStyle>
-            </ListView>
-
-            <GridSplitter Grid.Row="2" Grid.Column="0"
-                          ResizeDirection="Rows"
-                      Style="{StaticResource GridSplitterStyle}">
-            </GridSplitter>
-            
-            <Grid Grid.Row="3" Grid.Column="0">
-
-                <TextBox x:Name="ContentPreviewTextBox"
+                <Grid Grid.Row="3" Grid.Column="0">
+                    <TextBox x:Name="ContentPreviewTextBox" Background="{DynamicResource WindowBackgroundBaseColorBrush}"
                      TextWrapping="Wrap" 
                      IsReadOnly="True"
-                         IsTabStop="False"
-                     Margin="4"
+                     IsTabStop="False"
                      MinHeight="24"
                      Style="{StaticResource FlatTextBoxStyle}"
                      Visibility="{Binding IsContentText, Converter={StaticResource BooleanToVisibilityConverter}}"
                      Text="{Binding Entry, Mode=OneWay}">
-                </TextBox>
-                
-                <!--
+                        <TextBox.Resources>
+                            <Style TargetType="{x:Type ScrollBar}">
+                                <Setter Property="SnapsToDevicePixels" Value="True" />
+                                <Setter Property="OverridesDefaultStyle" Value="true" />
+                                <Setter Property="Margin" Value="0,0,0,0" />
+                                <Setter Property="BorderThickness" Value="0" />
+                                <Style.Triggers>
+                                    <Trigger Property="Orientation" Value="Vertical">
+                                        <Setter Property="Width" Value="18"/>
+                                        <Setter Property="Height" Value="Auto" />
+                                        <Setter Property="Template" Value="{StaticResource VerticalScrollBar}" />
+                                    </Trigger>
+                                    <Trigger Property="Orientation" Value="Horizontal">
+                                        <Setter Property="Width" Value="Auto"/>
+                                        <Setter Property="Height" Value="18" />
+                                        <Setter Property="Template" Value="{StaticResource HorizontalScrollBar}" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                            <Style TargetType="{x:Type ScrollViewer}">
+                                <Setter Property="OverridesDefaultStyle" Value="True" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="{x:Type ScrollViewer}">
+                                            <Grid x:Name="Grid" Background="{TemplateBinding Background}">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                                <!--
+                                                    <Rectangle x:Name="Corner" Grid.Row="1" Grid.Column="1" Fill="Transparent" />
+                                                    -->
+                                                <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" Grid.Row="0" Grid.Column="0" Margin="{TemplateBinding Padding}" CanContentScroll="{TemplateBinding CanContentScroll}" CanHorizontallyScroll="False" CanVerticallyScroll="False" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                                                <ScrollBar x:Name="PART_VerticalScrollBar" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" AutomationProperties.AutomationId="VerticalScrollBar" Cursor="Arrow" Maximum="{TemplateBinding ScrollableHeight}" Minimum="0" ViewportSize="{TemplateBinding ViewportHeight}" Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" Value="{Binding VerticalOffset, Mode=OneWay,RelativeSource={RelativeSource TemplatedParent}}" />
+                                                <ScrollBar x:Name="PART_HorizontalScrollBar" Grid.Row="1" Grid.Column="0" AutomationProperties.AutomationId="HorizontalScrollBar" Cursor="Arrow" Maximum="{TemplateBinding ScrollableWidth}" Minimum="0" Orientation="Horizontal" ViewportSize="{TemplateBinding ViewportWidth}" Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}" Value="{Binding HorizontalOffset,Mode=OneWay,RelativeSource={RelativeSource TemplatedParent}}" />
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </TextBox.Resources>
+                    </TextBox>
+
+                    <!--
                 <Border 
                     Margin="2 2 8 8"
                     BorderBrush="DarkGray"
@@ -498,53 +645,194 @@
                 </Border>
                 -->
 
+                </Grid>
+                
             </Grid>
+
+            <GridSplitter x:Name="DebugWindowGridSplitter" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" ResizeDirection="Rows" Style="{StaticResource GridSplitterStyle}" Visibility="Collapsed"></GridSplitter>
+
+            <!-- DebugWindow -->
+            <Grid x:Name="DebugWindow" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" Visibility="Collapsed">
+
+                <TextBox x:Name="DebugTextBox" Padding="6 6 24 6" Background="{DynamicResource WindowBackgroundBaseColorBrush}" Foreground="Gray" BorderThickness="0" VerticalAlignment="Stretch" TextWrapping="NoWrap" IsReadOnly="True" IsTabStop="False" Margin="0" MinHeight="24" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto">
+                    <TextBox.Resources>
+                        <Style TargetType="{x:Type ScrollBar}">
+                            <Setter Property="SnapsToDevicePixels" Value="True" />
+                            <Setter Property="OverridesDefaultStyle" Value="true" />
+                            <Setter Property="Margin" Value="0,0,0,0" />
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Style.Triggers>
+                                <Trigger Property="Orientation" Value="Vertical">
+                                    <Setter Property="Width" Value="18"/>
+                                    <Setter Property="Height" Value="Auto" />
+                                    <Setter Property="Template" Value="{StaticResource VerticalScrollBar}" />
+                                </Trigger>
+                                <Trigger Property="Orientation" Value="Horizontal">
+                                    <Setter Property="Width" Value="Auto"/>
+                                    <Setter Property="Height" Value="18" />
+                                    <Setter Property="Template" Value="{StaticResource HorizontalScrollBar}" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                        <Style TargetType="{x:Type ScrollViewer}">
+                            <Setter Property="OverridesDefaultStyle" Value="True" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type ScrollViewer}">
+                                        <Grid x:Name="Grid" Background="{TemplateBinding Background}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="*" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+                                            <!--
+                                                    <Rectangle x:Name="Corner" Grid.Row="1" Grid.Column="1" Fill="Transparent" />
+                                                    -->
+                                            <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" Grid.Row="0" Grid.Column="0" Margin="{TemplateBinding Padding}" CanContentScroll="{TemplateBinding CanContentScroll}" CanHorizontallyScroll="False" CanVerticallyScroll="False" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                                            <ScrollBar x:Name="PART_VerticalScrollBar" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" AutomationProperties.AutomationId="VerticalScrollBar" Cursor="Arrow" Maximum="{TemplateBinding ScrollableHeight}" Minimum="0" ViewportSize="{TemplateBinding ViewportHeight}" Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" Value="{Binding VerticalOffset, Mode=OneWay,RelativeSource={RelativeSource TemplatedParent}}" />
+                                            <ScrollBar x:Name="PART_HorizontalScrollBar" Grid.Row="1" Grid.Column="0" AutomationProperties.AutomationId="HorizontalScrollBar" Cursor="Arrow" Maximum="{TemplateBinding ScrollableWidth}" Minimum="0" Orientation="Horizontal" ViewportSize="{TemplateBinding ViewportWidth}" Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}" Value="{Binding HorizontalOffset,Mode=OneWay,RelativeSource={RelativeSource TemplatedParent}}" />
+                                        </Grid>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </TextBox.Resources>
+                </TextBox>
+
+                <Button Style="{StaticResource PathButton}" Width="30" Height="30" HorizontalAlignment="Right" Margin="0 0 18 0" VerticalAlignment="Top" Content="M16.24,3.56L21.19,8.5C21.97,9.29 21.97,10.55 21.19,11.34L12,20.53C10.44,22.09 7.91,22.09 6.34,20.53L2.81,17C2.03,16.21 2.03,14.95 2.81,14.16L13.41,3.56C14.2,2.78 15.46,2.78 16.24,3.56M4.22,15.58L7.76,19.11C8.54,19.9 9.8,19.9 10.59,19.11L14.12,15.58L9.17,10.63L4.22,15.58Z" Command="{Binding ClearDebugTextCommand}"></Button>
+
+            </Grid>
+
+            <!-- StatusBar -->
+            <StatusBar Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3" Background="Transparent" Padding="0 1 0 0" Height="28">
+                <StatusBar.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                        </Grid>
+                    </ItemsPanelTemplate>
+                </StatusBar.ItemsPanel>
+
+                <StatusBarItem Grid.Column="0">
+
+                </StatusBarItem>
+
+                <!-- Status Message  -->
+                <Separator Grid.Column="1" Background="#202020"/>
+                <StatusBarItem Grid.Column="2">
+
+                </StatusBarItem>
+
+                <!-- Statusbar Message  -->
+                <Separator Grid.Column="3" Background="#202020"/>
+                <StatusBarItem Grid.Column="4" HorizontalContentAlignment="Left">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="6 0 6 0">
+
+                        <TextBlock Text="{Binding StatusBarMessage}" Style="{DynamicResource DefaultTextBlockStyle}" Foreground="{DynamicResource ControlDarkColorBrush}" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="6 0 6 0" Padding="0" TextWrapping="NoWrap"></TextBlock>
+
+                    </StackPanel>
+
+                </StatusBarItem>
+
+                <!-- Debug Window Icon  -->
+                <Separator Grid.Column="4" Background="#202020" />
+                <StatusBarItem Grid.Column="6" HorizontalContentAlignment="Right">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0 0 0 0">
+
+                        <Button Width="16" Height="16" Margin="0 0 0 0" Command="{Binding ShowDebugWindowCommand}" VerticalAlignment="Center" ToolTip="Debug Window" Opacity="0.7" Visibility="{Binding IsShowDebugWindow, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
+                            <Button.Style>
+                                <Style TargetType="{x:Type Button}">
+                                    <Setter Property="OverridesDefaultStyle" Value="true" />
+                                    <Setter Property="Background" Value="{DynamicResource BoardBackgroundColorBrush}" />
+                                    <Setter Property="Foreground" Value="{DynamicResource ControlForegroundColorBrush}"/>
+                                    <Setter Property="BorderThickness" Value="0" />
+                                    <Setter Property="Margin" Value="0 0 0 0" />
+                                    <Setter Property="Padding" Value="0" />
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="Border" Background="{TemplateBinding Background}" CornerRadius="0" BorderThickness="0">
+                                                    <Viewbox Width="16" Height="16" Margin="0">
+                                                        <Canvas Width="24" Height="24">
+                                                            <Canvas.RenderTransform>
+                                                                <TranslateTransform X="1" Y="1.5"/>
+                                                            </Canvas.RenderTransform>
+                                                            <Path x:Name="PathIcon" Data="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" Stretch="Uniform">
+                                                                <Path.Fill>
+                                                                    <SolidColorBrush x:Name="PathIconColor" Color="{DynamicResource ControlForegroundColor}"/>
+                                                                </Path.Fill>
+                                                                <Path.RenderTransform>
+                                                                    <TransformGroup>
+                                                                        <TransformGroup.Children>
+                                                                            <RotateTransform Angle="0" />
+                                                                            <ScaleTransform ScaleX="1.18" ScaleY="1.18" />
+                                                                        </TransformGroup.Children>
+                                                                    </TransformGroup>
+                                                                </Path.RenderTransform>
+                                                            </Path>
+                                                        </Canvas>
+                                                    </Viewbox>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+
+                                                    <Trigger Property="IsMouseOver" Value="true">
+                                                        <Setter TargetName="PathIcon" Property="Fill" Value="{DynamicResource ControlMouseOverColorBrush}"/>
+                                                    </Trigger>
+
+                                                    <Trigger Property="IsMouseOver" Value="true">
+                                                        <Setter TargetName="PathIcon" Property="Fill" Value="{DynamicResource ControlMouseOverColorBrush}"/>
+                                                    </Trigger>
+
+                                                    <MultiTrigger>
+                                                        <MultiTrigger.Conditions>
+                                                            <Condition Property="IsPressed" Value="False" />
+                                                            <Condition Property="IsMouseOver" Value="True" />
+                                                        </MultiTrigger.Conditions>
+                                                        <Setter TargetName="PathIcon" Property="Fill" Value="{DynamicResource ControlMouseOverColorBrush}"/>
+                                                    </MultiTrigger>
+
+                                                    <MultiTrigger>
+                                                        <Setter TargetName="PathIcon" Property="Fill" Value="{DynamicResource ControlPressedColorBrush}"/>
+                                                        <MultiTrigger.Conditions>
+                                                            <Condition Property="IsPressed" Value="true" />
+                                                            <Condition Property="IsMouseOver" Value="True" />
+                                                        </MultiTrigger.Conditions>
+                                                    </MultiTrigger>
+
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </Button.Style>
+                            <Button.Content>
+                                M14.6,16.6L19.2,12L14.6,7.4L16,6L22,12L16,18L14.6,16.6M9.4,16.6L4.8,12L9.4,7.4L8,6L2,12L8,18L9.4,16.6Z
+                                </Button.Content>
+                            <!-- チェック付きバグマーク 
+                                M18,7H15.19C14.74,6.2 14.12,5.5 13.37,5L15,3.41L13.59,2L11.42,4.17C10.96,4.06 10.5,4 10,4C9.5,4 9.05,4.06 8.59,4.17L6.41,2L5,3.41L6.62,5C5.87,5.5 5.26,6.21 4.81,7H2V9H4.09C4.03,9.33 4,9.66 4,10V11H2V13H4V14C4,14.34 4.03,14.67 4.09,15H2V17H4.81C6.26,19.5 9.28,20.61 12,19.65C12,19.43 12,19.22 12,19C12,16.46 13.61,14.2 16,13.35V13H18V11H16V10C16,9.66 15.97,9.33 15.91,9H18V7M12,15H8V13H12V15M12,11H8V9H12V11M17.75,22.16L15,19.16L16.16,18L17.75,19.59L21.34,16L22.5,17.41L17.75,22.16Z
+                                    無印バグマーク
+                            M20,8H17.19C16.74,7.2 16.12,6.5 15.37,6L17,4.41L15.59,3L13.42,5.17C12.96,5.06 12.5,5 12,5C11.5,5 11.05,5.06 10.59,5.17L8.41,3L7,4.41L8.62,6C7.87,6.5 7.26,7.21 6.81,8H4V10H6.09C6.03,10.33 6,10.66 6,11V12H4V14H6V15C6,15.34 6.03,15.67 6.09,16H4V18H6.81C8.47,20.87 12.14,21.84 15,20.18C15.91,19.66 16.67,18.9 17.19,18H20V16H17.91C17.97,15.67 18,15.34 18,15V14H20V12H18V11C18,10.66 17.97,10.33 17.91,10H20V8M16,15A4,4 0 0,1 12,19A4,4 0 0,1 8,15V11A4,4 0 0,1 12,7A4,4 0 0,1 16,11V15M14,10V12H10V10H14M10,14H14V16H10V14Z
+                            
+                            -->
+                        </Button>
+
+                    </StackPanel>
+                </StatusBarItem>
+
+            </StatusBar>
+
+
         </Grid>
-
-        <StackPanel Grid.Row="3" Grid.Column="0" Orientation="Horizontal">
-
-            <Button x:Name="SettingsButton"
-                Style="{StaticResource PathButton}" 
-                Command="{Binding ShowSettingsCommand}"
-                    ToolTip="Settings" ToolTipService.ToolTip="Settings"
-                Foreground="#999999" Background="Transparent" 
-                Height="24" Width="24" HorizontalAlignment="Left" VerticalAlignment="Top" 
-                    Margin="4">M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,
-8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,
-11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,
-4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,
-2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,
-5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,
-12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,
-18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,
-21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,
-18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z
-            </Button>
- 
-        </StackPanel>
-        
-        <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2"
-                    Orientation="Horizontal">
-            <!--
-            <Button x:Name="DragVerticalButton"
-                Style="{StaticResource PathButton}" 
-                    ToolTip="Settings" ToolTipService.ToolTip="Settings"
-                Foreground="#999999" Background="Transparent" 
-                Height="24" Width="24" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4">
-                M9,3H11V5H9V3M13,3H15V5H13V3M9,7H11V9H9V7M13,7H15V9H13V7M9,11H11V13H9V11M13,11H15V13H13V11M9,15H11V17H9V15M13,15H15V17H13V15M9,19H11V21H9V19M13,19H15V21H13V19Z
-            </Button>
-            <Button x:Name="DragHorizontalButton"
-                Style="{StaticResource PathButton}" 
-                    ToolTip="Settings" ToolTipService.ToolTip="Settings"
-                Foreground="#999999" Background="Transparent" 
-                Height="24" Width="24" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4">
-                M3,15V13H5V15H3M3,11V9H5V11H3M7,15V13H9V15H7M7,11V9H9V11H7M11,15V13H13V15H11M11,11V9H13V11H11M15,15V13H17V15H15M15,11V9H17V11H15M19,15V13H21V15H19M19,11V9H21V11H19Z
-            </Button>
-            -->
-
-        </StackPanel>
-
-
-    </Grid>
-
-</fw:AcrylicWindow>
+    </Border>
+</Window>

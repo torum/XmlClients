@@ -4,7 +4,7 @@
 ///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
 /// https://github.com/torum/BlogWrite
 /// 
-/// 
+/// EditorViewModel
 /// 
 /// TODO:
 /// -- Priority 1 --
@@ -14,7 +14,7 @@
 ///  Better error messages for users.
 ///
 /// Known issues:
-/// Hatena does not let draft=no once it is published.
+///  Hatena does not let draft=no once it is published.
 /// 
 
 using System;
@@ -27,7 +27,7 @@ using BlogWrite.Models.Clients;
 namespace BlogWrite.ViewModels
 {
     /// <summary>
-    /// Editor ViewModel 
+    /// Editor Window ViewModel 
     /// </summary>
     class EditorViewModel : ViewModelBase
     {
@@ -171,7 +171,9 @@ namespace BlogWrite.ViewModels
 
         #endregion
 
-        /// <summary>Constructor.</summary>
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         public EditorViewModel(EntryFull ent)
         {
             _ent = ent;

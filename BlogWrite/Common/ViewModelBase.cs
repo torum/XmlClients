@@ -1,22 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Text;
 using System.Windows;
-using System.Windows.Data;
-using System.Windows.Input;
-using System.Windows.Threading;
-using System.Configuration;
-using System.Net;
-using System.Security.Cryptography;
-using System.Windows.Controls;
 
 namespace BlogWrite.Common
 {
-
     /// <summary>
     /// A base class for bindable ViewModels.
     /// Implements INotifyPropertyChanged and IDataErrorInfo.
@@ -24,7 +13,7 @@ namespace BlogWrite.Common
     public abstract class ViewModelBase : INotifyPropertyChanged, IDataErrorInfo
     {
 
-        public ViewModelBase() {}    
+        public ViewModelBase() { }
 
         #region == INotifyPropertyChanged ==
 
@@ -34,10 +23,13 @@ namespace BlogWrite.Common
         {
             //this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-            Application.Current.Dispatcher.Invoke(() =>
+            if (Application.Current != null)
             {
-                this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            });
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+                });
+            }
         }
 
         #endregion
@@ -62,9 +54,9 @@ namespace BlogWrite.Common
             }
         }
 
-        protected void SetError(string propertyName, string errorMessage)
+        protected void SetError(string propertyName, string ErrorMessage)
         {
-            _ErrorMessages[propertyName] = errorMessage;
+            _ErrorMessages[propertyName] = ErrorMessage;
         }
 
         protected void ClearErrror(string propertyName)

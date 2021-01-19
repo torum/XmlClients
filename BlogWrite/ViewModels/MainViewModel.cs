@@ -1,80 +1,77 @@
-﻿/// 
-/// 
-/// BlogWrite 
-///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
-/// https://github.com/torum/BlogWrite
-/// 
-/// 
-/// TODO:
-/// 
-/// -- Priority 1 --
-///  Service Discovery.
-///  xaml style for treeview and textbox's scrollbar
-///  AtomPub Manage Category document.
-///
-/// 
-///  Atom Publishing protocol:
-///  https://tools.ietf.org/html/rfc5023
-///  
-///  Problem Details for HTTP APIs
-///  https://tools.ietf.org/html/rfc7807
-///   
-///  Wordpress XML-RPC API:
-///  https://codex.wordpress.org/XML-RPC_Support
-///  https://codex.wordpress.org/XML-RPC_WordPress_API
-///    
-///  Movable Type API:
-///  https://codex.wordpress.org/XML-RPC_MovableType_API
-///    
-///  MetaWeblog API
-///  https://codex.wordpress.org/XML-RPC_MetaWeblog_API
-///    
-///  Blogger API
-///  https://codex.wordpress.org/XML-RPC_Blogger_API
-///    
-///  AtomAPI
-///    //
-///  
-/// -- Priority 2 --
-/// 
-/// 
-/// 
-/// Known issues:
-/// 
-/// Hatena AtomPub:
-///   No service discovery in HTML, no category suport in Srv Doc, no media files support in protocol.
-///   PubContrl draft "no" is not allowed once published.
-///   
-
-
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using System.Text;
+using System.Windows.Data;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Media;
+using System.Diagnostics;
 using System.Windows;
-using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Controls;
 using System.Xml;
+using System.Xml.Linq;
+using System.Windows.Input;
+using System.IO;
+using System.ComponentModel;
 using BlogWrite.Common;
 using BlogWrite.Models;
 using BlogWrite.Models.Clients;
 
 namespace BlogWrite.ViewModels
 {
-    /// <summary>
-    /// Main ViewModel 
-    /// </summary>
+    /// TODO: 
+    /// 
+    /// SearviceDiscoveryをMSHTML使わずにパースして動くようにする。
+    /// WebView2を試す。
+    /// 
+
+    /// 更新履歴：
+    /// 
+    /// v0.0.0.1 3年前の作りかけの状態を少なくとも最新の環境にあわせてアップデート。
+
+
     public class MainViewModel : ViewModelBase
     {
+        // Application name
+        const string _appName = "BlogWrite";
 
-        private ServiceTreeBuilder _services = new ServiceTreeBuilder();
-        private object _selectedNode = null;
-        private EntryItem _selectedItem = null;
+        // Application version
+        const string _appVer = "0.0.0.1";
+        public string AppVer
+        {
+            get
+            {
+                return _appVer;
+            }
+        }
+
+        // Application config file folder
+        const string _appDeveloper = "torum";
+
+        // Application Window Title
+        public string AppTitle
+        {
+            get
+            {
+                return _appName + " " + _appVer;
+            }
+        }
+
+        private string _envDataFolder = System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        private string _appDataFolder;
+        private string _appConfigFilePath;
 
         #region == Properties ==
 
+        #region == Treeview, Node, Menu, etc ==
+        
+        private ServiceTreeBuilder _services = new ServiceTreeBuilder();
         public ObservableCollection<NodeTree> Services
         {
-            get { return _services.Children;}
+            get { return _services.Children; }
             set
             {
                 _services.Children = value;
@@ -82,7 +79,8 @@ namespace BlogWrite.ViewModels
             }
         }
 
-        public object SelectedNode
+        private NodeTree _selectedNode = new NodeService("", "", "",new Uri("http://127.0.0.1"),ApiTypes.atAtomFeed);
+        public NodeTree SelectedNode
         {
             get { return _selectedNode; }
             set
@@ -91,6 +89,7 @@ namespace BlogWrite.ViewModels
                     return;
 
                 _selectedNode = value;
+
                 NotifyPropertyChanged(nameof(SelectedNode));
 
                 if (_selectedNode is NodeEntryCollection)
@@ -135,6 +134,7 @@ namespace BlogWrite.ViewModels
             }
         }
 
+        private EntryItem _selectedItem = null;
         public EntryItem SelectedItem
         {
             get { return _selectedItem; }
@@ -228,6 +228,8 @@ namespace BlogWrite.ViewModels
                     }
                     else
                     {
+                        // For testing only.
+                        /*
                         Task.Run(async () => {
                             bool b = await this.GetEntry(_selectedItem as EntryItem);
                             if (b)
@@ -238,6 +240,7 @@ namespace BlogWrite.ViewModels
                                 NotifyPropertyChanged(nameof(IsContentHTML));
                             }
                         });
+                        */
                         return null;
                     }
                 }
@@ -273,6 +276,7 @@ namespace BlogWrite.ViewModels
                     }
                     else
                     {
+                        /*
                         Task.Run(async () => {
                             bool b = await GetEntry(_selectedItem as EntryItem);
                             if (b)
@@ -283,6 +287,7 @@ namespace BlogWrite.ViewModels
                                 NotifyPropertyChanged(nameof(IsContentHTML));
                             }
                         });
+                        */
                         return null;
                     }
                 }
@@ -295,21 +300,140 @@ namespace BlogWrite.ViewModels
 
         #endregion
 
-        #region == Events ==
+        #region == etc ==
 
-        public event EventHandler<ServiceDiscoveryEventArgs> LaunchServiceDiscovery;
-        public event EventHandler<BlogEntryEventArgs> OpenEditorView;
-        public event EventHandler<BlogEntryEventArgs> OpenEditorNewView;
+        private bool _isFullyLoaded;
+        public bool IsFullyLoaded
+        {
+            get
+            {
+                return _isFullyLoaded;
+            }
+            set
+            {
+                if (_isFullyLoaded == value)
+                    return;
+
+                _isFullyLoaded = value;
+                this.NotifyPropertyChanged("IsFullyLoaded");
+            }
+        }
+        private bool _isBusy;
+        public bool IsBusy
+        {
+            get
+            {
+                return _isBusy;
+            }
+            set
+            {
+                if (_isBusy == value)
+                    return;
+
+                _isBusy = value;
+                NotifyPropertyChanged("IsBusy");
+
+                if (Application.Current == null) { return; }
+                Application.Current.Dispatcher.Invoke(() => CommandManager.InvalidateRequerySuggested());
+            }
+        }
+
+        private bool _isWorking;
+        public bool IsWorking
+        {
+            get
+            {
+                return _isWorking;
+            }
+            set
+            {
+                if (_isWorking == value)
+                    return;
+
+                _isWorking = value;
+                NotifyPropertyChanged("IsWorking");
+
+                if (Application.Current == null) { return; }
+                Application.Current.Dispatcher.Invoke(() => CommandManager.InvalidateRequerySuggested());
+            }
+        }
+
+        private bool _isShowDebugWindow;
+        public bool IsShowDebugWindow
+
+        {
+            get { return _isShowDebugWindow; }
+            set
+            {
+                if (_isShowDebugWindow == value)
+                    return;
+
+                _isShowDebugWindow = value;
+
+                NotifyPropertyChanged("IsShowDebugWindow");
+
+                if (_isShowDebugWindow)
+                {
+                    if (Application.Current == null) { return; }
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        DebugWindowShowHide?.Invoke();
+                    });
+                }
+            }
+        }
+        
+        private string _statusBarMessage;
+        public string StatusBarMessage
+
+        {
+            get { return _statusBarMessage; }
+            set
+            {
+                if (_statusBarMessage == value)
+                    return;
+
+                _statusBarMessage = value;
+
+                NotifyPropertyChanged("StatusBarMessage");
+
+            }
+        }
 
         #endregion
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
+        #endregion
+
+        #region == Events ==
+
+        public event EventHandler<ServiceDiscoveryEventArgs> OpenServiceDiscoveryView;
+        public event EventHandler<BlogEntryEventArgs> OpenEditorView;
+        public event EventHandler<BlogEntryEventArgs> OpenEditorNewView;
+
+        // DebugWindow
+        public delegate void DebugWindowShowHideEventHandler();
+        public event DebugWindowShowHideEventHandler DebugWindowShowHide;
+
+        public event EventHandler<string> DebugOutput;
+
+        public delegate void DebugClearEventHandler();
+        public event DebugClearEventHandler DebugClear;
+
+        #endregion
+
         public MainViewModel()
         {
+            // データ保存フォルダの取得
+            _appDataFolder = _envDataFolder + System.IO.Path.DirectorySeparatorChar + _appDeveloper + System.IO.Path.DirectorySeparatorChar + _appName;
+            // 設定ファイルのパス
+            _appConfigFilePath = _appDataFolder + System.IO.Path.DirectorySeparatorChar + _appName + ".config";
+            // 存在していなかったら作成
+            System.IO.Directory.CreateDirectory(_appDataFolder);
+
+            #region == Commands ==
+
             TreeviewLeftDoubleClickCommand = new GenericRelayCommand<NodeTree>(
-                param => TreeviewLeftDoubleClickCommand_Execute(param), 
+                param => TreeviewLeftDoubleClickCommand_Execute(param),
                 param => TreeviewLeftDoubleClickCommand_CanExecute());
 
             ListviewLeftDoubleClickCommand = new GenericRelayCommand<EntryItem>(
@@ -324,6 +448,10 @@ namespace BlogWrite.ViewModels
                 param => DeleteEntryCommand_Execute(param),
                 param => DeleteEntryCommand_CanExecute());
 
+            GetEntryCommand = new GenericRelayCommand<EntryItem>(
+                param => GetEntryCommand_Execute(param),
+                param => GetEntryCommand_CanExecute());
+
             OpenInBrowserCommand = new GenericRelayCommand<EntryItem>(
                 param => OpenInBrowserCommand_Execute(param),
                 param => OpenInBrowserCommand_CanExecute());
@@ -333,76 +461,315 @@ namespace BlogWrite.ViewModels
                 param => ListviewEnterKeyCommand_CanExecute());
 
             ServiceAddCommand = new RelayCommand(ServiceAddCommand_Execute, ServiceAddCommand_CanExecute);
-
             OpenEditorAsNewCommand = new RelayCommand(OpenEditorAsNewCommand_Execute, OpenEditorAsNewCommand_CanExecute);
             RefreshEntriesCommand = new RelayCommand(RefreshEntriesCommand_Execute, RefreshEntriesCommand_CanExecute);
-
-            WindowClosingCommand = new RelayCommand(WindowClosingCommand_Execute, WindowClosingCommand_CanExecute);
             ShowSettingsCommand = new RelayCommand(ShowSettingsCommand_Execute, ShowSettingsCommand_CanExecute);
+            ShowDebugWindowCommand = new RelayCommand(ShowDebugWindowCommand_Execute, ShowDebugWindowCommand_CanExecute);
+            ClearDebugTextCommand = new RelayCommand(ClearDebugTextCommand_Execute, ClearDebugTextCommand_CanExecute);
 
-            // Upgrade settings.
-            Properties.Settings.Default.Upgrade();
+            #endregion
 
-            // Load settings.
-            if (Properties.Settings.Default.Profiles != null)
+            // loads searvice tree
+            if (File.Exists(_appDataFolder + System.IO.Path.DirectorySeparatorChar + "Searvies.xml"))
             {
-                // Must be the first time.
-                _services.LoadXmlDoc(Properties.Settings.Default.Profiles.Profiles);
-            }
-            else
-            {
-                //TODO:
+                XmlDocument doc = new XmlDocument();
+                doc.Load(_appDataFolder + System.IO.Path.DirectorySeparatorChar + "Searvies.xml");
+                _services.LoadXmlDoc(doc);
             }
 
-
-
-            //Task.Run(() => Do());
-
+            //
+            foreach (NodeService c in _services.Children)
+            {
+                if (c.Client != null)
+                {
+                    c.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
+                }
+            }
 
 
         }
+
+        public void OnDebugOutput(BaseClient sender, string data)
+        {
+            if (IsShowDebugWindow)
+            {
+                if (Application.Current == null) { return; }
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    DebugOutput?.Invoke(this, data);
+                });
+            }
+        }
+
+        #region == Startup and Shutdown ==
+
+        // 起動時の処理
+        public void OnWindowLoaded(object sender, RoutedEventArgs e)
+        {
+            #region == アプリ設定のロード  ==
+
+            try
+            {
+                // アプリ設定情報の読み込み
+                if (File.Exists(_appConfigFilePath))
+                {
+                    XDocument xdoc = XDocument.Load(_appConfigFilePath);
+
+                    #region == ウィンドウ関連 ==
+
+                    if (sender is Window)
+                    {
+                        // Main Window element
+                        var mainWindow = xdoc.Root.Element("MainWindow");
+                        if (mainWindow != null)
+                        {
+                            var hoge = mainWindow.Attribute("top");
+                            if (hoge != null)
+                            {
+                                (sender as Window).Top = double.Parse(hoge.Value);
+                            }
+
+                            hoge = mainWindow.Attribute("left");
+                            if (hoge != null)
+                            {
+                                (sender as Window).Left = double.Parse(hoge.Value);
+                            }
+
+                            hoge = mainWindow.Attribute("height");
+                            if (hoge != null)
+                            {
+                                (sender as Window).Height = double.Parse(hoge.Value);
+                            }
+
+                            hoge = mainWindow.Attribute("width");
+                            if (hoge != null)
+                            {
+                                (sender as Window).Width = double.Parse(hoge.Value);
+                            }
+
+                            hoge = mainWindow.Attribute("state");
+                            if (hoge != null)
+                            {
+                                if (hoge.Value == "Maximized")
+                                {
+                                    (sender as Window).WindowState = WindowState.Maximized;
+                                }
+                                else if (hoge.Value == "Normal")
+                                {
+                                    (sender as Window).WindowState = WindowState.Normal;
+                                }
+                                else if (hoge.Value == "Minimized")
+                                {
+                                    (sender as Window).WindowState = WindowState.Normal;
+                                }
+                            }
+
+                        }
+
+                    }
+
+                    #endregion
+
+                }
+
+                IsFullyLoaded = true;
+            }
+            catch (System.IO.FileNotFoundException)
+            {
+                Debug.WriteLine("FileNotFoundException while loading config: " + _appConfigFilePath);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Exception: " + ex + " while opening : " + _appConfigFilePath);
+            }
+
+            #endregion
+
+            IsShowDebugWindow = true;
+        }
+
+        // 終了時の処理
+        public void OnWindowClosing(object sender, CancelEventArgs e)
+        {
+            if (!IsFullyLoaded)
+                return;
+
+            #region == アプリ設定の保存 ==
+
+            // 設定ファイル用のXMLオブジェクト
+            XmlDocument doc = new XmlDocument();
+            XmlDeclaration xmlDeclaration = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
+            doc.InsertBefore(xmlDeclaration, doc.DocumentElement);
+
+            // Root Document Element
+            XmlElement root = doc.CreateElement(string.Empty, "App", string.Empty);
+            doc.AppendChild(root);
+
+            XmlAttribute attrs = doc.CreateAttribute("Version");
+            attrs.Value = _appVer;
+            root.SetAttributeNode(attrs);
+
+            #region == ウィンドウ関連 ==
+
+            if (sender is Window)
+            {
+                // Main Window element
+                XmlElement mainWindow = doc.CreateElement(string.Empty, "MainWindow", string.Empty);
+
+                // Main Window attributes
+                attrs = doc.CreateAttribute("height");
+                if ((sender as Window).WindowState == WindowState.Maximized)
+                {
+                    attrs.Value = (sender as Window).RestoreBounds.Height.ToString();
+                }
+                else
+                {
+                    attrs.Value = (sender as Window).Height.ToString();
+                }
+                mainWindow.SetAttributeNode(attrs);
+
+                attrs = doc.CreateAttribute("width");
+                if ((sender as Window).WindowState == WindowState.Maximized)
+                {
+                    attrs.Value = (sender as Window).RestoreBounds.Width.ToString();
+                }
+                else
+                {
+                    attrs.Value = (sender as Window).Width.ToString();
+
+                }
+                mainWindow.SetAttributeNode(attrs);
+
+                attrs = doc.CreateAttribute("top");
+                if ((sender as Window).WindowState == WindowState.Maximized)
+                {
+                    attrs.Value = (sender as Window).RestoreBounds.Top.ToString();
+                }
+                else
+                {
+                    attrs.Value = (sender as Window).Top.ToString();
+                }
+                mainWindow.SetAttributeNode(attrs);
+
+                attrs = doc.CreateAttribute("left");
+                if ((sender as Window).WindowState == WindowState.Maximized)
+                {
+                    attrs.Value = (sender as Window).RestoreBounds.Left.ToString();
+                }
+                else
+                {
+                    attrs.Value = (sender as Window).Left.ToString();
+                }
+                mainWindow.SetAttributeNode(attrs);
+
+                attrs = doc.CreateAttribute("state");
+                if ((sender as Window).WindowState == WindowState.Maximized)
+                {
+                    attrs.Value = "Maximized";
+                }
+                else if ((sender as Window).WindowState == WindowState.Normal)
+                {
+                    attrs.Value = "Normal";
+
+                }
+                else if ((sender as Window).WindowState == WindowState.Minimized)
+                {
+                    attrs.Value = "Minimized";
+                }
+                mainWindow.SetAttributeNode(attrs);
+
+
+                // set Main Window element to root.
+                root.AppendChild(mainWindow);
+
+            }
+
+            #endregion
+
+            try
+            {
+                // 設定ファイルの保存
+                doc.Save(_appConfigFilePath);
+            }
+            //catch (System.IO.FileNotFoundException) { }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Exception: " + ex + " while saving : " + _appConfigFilePath);
+            }
+
+            #endregion
+
+            #region == Services ==
+
+            XmlDocument xdoc = _services.AsXmlDoc();
+            xdoc.Save(_appDataFolder + System.IO.Path.DirectorySeparatorChar + "Searvies.xml");
+
+            #endregion
+        }
+
+        #endregion
 
         #region == Methods ==
-
-
-        public async void Do()
-        {
-            NodeService a = new NodeService("test", new Uri("http://torum.hatenablog.com/feed"), ApiTypes.atAtomFeed);
-
-            // Add Account Node to internal (virtual) Treeview.
-            Application.Current.Dispatcher.Invoke(() => Services.Add(a));
-
-            Properties.Settings.Default.Profiles.Profiles = _services.AsXmlDoc();
-
-            // Save settings.
-            Properties.Settings.Default.Save();
-        }
 
         /*
         public async void Do()
         {
-            string accountName = "Account Name";
-            string userName = "test";
-            string userPassword = "pass";
-            Uri endpoint = new Uri("http://127.0.0.1/atom");
+            string accountName = "AtomPub @WordPress";
+            string userName = "torum";
+            string userPassword = "hoge";
+            Uri endpoint = new Uri("http://torum.jp/en/wp-app.php/service");
 
-            _bc = new BlogClient(userName, userPassword, endpoint);
+            AtomPubClient xc = new AtomPubClient(userName, userPassword, endpoint);
 
             // Access endpoint and create Account Node class.
-            NodeServies a = await _bc.GetAccount(accountName);
+            NodeService a = await xc.GetAccount(accountName);
             if (a == null) return;
 
             // Add Account Node to internal (virtual) Treeview.
             Application.Current.Dispatcher.Invoke(() => Services.Add(a));
 
-            // Add to settings.
-            //Application.Current.Dispatcher.Invoke(() => BlogWrite.Properties.Settings.Default.Services.Profile.Add(a));
-            //BlogWrite.Properties.Settings.Default.Profiles.Profiles.Add(a);
-            Properties.Settings.Default.Profiles.Profiles = null;
+        }
+        */
+        /*
+        public async void Do()
+        {
+            string accountName = "XML-RPC cat @WordPress";
+            string userName = "torum";
+            string userPassword = "hoge";
+            Uri endpoint = new Uri("http://torum.jp/en/xmlrpc.php");
+
+            XmlRpcMTClient xc = new XmlRpcMTClient(userName, userPassword, endpoint);
+
+            // Access endpoint and create Account Node class.
+            NodeService a = await xc.GetAccount(accountName);
+            if (a == null) return;
+
+            // Add Account Node to internal (virtual) Treeview.
+            Application.Current.Dispatcher.Invoke(() => Services.Add(a));
+        }
+        */
+        /*
+        public async void Do()
+        {
+            NodeService a = new NodeService("test", new Uri("http://hoge.com/feed"), ApiTypes.atAtomFeed);
+
+            // Add Account Node to internal (virtual) Treeview.
+            Application.Current.Dispatcher.Invoke(() => Services.Add(a));
+
             Properties.Settings.Default.Profiles.Profiles = _services.AsXmlDoc();
 
             // Save settings.
             Properties.Settings.Default.Save();
+        }
+        */
+
+        /*
+        private void OnDebugOutput(BaseClient sender, string data)
+        {
+            //DebugText = DebugText + Environment.NewLine + data;
+            if (!string.IsNullOrEmpty(DebugText))
+                DebugText = DebugText + Environment.NewLine;
+            DebugText = DebugText + data;
         }
         */
 
@@ -447,6 +814,8 @@ namespace BlogWrite.ViewModels
                     return;
 
                 List<EntryItem> entLi = await bc.GetEntries((selectedNode as NodeEntryCollection).Uri);
+                if (entLi == null)
+                    return;
 
                 // Minimize the time to block UI thread.
                 Application.Current.Dispatcher.Invoke(() =>
@@ -484,10 +853,7 @@ namespace BlogWrite.ViewModels
             if (selectedEntry.EditUri == null)
                 return false;
 
-            // TODO: 
-            // HTTP Head, if_modified_since or etag or something... then  UpdateEntry();
-
-            EntryFull bfe = await bc.GetFullEntry(selectedEntry.EditUri);
+            EntryFull bfe = await bc.GetFullEntry(selectedEntry.EditUri, selectedEntry.EntryID);
 
             if (selectedEntry == null)
                 return false;
@@ -552,22 +918,9 @@ namespace BlogWrite.ViewModels
         {
             if (selectedNode == null)
                 return;
-            
+
             selectedNode.Expanded = selectedNode.Expanded ? false : true;
 
-            if (selectedNode is NodeEntryCollection)
-            {
-                this.GetEntries(selectedNode);
-            }
-            else if (selectedNode is NodeFeed)
-            {
-
-                if ((selectedNode as NodeFeed).Api == ApiTypes.atAtomFeed)
-                {
-                    this.GetEntries(selectedNode);
-                }
-
-            }
         }
 
         public ICommand ListviewLeftDoubleClickCommand { get; }
@@ -584,7 +937,8 @@ namespace BlogWrite.ViewModels
             if (selectedEntry == null)
                 return;
 
-            if (SelectedNode is NodeFeed) { 
+            if (SelectedNode is NodeFeed)
+            {
                 if (OpenInBrowserCommand_CanExecute())
                     OpenInBrowserCommand_Execute(selectedEntry);
             }
@@ -602,8 +956,19 @@ namespace BlogWrite.ViewModels
 
         public void ListviewEnterKeyCommand_Execute(EntryItem selectedEntry)
         {
-            if (OpenEditorCommand_CanExecute())
-                OpenEditorCommand.Execute(selectedEntry);
+            if (SelectedNode == null)
+                return;
+            if (selectedEntry == null)
+                return;
+
+            if (SelectedNode is NodeFeed)
+            {
+                if (OpenInBrowserCommand_CanExecute())
+                    OpenInBrowserCommand_Execute(selectedEntry);
+            }
+            else if (SelectedNode is NodeEntryCollection)
+                if (OpenEditorCommand_CanExecute())
+                    OpenEditorCommand.Execute(selectedEntry);
         }
 
         public ICommand OpenEditorCommand { get; }
@@ -667,7 +1032,8 @@ namespace BlogWrite.ViewModels
                                 return;
 
                             // remove item from the list.
-                            try {
+                            try
+                            {
                                 Application.Current.Dispatcher.Invoke(() => selectedEntry.NodeEntry.List.Remove(selectedEntry));
                             }
                             catch (Exception e)
@@ -676,6 +1042,47 @@ namespace BlogWrite.ViewModels
                             }
 
                             NotifyPropertyChanged(nameof(Entries));
+                        }
+                    });
+                }
+            }
+
+        }
+
+        public ICommand GetEntryCommand { get; }
+
+        public bool GetEntryCommand_CanExecute()
+        {
+            if (SelectedNode == null) return false;
+            return (SelectedNode is NodeEntryCollection) ? true : false;
+        }
+
+        public void GetEntryCommand_Execute(EntryItem selectedEntry)
+        {
+            if (selectedEntry == null)
+                return;
+
+            if (selectedEntry is EntryItem)
+            {
+                if (selectedEntry.Client == null)
+                    return;
+
+                if (selectedEntry is EntryItem)
+                {
+                    Task.Run(async () => {
+                        bool b = await this.GetEntry(selectedEntry); ;
+                        if (b)
+                        {
+                            if (selectedEntry.NodeEntry == null)
+                                return;
+
+                            if (selectedEntry == SelectedItem)
+                            {
+                                NotifyPropertyChanged(nameof(SelectedItem));
+
+                                //System.Diagnostics.Debug.WriteLine("GetEntryCommand_Execute.");
+                            }
+
                         }
                     });
                 }
@@ -701,14 +1108,29 @@ namespace BlogWrite.ViewModels
 
             // TODO: Check "accept".
 
-            // TODO: AtomEntry...
-            EntryFull newEntry = new AtomEntry("", ((SelectedNode as NodeEntryCollection).Client as BlogClient));
+            EntryFull newEntry = null;
+
+            if (SelectedNode is NodeAtomPubEntryCollection)
+            {
+                newEntry = new AtomEntry("", (SelectedNode as NodeEntryCollection).Client);
+            }
+            else if (SelectedNode is NodeXmlRpcMTEntryCollection)
+            {
+                newEntry = new MTEntry("", (SelectedNode as NodeEntryCollection).Client);
+            }
+            else if (SelectedNode is NodeXmlRpcWPEntryCollection)
+            {
+                newEntry = new WPEntry("", (SelectedNode as NodeEntryCollection).Client);
+            }
+
+            if (newEntry == null)
+                return;
+
             newEntry.PostUri = (SelectedNode as NodeEntryCollection).Uri;
 
             BlogEntryEventArgs ag = new BlogEntryEventArgs
             {
                 Entry = newEntry
-                //
             };
 
             OpenEditorNewView?.Invoke(this, ag);
@@ -735,7 +1157,7 @@ namespace BlogWrite.ViewModels
             }
 
         }
-        
+
         public ICommand OpenInBrowserCommand { get; }
 
         public bool OpenInBrowserCommand_CanExecute()
@@ -747,8 +1169,12 @@ namespace BlogWrite.ViewModels
 
         public void OpenInBrowserCommand_Execute(EntryItem selectedEntry)
         {
-            if (selectedEntry.AltHTMLUri != null) { 
-                System.Diagnostics.Process.Start(selectedEntry.AltHTMLUri.AbsoluteUri);
+            if (selectedEntry.AltHTMLUri != null)
+            {
+                //System.Diagnostics.Process.Start(selectedEntry.AltHTMLUri.AbsoluteUri);
+                ProcessStartInfo psi = new ProcessStartInfo(selectedEntry.AltHTMLUri.AbsoluteUri);
+                psi.UseShellExecute = true;
+                Process.Start(psi);
             }
         }
 
@@ -762,35 +1188,36 @@ namespace BlogWrite.ViewModels
         public void ShowSettingsCommand_Execute()
         {
             // TODO:
-            System.Diagnostics.Debug.WriteLine("ShowSettingsCommand_Execute: not implemented yet.");
+            //System.Diagnostics.Debug.WriteLine("ShowSettingsCommand_Execute: not implemented yet.");
+
         }
 
-        public ICommand WindowClosingCommand { get; }
-
-        public bool WindowClosingCommand_CanExecute()
+        public ICommand ShowDebugWindowCommand { get; }
+        public bool ShowDebugWindowCommand_CanExecute()
         {
             return true;
         }
-
-        public void WindowClosingCommand_Execute()
+        public void ShowDebugWindowCommand_Execute()
         {
-            System.Diagnostics.Debug.WriteLine("WindowClosingCommand");
+            if (Application.Current == null) { return; }
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                DebugWindowShowHide?.Invoke();
+            });
+        }
 
-            if (_services == null)
-                return;
-
-            if (Properties.Settings.Default.Profiles == null)
-                return;
-
-            if (Properties.Settings.Default.Profiles.Profiles == null)
-                return;
-
-                BlogWrite.Properties.Settings.Default.Profiles.Profiles = null;
-            BlogWrite.Properties.Settings.Default.Profiles.Profiles = _services.AsXmlDoc();
-
-            // Save settings.
-            BlogWrite.Properties.Settings.Default.Save();
-
+        public ICommand ClearDebugTextCommand { get; }
+        public bool ClearDebugTextCommand_CanExecute()
+        {
+            return true;
+        }
+        public void ClearDebugTextCommand_Execute()
+        {
+            if (Application.Current == null) { return; }
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                DebugClear?.Invoke();
+            });
         }
 
         public ICommand ServiceAddCommand { get; }
@@ -802,15 +1229,14 @@ namespace BlogWrite.ViewModels
 
         public void ServiceAddCommand_Execute()
         {
-
             // TODO: Ask to close all editor windows before launching.
 
             ServiceDiscoveryEventArgs ag = new ServiceDiscoveryEventArgs();
 
-            LaunchServiceDiscovery?.Invoke(this, ag);
+            OpenServiceDiscoveryView?.Invoke(this, ag);
         }
 
-        
+
         #endregion
 
     }
@@ -825,7 +1251,7 @@ namespace BlogWrite.ViewModels
 
     public class ServiceDiscoveryEventArgs : EventArgs
     {
-        
+
     }
 
     /// <summary>
@@ -840,5 +1266,4 @@ namespace BlogWrite.ViewModels
             Profiles = new XmlDocument();
         }
     }
-
 }

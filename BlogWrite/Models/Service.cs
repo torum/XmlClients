@@ -6,6 +6,21 @@
 /// 
 /// 
 
+/**
+ * 
+ * NodeService (NodeTree : Node)
+ * NodeFeed (NodeService : NodeTree : Node)
+ * 
+ *   NodeWorkspace (NodeTree : Node)
+ *   
+ *     NodeAtomPubEntryCollection  (NodeEntryCollection : NodeTree : Node)
+ *     NodeXmlRpcMTEntryCollection (NodeEntryCollection : NodeTree : Node)
+ *     NodeXmlRpcWPEntryCollection (NodeEntryCollection : NodeTree : Node)
+ *     
+ *       NodeCategory (NodeTree : Node)
+ * 
+ */
+
 using BlogWrite.Models.Clients;
 using System;
 using System.Collections.ObjectModel;
@@ -21,6 +36,7 @@ namespace BlogWrite.Models
         AtomFeed,
         XmlRpc_WordPress,
         XmlRpc_MovableType,
+        JsonRest_WordPress,
         AtomApi,
         AtomApi_GData,
         Unknown
@@ -29,10 +45,12 @@ namespace BlogWrite.Models
     public enum ApiTypes
     {
         atAtomPub,
-        atXMLRPC,
-        atAtomAPI,
         atAtomFeed,
-        //atNone
+        //atXMLRPC,
+        atXMLRPC_MovableType,
+        atXMLRPC_WordPress,
+        //atWPJson,
+        //atAtomAPI
     }
 
     public class NodeService : NodeTree
@@ -73,14 +91,17 @@ namespace BlogWrite.Models
                 case ApiTypes.atAtomPub:
                     Client = new AtomPubClient(UserName, UserPassword, EndPoint);
                     break;
-                case ApiTypes.atXMLRPC:
-                    Client = new XmlRpcClient(UserName, UserPassword, EndPoint);
+                case ApiTypes.atXMLRPC_MovableType:
+                    Client = new XmlRpcMTClient(UserName, UserPassword, EndPoint);
                     break;
+                //case ApiTypes.atXMLRPC_WordPress:
+                //    Client = new XmlRpcWPClient(UserName, UserPassword, EndPoint);
+                //    break;
                 case ApiTypes.atAtomFeed:
                     Client = new AtomFeedClient(EndPoint);
                     break;
 
-                    //TODO: AtomAPI
+                    //TODO: WP, AtomAPI
             }
 
             Api = api;
@@ -99,14 +120,17 @@ namespace BlogWrite.Models
                 case ApiTypes.atAtomPub:
                     Client = new AtomPubClient(UserName, UserPassword, EndPoint);
                     break;
-                case ApiTypes.atXMLRPC:
-                    Client = new XmlRpcClient(UserName, UserPassword, EndPoint);
+                case ApiTypes.atXMLRPC_MovableType:
+                    Client = new XmlRpcMTClient(UserName, UserPassword, EndPoint);
                     break;
+                //case ApiTypes.atXMLRPC_WordPress:
+                //    Client = new XmlRpcWPClient(UserName, UserPassword, EndPoint);
+                //    break;
                 case ApiTypes.atAtomFeed:
                     Client = new AtomFeedClient(EndPoint);
                     break;
 
-                    //TODO: AtomAPI
+                    //TODO: WP, AtomAPI
             }
 
             Api = api;
@@ -133,7 +157,6 @@ namespace BlogWrite.Models
     /// </summary>
     public class ServiceTreeBuilder : NodeTree
     {
-
         public ServiceTreeBuilder() { }
 
         public void LoadXmlDoc(XmlDocument doc)
@@ -151,15 +174,16 @@ namespace BlogWrite.Models
             {
                 XmlNodeList serviceList = a.SelectNodes("Service");
                 if (serviceList == null)
-                    return;
+                    continue;//return;
 
                 foreach (XmlNode s in serviceList)
                 {
                     var accountName = s.Attributes["Name"].Value;
+
                     var userName = s.Attributes["UserName"].Value;
                     var userPassword = s.Attributes["UserPassword"].Value;
                     var endpoint = s.Attributes["EndPoint"].Value;
-                    string api = (s.Attributes["Api"] != null) ? s.Attributes["Api"].Value : "Atom"; //
+                    string api = (s.Attributes["Api"] != null) ? s.Attributes["Api"].Value : "AtomPub"; //
 
                     var selecteds = string.IsNullOrEmpty(s.Attributes["Selected"].Value) ? "" : s.Attributes["Selected"].Value;
                     var expandeds = string.IsNullOrEmpty(s.Attributes["Expanded"].Value) ? "" : s.Attributes["Expanded"].Value;
@@ -169,21 +193,24 @@ namespace BlogWrite.Models
                     ApiTypes at;
                     switch (api)
                     {
-                        case "Atom":
-                            at = ApiTypes.atAtomPub;
-                            break;
                         case "AtomPub":
                             at = ApiTypes.atAtomPub;
                             break;
                         case "AtomFeed":
                             at = ApiTypes.atAtomFeed;
                             break;
-                        case "XML-RPC":
-                            at = ApiTypes.atXMLRPC;
+                        //case "XML-RPC":
+                        //    at = ApiTypes.atXMLRPC_MovableType;
+                        //    break;
+                        case "XML-RPC_MovableType":
+                            at = ApiTypes.atXMLRPC_MovableType;
                             break;
-                        case "AtomAPI":
-                            at = ApiTypes.atAtomAPI;
+                        case "XML-RPC_WordPress":
+                            at = ApiTypes.atXMLRPC_WordPress;
                             break;
+                        //case "AtomAPI":
+                        //    at = ApiTypes.atAtomAPI;
+                        //    break;
                         default:
                             at = ApiTypes.atAtomPub; // or?
                             break;
@@ -202,7 +229,6 @@ namespace BlogWrite.Models
                         }
                         continue;
                     }
-
 
                     if ((!string.IsNullOrEmpty(accountName))
                         && (!string.IsNullOrEmpty(userName))
@@ -223,10 +249,11 @@ namespace BlogWrite.Models
                             var expandedw = string.IsNullOrEmpty(w.Attributes["Expanded"].Value) ? "" : w.Attributes["Expanded"].Value;
                             bool isSelectedw = (selectedw == "true") ? true : false;
                             bool isExpandedw = (expandedw == "true") ? true : false;
+
                             if (!string.IsNullOrEmpty(workspaceName))
                             {
 
-                                NodeCollection blog = new NodeCollection(workspaceName);
+                                NodeWorkspace blog = new NodeWorkspace(workspaceName);
                                 blog.Selected = isSelectedw;
                                 blog.Expanded = isExpandedw;
                                 blog.Parent = account;
@@ -235,17 +262,90 @@ namespace BlogWrite.Models
                                 foreach (XmlNode c in collectionList)
                                 {
                                     var collectionName = c.Attributes["Name"].Value;
-                                    var collectionHref = c.Attributes["Href"].Value;
                                     var selectedc = string.IsNullOrEmpty(c.Attributes["Selected"].Value) ? "" : c.Attributes["Selected"].Value;
                                     var expandedc = string.IsNullOrEmpty(c.Attributes["Expanded"].Value) ? "" : c.Attributes["Expanded"].Value;
                                     bool isSelectedc = (selectedc == "true") ? true : false;
                                     bool isExpandedc = (expandedc == "true") ? true : false;
+
+                                    string collectionHref = (c.Attributes["Href"] != null) ? c.Attributes["Href"].Value : "";
+
                                     if ((!string.IsNullOrEmpty(collectionName)) && (!string.IsNullOrEmpty(collectionHref)))
                                     {
-                                        NodeEntryCollection entry = new NodeEntryCollection(collectionName, new Uri(collectionHref));
+                                        NodeEntryCollection entry = null;
+
+                                        switch ((blog.Parent as NodeService).Api)
+                                        {
+                                            case ApiTypes.atAtomPub:
+                                                entry = new NodeAtomPubEntryCollection(collectionName, new Uri(collectionHref));
+                                                break;
+                                            //case ApiTypes.atXMLRPC:
+                                            //    break;
+                                            case ApiTypes.atXMLRPC_MovableType:
+                                                entry = new NodeXmlRpcMTEntryCollection(collectionName, new Uri(collectionHref));
+                                                break;
+                                            case ApiTypes.atXMLRPC_WordPress:
+                                                entry = new NodeXmlRpcWPEntryCollection(collectionName, new Uri(collectionHref));
+                                                break;
+                                            //case ApiTypes.atAtomAPI:
+                                            //    break;
+                                        }
+
+                                        if (entry == null)
+                                            continue;
+
+                                        //TODO:
+                                        //AcceptTypeps, CategoriesUri 
+
+
                                         entry.Selected = isSelectedc;
                                         entry.Expanded = isExpandedc;
                                         entry.Parent = blog;
+
+
+                                        XmlNodeList categoryList = c.SelectNodes("Category");
+                                        foreach (XmlNode t in categoryList)
+                                        {
+                                            var categoryName = t.Attributes["Name"].Value;
+                                            var selectedt = string.IsNullOrEmpty(t.Attributes["Selected"].Value) ? "" : t.Attributes["Selected"].Value;
+                                            var expandedt = string.IsNullOrEmpty(t.Attributes["Expanded"].Value) ? "" : t.Attributes["Expanded"].Value;
+                                            bool isSelectedt= (selectedc == "true") ? true : false;
+                                            bool isExpandedt= (expandedc == "true") ? true : false;
+
+                                            if (!string.IsNullOrEmpty(categoryName))
+                                            {
+
+                                                NodeCategory category = null;
+
+                                                switch ((blog.Parent as NodeService).Api)
+                                                {
+                                                    case ApiTypes.atAtomPub:
+                                                        category = new NodeAtomPubCategory(categoryName);
+                                                        break;
+                                                    //case ApiTypes.atXMLRPC:
+                                                    //    break;
+                                                    case ApiTypes.atXMLRPC_MovableType:
+                                                        category = new NodeXmlRpcMTCategory(categoryName);
+                                                        break;
+                                                    case ApiTypes.atXMLRPC_WordPress:
+                                                        category = new NodeXmlRpcWPCategory(categoryName);
+                                                        break;
+                                                        //case ApiTypes.atAtomAPI:
+                                                        //    break;
+                                                }
+
+                                                if (category == null)
+                                                    return;
+
+                                                //
+
+
+                                                category.Selected = isSelectedc;
+                                                category.Expanded = isExpandedc;
+                                                category.Parent = entry;
+
+                                                entry.Children.Add(category);
+                                            }
+                                        }
 
                                         blog.Children.Add(entry);
                                     }
@@ -315,21 +415,29 @@ namespace BlogWrite.Models
                         atapi.Value = "AtomFeed";
                         service.SetAttributeNode(atapi);
                         break;
-                    case ApiTypes.atXMLRPC:
-                        atapi.Value = "XML-RPC";
+                    //case ApiTypes.atXMLRPC:
+                    //    atapi.Value = "XML-RPC";
+                    //    service.SetAttributeNode(atapi);
+                    //    break;
+                    case ApiTypes.atXMLRPC_MovableType:
+                        atapi.Value = "XML-RPC_MovableType";
                         service.SetAttributeNode(atapi);
                         break;
-                    case ApiTypes.atAtomAPI:
-                        atapi.Value = "AtomAPI";
+                    case ApiTypes.atXMLRPC_WordPress:
+                        atapi.Value = "XML-RPC_WordPress";
                         service.SetAttributeNode(atapi);
                         break;
+                    //case ApiTypes.atAtomAPI:
+                    //    atapi.Value = "AtomAPI";
+                    //    service.SetAttributeNode(atapi);
+                    //    break;
                 }
 
                 root.AppendChild(service);
 
                 foreach (var w in s.Children)
                 {
-                    if (!(w is NodeCollection)) continue;
+                    if (!(w is NodeWorkspace)) continue;
 
                     XmlElement workspace = doc.CreateElement(string.Empty, "Workspaces", string.Empty);
 
@@ -369,16 +477,61 @@ namespace BlogWrite.Models
                         attrch.Value = ((NodeEntryCollection)c).Uri.AbsoluteUri;
                         collection.SetAttributeNode(attrch);
 
+
                         workspace.AppendChild(collection);
 
-                        foreach (var a in (c as NodeEntryCollection).AcceptTypes)
-                        {
-                            XmlElement acceptType = doc.CreateElement(string.Empty, "Accept", string.Empty);
-                            XmlText xt = doc.CreateTextNode(a);
-                            acceptType.AppendChild(xt);
+                        if (c is NodeAtomPubEntryCollection) {
+                            foreach (var a in (c as NodeAtomPubEntryCollection).AcceptTypes)
+                            {
+                                XmlElement acceptType = doc.CreateElement(string.Empty, "Accept", string.Empty);
+                                XmlText xt = doc.CreateTextNode(a);
+                                acceptType.AppendChild(xt);
 
-                            collection.AppendChild(acceptType);
+                                collection.AppendChild(acceptType);
+                            }
                         }
+
+                        foreach (var t in (c as NodeEntryCollection).Children)
+                        {
+                            if (!(t is NodeCategory)) continue;
+
+                            XmlElement category = doc.CreateElement(string.Empty, "Category", string.Empty);
+
+                            XmlAttribute attrt = doc.CreateAttribute("Name");
+                            attrt.Value = (t).Name;
+                            category.SetAttributeNode(attrt);
+
+                            XmlAttribute attrtd = doc.CreateAttribute("Expanded");
+                            attrtd.Value = (t).Expanded ? "true" : "false";
+                            category.SetAttributeNode(attrtd);
+
+                            XmlAttribute attrts = doc.CreateAttribute("Selected");
+                            attrts.Value = (t).Selected ? "true" : "false";
+                            category.SetAttributeNode(attrts);
+
+                            collection.AppendChild(category);
+
+                            if (t is NodeAtomPubCategory) 
+                            {
+                                //
+                                //XmlAttribute attrtt = doc.CreateAttribute("Term");
+                                //attrtt.Value = ((NodeCategory)t).Term;
+                                //category.SetAttributeNode(attrtt);
+                            }
+                            else if (t is NodeXmlRpcMTCategory)
+                            {
+                                //
+                                
+                            }
+                            else if (t is NodeXmlRpcWPCategory)
+                            {
+                                //
+
+                            }
+
+
+                        }
+
 
                     }
                 }
@@ -389,6 +542,7 @@ namespace BlogWrite.Models
             return doc;
 
         }
+
     }
 
 }

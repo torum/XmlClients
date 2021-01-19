@@ -6,61 +6,28 @@
 /// 
 /// 
 
-using BlogWrite.Models.Clients;
+/**
+ * 
+ * EntryItem (Node)
+ *   (EntryFull (EntryItem : Node))
+ *   AtomEntry (EntryFull : EntryItem : Node)
+ *     AtomEntryHatena (AtomEntry : EntryFull : EntryItem : Node)
+ *   MTEntry (EntryFull : EntryItem : Node)
+ *     WPEntry (MTEntry : EntryFull : EntryItem : Node)
+ *   or
+ *   WPEntry (EntryFull : EntryItem : Node)
+ *      
+ */
+
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
 using System.Xml;
+using BlogWrite.Models.Clients;
 
 namespace BlogWrite.Models
 {
-    /// <summary>
-    /// class for EntryNode child (for treeview).
-    /// </summary>
-    public class NodeEntries : NodeTree
-    {
-        public NodeEntries() { }
-    }
-
-    /// <summary>
-    /// class for EntryNode (for treeview).
-    /// </summary>
-    public class NodeEntryCollection : NodeTree
-    {
-        public Uri Uri { get; set; }
-
-        //TODO: enum AcceptType
-        // "application/atom+xml"
-        // "application/atom+xml;type=entry"
-        // "application/atomcat+xml"
-        public Collection<string> AcceptTypes = new Collection<string>();
-
-        // Constructor.
-        public NodeEntryCollection(string name, Uri uri) : base(name)
-        {
-            Uri = uri;
-            PathIcon = "M4,5V7H21V5M4,11H21V9H4M4,19H21V17H4M4,15H21V13H4V15Z";
-        }
-
-        public ObservableCollection<EntryItem> List { get; } = new ObservableCollection<EntryItem>();
-
-        public BaseClient Client
-        {
-            get
-            {
-                if (this.Parent == null)
-                    return null;
-                if (this.Parent.Parent == null)
-                    return null;
-                if (!(this.Parent.Parent is NodeService))
-                    return null;
-
-                return (this.Parent.Parent as NodeService).Client;
-            }
-        }
-    }
-
     /// <summary>
     /// class for Entry for listview index.
     /// </summary>
@@ -74,15 +41,35 @@ namespace BlogWrite.Models
         private string _esQueuePost = "M13,9H18.5L13,3.5V9M6,2H14L20,8V20A2,2 0 0,1 18,22H6C4.89,22 4,21.1 4,20V4C4,2.89 4.89,2 6,2M11,15V12H9V15H6V17H9V20H11V17H14V15H11Z";
         private EntryStatus _es;
 
-        // System unique id used for file name or unique id for table in db. We auto-generate at constructer.
+        /// <summary>
+        /// System unique id used for file name or unique id for table in db. We auto-generate at constructer.
+        /// </summary>
         public string ID { get; }
-        // Entry's id provided by services.
+
+        /// <summary>
+        /// Entry' ID provided by services.
+        /// In XML-RPC, this is the "postid"
+        /// </summary>
         public string EntryID { get; set; }
-        // for Editor window.
+
+        /// <summary>
+        /// Pointer to the NodeEntryCollection. Used in an Editor window to post entry etc.
+        /// </summary>
         public NodeEntryCollection NodeEntry { get; set; }
 
+        /// <summary>
+        /// Entry's PostUri. In XML-RPC, this is xmlrpcUri same as EditUri.
+        /// </summary>
         public Uri PostUri { get; set; }
+
+        /// <summary>
+        /// Entry's EditUri. In XML-RPC, this is xmlrpcUri.
+        /// </summary>
         public Uri EditUri { get; set; }
+
+        /// <summary>
+        /// A link to Entry's HTML webpage.
+        /// </summary>
         public Uri AltHTMLUri { get; set; }
 
         // TODO:
@@ -91,6 +78,9 @@ namespace BlogWrite.Models
 
         // author
 
+        /// <summary>
+        /// Entry's title.
+        /// </summary>
         public string Title
         {
             get
@@ -107,6 +97,9 @@ namespace BlogWrite.Models
             }
         }
 
+        /// <summary>
+        /// IsDraft flag. AtomPub and XML-PRC WP. MP doesn't have this?
+        /// </summary>
         public bool IsDraft { get; set; }
 
         public enum EntryStatus
@@ -119,6 +112,9 @@ namespace BlogWrite.Models
             esQueuePost
         }
 
+        /// <summary>
+        /// EntryStatus. This is system's internal status.
+        /// </summary>
         public EntryStatus Status {
             get
             {
@@ -136,6 +132,9 @@ namespace BlogWrite.Models
             }
         }
 
+        /// <summary>
+        /// Icons.
+        /// </summary>
         public string PathIcon
         {
             get
@@ -305,10 +304,23 @@ namespace BlogWrite.Models
 
         }
 
-        public string AsXml()
+        public string AsUTF8Xml()
         {
             var sb = new StringBuilder();
             using (var stringWriter = new StringWriterWithEncoding(sb, Encoding.UTF8))
+            using (var xmlTextWriter = XmlWriter.Create(stringWriter))
+            {
+                XmlDocument xdoc = AsXmlDoc();
+
+                xdoc.WriteTo(xmlTextWriter);
+                xmlTextWriter.Flush();
+                return stringWriter.GetStringBuilder().ToString();
+            }
+        }
+
+        public string AsUTF16Xml()
+        {
+            using (var stringWriter = new System.IO.StringWriter())
             using (var xmlTextWriter = XmlWriter.Create(stringWriter))
             {
                 XmlDocument xdoc = AsXmlDoc();
@@ -356,6 +368,21 @@ namespace BlogWrite.Models
 
     }
 
+    public class MTEntry : EntryFull
+    {
+        public MTEntry(string title, BaseClient bc) : base(title, bc)
+        {
+            //
+        }
+    }
+
+    public class WPEntry : EntryFull
+    {
+        public WPEntry(string title, BaseClient bc) : base(title, bc)
+        {
+            //
+        }
+    }
 
     /// <summary>
     /// StringWriter With Encoding.

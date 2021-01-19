@@ -11,17 +11,18 @@ using BlogWrite.ViewModels;
 
 namespace BlogWrite
 {
-
     /// <summary>
-    /// App
+    /// Interaction logic for App.xaml
     /// </summary>
     public partial class App : Application
-    {
+    {   
+        private bool _mutexOn = true;
+
         /// <summary>The event mutex name.</summary>
-        private const string UniqueEventName = "{b3e4fab6-0d7d-4e32-8cec-1fa2e99841d8}";
+        private const string UniqueEventName = "{be34355c-f95c-44e7-b6a5-7f8f324c9e17}";
 
         /// <summary>The unique mutex name.</summary>
-        private const string UniqueMutexName = "{546de69d-61fd-4de4-b1f9-5f06140ef8f2}";
+        private const string UniqueMutexName = "{2cc0287f-c110-4a4c-9759-959dde34a154}";
 
         /// <summary>The event wait handle.</summary>
         private EventWaitHandle eventWaitHandle;
@@ -32,39 +33,47 @@ namespace BlogWrite
         /// <summary> Check and bring to front if already exists.</summary>
         private void AppOnStartup(object sender, StartupEventArgs e)
         {
+            // テスト用
+            //ChangeTheme("DefaultTheme");
+            //ChangeTheme("LightTheme");
 
-            this.mutex = new Mutex(true, UniqueMutexName, out bool isOwned);
-            this.eventWaitHandle = new EventWaitHandle(false, EventResetMode.AutoReset, UniqueEventName);
+            // For testing only. Don't forget to comment this out if you uncomment.
+            //BlogWrite.Properties.Resources.Culture = CultureInfo.GetCultureInfo("en-US"); //or ja-JP etc
 
-            // So, R# would not give a warning that this variable is not used.
-            GC.KeepAlive(this.mutex);
-
-            if (isOwned)
+            if (_mutexOn)
             {
-                // Spawn a thread which will be waiting for our event
-                var thread = new Thread(
-                    () =>
-                    {
-                        while (this.eventWaitHandle.WaitOne())
+                this.mutex = new Mutex(true, UniqueMutexName, out bool isOwned);
+                this.eventWaitHandle = new EventWaitHandle(false, EventResetMode.AutoReset, UniqueEventName);
+
+                // So, R# would not give a warning that this variable is not used.
+                GC.KeepAlive(this.mutex);
+
+                if (isOwned)
+                {
+                    // Spawn a thread which will be waiting for our event
+                    var thread = new Thread(
+                        () =>
                         {
-                            Current.Dispatcher.BeginInvoke(
-                                (Action)(() => ((MainWindow)Current.MainWindow).BringToForeground()));
-                        }
-                    });
+                            while (this.eventWaitHandle.WaitOne())
+                            {
+                                Current.Dispatcher.BeginInvoke(
+                                    (Action)(() => ((MainWindow)Current.MainWindow).BringToForeground()));
+                            }
+                        });
 
-                // It is important mark it as background otherwise it will prevent app from exiting.
-                thread.IsBackground = true;
+                    // It is important mark it as background otherwise it will prevent app from exiting.
+                    thread.IsBackground = true;
 
-                thread.Start();
-                return;
+                    thread.Start();
+                    return;
+                }
+
+                // Notify other instance so it could bring itself to foreground.
+                this.eventWaitHandle.Set();
+
+                // Terminate this instance.
+                this.Shutdown();
             }
-
-            // Notify other instance so it could bring itself to foreground.
-            this.eventWaitHandle.Set();
-
-            // Terminate this instance.
-            this.Shutdown();
-
         }
 
         /// <summary> Hold a list of windows here.</summary>
@@ -158,7 +167,7 @@ namespace BlogWrite
             WindowList.Remove(editor);
         }
 
-        public void LaunchServiceDiscoveryWindow(Window owner)
+        public void CreateServiceDiscoveryWindow(Window owner)
         {
             // TODO: Before opening the window, make sure no other window is open.
             // If a user minimize and restore, Modal window can get behind of the child window.
@@ -166,11 +175,9 @@ namespace BlogWrite
             var win = new ServiceDiscoveryWindow();
             win.DataContext = new ServiceDiscoveryViewModel();
             win.Owner = owner;
-            win.ResizeMode = ResizeMode.NoResize;
+            //win.ResizeMode = ResizeMode.NoResize;
             win.ShowDialog();
-
         }
 
     }
-
 }

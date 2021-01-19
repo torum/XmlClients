@@ -5,6 +5,12 @@
 /// https://github.com/torum/BlogWrite
 /// 
 /// 
+/// Atom Publishing Protocol - Service document
+/// https://tools.ietf.org/html/rfc5023
+///  
+/// Really Simple Discovery (RSD) 
+/// https://cyber.harvard.edu/blogs/gems/tech/rsd.html
+/// 
 
 using System;
 using System.Collections.Generic;
@@ -12,7 +18,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.Http;
-using mshtml;
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Runtime.InteropServices.ComTypes;
@@ -105,7 +110,7 @@ namespace BlogWrite.Models
         private string _serviceDocUrl;
         private Uri _endpointUrl;
         private Uri _atomFeedUrl;
-        private string _blogId="";
+        private string _blogId = "";
         private ServiceTypes _serviceTypes;
 
         private enum _serviceDocumentKind
@@ -116,15 +121,17 @@ namespace BlogWrite.Models
             Unknown
         }
 
+        /*
         private enum _rsdApiType
         {
             WordPress,      // WordPress XML-RPC
             MovableType,    // Movable Type XML-RPC
             MetaWeblog,     // Used with Movable Type XML-RPC API
             Blogger,        // Deprecated. May be used with Movable Type XML-RPC API
-            WPAPI,          // WordPress REST Jason API
+            WordPressJsonRestApi,  // WordPress Jason REST API
             AtomAPI         // Deprecated Atom 0.3 API
         }
+        */
 
         /*
         private enum _atomType
@@ -338,6 +345,7 @@ namespace BlogWrite.Models
 
         private async Task<bool> ParseHTML(HttpContent content)
         {
+            /*
             UpdateStatus(">> Trying to parse a HTML document...");
 
             //Stream st = content.ReadAsStreamAsync().Result;
@@ -419,6 +427,20 @@ namespace BlogWrite.Models
                                 }
 
                             }
+                            else if (re == "https://api.w.org/")
+                            {
+                                string hf = (e as IHTMLElement).getAttribute("href", 0);
+                                if (!string.IsNullOrEmpty(hf))
+                                {
+                                    //_serviceDocKind = _serviceDocumentKind.AtomSrv;
+                                    //_serviceDocUrl = hf;
+
+                                    Debug.WriteLine("Found a link to WP REST API: " + hf);
+
+                                    UpdateStatus("Found a link to WordPress JSON REST API.");
+                                }
+
+                            }
                             else if (re.ToUpper() == "ALTERNATE")
                             {
                                 string ty = (e as IHTMLElement).getAttribute("type", 0);
@@ -447,7 +469,7 @@ namespace BlogWrite.Models
                 }
                 
             }
-
+            */
             return true;
         }
 
