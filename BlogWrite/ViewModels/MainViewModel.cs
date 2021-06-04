@@ -25,11 +25,10 @@ namespace BlogWrite.ViewModels
     /// TODO: 
     /// 
     /// SearviceDiscoveryをMSHTML使わずにパースして動くようにする。
-    /// WebView2を試す。
     /// 
 
     /// 更新履歴：
-    /// 
+    /// v0.0.0.2 色々。
     /// v0.0.0.1 3年前の作りかけの状態を少なくとも最新の環境にあわせてアップデート。
 
 
@@ -39,7 +38,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.1";
+        const string _appVer = "0.0.0.2";
         public string AppVer
         {
             get
