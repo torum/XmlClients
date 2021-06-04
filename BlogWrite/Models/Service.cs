@@ -33,12 +33,10 @@ namespace BlogWrite.Models
     {
         AtomPub,
         AtomPub_Hatena,
-        AtomFeed,
+        Feed,
         XmlRpc_WordPress,
         XmlRpc_MovableType,
-        JsonRest_WordPress,
         AtomApi,
-        AtomApi_GData,
         Unknown
     }
 
@@ -46,11 +44,13 @@ namespace BlogWrite.Models
     {
         atAtomPub,
         atAtomFeed,
+        atRssFeed,
         //atXMLRPC,
         atXMLRPC_MovableType,
         atXMLRPC_WordPress,
         //atWPJson,
-        //atAtomAPI
+        //atAtomAPI,
+        atUnknown
     }
 
     public class NodeService : NodeTree
@@ -73,7 +73,7 @@ namespace BlogWrite.Models
         public string UserPassword { get; set; }
         public ApiTypes Api { get; set; }
 
-        //public ServiceTypes ServiceType { }
+        public ServiceTypes ServiceType { get; set; }
 
         public BaseClient Client { get; }
         public string ID { get; }
@@ -100,7 +100,9 @@ namespace BlogWrite.Models
                 case ApiTypes.atAtomFeed:
                     Client = new AtomFeedClient(EndPoint);
                     break;
-
+                case ApiTypes.atRssFeed:
+                    Client = new RssFeedClient(EndPoint);
+                    break;
                     //TODO: WP, AtomAPI
             }
 
@@ -129,6 +131,9 @@ namespace BlogWrite.Models
                 case ApiTypes.atAtomFeed:
                     Client = new AtomFeedClient(EndPoint);
                     break;
+                case ApiTypes.atRssFeed:
+                    Client = new RssFeedClient(EndPoint);
+                    break;
 
                     //TODO: WP, AtomAPI
             }
@@ -142,10 +147,30 @@ namespace BlogWrite.Models
 
     public class NodeFeed : NodeService
     {
-
         public ObservableCollection<EntryItem> List { get; } = new ObservableCollection<EntryItem>();
 
-        public NodeFeed(string name, Uri feedUrl) : base(name, feedUrl, ApiTypes.atAtomFeed)
+        public NodeFeed(string name, Uri feedUrl, ApiTypes api) : base(name, feedUrl, api)
+        {
+            PathIcon = "M6.18,15.64A2.18,2.18 0 0,1 8.36,17.82C8.36,19 7.38,20 6.18,20C5,20 4,19 4,17.82A2.18,2.18 0 0,1 6.18,15.64M4,4.44A15.56,15.56 0 0,1 19.56,20H16.73A12.73,12.73 0 0,0 4,7.27V4.44M4,10.1A9.9,9.9 0 0,1 13.9,20H11.07A7.07,7.07 0 0,0 4,12.93V10.1Z";
+        }
+    }
+
+    public class NodeAtomFeed : NodeFeed
+    {
+       // public ObservableCollection<EntryItem> List { get; } = new ObservableCollection<EntryItem>();
+
+        public NodeAtomFeed(string name, Uri feedUrl) : base(name, feedUrl, ApiTypes.atAtomFeed)
+        {
+            PathIcon = "M6.18,15.64A2.18,2.18 0 0,1 8.36,17.82C8.36,19 7.38,20 6.18,20C5,20 4,19 4,17.82A2.18,2.18 0 0,1 6.18,15.64M4,4.44A15.56,15.56 0 0,1 19.56,20H16.73A12.73,12.73 0 0,0 4,7.27V4.44M4,10.1A9.9,9.9 0 0,1 13.9,20H11.07A7.07,7.07 0 0,0 4,12.93V10.1Z";
+        }
+
+    }
+
+    public class NodeRssFeed : NodeFeed
+    {
+        //public ObservableCollection<EntryItem> List { get; } = new ObservableCollection<EntryItem>();
+
+        public NodeRssFeed(string name, Uri feedUrl) : base(name, feedUrl, ApiTypes.atRssFeed)
         {
             PathIcon = "M6.18,15.64A2.18,2.18 0 0,1 8.36,17.82C8.36,19 7.38,20 6.18,20C5,20 4,19 4,17.82A2.18,2.18 0 0,1 6.18,15.64M4,4.44A15.56,15.56 0 0,1 19.56,20H16.73A12.73,12.73 0 0,0 4,7.27V4.44M4,10.1A9.9,9.9 0 0,1 13.9,20H11.07A7.07,7.07 0 0,0 4,12.93V10.1Z";
         }
@@ -184,11 +209,36 @@ namespace BlogWrite.Models
                     var userPassword = s.Attributes["UserPassword"].Value;
                     var endpoint = s.Attributes["EndPoint"].Value;
                     string api = (s.Attributes["Api"] != null) ? s.Attributes["Api"].Value : "AtomPub"; //
+                    string tp = (s.Attributes["Type"] != null) ? s.Attributes["Type"].Value : "Unknown"; 
 
                     var selecteds = string.IsNullOrEmpty(s.Attributes["Selected"].Value) ? "" : s.Attributes["Selected"].Value;
                     var expandeds = string.IsNullOrEmpty(s.Attributes["Expanded"].Value) ? "" : s.Attributes["Expanded"].Value;
                     bool isSelecteds = (selecteds == "true") ? true : false;
                     bool isExpandeds = (expandeds == "true") ? true : false;
+
+                    ServiceTypes stp;
+                    switch (tp)
+                    {
+                        case "AtomPub":
+                            stp = ServiceTypes.AtomPub;
+                            break;
+                        case "AtomPub_Hatena":
+                            stp = ServiceTypes.AtomPub_Hatena;
+                            break;
+                        case "Feed":
+                            stp = ServiceTypes.Feed;
+                            break;
+                        case "XML-RPC_MovableType":
+                            stp = ServiceTypes.XmlRpc_MovableType;
+                            break;
+                        case "XML-RPC_WordPress":
+                            stp = ServiceTypes.XmlRpc_WordPress;
+                            break;
+                        // other
+                        default:
+                            stp = ServiceTypes.Unknown;
+                            break;
+                    }
 
                     ApiTypes at;
                     switch (api)
@@ -198,6 +248,9 @@ namespace BlogWrite.Models
                             break;
                         case "AtomFeed":
                             at = ApiTypes.atAtomFeed;
+                            break;
+                        case "RssFeed":
+                            at = ApiTypes.atRssFeed;
                             break;
                         //case "XML-RPC":
                         //    at = ApiTypes.atXMLRPC_MovableType;
@@ -215,18 +268,38 @@ namespace BlogWrite.Models
                             at = ApiTypes.atAtomPub; // or?
                             break;
                     }
-
-                    if (at == ApiTypes.atAtomFeed)
+                    
+                    if (stp == ServiceTypes.Feed)
                     {
                         if ((!string.IsNullOrEmpty(accountName)) && (!string.IsNullOrEmpty(endpoint)))
                         {
-                            NodeFeed account = new NodeFeed(accountName, new Uri(endpoint));
-                            account.Selected = isSelecteds;
-                            account.Expanded = isExpandeds;
-                            account.Parent = null;
+                            if (at == ApiTypes.atAtomFeed)
+                            {
+                                NodeAtomFeed account = new NodeAtomFeed(accountName, new Uri(endpoint));
 
-                            this.Children.Add(account);
+                                account.Selected = isSelecteds;
+                                account.Expanded = isExpandeds;
+                                account.Parent = null;
+
+                                account.ServiceType = ServiceTypes.Feed;
+                                account.Api = at;
+
+                                this.Children.Add(account);
+                            }
+                            else if (at == ApiTypes.atRssFeed)
+                            {
+                                NodeRssFeed account = new NodeRssFeed(accountName, new Uri(endpoint));
+                                account.Selected = isSelecteds;
+                                account.Expanded = isExpandeds;
+                                account.Parent = null;
+
+                                account.ServiceType = ServiceTypes.Feed;
+                                account.Api = at;
+
+                                this.Children.Add(account);
+                            }
                         }
+
                         continue;
                     }
 
@@ -240,6 +313,9 @@ namespace BlogWrite.Models
                         account.Selected = isSelecteds;
                         account.Expanded = isExpandeds;
                         account.Parent = null;
+
+                        account.ServiceType = stp;
+                        account.Api = at;
 
                         XmlNodeList workspaceList = s.SelectNodes("Workspaces");
                         foreach (XmlNode w in workspaceList)
@@ -404,6 +480,33 @@ namespace BlogWrite.Models
                 attrse.Value = ((NodeService)s).EndPoint.AbsoluteUri;
                 service.SetAttributeNode(attrse);
 
+                XmlAttribute atstp = doc.CreateAttribute("Type");
+                switch (((NodeService)s).ServiceType)
+                {
+                    case ServiceTypes.AtomPub:
+                        atstp.Value = "AtomPub";
+                        service.SetAttributeNode(atstp);
+                        break;
+                    case ServiceTypes.AtomPub_Hatena:
+                        atstp.Value = "AtomPub_Hatena";
+                        service.SetAttributeNode(atstp);
+                        break;
+                    case ServiceTypes.Feed:
+                        atstp.Value = "Feed";
+                        service.SetAttributeNode(atstp);
+                        break;
+                    case ServiceTypes.XmlRpc_MovableType:
+                        atstp.Value = "XML-RPC_MovableType";
+                        service.SetAttributeNode(atstp);
+                        break;
+                    case ServiceTypes.XmlRpc_WordPress:
+                        atstp.Value = "XML-RPC_WordPress";
+                        service.SetAttributeNode(atstp);
+                        break;
+                    // other...
+
+                }
+
                 XmlAttribute atapi = doc.CreateAttribute("Api");
                 switch (((NodeService)s).Api)
                 {
@@ -413,6 +516,10 @@ namespace BlogWrite.Models
                         break;
                     case ApiTypes.atAtomFeed:
                         atapi.Value = "AtomFeed";
+                        service.SetAttributeNode(atapi);
+                        break;
+                    case ApiTypes.atRssFeed:
+                        atapi.Value = "RssFeed";
                         service.SetAttributeNode(atapi);
                         break;
                     //case ApiTypes.atXMLRPC:

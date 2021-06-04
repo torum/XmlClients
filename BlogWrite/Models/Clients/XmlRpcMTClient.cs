@@ -126,8 +126,8 @@ namespace BlogWrite.Models.Clients
 
             //System.Diagnostics.Debug.WriteLine("GET blogs(getUsersBlogs): " + AsXml(xdoc));
 
-            ToDebugWindow(">> HTTP Request POST"
-                + Environment.NewLine
+            ToDebugWindow(">> HTTP Request POST "
+                //+ Environment.NewLine
                 + _endpoint.AbsoluteUri
                 + Environment.NewLine
                 + AsUTF16Xml(xdoc)
@@ -420,8 +420,8 @@ namespace BlogWrite.Models.Clients
 
             //System.Diagnostics.Debug.WriteLine("GetCategiries: " + AsUTF16Xml(xdoc));
 
-            ToDebugWindow(">> HTTP Request POST"
-                + Environment.NewLine
+            ToDebugWindow(">> HTTP Request POST "
+                //+ Environment.NewLine
                 + categoriesUrl.AbsoluteUri
                 + Environment.NewLine
                 + AsUTF16Xml(xdoc)
@@ -653,8 +653,8 @@ namespace BlogWrite.Models.Clients
 
             //System.Diagnostics.Debug.WriteLine("GET blogs(getUsersBlogs): " + AsXml(xdoc));
 
-            ToDebugWindow(">> HTTP Request POST"
-                + Environment.NewLine
+            ToDebugWindow(">> HTTP Request POST "
+                //+ Environment.NewLine
                 + entryUri.AbsoluteUri
                 + Environment.NewLine
                 + AsUTF16Xml(xdoc)
@@ -816,8 +816,8 @@ namespace BlogWrite.Models.Clients
 
             //System.Diagnostics.Debug.WriteLine("GET GetFullEntry: " + AsXml(xdoc));
 
-            ToDebugWindow(">> HTTP Request POST"
-                + Environment.NewLine
+            ToDebugWindow(">> HTTP Request POST "
+                //+ Environment.NewLine
                 + entryUri.AbsoluteUri
                 + Environment.NewLine
                 + AsUTF16Xml(xdoc)
@@ -1095,8 +1095,8 @@ name: wp_post_thumbnail - value:
 
             System.Diagnostics.Debug.WriteLine("metaWeblog.editPost: " + AsUTF16Xml(xdoc));
 
-            ToDebugWindow(">> HTTP Request POST"
-                + Environment.NewLine
+            ToDebugWindow(">> HTTP Request POST "
+                //+ Environment.NewLine
                 + entry.EditUri.AbsoluteUri
                 + Environment.NewLine
                 + AsUTF16Xml(xdoc)

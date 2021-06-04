@@ -65,6 +65,17 @@ namespace BlogWrite.Models
         }
     }
 
+    class ServiceResultRssFeed : ServiceResultBase
+    {
+        public Uri RssFeedUrl;
+
+        public ServiceResultRssFeed(Uri addr)
+        {
+            RssFeedUrl = addr;
+        }
+    }
+
+    // Base result class for API or Protocol
     abstract class ServiceResult : ServiceResultBase
     {
         public ServiceTypes Service { get; set; }
@@ -296,6 +307,28 @@ namespace BlogWrite.Models
                         UpdateStatus("<< Atom format returned...");
 
                         ServiceResultAtomFeed ap = new ServiceResultAtomFeed(addr);
+                        return ap;
+
+                    }
+                    else if (contenTypeString.StartsWith("application/x.atom+xml"))
+                    {
+                        // TODO:
+                        // Possibly AtomApi endopoint.
+                        UpdateStatus("<< Old Atom format returned... ");
+
+                        ServiceResultAtomAPI ap = new ServiceResultAtomAPI();
+                        ap.EndpointUri = addr;
+                        ap.Service = ServiceTypes.AtomApi;
+                        return ap;
+                    }
+                    else if (contenTypeString.StartsWith("application/rss+xml"))
+                    {
+                        // TODO:
+                        // RSS Feed...
+
+                        UpdateStatus("<< RSS format returned...");
+
+                        ServiceResultRssFeed ap = new ServiceResultRssFeed(addr);
                         return ap;
 
                     }

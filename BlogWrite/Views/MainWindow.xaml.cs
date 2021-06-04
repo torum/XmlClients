@@ -40,11 +40,13 @@ namespace BlogWrite.Views
             {
                 if (vm != null)
                 {
-                    vm.DebugWindowShowHide += () => OnDebugWindowShowHide();
+                    vm.DebugWindowShowHide += () => this.OnDebugWindowShowHide();
 
                     vm.DebugOutput += (sender, arg) => { this.OnDebugOutput(arg); };
 
-                    vm.DebugClear += () => OnDebugClear();
+                    vm.DebugClear += () => this.OnDebugClear();
+
+                    vm.WriteHtmlToContentPreviewBrowser += (sender, arg) => { this.OnWriteHtmlToContentPreviewBrowser(arg); };
 
                     App app = App.Current as App;
                     if (app != null)
@@ -54,6 +56,7 @@ namespace BlogWrite.Views
                         vm.OpenEditorView += (sender, arg) => { app.CreateOrBringToFrontEditorWindow(arg); };
 
                         vm.OpenEditorNewView += (sender, arg) => { app.CreateNewEditorWindow(arg); };
+
                     }
                 }
             }
@@ -70,26 +73,23 @@ namespace BlogWrite.Views
             this.Activate();
             this.Focus();
         }
-
-        private void Window_StateChanged(object sender, EventArgs e)
-        {
-            if (this.WindowState == WindowState.Normal)
-            {
-                RestoreButton.Visibility = Visibility.Collapsed;
-                MaxButton.Visibility = Visibility.Visible;
-            }
-            else if (this.WindowState == WindowState.Maximized)
-            {
-                RestoreButton.Visibility = Visibility.Visible;
-                MaxButton.Visibility = Visibility.Collapsed;
-            }
-        }
-
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
-        }
         
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            var html = @"
+                <html>
+                    <head>
+                        <title></title>
+                    </head>
+                    <body style=""background-color:#212121;"">
+                    </body>
+                </html>";
+
+            await ContentPreviewWebBrowser.EnsureCoreWebView2Async();
+
+            ContentPreviewWebBrowser.NavigateToString(html);
+        }
+
         private void MainWindow_Closing(object sender, CancelEventArgs e)
         {
             // TODO: When MainWindow try to close itself, confirm to close all the child windows. 
@@ -115,6 +115,25 @@ namespace BlogWrite.Views
             }
         }
 
+        private void Window_StateChanged(object sender, EventArgs e)
+        {
+            if (this.WindowState == WindowState.Normal)
+            {
+                RestoreButton.Visibility = Visibility.Collapsed;
+                MaxButton.Visibility = Visibility.Visible;
+            }
+            else if (this.WindowState == WindowState.Maximized)
+            {
+                RestoreButton.Visibility = Visibility.Visible;
+                MaxButton.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+        
         private void MaxButton_Click(object sender, RoutedEventArgs e)
         {
             this.WindowState = WindowState.Maximized;
@@ -136,6 +155,12 @@ namespace BlogWrite.Views
                 return;
 
             (sender as ListView).ScrollIntoView((sender as ListView).SelectedItem);
+        }
+
+        public void OnWriteHtmlToContentPreviewBrowser(string arg)
+        {
+            // 
+            ContentPreviewWebBrowser.NavigateToString(arg);
         }
 
         public void OnDebugOutput(string arg)
@@ -175,8 +200,6 @@ namespace BlogWrite.Views
                 DebugWindow.Visibility = Visibility.Visible;
             }
         }
-
-
 
         #region == MAXIMIZE時のタスクバー被りのFix ==
         // https://engy.us/blog/2020/01/01/implementing-a-custom-window-title-bar-in-wpf/

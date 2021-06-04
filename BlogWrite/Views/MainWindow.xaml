@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BlogWrite"
         xmlns:helpers="clr-namespace:BlogWrite.Helpers"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         mc:Ignorable="d"
         WindowStyle="None"
         Background="{DynamicResource WindowBackgroundBaseColorBrush}"
@@ -12,6 +13,7 @@
         Title="{Binding AppTitle}"
         StateChanged="Window_StateChanged"
         Closing="MainWindow_Closing"
+        Loaded="Window_Loaded"
         Height="450" Width="800">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="32" ResizeBorderThickness="{x:Static SystemParameters.WindowResizeBorderThickness}"/>
@@ -39,9 +41,9 @@
                 <RowDefinition Height="28"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="320"/>
                 <ColumnDefinition Width="8"/>
-                <ColumnDefinition Width="4*"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
             <!-- App title bar-->
@@ -585,7 +587,6 @@
                      IsTabStop="False"
                      MinHeight="24"
                      Style="{StaticResource FlatTextBoxStyle}"
-                     Visibility="{Binding IsContentText, Converter={StaticResource BooleanToVisibilityConverter}}"
                      Text="{Binding Entry, Mode=OneWay}">
                         <TextBox.Resources>
                             <Style TargetType="{x:Type ScrollBar}">
@@ -644,6 +645,7 @@
                                     helpers:BindHTMLBehavior.Html="{Binding EntryHTML, Mode=OneWay}"/>
                 </Border>
                 -->
+                    <wv2:WebView2 Name="ContentPreviewWebBrowser" Visibility="{Binding IsContentHTML, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
                 </Grid>
                 

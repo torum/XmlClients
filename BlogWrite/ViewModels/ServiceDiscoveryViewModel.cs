@@ -169,6 +169,13 @@ namespace BlogWrite.ViewModels
                     //(sr as ServiceResultAtomFeed).AtomFeedUrl
                 }
 
+                if (sr is ServiceResultRssFeed)
+                {
+                    //(sr as ServiceResultRssFeed).RssFeedUrl
+                }
+
+                //https://www.coindeskjapan.com/feed/
+
                 //ServiceResultAuthRequired
 
                 //ServiceResultAtomPub

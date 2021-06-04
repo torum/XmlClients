@@ -46,7 +46,7 @@ namespace BlogWrite.Models.Clients
                 string s = await HTTPResponseMessage.Content.ReadAsStringAsync();
 
                 ToDebugWindow(">> HTTP Request GET "
-                    + Environment.NewLine
+                    //+ Environment.NewLine
                     + entriesUrl.AbsoluteUri
                     + Environment.NewLine + Environment.NewLine
                     + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
@@ -143,8 +143,8 @@ namespace BlogWrite.Models.Clients
 
                 if (contents != null)
                 {
-                    ToDebugWindow(">> HTTP Request GET (Failed)"
-                        + Environment.NewLine
+                    ToDebugWindow(">> HTTP Request GET "
+                        //+ Environment.NewLine
                         + entriesUrl.AbsoluteUri
                         + Environment.NewLine + Environment.NewLine
                         + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()

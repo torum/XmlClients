@@ -66,8 +66,17 @@ namespace BlogWrite.ViewModels
 
         #region == Properties ==
 
+        private static string html = @"
+                <html>
+                    <head>
+                        <title></title>
+                    </head>
+                    <body style=""background-color:#212121;"">
+                    </body>
+                </html>";
+
         #region == Treeview, Node, Menu, etc ==
-        
+
         private ServiceTreeBuilder _services = new ServiceTreeBuilder();
         public ObservableCollection<NodeTree> Services
         {
@@ -106,6 +115,15 @@ namespace BlogWrite.ViewModels
                         Task.Run(() => GetEntries((_selectedNode as NodeFeed)));
                     }
                 }
+                /*
+                else if (_selectedNode is NodeRssFeed)
+                {
+                    if ((_selectedNode as NodeRssFeed).List.Count == 0)
+                    {
+                        Task.Run(() => GetEntries((_selectedNode as NodeRssFeed)));
+                    }
+                }
+                */
 
                 // This changes the listview.
                 NotifyPropertyChanged(nameof(Entries));
@@ -127,6 +145,12 @@ namespace BlogWrite.ViewModels
                 {
                     return (_selectedNode as NodeFeed).List;
                 }
+                /*
+                else if (_selectedNode is NodeRssFeed)
+                {
+                    return (_selectedNode as NodeRssFeed).List;
+                }
+                */
                 else
                 {
                     return null;
@@ -151,6 +175,18 @@ namespace BlogWrite.ViewModels
                 NotifyPropertyChanged(nameof(EntryHTML));
                 NotifyPropertyChanged(nameof(IsContentText));
                 NotifyPropertyChanged(nameof(IsContentHTML));
+
+                if (_selectedItem == null)
+                    return;
+
+                if (IsContentHTML)
+                {
+                    if (Application.Current == null) { return; }
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        WriteHtmlToContentPreviewBrowser?.Invoke(this, EntryHTML);
+                    });
+                }
             }
         }
 
@@ -158,8 +194,6 @@ namespace BlogWrite.ViewModels
         {
             get
             {
-                return true;
-                /*
                 if (_selectedItem == null)
                     return false;
 
@@ -171,12 +205,11 @@ namespace BlogWrite.ViewModels
 
                 if ((_selectedItem as EntryItem).EntryBody.ContentType == EntryFull.ContentTypes.text)
                 {
-                    System.Diagnostics.Debug.WriteLine("IsContentText");
+                    // Debug.WriteLine("IsContentText");
                     return true;
                 }
 
                 return false;
-                */
             }
         }
 
@@ -195,7 +228,7 @@ namespace BlogWrite.ViewModels
 
                 if ((_selectedItem as EntryItem).EntryBody.ContentType == EntryFull.ContentTypes.textHtml)
                 {
-                    System.Diagnostics.Debug.WriteLine("IsContentHTML");
+                    //Debug.WriteLine("IsContentHTML");
                     return true;
                 }
 
@@ -256,7 +289,7 @@ namespace BlogWrite.ViewModels
             get
             {
                 if (_selectedItem == null)
-                    return null;
+                    return WrapHtmlContent("");
 
                 if (_selectedItem is EntryItem)
                 {
@@ -271,7 +304,7 @@ namespace BlogWrite.ViewModels
                         }
                         else
                         {
-                            return null;
+                            return WrapHtmlContent("");
                         }
                     }
                     else
@@ -288,12 +321,12 @@ namespace BlogWrite.ViewModels
                             }
                         });
                         */
-                        return null;
+                        return WrapHtmlContent("");
                     }
                 }
                 else
                 {
-                    return null;
+                    return WrapHtmlContent("");
                 }
             }
         }
@@ -318,6 +351,7 @@ namespace BlogWrite.ViewModels
                 this.NotifyPropertyChanged("IsFullyLoaded");
             }
         }
+        
         private bool _isBusy;
         public bool IsBusy
         {
@@ -419,6 +453,8 @@ namespace BlogWrite.ViewModels
         public delegate void DebugClearEventHandler();
         public event DebugClearEventHandler DebugClear;
 
+        public event EventHandler<string> WriteHtmlToContentPreviewBrowser;
+
         #endregion
 
         public MainViewModel()
@@ -469,6 +505,8 @@ namespace BlogWrite.ViewModels
 
             #endregion
 
+
+
             // loads searvice tree
             if (File.Exists(_appDataFolder + System.IO.Path.DirectorySeparatorChar + "Searvies.xml"))
             {
@@ -482,15 +520,19 @@ namespace BlogWrite.ViewModels
             {
                 if (c.Client != null)
                 {
+
+                    Debug.WriteLine(c.Name);
+
                     c.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
                 }
             }
-
 
         }
 
         public void OnDebugOutput(BaseClient sender, string data)
         {
+            Debug.WriteLine("asdfasdfasdfasd");
+
             if (IsShowDebugWindow)
             {
                 if (Application.Current == null) { return; }
@@ -780,7 +822,7 @@ namespace BlogWrite.ViewModels
 
             if (selectedNode is NodeFeed)
             {
-                if ((selectedNode as NodeFeed).Api != ApiTypes.atAtomFeed)
+                if (((selectedNode as NodeFeed).Api != ApiTypes.atRssFeed) && (selectedNode as NodeFeed).Api != ApiTypes.atAtomFeed)
                     return;
 
                 var fc = (selectedNode as NodeFeed).Client;
@@ -794,6 +836,7 @@ namespace BlogWrite.ViewModels
                 {
 
                     (selectedNode as NodeFeed).List.Clear();
+
                     foreach (EntryItem ent in entLi)
                     {
                         //ent.NodeEntry = (selectedNode as NodeEntry);
@@ -822,6 +865,7 @@ namespace BlogWrite.ViewModels
                 {
 
                     (selectedNode as NodeEntryCollection).List.Clear();
+
                     foreach (EntryItem ent in entLi)
                     {
                         ent.NodeEntry = (selectedNode as NodeEntryCollection);
@@ -883,6 +927,75 @@ namespace BlogWrite.ViewModels
 
         private static string WrapHtmlContent(string source, string styles = null)
         {
+            if (styles == null)
+            {
+                styles = @"
+::-webkit-scrollbar { width: 18px; height: 3px;}
+::-webkit-scrollbar-button {  background-color: #666; }
+::-webkit-scrollbar-track {  background-color: #646464; box-shadow: 0 0 4px #aaa inset;}
+::-webkit-scrollbar-track-piece { background-color: #212121;}
+::-webkit-scrollbar-thumb { height: 50px; background-color: #666;}
+::-webkit-scrollbar-corner { background-color: #646464;}}
+::-webkit-resizer { background-color: #666;}
+
+body {
+	
+	line-height: 1.75em;
+	font-size: 12px;
+	background-color: #222;
+	color: #aaa;
+}
+
+p {
+	font-size: 12px;
+}
+
+h1 {
+	font-size: 30px;
+	line-height: 34px;
+}
+
+h2 {
+	font-size: 20px;
+	line-height: 25px;
+}
+
+h3 {
+	font-size: 16px;
+	line-height: 27px;
+	padding-top: 15px;
+	padding-bottom: 15px;
+	border-bottom: 1px solid #D8D8D8;
+	border-top: 1px solid #D8D8D8;
+}
+
+hr {
+	height: 1px;
+	background-color: #d8d8d8;
+	border: none;
+	width: 100%;
+	margin: 0px;
+}
+
+a[href] {
+	color: #1e8ad6;
+}
+
+a[href]:hover {
+	color: #3ba0e6;
+}
+
+img {
+    width: 320;
+    height: auto;
+}
+
+li {
+	line-height: 1.5em;
+}
+                ";
+            }
+
             return String.Format(
                 @"<html>
                     <head>
@@ -1141,7 +1254,7 @@ namespace BlogWrite.ViewModels
         public bool RefreshEntriesCommand_CanExecute()
         {
             if (SelectedNode == null) return false;
-            if ((SelectedNode is NodeEntryCollection) || (SelectedNode is NodeFeed))
+            if ((SelectedNode is NodeEntryCollection) || (SelectedNode is NodeFeed) )
                 return true;
             return false;
         }

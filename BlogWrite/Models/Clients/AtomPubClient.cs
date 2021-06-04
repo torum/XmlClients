@@ -67,7 +67,7 @@ namespace BlogWrite.Models.Clients
                 //System.Diagnostics.Debug.WriteLine("GET blogs(collection): " + s);
 
                 ToDebugWindow(">> HTTP Request GET "
-                    + Environment.NewLine
+                    //+ Environment.NewLine
                     + _endpoint.AbsoluteUri
                     + Environment.NewLine + Environment.NewLine
                     + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
