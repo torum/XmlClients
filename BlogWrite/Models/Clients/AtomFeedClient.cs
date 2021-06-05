@@ -36,7 +36,10 @@ namespace BlogWrite.Models.Clients
         }
 
         public override async Task<List<EntryItem>> GetEntries(Uri entriesUrl)
-        {
+        {            
+            // Clear err msg.
+            ClientErrorMessage = "";
+
             List<EntryItem> list = new List<EntryItem>();
 
             var HTTPResponseMessage = await _HTTPConn.Client.GetAsync(entriesUrl);
@@ -51,7 +54,8 @@ namespace BlogWrite.Models.Clients
                     + Environment.NewLine + Environment.NewLine
                     + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
                     + Environment.NewLine
-                    + s + Environment.NewLine);
+                    //+ s + Environment.NewLine);
+                    );
 
                 //System.Diagnostics.Debug.WriteLine("GET entries: " + s);
                 /*
@@ -115,6 +119,9 @@ namespace BlogWrite.Models.Clients
                         + Environment.NewLine
                         + e.Message
                         + Environment.NewLine);
+
+                    ClientErrorMessage = "Invalid XML returned: " + e.Message;
+
                     return list;
                 }
 
@@ -151,6 +158,8 @@ namespace BlogWrite.Models.Clients
                         + Environment.NewLine
                         + contents + Environment.NewLine);
                 }
+
+                ClientErrorMessage = "HTTP request failed: " + HTTPResponseMessage.StatusCode.ToString();
             }
 
             return list;

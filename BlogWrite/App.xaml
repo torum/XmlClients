@@ -5,7 +5,8 @@
              xmlns:vms="clr-namespace:BlogWrite.ViewModels"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:common="clr-namespace:BlogWrite.Common"
-             StartupUri="Views\MainWindow.xaml">
+             StartupUri="Views\MainWindow.xaml"
+             Startup="AppOnStartup">
     <Application.Resources>
         <ResourceDictionary>
 
@@ -142,6 +143,38 @@
 
                 <!-- TextBox -->
                 <ResourceDictionary>
+                    
+                    <Style TargetType="{x:Type TextBox}">
+                        <Style.Resources>
+                            <Style TargetType="{x:Type Border}">
+                                <Setter Property="CornerRadius" Value="3" />
+                            </Style>
+                        </Style.Resources>
+                        <Setter Property="Padding" Value="3"/>
+                    </Style>
+
+                    <Style x:Key="DefaultTextBoxStyle" TargetType="{x:Type TextBox}">
+                        <Style.Resources>
+                            <Style TargetType="{x:Type Border}">
+                                <Setter Property="CornerRadius" Value="3" />
+                            </Style>
+                        </Style.Resources>
+                        <Setter Property="Padding" Value="3"/>
+                        <Setter Property="HorizontalAlignment" Value="Left"/>
+                        <Setter Property="VerticalAlignment" Value="Center"/>
+                        <Setter Property="Background" Value="{DynamicResource NormalTextBoxBackgroundColorBrush}" />
+                        <Style.Triggers>
+                            <Trigger Property="IsKeyboardFocusWithin" Value="true">
+                                <Setter Property="Background" Value="Gainsboro" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter Property="Background" Value="White" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="{DynamicResource NormalTextBoxBackgroundColorBrush}" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
 
                     <Style x:Key="FlatTextBoxStyle" TargetType="{x:Type TextBox}">
                         <Setter Property="Background" Value="Transparent"/>
@@ -3035,6 +3068,34 @@
                                 </ControlTemplate>
                             </Setter.Value>
                         </Setter>
+                    </Style>
+
+                </ResourceDictionary>
+
+                <!-- Hiddlen TabControl -->
+                <ResourceDictionary>
+
+                    <Style x:Key="HiddlenTabControl" TargetType="{x:Type TabControl}">
+                        <Setter Property="OverridesDefaultStyle" Value="True" />
+                        <Setter Property="Focusable" Value="True"/>
+                        <Setter Property="SnapsToDevicePixels" Value="True" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type TabControl}">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="*" />
+                                        </Grid.RowDefinitions>
+                                        <ContentPresenter Grid.Row="1" x:Name="PART_SelectedContentHost" Margin="0" ContentSource="SelectedContent" RecognizesAccessKey="True"/>
+                                    </Grid>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+
+                    <Style x:Key="HiddlenTabHeaderCollapsed" TargetType="{x:Type TabItem}">
+                        <Setter Property="Visibility" Value="Visible"/>
                     </Style>
 
                 </ResourceDictionary>

@@ -24,24 +24,80 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Diagnostics;
 using System.Xml.Linq;
 using System.Xml;
+using System.Collections.ObjectModel;
+using System.Net;
+using AngleSharp;
+using AngleSharp.Html.Parser;
 
 namespace BlogWrite.Models
 {
+
+    public class FeedLink
+    {
+        public enum FeedKinds
+        {
+            Atom,
+            Rss,
+            Unknown
+        }
+
+        public Uri FeedUri { get; set; }
+
+        public string Title { get; set; }
+
+        public FeedKinds FeedKind { get; set; }
+
+        public FeedLink(Uri fu, FeedKinds fk, string t)
+        {
+            FeedUri = fu;
+            FeedKind = fk;
+            Title = t;
+        }
+    }
+
+    public class SearviceDocumentLink
+    {
+        public enum ServiceDocumentKinds
+        {
+            Feed,
+            RSD,
+            AtomSrv,
+            AtomApi,
+            Unknown
+        }
+
+        public Uri EndpointUri { get; set; }
+
+        public ServiceDocumentKinds ServiceDocumentKind { get; set; }
+
+        // XML-RPC specific blogid. 
+        public string BlogID { get; set; }
+
+        public SearviceDocumentLink(Uri fu, ServiceDocumentKinds fk)
+        {
+            EndpointUri = fu;
+            ServiceDocumentKind = fk;
+        }
+    }
+
+
     /// <summary>
     /// Service Discovery Result class.
     /// </summary>
     abstract class ServiceResultBase
     {
-        
+
     }
 
     class ServiceResultErr : ServiceResultBase
     {
-        public string Err { get; set; }
+        public string ErrTitle { get; set; }
+        public string ErrDescription { get; set; }
 
-        public ServiceResultErr(string e)
+        public ServiceResultErr(string et, string ed)
         {
-            Err = e;
+            ErrTitle = et;
+            ErrDescription = ed;
         }
     }
 
@@ -55,6 +111,43 @@ namespace BlogWrite.Models
         }
     }
 
+    class ServiceResult: ServiceResultBase
+    {
+        private ObservableCollection<FeedLink> _feeds = new();
+        public ObservableCollection<FeedLink> Feeds
+        {
+            get { return _feeds; }
+            set
+            {
+
+                if (_feeds == value)
+                    return;
+
+                _feeds = value;
+            }
+        }
+
+        private ObservableCollection<SearviceDocumentLink> _services = new();
+        public ObservableCollection<SearviceDocumentLink> Services
+        {
+            get { return _services; }
+            set
+            {
+
+                if (_services == value)
+                    return;
+
+                _services = value;
+            }
+        }
+
+        public ServiceResult()
+        {
+
+        }
+    }
+
+    /*
     class ServiceResultAtomFeed : ServiceResultBase
     {
         public Uri AtomFeedUrl;
@@ -74,7 +167,8 @@ namespace BlogWrite.Models
             RssFeedUrl = addr;
         }
     }
-
+    */
+    /*
     // Base result class for API or Protocol
     abstract class ServiceResult : ServiceResultBase
     {
@@ -111,26 +205,22 @@ namespace BlogWrite.Models
         public string BlogID { get; set; }
     }
 
+    */
+
     /// <summary>
     /// Service Discovery class.
     /// </summary>
     class ServiceDiscovery
     {
         private HttpClient _httpClient;
-        private _serviceDocumentKind _serviceDocKind;
-        private string _serviceDocUrl;
-        private Uri _endpointUrl;
-        private Uri _atomFeedUrl;
-        private string _blogId = "";
-        private ServiceTypes _serviceTypes;
+        //private _serviceDocumentKind _serviceDocKind;
+        //private string _serviceDocUrl;
+        //private Uri _endpointUrl;
+        //private Uri _feedUrl;
+        //private feedKind _feedKind;
+        //private string _blogId = "";
+        //private ServiceTypes _serviceTypes;
 
-        private enum _serviceDocumentKind
-        {
-            RSD,
-            AtomSrv,
-            AtomApi,
-            Unknown
-        }
 
         /*
         private enum _rsdApiType
@@ -158,9 +248,9 @@ namespace BlogWrite.Models
         {
             _httpClient = new HttpClient();
 
-            _serviceDocKind = _serviceDocumentKind.Unknown;
+            //_serviceDocKind = _serviceDocumentKind.Unknown;
 
-            _serviceTypes = ServiceTypes.Unknown;
+            //_serviceTypes = ServiceTypes.Unknown;
         }
 
         #region == Events ==
@@ -175,24 +265,30 @@ namespace BlogWrite.Models
 
         public async Task<ServiceResultBase> DiscoverService(Uri addr)
         {
+            /*
             // Initialize variables.
             _serviceDocKind = _serviceDocumentKind.Unknown;
             _serviceDocUrl = null;
             _endpointUrl =null;
-            _atomFeedUrl = null;
+            _feedUrl = null;
             _blogId = "";
             _serviceTypes= ServiceTypes.Unknown;
+            _feedKind = feedKind.Unknown;
+            */
 
-            UpdateStatus(">> Trying to access given URL...");
+            //UpdateStatus(">> Accessing given URL ...");
+            UpdateStatus(string.Format(">> HTTP GET " + addr.AbsoluteUri));
 
             var HTTPResponse = await _httpClient.GetAsync(addr);
+
+            UpdateStatus(string.Format("<< HTTP status {0} returned.", HTTPResponse.StatusCode.ToString()));
 
             if (HTTPResponse.IsSuccessStatusCode)
             {
                 if (HTTPResponse.Content == null)
                 {
-                    UpdateStatus("<< Received no content.");
-                    ServiceResultErr re = new ServiceResultErr("Did not return any content. Content empty.");
+                    UpdateStatus("<< Content is emptty.");
+                    ServiceResultErr re = new ServiceResultErr("Received no content.", "Content empty.");
                     return re;
                 }
 
@@ -200,16 +296,22 @@ namespace BlogWrite.Models
 
                 if (!string.IsNullOrEmpty(contenTypeString))
                 {
-                    Debug.WriteLine("GET Content-Type header is: " + contenTypeString);
+                    UpdateStatus(string.Format("- Content-Type header is {0}", contenTypeString));
 
+                    ServiceResult res = new();
+
+                    // HTML page.
                     if (contenTypeString.StartsWith("text/html"))
                     {
-                        UpdateStatus("<< Returned a HTML webpage.");
+                        UpdateStatus("- Parsing the HTML document ...");
 
-                        bool x = await ParseHTML(HTTPResponse.Content);
-
+                        // HTML parse.
+                        bool x = await ParseHTML(HTTPResponse.Content, res);
+                        /*
                         if (_serviceDocKind == _serviceDocumentKind.AtomSrv)
                         {
+                            UpdateStatus("- Atom service document found.");
+
                             ServiceResultAtomPub ap = new ServiceResultAtomPub();
                             ap.EndpointUri = new Uri(_serviceDocUrl);
                             ap.Service = ServiceTypes.AtomPub;
@@ -217,6 +319,8 @@ namespace BlogWrite.Models
                         }
                         else if (_serviceDocKind == _serviceDocumentKind.RSD)
                         {
+                            UpdateStatus("- RSD document found.");
+
                             bool y = await GetRSD();
                             
                             if ((_serviceTypes == ServiceTypes.XmlRpc_WordPress) ||
@@ -232,25 +336,25 @@ namespace BlogWrite.Models
                             else
                             {
                                 UpdateStatus("Could not determin service type. [WordPress,MovableType] not found.");
-                                ServiceResultErr re = new ServiceResultErr("Could not determin service type.");
+                                ServiceResultErr re = new ServiceResultErr("Failed","Could not determin service type.");
                                 return re;
                             }
                         }
                         else
                         {
 
-                            UpdateStatus("Could not find any service document from HTML webpage.");
+                            UpdateStatus("- No link for service document found in the HTML document.");
 
-                            if (_atomFeedUrl != null)
+                            if (_feedUrl != null && _feedKind is feedKind.Atom)
                             {
-                                UpdateStatus("Atom feed link is present.");
+                                UpdateStatus("- Atom feed link found.");
 
-                                ServiceResultAtomFeed ap = new ServiceResultAtomFeed(_atomFeedUrl);
+                                ServiceResultAtomFeed ap = new ServiceResultAtomFeed(_feedUrl);
                                 return ap;
                             }
                             else
                             {
-                                UpdateStatus(">> Did not find a service document link.");
+                                UpdateStatus(" -");
 
                                 // Could be xml-rpc endpoint.
 
@@ -260,29 +364,30 @@ namespace BlogWrite.Models
                                 // Try POST some method.
                                 UpdateStatus("TODO: Could not determine API from the HTML webpage.");
                                 // For now.
-                                ServiceResultErr re = new ServiceResultErr("Could not determine API from the HTML webpage.");
+                                ServiceResultErr re = new ServiceResultErr("Failed", "Could not determine API from the HTML webpage.");
                                 return re;
 
                                 //UpdateStatus(">> Trying to test a few things...");
                             }
                         }
+                        */
                     }
                     else if (contenTypeString.StartsWith("application/atomsvc+xml"))
                     {
                         // This is the AtomPub endpoint.
-
+                        /*
                         UpdateStatus("Found an Atom Publishing Protocol service document.");
 
                         ServiceResultAtomPub ap = new ServiceResultAtomPub();
                         ap.EndpointUri = addr;
                         ap.Service = ServiceTypes.AtomPub; ;
                         return ap;
-
+                        */
                     }
                     else if (contenTypeString.StartsWith("application/rsd+xml"))
                     {
                         bool y = await GetRSD();
-
+                        /*
                         if (((_serviceTypes == ServiceTypes.XmlRpc_WordPress) || (_serviceTypes == ServiceTypes.XmlRpc_MovableType)) 
                             && (_endpointUrl != null))
                         {
@@ -295,23 +400,25 @@ namespace BlogWrite.Models
                         else
                         {
                             UpdateStatus("Could not determin service type. [WordPress,MovableType] not found.");
-                            ServiceResultErr re = new ServiceResultErr("Could not determin service type.");
+                            ServiceResultErr re = new ServiceResultErr("Failed", "Could not determin service type.");
                             return re;
                         }
+                        */
                     }
                     else if (contenTypeString.StartsWith("application/atom+xml"))
                     {
                         // TODO:
                         // Possibly AtomApi endopoint. Or Atom Feed...
-
+                        /*
                         UpdateStatus("<< Atom format returned...");
 
                         ServiceResultAtomFeed ap = new ServiceResultAtomFeed(addr);
                         return ap;
-
+                        */
                     }
                     else if (contenTypeString.StartsWith("application/x.atom+xml"))
                     {
+                        /*
                         // TODO:
                         // Possibly AtomApi endopoint.
                         UpdateStatus("<< Old Atom format returned... ");
@@ -320,20 +427,22 @@ namespace BlogWrite.Models
                         ap.EndpointUri = addr;
                         ap.Service = ServiceTypes.AtomApi;
                         return ap;
+                        */
                     }
                     else if (contenTypeString.StartsWith("application/rss+xml"))
                     {
                         // TODO:
                         // RSS Feed...
-
+                        /*
                         UpdateStatus("<< RSS format returned...");
 
                         ServiceResultRssFeed ap = new ServiceResultRssFeed(addr);
                         return ap;
-
+                        */
                     }
                     else if (contenTypeString.StartsWith("application/x.atom+xml"))
                     {
+                        /*
                         // TODO:
                         // Possibly AtomApi endopoint.
                         UpdateStatus("<< Old Atom format returned... ");
@@ -342,33 +451,43 @@ namespace BlogWrite.Models
                         ap.EndpointUri = addr;
                         ap.Service = ServiceTypes.AtomApi;
                         return ap;
+                        */
                     }
                     else
                     {
+                        /*
                         UpdateStatus("<< Unknown Content-Type returned. " + contenTypeString + " is not supported.");
-                        ServiceResultErr re = new ServiceResultErr("Content-Type unknown.");
+                        ServiceResultErr re = new ServiceResultErr("Failed", "Content-Type unknown.");
                         return re;
+                        */
                     }
 
+                    return res;
                 }
                 else
                 {
                     UpdateStatus("<< No Content-Type returned. ");
-                    ServiceResultErr re = new ServiceResultErr("Content-Type did not match.");
+                    ServiceResultErr re = new ServiceResultErr("Failed", "Content-Type is empty.");
                     return re;
                 }
 
             }
             else
             {
-                UpdateStatus("<< HTTP error: " + HTTPResponse.StatusCode.ToString());
-                UpdateStatus("Could not retrieve any service document. ");
+                UpdateStatus("Could not retrieve any document. ");
 
-                //TODO: If 401 Unauthorized,
+                //If 401 Unauthorized,
                 // A user may or may not enter an AtomPub endpoint which require auth to get service document.
-
-                ServiceResultAuthRequired rea = new ServiceResultAuthRequired(addr);
-                return rea;
+                if (HTTPResponse.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    ServiceResultAuthRequired rea = new ServiceResultAuthRequired(addr);
+                    return rea;
+                }
+                else
+                {
+                    ServiceResultErr re = new ServiceResultErr("HTTP error.", "Could not retrieve any document.");
+                    return re;
+                }
             }
 
             //UpdateStatus(Environment.NewLine + "Finished.");
@@ -376,140 +495,227 @@ namespace BlogWrite.Models
 
         }
 
-        private async Task<bool> ParseHTML(HttpContent content)
+        private async Task<bool> ParseHTML(HttpContent content, ServiceResult res)
         {
-            /*
-            UpdateStatus(">> Trying to parse a HTML document...");
+            //Use the default configuration for AngleSharp
+            var config = Configuration.Default;
 
-            //Stream st = content.ReadAsStreamAsync().Result;
+            //Create a new context for evaluating webpages with the given config
+            var context = BrowsingContext.New(config);
 
-            string s = await content.ReadAsStringAsync();
+            //Source to be parsed
+            var source = await content.ReadAsStreamAsync();
 
-            UpdateStatus(">> Loading a HTML document...");
+            //Debug.WriteLine(source);
+            //
+            //var parser = context.GetService<IHtmlParser>();
+            //var document = parser.ParseDocument(source);
 
-            mshtml.HTMLDocument hd = new mshtml.HTMLDocument();
-            mshtml.IHTMLDocument2 hdoc = (mshtml.IHTMLDocument2)hd;
+            //Create a virtual request to specify the document to load (here from our fixed string)
+            var document = await context.OpenAsync(req => req.Content(source));
+            
+            //
+            var elements = document.QuerySelectorAll("link");
 
-            IPersistStreamInit ips = (IPersistStreamInit)hdoc;
-            ips.InitNew();
-
-            hdoc.designMode = "On";
-            hdoc.clear();
-            hdoc.write(s);
-            hdoc.close();
-
-            // In Delphi, it's just
-            // hdoc:= CreateComObject(Class_HTMLDocument) as IHTMLDocument2;
-            // (hdoc as IPersistStreamInit).Load(TStreamAdapter.Create(Response.Stream));
-
-            int i = 0;
-            while (hdoc.readyState != "complete")
+            foreach (var e in elements)
             {
-                await Task.Delay(100);
-                if (i > 500)
+                string re = e.GetAttribute("rel");
+                string ty = e.GetAttribute("type");
+                string hf = e.GetAttribute("href");
+                string t = e.GetAttribute("title");
+
+                if (!string.IsNullOrEmpty(re))
                 {
-                    throw new Exception(string.Format("The document {0} timed out while loading", "IHTMLDocument2"));
-                }
-                i++;
-            }
-
-            if (hdoc.readyState == "complete")
-            {
-
-                UpdateStatus(">> Checking HTML link tags...");
-
-                IHTMLElementCollection ElementCollection = hdoc.all;
-                foreach (var e in ElementCollection)
-                {
-                    if ((e as IHTMLElement).tagName == "LINK")
+                    if (re.ToUpper() == "EDITURI")
                     {
-                        string re = (e as IHTMLElement).getAttribute("rel", 0);
-                        if (!string.IsNullOrEmpty(re)) {
-                            if (re.ToUpper() == "EDITURI")
+                        // TODO:
+                    }
+
+                    if (re.ToUpper() == "SERVICE")
+                    {
+                        // TODO:
+                    }
+                    
+                    if (re.ToUpper() == "https://api.w.org/")
+                    {
+                        // TODO:
+                    }
+
+                    if (re.ToUpper() == "ALTERNATE")
+                    {
+                        
+                        if (!string.IsNullOrEmpty(ty) && !string.IsNullOrEmpty(hf))
+                        {
+                            if (ty == "application/atom+xml")
                             {
-                                string hf = (e as IHTMLElement).getAttribute("href", 0);
-                                if (!string.IsNullOrEmpty(hf))
+                                try
                                 {
-                                    _serviceDocKind = _serviceDocumentKind.RSD;
-                                    _serviceDocUrl = hf;
+                                    var _atomFeedUrl = new Uri(hf);
 
-                                    Debug.WriteLine("ServiceDocumentKind is: RSD " + _serviceDocUrl);
+                                    FeedLink fl = new(_atomFeedUrl, FeedLink.FeedKinds.Atom, t);
 
-                                    UpdateStatus("Found a link to a RSD documnet.");
+                                    res.Feeds.Add(fl);
 
+                                    UpdateStatus("Found a link to an Atom feed.");
+                                }
+                                catch (Exception ex)
+                                {
+                                    Debug.WriteLine("Exception@ServiceDiscovery@ParseHTML on var _atomFeedUrl = new Uri(hf) : " + ex.Message);
                                 }
                             }
-                            else if (re.ToUpper() == "SERVICE")
+                            else if (ty == "application/rss+xml")
                             {
-                                string ty = (e as IHTMLElement).getAttribute("type", 0);
-                                if (!string.IsNullOrEmpty(ty))
+                                try
                                 {
-                                    if (ty == "application/atomsvc+xml")
-                                    {
-                                        string hf = (e as IHTMLElement).getAttribute("href", 0);
-                                        if (!string.IsNullOrEmpty(hf))
-                                        {
-                                            _serviceDocKind = _serviceDocumentKind.AtomSrv;
-                                            _serviceDocUrl = hf;
+                                    var _rssFeedUrl = new Uri(hf);
 
-                                            Debug.WriteLine("ServiceDocumentKind is: AtomSrv " + _serviceDocUrl);
+                                    FeedLink fl = new(_rssFeedUrl, FeedLink.FeedKinds.Rss, t);
 
-                                            UpdateStatus("Found a link to an Atom service documnet.");
-                                        }
-                                    }
+                                    res.Feeds.Add(fl);
+
+                                    UpdateStatus("Found a link to an RSS feed.");
                                 }
-
-                            }
-                            else if (re == "https://api.w.org/")
-                            {
-                                string hf = (e as IHTMLElement).getAttribute("href", 0);
-                                if (!string.IsNullOrEmpty(hf))
+                                catch (Exception ex)
                                 {
-                                    //_serviceDocKind = _serviceDocumentKind.AtomSrv;
-                                    //_serviceDocUrl = hf;
-
-                                    Debug.WriteLine("Found a link to WP REST API: " + hf);
-
-                                    UpdateStatus("Found a link to WordPress JSON REST API.");
-                                }
-
-                            }
-                            else if (re.ToUpper() == "ALTERNATE")
-                            {
-                                string ty = (e as IHTMLElement).getAttribute("type", 0);
-                                if (!string.IsNullOrEmpty(ty))
-                                {
-                                    if (ty == "application/atom+xml")
-                                    {
-                                        string hf = (e as IHTMLElement).getAttribute("href", 0);
-                                        if (!string.IsNullOrEmpty(hf))
-                                        {
-                                            Debug.WriteLine("Atom feed found.");
-                                            try
-                                            {
-                                                _atomFeedUrl = new Uri(hf);
-                                            }
-                                            catch { }
-
-                                            UpdateStatus("Found a link to an Atom feed.");
-                                        }
-                                    }
+                                    Debug.WriteLine("Exception@ServiceDiscovery@ParseHTML on var _rssFeedUrl = new Uri(hf) : " + ex.Message);
                                 }
                             }
-
                         }
                     }
                 }
-                
             }
-            */
-            return true;
+                /*
+                UpdateStatus(">> Trying to parse a HTML document...");
+
+                //Stream st = content.ReadAsStreamAsync().Result;
+
+                string s = await content.ReadAsStringAsync();
+
+                UpdateStatus(">> Loading a HTML document...");
+
+                mshtml.HTMLDocument hd = new mshtml.HTMLDocument();
+                mshtml.IHTMLDocument2 hdoc = (mshtml.IHTMLDocument2)hd;
+
+                IPersistStreamInit ips = (IPersistStreamInit)hdoc;
+                ips.InitNew();
+
+                hdoc.designMode = "On";
+                hdoc.clear();
+                hdoc.write(s);
+                hdoc.close();
+
+                // In Delphi, it's just
+                // hdoc:= CreateComObject(Class_HTMLDocument) as IHTMLDocument2;
+                // (hdoc as IPersistStreamInit).Load(TStreamAdapter.Create(Response.Stream));
+
+                int i = 0;
+                while (hdoc.readyState != "complete")
+                {
+                    await Task.Delay(100);
+                    if (i > 500)
+                    {
+                        throw new Exception(string.Format("The document {0} timed out while loading", "IHTMLDocument2"));
+                    }
+                    i++;
+                }
+
+                if (hdoc.readyState == "complete")
+                {
+
+                    UpdateStatus(">> Checking HTML link tags...");
+
+                    IHTMLElementCollection ElementCollection = hdoc.all;
+                    foreach (var e in ElementCollection)
+                    {
+                        if ((e as IHTMLElement).tagName == "LINK")
+                        {
+                            string re = (e as IHTMLElement).getAttribute("rel", 0);
+                            if (!string.IsNullOrEmpty(re)) {
+                                if (re.ToUpper() == "EDITURI")
+                                {
+                                    string hf = (e as IHTMLElement).getAttribute("href", 0);
+                                    if (!string.IsNullOrEmpty(hf))
+                                    {
+                                        _serviceDocKind = _serviceDocumentKind.RSD;
+                                        _serviceDocUrl = hf;
+
+                                        Debug.WriteLine("ServiceDocumentKind is: RSD " + _serviceDocUrl);
+
+                                        UpdateStatus("Found a link to a RSD documnet.");
+
+                                    }
+                                }
+                                else if (re.ToUpper() == "SERVICE")
+                                {
+                                    string ty = (e as IHTMLElement).getAttribute("type", 0);
+                                    if (!string.IsNullOrEmpty(ty))
+                                    {
+                                        if (ty == "application/atomsvc+xml")
+                                        {
+                                            string hf = (e as IHTMLElement).getAttribute("href", 0);
+                                            if (!string.IsNullOrEmpty(hf))
+                                            {
+                                                _serviceDocKind = _serviceDocumentKind.AtomSrv;
+                                                _serviceDocUrl = hf;
+
+                                                Debug.WriteLine("ServiceDocumentKind is: AtomSrv " + _serviceDocUrl);
+
+                                                UpdateStatus("Found a link to an Atom service documnet.");
+                                            }
+                                        }
+                                    }
+
+                                }
+                                else if (re == "https://api.w.org/")
+                                {
+                                    string hf = (e as IHTMLElement).getAttribute("href", 0);
+                                    if (!string.IsNullOrEmpty(hf))
+                                    {
+                                        //_serviceDocKind = _serviceDocumentKind.AtomSrv;
+                                        //_serviceDocUrl = hf;
+
+                                        Debug.WriteLine("Found a link to WP REST API: " + hf);
+
+                                        UpdateStatus("Found a link to WordPress JSON REST API.");
+                                    }
+
+                                }
+                                else if (re.ToUpper() == "ALTERNATE")
+                                {
+                                    string ty = (e as IHTMLElement).getAttribute("type", 0);
+                                    if (!string.IsNullOrEmpty(ty))
+                                    {
+                                        if (ty == "application/atom+xml")
+                                        {
+                                            string hf = (e as IHTMLElement).getAttribute("href", 0);
+                                            if (!string.IsNullOrEmpty(hf))
+                                            {
+                                                Debug.WriteLine("Atom feed found.");
+                                                try
+                                                {
+                                                    _atomFeedUrl = new Uri(hf);
+                                                }
+                                                catch { }
+
+                                                UpdateStatus("Found a link to an Atom feed.");
+                                            }
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+
+                }
+                */
+                return true;
         }
 
         private async Task<bool> GetRSD()
         {
             UpdateStatus(">> Trying to access the RSD document...");
-            
+            /*
             var HTTPResponse = await _httpClient.GetAsync(_serviceDocUrl);
 
             if (!HTTPResponse.IsSuccessStatusCode)
@@ -542,6 +748,7 @@ namespace BlogWrite.Models
 
                 Debug.WriteLine("LoadXml failed: " + e.Message);
             }
+            */
 
             // RSD: XML-RPC or AtomAPI or WP json
             // Content-Type: application/rsd+xml
@@ -564,6 +771,7 @@ namespace BlogWrite.Models
             </rsd>
             */
 
+            /*
             UpdateStatus(">> Trying to parse the RSD documnet...");
 
             XmlNamespaceManager NsMgr = new XmlNamespaceManager(xdoc.NameTable);
@@ -667,7 +875,8 @@ namespace BlogWrite.Models
             {
                 return false;
             }
-
+            */
+            return false;
         }
 
         private async void UpdateStatus(string data)

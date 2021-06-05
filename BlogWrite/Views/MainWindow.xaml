@@ -355,6 +355,7 @@
             <!-- Right -->
             <Grid Grid.Row="2" Grid.Column="2" MinWidth="24">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="0"/>
                     <RowDefinition Height="35*" MinHeight="24"/>
                     <RowDefinition Height="8"/>
@@ -364,7 +365,11 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Grid Grid.Row="0" Grid.Column="0" Margin="0 0 8 0" HorizontalAlignment="Stretch" Visibility="Hidden">
+                <StackPanel Grid.Row="0" Grid.Column="0" Visibility="{Binding IsShowClientErrorMessage, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
+                    <TextBox IsReadOnly="True" Text="{Binding ClientErrorMessage, Mode=OneWay}" TextWrapping="NoWrap" AcceptsReturn="False" HorizontalAlignment="Stretch" Background="LightYellow"></TextBox>
+                </StackPanel>
+
+                <Grid Grid.Row="1" Grid.Column="0" Margin="0 0 8 0" HorizontalAlignment="Stretch" Visibility="Hidden">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="0" MinWidth="0"  MaxWidth="1" />
                         <ColumnDefinition Width="*" MinWidth="180"/>
@@ -384,7 +389,7 @@
                     <Grid x:Name="hwidth6" Grid.Column="6" />
                 </Grid>
 
-                <ListView Grid.Row="1" Grid.Column="0" x:Name="EntryListView" MinHeight="80" BorderThickness="0" Padding="0"
+                <ListView Grid.Row="2" Grid.Column="0" x:Name="EntryListView" MinHeight="80" BorderThickness="0" Padding="0"
                           Foreground="LightGray" Background="{DynamicResource WindowBackgroundBaseColorBrush}"
                           Margin="0"
                           ItemsSource="{Binding Entries}" 
@@ -577,10 +582,10 @@
                     </ListView.ItemContainerStyle>
                 </ListView>
 
-                <GridSplitter Grid.Row="2" Grid.Column="0" ResizeDirection="Rows" Style="{StaticResource GridSplitterStyle}">
+                <GridSplitter Grid.Row="3" Grid.Column="0" ResizeDirection="Rows" Style="{StaticResource GridSplitterStyle}">
                 </GridSplitter>
 
-                <Grid Grid.Row="3" Grid.Column="0">
+                <Grid Grid.Row="4" Grid.Column="0">
                     <TextBox x:Name="ContentPreviewTextBox" Background="{DynamicResource WindowBackgroundBaseColorBrush}"
                      TextWrapping="Wrap" 
                      IsReadOnly="True"

@@ -167,16 +167,28 @@ namespace BlogWrite
             WindowList.Remove(editor);
         }
 
-        public void CreateServiceDiscoveryWindow(Window owner)
-        {
-            // TODO: Before opening the window, make sure no other window is open.
-            // If a user minimize and restore, Modal window can get behind of the child window.
 
-            var win = new ServiceDiscoveryWindow();
-            win.DataContext = new ServiceDiscoveryViewModel();
-            win.Owner = owner;
-            //win.ResizeMode = ResizeMode.NoResize;
-            win.ShowDialog();
+        // テーマ切替メソッド
+        public void ChangeTheme(string themeName)
+        {
+            System.Diagnostics.Debug.WriteLine(themeName);
+
+            ResourceDictionary _themeDict = Application.Current.Resources.MergedDictionaries.FirstOrDefault(x => x.Source == new Uri("pack://application:,,,/Themes/DefaultTheme.xaml"));
+            if (_themeDict != null)
+            {
+                _themeDict.Clear();
+            }
+            else
+            {
+                // 新しいリソース・ディクショナリを追加
+                _themeDict = new ResourceDictionary();
+                Application.Current.Resources.MergedDictionaries.Add(_themeDict);
+            }
+
+            // テーマをリソース・ディクショナリのソースに指定
+            string themeUri = String.Format("pack://application:,,,/Themes/{0}.xaml", themeName);
+            _themeDict.Source = new Uri(themeUri);
+
         }
 
     }

@@ -78,13 +78,22 @@ namespace BlogWrite.Models
         public BaseClient Client { get; }
         public string ID { get; }
 
-        public NodeService(string name, string username, string password, Uri endPoint, ApiTypes api) : base(name)
+        public NodeService(string name, string username, string password, Uri endPoint, ApiTypes api, ServiceTypes serviceType) : base(name)
         {
-            UserName = username;
-            UserPassword = password;
-            EndPoint = endPoint;
             // Default account icon
             PathIcon = "M12,19.2C9.5,19.2 7.29,17.92 6,16C6.03,14 10,12.9 12,12.9C14,12.9 17.97,14 18,16C16.71,17.92 14.5,19.2 12,19.2M12,5A3,3 0 0,1 15,8A3,3 0 0,1 12,11A3,3 0 0,1 9,8A3,3 0 0,1 12,5M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12C22,6.47 17.5,2 12,2Z";
+
+            EndPoint = endPoint;
+
+            Api = api;
+
+            ServiceType = serviceType;
+
+            ID = Guid.NewGuid().ToString();
+
+            UserName = username;
+
+            UserPassword = password;
 
             switch (api)
             {
@@ -106,16 +115,20 @@ namespace BlogWrite.Models
                     //TODO: WP, AtomAPI
             }
 
-            Api = api;
-
-            ID = Guid.NewGuid().ToString();
         }
         
-        public NodeService(string name, Uri endPoint, ApiTypes api) : base(name)
-        {
-            EndPoint = endPoint;
+        public NodeService(string name, Uri endPoint, ApiTypes api, ServiceTypes serviceType) : base(name)
+        { 
             // Default account icon
             PathIcon = "M12,19.2C9.5,19.2 7.29,17.92 6,16C6.03,14 10,12.9 12,12.9C14,12.9 17.97,14 18,16C16.71,17.92 14.5,19.2 12,19.2M12,5A3,3 0 0,1 15,8A3,3 0 0,1 12,11A3,3 0 0,1 9,8A3,3 0 0,1 12,5M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12C22,6.47 17.5,2 12,2Z";
+
+            EndPoint = endPoint;
+
+            Api = api;
+            
+            ServiceType = serviceType;
+
+            ID = Guid.NewGuid().ToString();
 
             switch (api)
             {
@@ -137,19 +150,14 @@ namespace BlogWrite.Models
 
                     //TODO: WP, AtomAPI
             }
-
-            Api = api;
-
-            ID = Guid.NewGuid().ToString();
         }
-
     }
 
     public class NodeFeed : NodeService
     {
         public ObservableCollection<EntryItem> List { get; } = new ObservableCollection<EntryItem>();
 
-        public NodeFeed(string name, Uri feedUrl, ApiTypes api) : base(name, feedUrl, api)
+        public NodeFeed(string name, Uri feedUrl, ApiTypes api) : base(name, feedUrl, api, ServiceTypes.Feed)
         {
             PathIcon = "M6.18,15.64A2.18,2.18 0 0,1 8.36,17.82C8.36,19 7.38,20 6.18,20C5,20 4,19 4,17.82A2.18,2.18 0 0,1 6.18,15.64M4,4.44A15.56,15.56 0 0,1 19.56,20H16.73A12.73,12.73 0 0,0 4,7.27V4.44M4,10.1A9.9,9.9 0 0,1 13.9,20H11.07A7.07,7.07 0 0,0 4,12.93V10.1Z";
         }
@@ -157,24 +165,22 @@ namespace BlogWrite.Models
 
     public class NodeAtomFeed : NodeFeed
     {
-       // public ObservableCollection<EntryItem> List { get; } = new ObservableCollection<EntryItem>();
-
         public NodeAtomFeed(string name, Uri feedUrl) : base(name, feedUrl, ApiTypes.atAtomFeed)
         {
             PathIcon = "M6.18,15.64A2.18,2.18 0 0,1 8.36,17.82C8.36,19 7.38,20 6.18,20C5,20 4,19 4,17.82A2.18,2.18 0 0,1 6.18,15.64M4,4.44A15.56,15.56 0 0,1 19.56,20H16.73A12.73,12.73 0 0,0 4,7.27V4.44M4,10.1A9.9,9.9 0 0,1 13.9,20H11.07A7.07,7.07 0 0,0 4,12.93V10.1Z";
+            Api = ApiTypes.atAtomFeed;
+            ServiceType = ServiceTypes.Feed;
         }
-
     }
 
     public class NodeRssFeed : NodeFeed
     {
-        //public ObservableCollection<EntryItem> List { get; } = new ObservableCollection<EntryItem>();
-
         public NodeRssFeed(string name, Uri feedUrl) : base(name, feedUrl, ApiTypes.atRssFeed)
         {
             PathIcon = "M6.18,15.64A2.18,2.18 0 0,1 8.36,17.82C8.36,19 7.38,20 6.18,20C5,20 4,19 4,17.82A2.18,2.18 0 0,1 6.18,15.64M4,4.44A15.56,15.56 0 0,1 19.56,20H16.73A12.73,12.73 0 0,0 4,7.27V4.44M4,10.1A9.9,9.9 0 0,1 13.9,20H11.07A7.07,7.07 0 0,0 4,12.93V10.1Z";
+            Api = ApiTypes.atRssFeed;
+            ServiceType = ServiceTypes.Feed;
         }
-
     }
 
     /// <summary>
@@ -309,7 +315,7 @@ namespace BlogWrite.Models
                         && (!string.IsNullOrEmpty(endpoint)))
                     {
 
-                        NodeService account = new NodeService(accountName, userName, userPassword, new Uri(endpoint), at);
+                        NodeService account = new NodeService(accountName, userName, userPassword, new Uri(endpoint), at, stp);
                         account.Selected = isSelecteds;
                         account.Expanded = isExpandeds;
                         account.Parent = null;

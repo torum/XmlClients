@@ -28,6 +28,7 @@ namespace BlogWrite.ViewModels
     /// 
 
     /// 更新履歴：
+    /// v0.0.0.3 とりあえず、HTML取得、解析、RSS/AtomのFeed検出、登録、表示までの流れは出来た。
     /// v0.0.0.2 色々。
     /// v0.0.0.1 3年前の作りかけの状態を少なくとも最新の環境にあわせてアップデート。
 
@@ -38,7 +39,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.2";
+        const string _appVer = "0.0.0.3";
         public string AppVer
         {
             get
@@ -65,15 +66,6 @@ namespace BlogWrite.ViewModels
 
         #region == Properties ==
 
-        private static string html = @"
-                <html>
-                    <head>
-                        <title></title>
-                    </head>
-                    <body style=""background-color:#212121;"">
-                    </body>
-                </html>";
-
         #region == Treeview, Node, Menu, etc ==
 
         private ServiceTreeBuilder _services = new ServiceTreeBuilder();
@@ -87,7 +79,7 @@ namespace BlogWrite.ViewModels
             }
         }
 
-        private NodeTree _selectedNode = new NodeService("", "", "",new Uri("http://127.0.0.1"),ApiTypes.atAtomFeed);
+        private NodeTree _selectedNode = new NodeService("", "", "",new Uri("http://127.0.0.1"), ApiTypes.atUnknown, ServiceTypes.Unknown);
         public NodeTree SelectedNode
         {
             get { return _selectedNode; }
@@ -99,6 +91,12 @@ namespace BlogWrite.ViewModels
                 _selectedNode = value;
 
                 NotifyPropertyChanged(nameof(SelectedNode));
+
+                ClientErrorMessage = "";
+                IsShowClientErrorMessage = false;
+
+                if (_selectedNode == null)
+                    return;
 
                 if (_selectedNode is NodeEntryCollection)
                 {
@@ -114,18 +112,17 @@ namespace BlogWrite.ViewModels
                         Task.Run(() => GetEntries((_selectedNode as NodeFeed)));
                     }
                 }
-                /*
-                else if (_selectedNode is NodeRssFeed)
-                {
-                    if ((_selectedNode as NodeRssFeed).List.Count == 0)
-                    {
-                        Task.Run(() => GetEntries((_selectedNode as NodeRssFeed)));
-                    }
-                }
-                */
 
                 // This changes the listview.
                 NotifyPropertyChanged(nameof(Entries));
+
+                // todo: check loaded.
+                // Clear preview browser.
+                if (Application.Current == null) { return; }
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    WriteHtmlToContentPreviewBrowser?.Invoke(this, WrapHtmlContent(""));
+                });
             }
         }
 
@@ -186,6 +183,8 @@ namespace BlogWrite.ViewModels
                         WriteHtmlToContentPreviewBrowser?.Invoke(this, EntryHTML);
                     });
                 }
+
+
             }
         }
 
@@ -330,6 +329,99 @@ namespace BlogWrite.ViewModels
             }
         }
 
+        private static string WrapHtmlContent(string source, string styles = null)
+        {
+            if (styles == null)
+            {
+                styles = @"
+::-webkit-scrollbar { width: 18px; height: 3px;}
+::-webkit-scrollbar-button {  background-color: #666; }
+::-webkit-scrollbar-track {  background-color: #646464; box-shadow: 0 0 4px #aaa inset;}
+::-webkit-scrollbar-track-piece { background-color: #212121;}
+::-webkit-scrollbar-thumb { height: 50px; background-color: #666;}
+::-webkit-scrollbar-corner { background-color: #646464;}}
+::-webkit-resizer { background-color: #666;}
+
+body {
+	
+	line-height: 1.75em;
+	font-size: 12px;
+	background-color: #222;
+	color: #aaa;
+}
+
+p {
+	font-size: 12px;
+}
+
+h1 {
+	font-size: 30px;
+	line-height: 34px;
+}
+
+h2 {
+	font-size: 20px;
+	line-height: 25px;
+}
+
+h3 {
+	font-size: 16px;
+	line-height: 27px;
+	padding-top: 15px;
+	padding-bottom: 15px;
+	border-bottom: 1px solid #D8D8D8;
+	border-top: 1px solid #D8D8D8;
+}
+
+hr {
+	height: 1px;
+	background-color: #d8d8d8;
+	border: none;
+	width: 100%;
+	margin: 0px;
+}
+
+a[href] {
+	color: #1e8ad6;
+}
+
+a[href]:hover {
+	color: #3ba0e6;
+}
+
+img {
+    width: 160;
+    height: auto;
+    float: left;
+    margin: 6px 12px 12px 6px;
+}
+
+li {
+	line-height: 1.5em;
+}
+                ";
+            }
+
+            return String.Format(
+                @"<html>
+                    <head>
+                        <meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
+
+                        <!-- saved from url=(0014)about:internet -->
+
+                        <style type='text/css'>
+                            body {{ font: 10pt verdana; color: #101010; background: #cccccc; }}
+                            table, td, th, tr {{ border: 1px solid black; border-collapse: collapse; }}
+                        </style>
+
+                        <!-- Custom style sheet -->
+                        <style type='text/css'>{1}</style>
+                    </head>
+                    <body>{0}</body>
+                </html>",
+                source, styles);
+        }
+
         #endregion
 
         #region == etc ==
@@ -418,7 +510,6 @@ namespace BlogWrite.ViewModels
         
         private string _statusBarMessage;
         public string StatusBarMessage
-
         {
             get { return _statusBarMessage; }
             set
@@ -428,8 +519,37 @@ namespace BlogWrite.ViewModels
 
                 _statusBarMessage = value;
 
-                NotifyPropertyChanged("StatusBarMessage");
+                NotifyPropertyChanged(nameof(StatusBarMessage));
+            }
+        }
 
+        private bool _isShowClientErrorMessage;
+        public bool IsShowClientErrorMessage
+        {
+            get { return _isShowClientErrorMessage; }
+            set
+            {
+                if (_isShowClientErrorMessage == value)
+                    return;
+
+                _isShowClientErrorMessage = value;
+
+                NotifyPropertyChanged(nameof(IsShowClientErrorMessage));
+            }
+        }
+
+        private string _clientErrorMessage;
+        public string ClientErrorMessage
+        {
+            get { return _clientErrorMessage; }
+            set
+            {
+                if (_clientErrorMessage == value)
+                    return;
+
+                _clientErrorMessage = value;
+
+                NotifyPropertyChanged(nameof(ClientErrorMessage));
             }
         }
 
@@ -504,40 +624,34 @@ namespace BlogWrite.ViewModels
 
             #endregion
 
-
-
             // loads searvice tree
             if (File.Exists(_appDataFolder + System.IO.Path.DirectorySeparatorChar + "Searvies.xml"))
             {
                 XmlDocument doc = new XmlDocument();
+                
                 doc.Load(_appDataFolder + System.IO.Path.DirectorySeparatorChar + "Searvies.xml");
+
                 _services.LoadXmlDoc(doc);
-            }
 
-            //
-            foreach (NodeService c in _services.Children)
-            {
-                if (c.Client != null)
+                // subscribe to DebugOutput event.
+                foreach (NodeService c in _services.Children)
                 {
-
-                    Debug.WriteLine(c.Name);
-
-                    c.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
+                    if (c.Client != null)
+                    {
+                        c.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
+                    }
                 }
             }
-
         }
 
         public void OnDebugOutput(BaseClient sender, string data)
         {
-            Debug.WriteLine("asdfasdfasdfasd");
-
             if (IsShowDebugWindow)
             {
                 if (Application.Current == null) { return; }
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    DebugOutput?.Invoke(this, data);
+                    DebugOutput?.Invoke(this, Environment.NewLine + data);
                 });
             }
         }
@@ -752,67 +866,41 @@ namespace BlogWrite.ViewModels
 
         #region == Methods ==
 
-        /*
-        public async void Do()
+        public void AddFeed(FeedLink fl)
         {
-            string accountName = "AtomPub @WordPress";
-            string userName = "torum";
-            string userPassword = "hoge";
-            Uri endpoint = new Uri("http://torum.jp/en/wp-app.php/service");
+            foreach (var serv in Services)
+            {
+                if (serv is NodeFeed)
+                {
+                    if ((serv as NodeFeed).EndPoint.AbsoluteUri == fl.FeedUri.AbsoluteUri)
+                        return;
+                }
+            }
+            
+            if (fl.FeedKind == FeedLink.FeedKinds.Atom)
+            {
+                NodeAtomFeed a = new(fl.Title, fl.FeedUri);
+                a.Api = ApiTypes.atAtomFeed;
+                a.ServiceType = ServiceTypes.Feed;
 
-            AtomPubClient xc = new AtomPubClient(userName, userPassword, endpoint);
+                a.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
 
-            // Access endpoint and create Account Node class.
-            NodeService a = await xc.GetAccount(accountName);
-            if (a == null) return;
+                // Add Account Node to internal (virtual) Treeview.
+                Application.Current.Dispatcher.Invoke(() => Services.Add(a));
+            }
+            else if (fl.FeedKind == FeedLink.FeedKinds.Rss)
+            {
+                NodeRssFeed a = new(fl.Title, fl.FeedUri);
+                a.Api = ApiTypes.atRssFeed;
+                a.ServiceType = ServiceTypes.Feed;
 
-            // Add Account Node to internal (virtual) Treeview.
-            Application.Current.Dispatcher.Invoke(() => Services.Add(a));
+                a.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
+
+                // Add Account Node to internal (virtual) Treeview.
+                Application.Current.Dispatcher.Invoke(() => Services.Add(a));
+            }
 
         }
-        */
-        /*
-        public async void Do()
-        {
-            string accountName = "XML-RPC cat @WordPress";
-            string userName = "torum";
-            string userPassword = "hoge";
-            Uri endpoint = new Uri("http://torum.jp/en/xmlrpc.php");
-
-            XmlRpcMTClient xc = new XmlRpcMTClient(userName, userPassword, endpoint);
-
-            // Access endpoint and create Account Node class.
-            NodeService a = await xc.GetAccount(accountName);
-            if (a == null) return;
-
-            // Add Account Node to internal (virtual) Treeview.
-            Application.Current.Dispatcher.Invoke(() => Services.Add(a));
-        }
-        */
-        /*
-        public async void Do()
-        {
-            NodeService a = new NodeService("test", new Uri("http://hoge.com/feed"), ApiTypes.atAtomFeed);
-
-            // Add Account Node to internal (virtual) Treeview.
-            Application.Current.Dispatcher.Invoke(() => Services.Add(a));
-
-            Properties.Settings.Default.Profiles.Profiles = _services.AsXmlDoc();
-
-            // Save settings.
-            Properties.Settings.Default.Save();
-        }
-        */
-
-        /*
-        private void OnDebugOutput(BaseClient sender, string data)
-        {
-            //DebugText = DebugText + Environment.NewLine + data;
-            if (!string.IsNullOrEmpty(DebugText))
-                DebugText = DebugText + Environment.NewLine;
-            DebugText = DebugText + data;
-        }
-        */
 
         private async void GetEntries(NodeTree selectedNode)
         {
@@ -830,10 +918,20 @@ namespace BlogWrite.ViewModels
 
                 List<EntryItem> entLi = await fc.GetEntries((selectedNode as NodeFeed).EndPoint);
 
+                if (string.IsNullOrEmpty(fc.ClientErrorMessage))
+                {
+                    ClientErrorMessage = "";
+                    IsShowClientErrorMessage = false;
+                }
+                else
+                {
+                    ClientErrorMessage = fc.ClientErrorMessage;
+                    IsShowClientErrorMessage = true;
+                }
+
                 // Minimize the time to block UI thread.
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-
                     (selectedNode as NodeFeed).List.Clear();
 
                     foreach (EntryItem ent in entLi)
@@ -842,12 +940,7 @@ namespace BlogWrite.ViewModels
 
                         (selectedNode as NodeFeed).List.Add(ent);
                     }
-
                 });
-
-                // This updates listview.
-                NotifyPropertyChanged(nameof(Entries));
-
             }
             else if (selectedNode is NodeEntryCollection)
             {
@@ -859,10 +952,20 @@ namespace BlogWrite.ViewModels
                 if (entLi == null)
                     return;
 
+                if (string.IsNullOrEmpty(bc.ClientErrorMessage))
+                {
+                    ClientErrorMessage = "";
+                    IsShowClientErrorMessage = false;
+                }
+                else
+                {
+                    ClientErrorMessage = bc.ClientErrorMessage;
+                    IsShowClientErrorMessage = true;
+                }
+
                 // Minimize the time to block UI thread.
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-
                     (selectedNode as NodeEntryCollection).List.Clear();
 
                     foreach (EntryItem ent in entLi)
@@ -871,13 +974,11 @@ namespace BlogWrite.ViewModels
 
                         (selectedNode as NodeEntryCollection).List.Add(ent);
                     }
-
                 });
-
-                // This updates listview.
-                NotifyPropertyChanged(nameof(Entries));
-
             }
+
+            // TODO: dupe. (This updates listview)
+            NotifyPropertyChanged(nameof(Entries));
 
         }
 
@@ -922,97 +1023,6 @@ namespace BlogWrite.ViewModels
             bool b = await bc.DeleteEntry(selectedEntry.EditUri);
 
             return b;
-        }
-
-        private static string WrapHtmlContent(string source, string styles = null)
-        {
-            if (styles == null)
-            {
-                styles = @"
-::-webkit-scrollbar { width: 18px; height: 3px;}
-::-webkit-scrollbar-button {  background-color: #666; }
-::-webkit-scrollbar-track {  background-color: #646464; box-shadow: 0 0 4px #aaa inset;}
-::-webkit-scrollbar-track-piece { background-color: #212121;}
-::-webkit-scrollbar-thumb { height: 50px; background-color: #666;}
-::-webkit-scrollbar-corner { background-color: #646464;}}
-::-webkit-resizer { background-color: #666;}
-
-body {
-	
-	line-height: 1.75em;
-	font-size: 12px;
-	background-color: #222;
-	color: #aaa;
-}
-
-p {
-	font-size: 12px;
-}
-
-h1 {
-	font-size: 30px;
-	line-height: 34px;
-}
-
-h2 {
-	font-size: 20px;
-	line-height: 25px;
-}
-
-h3 {
-	font-size: 16px;
-	line-height: 27px;
-	padding-top: 15px;
-	padding-bottom: 15px;
-	border-bottom: 1px solid #D8D8D8;
-	border-top: 1px solid #D8D8D8;
-}
-
-hr {
-	height: 1px;
-	background-color: #d8d8d8;
-	border: none;
-	width: 100%;
-	margin: 0px;
-}
-
-a[href] {
-	color: #1e8ad6;
-}
-
-a[href]:hover {
-	color: #3ba0e6;
-}
-
-img {
-    width: 320;
-    height: auto;
-}
-
-li {
-	line-height: 1.5em;
-}
-                ";
-            }
-
-            return String.Format(
-                @"<html>
-                    <head>
-                        <meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
-
-                        <!-- saved from url=(0014)about:internet -->
-
-                        <style type='text/css'>
-                            body {{ font: 10pt verdana; color: #101010; background: #cccccc; }}
-                            table, td, th, tr {{ border: 1px solid black; border-collapse: collapse; }}
-                        </style>
-
-                        <!-- Custom style sheet -->
-                        <style type='text/css'>{1}</style>
-                    </head>
-                    <body>{0}</body>
-                </html>",
-                source, styles);
         }
 
         #endregion
@@ -1353,29 +1363,5 @@ li {
 
     }
 
-    /// <summary>
-    /// BlogEntryEventArgs. 
-    /// </summary>
-    public class BlogEntryEventArgs : EventArgs
-    {
-        public EntryFull Entry;
-    }
 
-    public class ServiceDiscoveryEventArgs : EventArgs
-    {
-
-    }
-
-    /// <summary>
-    /// Wrapper Class for storing ObservableCollection<Profile> in the settings. 
-    /// </summary>
-    public class ProfileSettings
-    {
-        public XmlDocument Profiles;
-
-        public ProfileSettings()
-        {
-            Profiles = new XmlDocument();
-        }
-    }
 }

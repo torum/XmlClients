@@ -29,36 +29,9 @@ using BlogWrite.Models;
 namespace BlogWrite.Models.Clients
 {
     /// <summary>
-    /// Base HTTP client
+    /// Plain wrapped HTTP client.
     /// </summary>
-    public abstract class BaseClient
-    {
-        protected HTTPConnection _HTTPConn;
-
-        public BaseClient()
-        {
-            //_HTTPConn = HTTPConnection.Instance;
-            _HTTPConn = new HTTPConnection();
-        }
-
-        public abstract Task<List<EntryItem>> GetEntries(Uri entriesUrl);
-
-
-        #region == Events ==
-
-        public delegate void ClientDebugOutput(BaseClient sender, string data);
-
-        public event ClientDebugOutput DebugOutput;
-
-        #endregion
-
-        protected async void ToDebugWindow(string data)
-        {
-            await Task.Run(() => { DebugOutput?.Invoke(this, data); });
-        }
-
-    }
-
+    /// 
     public class HTTPConnection
     {
         public HttpClient Client { get; }
@@ -68,7 +41,51 @@ namespace BlogWrite.Models.Clients
             Client = new HttpClient();
         }
     }
-    
+
+    /// <summary>
+    /// Base HTTP client.
+    /// </summary>
+    public abstract class BaseClient
+    {
+        // HTTP client
+        protected HTTPConnection _HTTPConn;
+
+        public abstract Task<List<EntryItem>> GetEntries(Uri entriesUrl);
+
+        private string _clientErrorMessage;
+        public string ClientErrorMessage
+        {
+            get
+            {
+                return _clientErrorMessage;
+            }
+            protected set
+            {
+                _clientErrorMessage = value;
+            }
+        }
+
+        #region == Events ==
+
+        public delegate void ClientDebugOutput(BaseClient sender, string data);
+
+        public event ClientDebugOutput DebugOutput;
+
+        #endregion
+
+        public BaseClient()
+        {
+            //_HTTPConn = HTTPConnection.Instance;
+            _HTTPConn = new HTTPConnection();
+        }
+
+        protected void ToDebugWindow(string data)
+        {
+            Task nowait = Task.Run(() => { DebugOutput?.Invoke(this, data); });
+        }
+
+    }
+
     /*
     /// <summary>
     /// Holds HTTP connection. Singleton.

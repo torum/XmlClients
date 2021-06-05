@@ -41,7 +41,7 @@ namespace BlogWrite.Models.Clients
 
         public override async Task<NodeService> GetAccount(string accountName)
         {
-            NodeService account = new NodeService(accountName, _userName, _userPassword, _endpoint, ApiTypes.atAtomPub);
+            NodeService account = new NodeService(accountName, _userName, _userPassword, _endpoint, ApiTypes.atAtomPub, ServiceTypes.AtomPub);
 
             NodeWorkspaces blogs = await GetBlogs();
             foreach (var item in blogs.Children)

@@ -48,10 +48,12 @@ namespace BlogWrite.Views
 
                     vm.WriteHtmlToContentPreviewBrowser += (sender, arg) => { this.OnWriteHtmlToContentPreviewBrowser(arg); };
 
+                    vm.OpenServiceDiscoveryView += (sender, arg) => { this.OnCreateServiceDiscoveryWindow(this); };
+
+
                     App app = App.Current as App;
                     if (app != null)
                     {
-                        vm.OpenServiceDiscoveryView += (sender, arg) => { app.CreateServiceDiscoveryWindow(this); };
 
                         vm.OpenEditorView += (sender, arg) => { app.CreateOrBringToFrontEditorWindow(arg); };
 
@@ -155,6 +157,33 @@ namespace BlogWrite.Views
                 return;
 
             (sender as ListView).ScrollIntoView((sender as ListView).SelectedItem);
+        }
+
+        public void OnCreateServiceDiscoveryWindow(Window owner)
+        {
+            // TODO: Before opening the window, make sure no other window is open.
+            // If a user minimize and restore, Modal window can get behind of the child window.
+
+            var win = new ServiceDiscoveryWindow();
+            win.DataContext = new ServiceDiscoveryViewModel();
+
+            var vm = (win.DataContext as ServiceDiscoveryViewModel);
+            vm.RegisterFeed += (sender, arg) => OnRegisterFeed(arg);
+            vm.CloseAction = new Action(win.Close);
+
+            win.Owner = owner;
+            win.ShowDialog();
+        }
+
+        public void OnRegisterFeed(RegisterFeedEventArgs arg)
+        {
+            if (this.DataContext == null)
+                return;
+
+            if (this.DataContext is not MainViewModel)
+                return;
+
+            (this.DataContext as MainViewModel).AddFeed(arg.FeedLinkData);
         }
 
         public void OnWriteHtmlToContentPreviewBrowser(string arg)

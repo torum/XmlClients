@@ -7,6 +7,7 @@ using System.ServiceModel.Syndication;
 using System.Xml;
 using System.IO;
 using System.Diagnostics;
+using AngleSharp;
 
 namespace BlogWrite.Models.Clients
 {
@@ -21,6 +22,9 @@ namespace BlogWrite.Models.Clients
 
         public override async Task<List<EntryItem>> GetEntries(Uri entriesUrl)
         {
+            // Clear err msg.
+            ClientErrorMessage = "";
+
             List<EntryItem> list = new List<EntryItem>();
 
             var HTTPResponseMessage = await _HTTPConn.Client.GetAsync(entriesUrl);
@@ -35,8 +39,8 @@ namespace BlogWrite.Models.Clients
                     + Environment.NewLine + Environment.NewLine
                     + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
                     + Environment.NewLine
-                    + s + Environment.NewLine);
-
+                    //+ s + Environment.NewLine);
+                    );
                 try
                 {
                     TextReader tr = new StringReader(s);
@@ -54,19 +58,20 @@ namespace BlogWrite.Models.Clients
 
                         list.Add(ent);
                     }
-
                 }
                 catch (Exception e)
                 {
-                    System.Diagnostics.Debug.WriteLine("LoadXml failed: " + e.Message);
+                    Debug.WriteLine("Invalid RSS/XML: " + e.Message);
 
-                    ToDebugWindow("<< Invalid XML returned:"
+                    ToDebugWindow("<< Invalid RSS/XML returned:"
                         + Environment.NewLine
                         + e.Message
                         + Environment.NewLine);
+
+                    ClientErrorMessage = "Invalid RSS/XML returned: " + e.Message;
+
                     return list;
                 }
-
             }
             else
             {
@@ -82,16 +87,18 @@ namespace BlogWrite.Models.Clients
                         + Environment.NewLine
                         + contents + Environment.NewLine);
                 }
+
+                ClientErrorMessage = "HTTP request failed: " + HTTPResponseMessage.StatusCode.ToString();
             }
 
             return list;
         }
 
 
-        public void FillEntryItemFromSynItem(EntryItem entItem, SyndicationItem SynItem)
+        public async void FillEntryItemFromSynItem(EntryItem entItem, SyndicationItem SynItem)
         {
 
-            AtomEntry entry = CreateAtomEntryFromSynItem(SynItem);
+            AtomEntry entry = await CreateAtomEntryFromSynItem(SynItem);
 
             entItem.Name = entry.Name;
             //entItem.ID = entry.ID;
@@ -104,11 +111,11 @@ namespace BlogWrite.Models.Clients
 
         }
 
-        private AtomEntry CreateAtomEntryFromSynItem(SyndicationItem SynItem)
+        private async Task<AtomEntry> CreateAtomEntryFromSynItem(SyndicationItem SynItem)
         {
             
             string relAttr;
-            string hrefAttr;
+            string hrefAttr = "";
             string typeAttr;
             //Uri editUri = null;
             Uri altUri = null;
@@ -119,23 +126,12 @@ namespace BlogWrite.Models.Clients
                 hrefAttr = (u.Uri != null) ? u.Uri.AbsoluteUri : "";
                 typeAttr = (u.MediaType != null) ? u.MediaType : "";
 
+                /*
                 if (!string.IsNullOrEmpty(hrefAttr))
                 {
                     
                     switch (relAttr)
                     {
-                        /*
-                        case "edit":
-                            try
-                            {
-                                editUri = new Uri(hrefAttr);
-                                break;
-                            }
-                            catch
-                            {
-                                break;
-                            }
-                         */
                         case "alternate":
                             try
                             {
@@ -175,6 +171,7 @@ namespace BlogWrite.Models.Clients
                             }
                     }
                 }
+                */
             }
 
             AtomEntry entry = new AtomEntry("", this);
@@ -182,6 +179,17 @@ namespace BlogWrite.Models.Clients
             entry.Name = (SynItem.Title.Text != null) ? SynItem.Title.Text : "";
             entry.EntryID = (SynItem.Id != null) ? SynItem.Id : "";
             //entry.EditUri = editUri;
+
+            //Debug.WriteLine(hrefAttr);
+
+            if (altUri == null)
+            {
+                if (!string.IsNullOrEmpty(hrefAttr))
+                {
+                    altUri = new Uri(hrefAttr);
+                }
+            }
+            
             entry.AltHTMLUri = altUri;
 
             if (string.IsNullOrEmpty(entry.Content.ToString()))
@@ -231,6 +239,27 @@ namespace BlogWrite.Models.Clients
                 
                 if (SynItem.Summary != null)
                     entry.Content = SynItem.Summary.Text;
+
+                if (!string.IsNullOrEmpty(entry.Content))
+                {
+                    entry.Content = await StripStyleAttributes(entry.Content);
+
+                    /*
+                    var context = BrowsingContext.New(Configuration.Default);
+                    var document = await context.OpenAsync(req => req.Content(entry.Content));
+                    //var blueListItemsLinq = document.QuerySelectorAll("*")
+                    var ItemsLinq = document.All.Where(m => m.HasAttribute("style"));
+                    foreach (var item in ItemsLinq)
+                    {
+                        item.RemoveAttribute("style");
+                    }
+
+                    Console.WriteLine(document.DocumentElement.OuterHtml);
+
+                    entry.Content = document.DocumentElement.OuterHtml;
+                    */
+                }
+
             }
             else
             {
@@ -286,5 +315,21 @@ namespace BlogWrite.Models.Clients
             return entry;
         }
 
+        private async Task<string> StripStyleAttributes(string s)
+        {
+            var context = BrowsingContext.New(Configuration.Default);
+            var document = await context.OpenAsync(req => req.Content(s));
+            //var blueListItemsLinq = document.QuerySelectorAll("*")
+            var ItemsLinq = document.All.Where(m => m.HasAttribute("style"));
+            foreach (var item in ItemsLinq)
+            {
+                item.RemoveAttribute("style");
+            }
+
+            Console.WriteLine(document.DocumentElement.OuterHtml);
+
+            return document.DocumentElement.OuterHtml;
+
+        }
     }
 }

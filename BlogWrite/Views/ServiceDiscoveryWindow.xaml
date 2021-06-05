@@ -6,12 +6,12 @@
         xmlns:local="clr-namespace:BlogWrite.Views"
         mc:Ignorable="d"
         WindowStyle="None"
-        ResizeMode="CanResize"
-        Background="{DynamicResource WindowBackgroundBaseColorBrush}"
-        Title="Service Discovery" Height="450" Width="450"
+        Background="{DynamicResource BoardBackgroundColorBrush}"
+        Title="Service Discovery" 
+        Height="350" Width="650"
         WindowStartupLocation="CenterOwner">
     <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="32" ResizeBorderThickness="0"/>
+        <WindowChrome CaptionHeight="32" ResizeBorderThickness="{x:Static SystemParameters.WindowResizeBorderThickness}"/>
     </WindowChrome.WindowChrome>
     <Window.Style>
         <Style TargetType="Window">
@@ -22,145 +22,311 @@
             </Style.Triggers>
         </Style>
     </Window.Style>
-    <Grid x:Name="LayoutGrid">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="32"/>
-            <RowDefinition Height="32"/>
-            <RowDefinition Height="32"/>
-            <RowDefinition Height="32"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="24"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="24"/>
-            <ColumnDefinition Width="32"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="32"/>
-            <ColumnDefinition Width="24"/>
-        </Grid.ColumnDefinitions>
-
-        <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Background="{DynamicResource BoardBackgroundColorBrush}">
+    <Border Style="{StaticResource WindowMainPanelStyle}" UseLayoutRounding="True">
+        <Grid x:Name="LayoutGrid">
             <Grid.RowDefinitions>
                 <RowDefinition Height="32"/>
+                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="0"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="0"/>
             </Grid.ColumnDefinitions>
 
-            <!-- App icon -->
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                <Button ToolTip="" IsHitTestVisible="True" WindowChrome.IsHitTestVisibleInChrome="True">
-                    <Button.Style>
-                        <Style TargetType="{x:Type Button}">
-                            <Setter Property="OverridesDefaultStyle" Value="true" />
-                            <Setter Property="Background" Value="{DynamicResource BoardBackgroundColorBrush}" />
-                            <Setter Property="Foreground" Value="{DynamicResource ControlForegroundColorBrush}"/>
-                            <!--
+            <!-- App title bar -->
+            <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Background="{DynamicResource BoardBackgroundColorBrush}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="32"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- App icon -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Background="{DynamicResource BoardBackgroundColorBrush}">
+                    <Button ToolTip="" IsHitTestVisible="True" WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Button.Style>
+                            <Style TargetType="{x:Type Button}">
+                                <Setter Property="OverridesDefaultStyle" Value="true" />
+                                <Setter Property="Background" Value="{DynamicResource BoardBackgroundColorBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource ControlForegroundColorBrush}"/>
+                                <!--
                                 <Setter Property="FocusVisualStyle" Value="{x:Null}" />
                                 -->
-                            <Setter Property="Focusable" Value="False" />
-                            <Setter Property="BorderThickness" Value="0" />
-                            <Setter Property="Margin" Value="0" />
-                            <Setter Property="Padding" Value="0" />
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border x:Name="Border" CornerRadius="0" BorderThickness="0" Background="{TemplateBinding Background}">
-                                            <Viewbox Width="16" Height="16" Margin="6 0 6 0">
-                                                <Canvas Width="24" Height="24">
-                                                    <Canvas.RenderTransform>
-                                                        <TranslateTransform X="0" Y="0"/>
-                                                    </Canvas.RenderTransform>
+                                <Setter Property="Focusable" Value="False" />
+                                <Setter Property="BorderThickness" Value="0" />
+                                <Setter Property="Margin" Value="0" />
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="Border" CornerRadius="0" BorderThickness="0" Background="{TemplateBinding Background}">
+                                                <Viewbox Width="16" Height="16" Margin="6 0 6 0">
+                                                    <Canvas Width="24" Height="24">
+                                                        <Canvas.RenderTransform>
+                                                            <TranslateTransform X="0" Y="0"/>
+                                                        </Canvas.RenderTransform>
 
-                                                </Canvas>
-                                            </Viewbox>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </Button.Style>
-                </Button>
-            </StackPanel>
+                                                    </Canvas>
+                                                </Viewbox>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                        M15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4M15,5.9C16.16,5.9 17.1,6.84 17.1,8C17.1,9.16 16.16,10.1 15,10.1A2.1,2.1 0 0,1 12.9,8A2.1,2.1 0 0,1 15,5.9M4,7V10H1V12H4V15H6V12H9V10H6V7H4M15,13C12.33,13 7,14.33 7,17V20H23V17C23,14.33 17.67,13 15,13M15,14.9C17.97,14.9 21.1,16.36 21.1,17V18.1H8.9V17C8.9,16.36 12,14.9 15,14.9Z
+                    </Button>
+                </StackPanel>
 
-            <!-- System icons -->
-            <StackPanel Orientation="Horizontal" Grid.Column="2" HorizontalAlignment="Right" Margin="0">
+                <!-- System icons -->
+                <StackPanel Orientation="Horizontal" Grid.Column="2" HorizontalAlignment="Right" Margin="0">
 
-                <Button x:Name="CloseButton" Style="{StaticResource PathSysButtonClose}" Click="CloseButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
-                    M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z
-                </Button>
+                    <Button x:Name="CloseButton" Style="{StaticResource PathSysButtonClose}" Click="CloseButton_Click" WindowChrome.IsHitTestVisibleInChrome="True">
+                        M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z
+                    </Button>
 
-            </StackPanel>
+                </StackPanel>
 
-        </Grid>
-
-        <Button x:Name="PlusOutlineButton" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" IsEnabled="False"
-                Style="{StaticResource PathButton}" 
-                    ToolTip="Service Discovery" ToolTipService.ToolTip="Service Discovery"
-                Foreground="#999999" Background="Transparent" HorizontalAlignment="Left" VerticalAlignment="Center" >
-            M15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4M15,5.9C16.16,5.9 17.1,6.84 17.1,8C17.1,9.16 16.16,10.1 15,10.1A2.1,2.1 0 0,1 12.9,8A2.1,2.1 0 0,1 15,5.9M4,7V10H1V12H4V15H6V12H9V10H6V7H4M15,13C12.33,13 7,14.33 7,17V20H23V17C23,14.33 17.67,13 15,13M15,14.9C17.97,14.9 21.1,16.36 21.1,17V18.1H8.9V17C8.9,16.36 12,14.9 15,14.9Z
-        </Button>
-
-        <TextBox Grid.Row="2" Grid.Column="2"
-                VerticalAlignment="Center"
-                HorizontalAlignment="Stretch"
-                 Text="{Binding WebsiteOrEndpointUrl, UpdateSourceTrigger=PropertyChanged}"
-                 Margin="4">
-            <TextBox.Style>
-                <Style TargetType="TextBox" BasedOn="{StaticResource TransparentTextBoxStyle}" 
-                           xmlns:sys="clr-namespace:System;assembly=mscorlib">
-                    <Setter Property="Background" Value="Transparent" />
-                    <Style.Resources>
-                        <VisualBrush x:Key="CueBannerBrush"
-                                                         AlignmentX="Left"
-                                                         AlignmentY="Center"
-                                                         Stretch="None">
-                            <VisualBrush.Visual>
-                                <Label Content="Enter your blog URL or API endpoint"
-                                                           FontStyle="Italic"
-                                                           Foreground="DarkGray" />
-                            </VisualBrush.Visual>
-                        </VisualBrush>
-                    </Style.Resources>
-                    <Style.Triggers>
-                        <Trigger Property="Text" Value="{x:Static sys:String.Empty}">
-                            <Setter Property="Background" Value="{StaticResource CueBannerBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter Property="Background" Value="Transparent" />
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </TextBox.Style>
-            <TextBox.InputBindings>
-                <KeyBinding Key="Enter" Command="{Binding Path=CheckEndpointCommand}" />
-            </TextBox.InputBindings>
-        </TextBox>
-        
-        <Button Grid.Row="2" Grid.Column="3" 
-                VerticalAlignment="Center"
-                HorizontalAlignment="Center"
-                Background="Transparent" 
-                ToolTip="Check APIs" ToolTipService.ToolTip="Check APIs"
-                IsEnabled="{Binding IsButtonEnabled}"
-                Command="{Binding CheckEndpointCommand}"
-                Style="{StaticResource PathButton}">
-            M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.43,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.43C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,14C11.11,14 12.5,13.15 13.32,11.88C12.5,10.75 11.11,10 9.5,10C7.89,10 6.5,10.75 5.68,11.88C6.5,13.15 7.89,14 9.5,14M9.5,5A1.75,1.75 0 0,0 7.75,6.75A1.75,1.75 0 0,0 9.5,8.5A1.75,1.75 0 0,0 11.25,6.75A1.75,1.75 0 0,0 9.5,5Z
-        </Button>
-
-        <Grid Grid.Row="4" Grid.Column="2" >
-            <TextBox 
-                Text="{Binding StatusText, Mode=OneWay}"
-                IsReadOnly="True"
-                BorderThickness="0"
-                Style="{StaticResource TransparentTextBoxStyle}"></TextBox>
-            <Grid>
-                
             </Grid>
 
-        </Grid>
+            <TabControl Grid.Row="1" Grid.Column="1" Margin="6" Background="Transparent" SelectedIndex="{Binding SelectedTabIndex}" Style="{DynamicResource HiddlenTabControl}">
+                <TabItem>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="0"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="0"/>
+                        </Grid.ColumnDefinitions>
 
-    </Grid>
+                        <Border Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Stretch" CornerRadius="3" Background="{StaticResource NormalTextBoxBackgroundColorBrush}" Padding="0" Margin="6">
+                            <TextBox VerticalAlignment="Center" HorizontalAlignment="Stretch" Text="{Binding WebsiteOrEndpointUrl, UpdateSourceTrigger=PropertyChanged}">
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox" BasedOn="{StaticResource DefaultTextBoxStyle}" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+                                        <Style.Resources>
+                                            <VisualBrush x:Key="CueBannerBrush" AlignmentX="Left" AlignmentY="Center" Stretch="None">
+                                                <VisualBrush.Visual>
+                                                    <TextBlock Foreground="#222">
+                                                <Run Text="_" Foreground="Transparent"></Run>
+                                                <Run Text="http://... (Website URL or Feed URL or API endpoint)" FontStyle="Normal"></Run>
+                                                    </TextBlock>
+                                                </VisualBrush.Visual>
+                                            </VisualBrush>
+                                        </Style.Resources>
+                                        <Setter Property="Background" Value="{StaticResource NormalTextBoxBackgroundColorBrush}" />
+                                        <Setter Property="Margin" Value="0" />
+                                        <Setter Property="Padding" Value="3" />
+                                        <Setter Property="HorizontalContentAlignment" Value="Left" />
+                                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="{x:Type TextBox}">
+
+                                                    <Border x:Name="Border" BorderThickness="1" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" CornerRadius="3">
+                                                        <Grid>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="*"/>
+                                                            </Grid.RowDefinitions>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="28"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
+
+                                                            <Button Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent" ToolTip="go" ToolTipService.ToolTip="Go" IsDefault="True" IsEnabled="{Binding IsButtonEnabled}" Command="{Binding CheckEndpointCommand}" Style="{StaticResource PathButton}">M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z</Button>
+
+                                                        </Grid>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="Text" Value="{x:Static sys:String.Empty}">
+                                                            <Setter Property="Background" Value="{StaticResource CueBannerBrush}" />
+                                                        </Trigger>
+                                                        <Trigger Property="IsKeyboardFocusWithin" Value="true">
+                                                            <Setter Property="Background" Value="Gainsboro" />
+                                                        </Trigger>
+                                                        <Trigger Property="IsMouseOver" Value="true">
+                                                            <Setter Property="Background" Value="White" />
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <!--
+                            <Style.Triggers>
+                                <Trigger Property="Text" Value="{x:Static sys:String.Empty}">
+                                    <Setter Property="Background" Value="{StaticResource CueBannerBrush}" />
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocusWithin" Value="true">
+                                    <Setter Property="Background" Value="Gainsboro" />
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="true">
+                                    <Setter Property="Background" Value="White" />
+                                </Trigger>
+                            </Style.Triggers>
+                            -->
+                                    </Style>
+                                </TextBox.Style>
+                                <!--
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Enter" Command="{Binding Path=CheckEndpointCommand}" />
+                    </TextBox.InputBindings>
+                    -->
+                            </TextBox>
+                        </Border>
+
+                        <Grid Grid.Row="1" Grid.Column="1" Margin="6">
+                            <Border CornerRadius="3" Background="{DynamicResource WindowBackgroundBaseColorBrush}">
+
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Viewbox Grid.Row="0" Grid.Column="0" Margin="12" HorizontalAlignment="Left" VerticalAlignment="Top" Stretch="Uniform" Width="28" Height="28" Focusable="False" FocusVisualStyle="{x:Null}">
+                                        <Canvas Opacity="1" Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <Path Opacity="0.9" Width="12" Height="12" Fill="#E81123" Stretch="Uniform" Data="M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z">
+                                            </Path>
+                                        </Canvas>
+                                    </Viewbox>
+
+                                    <StackPanel Grid.Row="0" Grid.Column="1">
+
+                                        <TextBox FontWeight="Bold" Padding="6" Margin="6" Text="{Binding StatusTitleText, Mode=OneWay}" HorizontalAlignment="Stretch" VerticalAlignment="Center" IsReadOnly="True" BorderThickness="0" Style="{StaticResource TransparentTextBoxStyle}"></TextBox>
+
+                                        <TextBox FontWeight="Normal" Padding="6" Margin="6" Text="{Binding StatusText, Mode=OneWay}" HorizontalAlignment="Stretch" VerticalAlignment="Center" IsReadOnly="True" BorderThickness="0" Style="{StaticResource TransparentTextBoxStyle}"></TextBox>
+
+                                    </StackPanel>
+
+                                </Grid>
+
+                            </Border>
+
+                        </Grid>
+
+                        <Grid Grid.Row="2" Grid.Column="1" Margin="6">
+                            <Border CornerRadius="3" Background="{DynamicResource WindowBackgroundBaseColorBrush}">
+
+
+                                <TextBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Padding="6" Opacity="0.8" Text="{Binding StatusLogText, Mode=OneWay}" IsReadOnly="True" BorderThickness="0" Style="{StaticResource TransparentTextBoxStyle}"></TextBox>
+
+
+                            </Border>
+
+                        </Grid>
+                    </Grid>
+                </TabItem>
+
+                <TabItem>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="0"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="0"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Grid Grid.Row="0" Grid.Column="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Row="0" Grid.Column="0" HorizontalAlignment="Left" Margin="6">
+
+                                <Button Command="{Binding GoBackTo1Command}" Style="{DynamicResource PathButton}">M2,12A10,10 0 0,1 12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12M18,11H10L13.5,7.5L12.08,6.08L6.16,12L12.08,17.92L13.5,16.5L10,13H18V11Z</Button>
+
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left" Margin="6">
+
+                                <Button Command="{Binding AddSelectedAndCloseCommand}" Style="{DynamicResource PathButton}">M17,13H13V17H11V13H7V11H11V7H13V11H17M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z</Button>
+
+                            </StackPanel>
+                        </Grid>
+
+
+                        <Grid x:Name="ListViewDummy" Grid.Row="1" Grid.Column="1" Margin="16" Visibility="Hidden">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="60"/>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!--  This is the hidden helper Field which is used to bind to, using the "Fill" column of the helper grid  -->
+                            <Grid x:Name="RLEWidth0" Grid.Column="0" />
+                            <Grid x:Name="RLEWidth1" Grid.Column="1" />
+                            <Grid x:Name="RLEWidth2" Grid.Column="2" />
+                        </Grid>
+                        <ListView Grid.Row="1" Grid.Column="1" Margin="6" ItemsSource="{Binding LinkItems}" SelectedItem="{Binding SelectedLinkItem, Mode=TwoWay}">
+
+                            <ListView.View>
+                                <GridView>
+                                    <GridView.ColumnHeaderContainerStyle>
+                                        <Style TargetType="GridViewColumnHeader">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </Style>
+                                    </GridView.ColumnHeaderContainerStyle>
+                                    <GridViewColumn Header="Icom" Width="{Binding ElementName=RLEWidth0, Path=ActualWidth}">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Grid HorizontalAlignment="Left" VerticalAlignment="Center">
+
+                                                    <Viewbox HorizontalAlignment="Left" VerticalAlignment="Center" Stretch="Uniform" Width="20" Height="20" Focusable="False" FocusVisualStyle="{x:Null}" Margin="12">
+                                                        <Canvas Opacity="1" Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                            <Path Opacity="0.9" Width="24" Height="24" Fill="#333" Stretch="Uniform" Data="{Binding IconPath}">
+                                                            </Path>
+                                                        </Canvas>
+                                                    </Viewbox>
+                                                </Grid>
+
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    
+                                    <GridViewColumn Header="Type" Width="{Binding ElementName=RLEWidth1, Path=ActualWidth}">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock x:Name="RLName" Text="{Binding TypeText, Mode=OneWay}" Padding="3"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+
+                                    <GridViewColumn Header="Title" Width="{Binding ElementName=RLEWidth2, Path=ActualWidth}">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock x:Name="RLName" Text="{Binding Title, Mode=OneWay}" Padding="3"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+
+                    </Grid>
+                </TabItem>
+            </TabControl>
+            
+        </Grid>
+    </Border>
 </Window>

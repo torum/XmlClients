@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using BlogWrite.ViewModels;
+using System;
+using System.Windows;
 
 namespace BlogWrite.Views
 {
@@ -10,6 +12,7 @@ namespace BlogWrite.Views
         public ServiceDiscoveryWindow()
         {
             InitializeComponent();
+
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
