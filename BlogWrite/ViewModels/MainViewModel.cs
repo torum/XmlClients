@@ -24,10 +24,13 @@ namespace BlogWrite.ViewModels
 {
     /// TODO: 
     /// 
-    /// SearviceDiscoveryをMSHTML使わずにパースして動くようにする。
-    /// 
+    /// Delete. Rename. 
+    /// SearviceDiscoveryでのパース（途中）。（HTML>RSS/Atom = Done）
+    /// RSS(RDF) feed の自前パース。
+    /// MainのMenu
 
     /// 更新履歴：
+    /// v0.0.0.4 とりあえず、TreeViewのD&D（Folder内に入れるのとInsertBefore）実装。
     /// v0.0.0.3 とりあえず、HTML取得、解析、RSS/AtomのFeed検出、登録、表示までの流れは出来た。
     /// v0.0.0.2 色々。
     /// v0.0.0.1 3年前の作りかけの状態を少なくとも最新の環境にあわせてアップデート。
@@ -39,7 +42,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.3";
+        const string _appVer = "0.0.0.4";
         public string AppVer
         {
             get
@@ -66,7 +69,7 @@ namespace BlogWrite.ViewModels
 
         #region == Properties ==
 
-        #region == Treeview, Node, Menu, etc ==
+        #region == Treeview ==
 
         private ServiceTreeBuilder _services = new ServiceTreeBuilder();
         public ObservableCollection<NodeTree> Services
@@ -79,7 +82,7 @@ namespace BlogWrite.ViewModels
             }
         }
 
-        private NodeTree _selectedNode = new NodeService("", "", "",new Uri("http://127.0.0.1"), ApiTypes.atUnknown, ServiceTypes.Unknown);
+        private NodeTree _selectedNode = new NodeService("", "", "", new Uri("http://127.0.0.1"), ApiTypes.atUnknown, ServiceTypes.Unknown);
         public NodeTree SelectedNode
         {
             get { return _selectedNode; }
@@ -115,76 +118,6 @@ namespace BlogWrite.ViewModels
 
                 // This changes the listview.
                 NotifyPropertyChanged(nameof(Entries));
-
-                // todo: check loaded.
-                // Clear preview browser.
-                if (Application.Current == null) { return; }
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    WriteHtmlToContentPreviewBrowser?.Invoke(this, WrapHtmlContent(""));
-                });
-            }
-        }
-
-        public ObservableCollection<EntryItem> Entries
-        {
-            get
-            {
-                if (_selectedNode == null)
-                    return null;
-
-                if (_selectedNode is NodeEntryCollection)
-                {
-                    return (_selectedNode as NodeEntryCollection).List;
-                }
-                else if (_selectedNode is NodeFeed)
-                {
-                    return (_selectedNode as NodeFeed).List;
-                }
-                /*
-                else if (_selectedNode is NodeRssFeed)
-                {
-                    return (_selectedNode as NodeRssFeed).List;
-                }
-                */
-                else
-                {
-                    return null;
-                }
-            }
-        }
-
-        private EntryItem _selectedItem = null;
-        public EntryItem SelectedItem
-        {
-            get { return _selectedItem; }
-            set
-            {
-                if (_selectedItem == value)
-                    return;
-
-                _selectedItem = value;
-                NotifyPropertyChanged(nameof(SelectedItem));
-
-                // This changes the contents.
-                NotifyPropertyChanged(nameof(Entry));
-                NotifyPropertyChanged(nameof(EntryHTML));
-                NotifyPropertyChanged(nameof(IsContentText));
-                NotifyPropertyChanged(nameof(IsContentHTML));
-
-                if (_selectedItem == null)
-                    return;
-
-                if (IsContentHTML)
-                {
-                    if (Application.Current == null) { return; }
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        WriteHtmlToContentPreviewBrowser?.Invoke(this, EntryHTML);
-                    });
-                }
-
-
             }
         }
 
@@ -233,6 +166,68 @@ namespace BlogWrite.ViewModels
                 return false;
             }
         }
+
+        #endregion
+
+        #region == ListView ==
+
+        public ObservableCollection<EntryItem> Entries
+        {
+            get
+            {
+                if (_selectedNode == null)
+                    return null;
+
+                if (_selectedNode is NodeEntryCollection)
+                {
+                    return (_selectedNode as NodeEntryCollection).List;
+                }
+                else if (_selectedNode is NodeFeed)
+                {
+                    return (_selectedNode as NodeFeed).List;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        private EntryItem _selectedItem = null;
+        public EntryItem SelectedItem
+        {
+            get { return _selectedItem; }
+            set
+            {
+                if (_selectedItem == value)
+                    return;
+
+                _selectedItem = value;
+                NotifyPropertyChanged(nameof(SelectedItem));
+
+                // This changes the contents.
+                NotifyPropertyChanged(nameof(Entry));
+                NotifyPropertyChanged(nameof(EntryHTML));
+                NotifyPropertyChanged(nameof(IsContentText));
+                NotifyPropertyChanged(nameof(IsContentHTML));
+
+                if (_selectedItem == null)
+                    return;
+
+                if (IsContentHTML)
+                {
+                    if (Application.Current == null) { return; }
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        WriteHtmlToContentPreviewBrowser?.Invoke(this, EntryHTML);
+                    });
+                }
+            }
+        }
+
+        #endregion
+
+        #region == Content View ==
 
         public string Entry
         {
@@ -424,7 +419,7 @@ li {
 
         #endregion
 
-        #region == etc ==
+        #region == Status flags ==
 
         private bool _isFullyLoaded;
         public bool IsFullyLoaded
@@ -483,6 +478,10 @@ li {
             }
         }
 
+        #endregion
+
+        #region == Visivility flags == 
+
         private bool _isShowDebugWindow;
         public bool IsShowDebugWindow
 
@@ -507,7 +506,11 @@ li {
                 }
             }
         }
-        
+
+        #endregion
+
+        #region == Status messages == 
+
         private string _statusBarMessage;
         public string StatusBarMessage
         {
@@ -522,6 +525,10 @@ li {
                 NotifyPropertyChanged(nameof(StatusBarMessage));
             }
         }
+
+        #endregion
+
+        #region == Error messages == 
 
         private bool _isShowClientErrorMessage;
         public bool IsShowClientErrorMessage
@@ -578,6 +585,8 @@ li {
 
         public MainViewModel()
         {
+            #region == Config folder ==
+
             // データ保存フォルダの取得
             _appDataFolder = _envDataFolder + System.IO.Path.DirectorySeparatorChar + _appDeveloper + System.IO.Path.DirectorySeparatorChar + _appName;
             // 設定ファイルのパス
@@ -585,7 +594,12 @@ li {
             // 存在していなかったら作成
             System.IO.Directory.CreateDirectory(_appDataFolder);
 
-            #region == Commands ==
+            #endregion
+            #region == Commands init ==
+
+            ServiceAddCommand = new RelayCommand(ServiceAddCommand_Execute, ServiceAddCommand_CanExecute);
+            FolderAddCommand = new RelayCommand(FolderAddCommand_Execute, FolderAddCommand_CanExecute);
+            ServiceUpdateCommand = new RelayCommand(ServiceUpdateCommand_Execute, ServiceUpdateCommand_CanExecute);
 
             TreeviewLeftDoubleClickCommand = new GenericRelayCommand<NodeTree>(
                 param => TreeviewLeftDoubleClickCommand_Execute(param),
@@ -615,9 +629,7 @@ li {
                 param => ListviewEnterKeyCommand_Execute(param),
                 param => ListviewEnterKeyCommand_CanExecute());
 
-            ServiceAddCommand = new RelayCommand(ServiceAddCommand_Execute, ServiceAddCommand_CanExecute);
             OpenEditorAsNewCommand = new RelayCommand(OpenEditorAsNewCommand_Execute, OpenEditorAsNewCommand_CanExecute);
-            RefreshEntriesCommand = new RelayCommand(RefreshEntriesCommand_Execute, RefreshEntriesCommand_CanExecute);
             ShowSettingsCommand = new RelayCommand(ShowSettingsCommand_Execute, ShowSettingsCommand_CanExecute);
             ShowDebugWindowCommand = new RelayCommand(ShowDebugWindowCommand_Execute, ShowDebugWindowCommand_CanExecute);
             ClearDebugTextCommand = new RelayCommand(ClearDebugTextCommand_Execute, ClearDebugTextCommand_CanExecute);
@@ -633,26 +645,7 @@ li {
 
                 _services.LoadXmlDoc(doc);
 
-                // subscribe to DebugOutput event.
-                foreach (NodeService c in _services.Children)
-                {
-                    if (c.Client != null)
-                    {
-                        c.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
-                    }
-                }
-            }
-        }
-
-        public void OnDebugOutput(BaseClient sender, string data)
-        {
-            if (IsShowDebugWindow)
-            {
-                if (Application.Current == null) { return; }
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    DebugOutput?.Invoke(this, Environment.NewLine + data);
-                });
+                InitClients();
             }
         }
 
@@ -864,24 +857,58 @@ li {
 
         #endregion
 
+        #region == Events ==
+
+        public void OnDebugOutput(BaseClient sender, string data)
+        {
+            if (IsShowDebugWindow)
+            {
+                if (Application.Current == null) { return; }
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    DebugOutput?.Invoke(this, Environment.NewLine + data);
+                });
+            }
+        }
+
+        #endregion
+
         #region == Methods ==
+
+        private void InitClients()
+        {
+            InitClientsRecursiveLoop(_services.Children);
+        }
+
+        private void InitClientsRecursiveLoop(ObservableCollection<NodeTree> nt)
+        {
+            // subscribe to DebugOutput event.
+            foreach (NodeTree c in nt)
+            {
+                if ((c is NodeService) || (c is NodeFeed))
+                {
+                    if ((c as NodeService).Client != null)
+                    {
+                        (c as NodeService).Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
+                    }
+                }
+
+                if (c.Children.Count > 0)
+                    InitClientsRecursiveLoop(c.Children);
+            }
+        }
 
         public void AddFeed(FeedLink fl)
         {
-            foreach (var serv in Services)
-            {
-                if (serv is NodeFeed)
-                {
-                    if ((serv as NodeFeed).EndPoint.AbsoluteUri == fl.FeedUri.AbsoluteUri)
-                        return;
-                }
-            }
+            if (FeedDupeCheck(fl.FeedUri.AbsoluteUri))
+                return;
             
             if (fl.FeedKind == FeedLink.FeedKinds.Atom)
             {
                 NodeAtomFeed a = new(fl.Title, fl.FeedUri);
                 a.Api = ApiTypes.atAtomFeed;
                 a.ServiceType = ServiceTypes.Feed;
+                a.Parent = _services;
 
                 a.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
 
@@ -893,13 +920,37 @@ li {
                 NodeRssFeed a = new(fl.Title, fl.FeedUri);
                 a.Api = ApiTypes.atRssFeed;
                 a.ServiceType = ServiceTypes.Feed;
+                a.Parent = _services;
 
                 a.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
 
                 // Add Account Node to internal (virtual) Treeview.
                 Application.Current.Dispatcher.Invoke(() => Services.Add(a));
             }
+        }
 
+        private bool FeedDupeCheck(string feedUri)
+        {
+            return FeedDupeCheckRecursiveLoop(Services, feedUri);
+        }
+
+        private bool FeedDupeCheckRecursiveLoop(ObservableCollection<NodeTree> nt, string feedUri)
+        {
+            bool res = false;
+
+            foreach (NodeTree c in nt)
+            {
+                if (c is NodeFeed)
+                {
+                    if ((c as NodeFeed).EndPoint.AbsoluteUri.Equals(feedUri))
+                        return true;
+                }
+
+                if (c.Children.Count > 0)
+                    res =FeedDupeCheckRecursiveLoop(c.Children, feedUri);
+            }
+
+            return res;
         }
 
         private async void GetEntries(NodeTree selectedNode)
@@ -913,8 +964,11 @@ li {
                     return;
 
                 var fc = (selectedNode as NodeFeed).Client;
+
                 if (fc == null)
                     return;
+
+                (selectedNode as NodeFeed).Status = NodeFeed.DownloadStatus.loading;
 
                 List<EntryItem> entLi = await fc.GetEntries((selectedNode as NodeFeed).EndPoint);
 
@@ -922,11 +976,15 @@ li {
                 {
                     ClientErrorMessage = "";
                     IsShowClientErrorMessage = false;
+
+                    (selectedNode as NodeFeed).Status = NodeFeed.DownloadStatus.normal;
                 }
                 else
                 {
                     ClientErrorMessage = fc.ClientErrorMessage;
                     IsShowClientErrorMessage = true;
+
+                    (selectedNode as NodeFeed).Status = NodeFeed.DownloadStatus.error;
                 }
 
                 // Minimize the time to block UI thread.
@@ -949,6 +1007,7 @@ li {
                     return;
 
                 List<EntryItem> entLi = await bc.GetEntries((selectedNode as NodeEntryCollection).Uri);
+
                 if (entLi == null)
                     return;
 
@@ -1029,6 +1088,88 @@ li {
 
         #region == ICommands ==
 
+        #region == TreeView ==
+
+        public ICommand ServiceAddCommand { get; }
+
+        public bool ServiceAddCommand_CanExecute()
+        {
+            return true;
+        }
+
+        public void ServiceAddCommand_Execute()
+        {
+            ServiceDiscoveryEventArgs ag = new ServiceDiscoveryEventArgs();
+
+            OpenServiceDiscoveryView?.Invoke(this, ag);
+        }
+
+        public ICommand FolderAddCommand { get; }
+
+        public bool FolderAddCommand_CanExecute()
+        {
+            return true;
+        }
+
+        public void FolderAddCommand_Execute()
+        {
+            NodeFolder folder = new("New Folder");
+            folder.Parent = _services;
+
+            // Add NodeFolder to internal (virtual) Treeview.
+            Application.Current.Dispatcher.Invoke(() => Services.Add(folder));
+        }
+
+        public ICommand ServiceUpdateCommand { get; }
+
+        public bool ServiceUpdateCommand_CanExecute()
+        {
+            if (_selectedNode == null)
+                return false;
+
+            if ((_selectedNode is NodeFeed) || (_selectedNode is NodeService) || (_selectedNode is NodeEntryCollection))
+                return true;
+            else
+                return false;
+        }
+
+        public void ServiceUpdateCommand_Execute()
+        {
+            if (_selectedNode == null)
+                return;
+
+            ClientErrorMessage = "";
+            IsShowClientErrorMessage = false;
+
+            if (_selectedNode is NodeEntryCollection)
+            {
+                if ((_selectedNode as NodeEntryCollection).List.Count > 0)
+                    (_selectedNode as NodeEntryCollection).List.Clear();
+
+                Task.Run(() => GetEntries((_selectedNode as NodeEntryCollection)));
+
+                // This changes the listview.
+                NotifyPropertyChanged(nameof(Entries));
+            }
+            else if (_selectedNode is NodeFeed)
+            {
+                if ((_selectedNode as NodeFeed).List.Count > 0)
+                    (_selectedNode as NodeFeed).List.Clear();
+
+                Task.Run(() => GetEntries((_selectedNode as NodeFeed)));
+
+                // This changes the listview.
+                NotifyPropertyChanged(nameof(Entries));
+            }
+            else if (_selectedNode is NodeService)
+            {
+                // TODO:
+            }
+
+        }
+
+
+
         public ICommand TreeviewLeftDoubleClickCommand { get; }
 
         public bool TreeviewLeftDoubleClickCommand_CanExecute()
@@ -1041,9 +1182,12 @@ li {
             if (selectedNode == null)
                 return;
 
-            selectedNode.Expanded = selectedNode.Expanded ? false : true;
-
+            selectedNode.IsExpanded = selectedNode.IsExpanded ? false : true;
         }
+
+        #endregion
+
+        #region == ListView ==
 
         public ICommand ListviewLeftDoubleClickCommand { get; }
 
@@ -1258,28 +1402,6 @@ li {
             OpenEditorNewView?.Invoke(this, ag);
         }
 
-        public ICommand RefreshEntriesCommand { get; }
-
-        public bool RefreshEntriesCommand_CanExecute()
-        {
-            if (SelectedNode == null) return false;
-            if ((SelectedNode is NodeEntryCollection) || (SelectedNode is NodeFeed) )
-                return true;
-            return false;
-        }
-
-        public void RefreshEntriesCommand_Execute()
-        {
-            if (SelectedNode == null)
-                return;
-
-            if ((SelectedNode is NodeEntryCollection) || (SelectedNode is NodeFeed))
-            {
-                this.GetEntries(SelectedNode as NodeTree);
-            }
-
-        }
-
         public ICommand OpenInBrowserCommand { get; }
 
         public bool OpenInBrowserCommand_CanExecute()
@@ -1299,6 +1421,10 @@ li {
                 Process.Start(psi);
             }
         }
+
+        #endregion
+
+        #region == Visibility control ==
 
         public ICommand ShowSettingsCommand { get; }
 
@@ -1342,22 +1468,8 @@ li {
             });
         }
 
-        public ICommand ServiceAddCommand { get; }
 
-        public bool ServiceAddCommand_CanExecute()
-        {
-            return true;
-        }
-
-        public void ServiceAddCommand_Execute()
-        {
-            // TODO: Ask to close all editor windows before launching.
-
-            ServiceDiscoveryEventArgs ag = new ServiceDiscoveryEventArgs();
-
-            OpenServiceDiscoveryView?.Invoke(this, ag);
-        }
-
+        #endregion
 
         #endregion
 

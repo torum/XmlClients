@@ -64,13 +64,9 @@ namespace BlogWrite.Models
     /// <summary>
     /// Base class for Treeview Node.
     /// </summary>
-    public class NodeTree : Node
+    abstract public class NodeTree : Node
     {
         private string _pathData = "M20,18H4V8H20M20,6H12L10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6Z";
-        private NodeTree _parent;
-        private bool _expanded;
-        private ObservableCollection<NodeTree> _children = new ObservableCollection<NodeTree>();
-
         public string PathIcon
         {
             get
@@ -81,43 +77,114 @@ namespace BlogWrite.Models
             {
                 if (_pathData == value)
                     return;
+
                 _pathData = value;
 
                 NotifyPropertyChanged("PathIcon");
             }
         }
 
-        public bool Selected { get; set; }
-
-        public bool Expanded
+        private bool _IsSelected;
+        public bool IsSelected
         {
             get
             {
-                return _expanded;
+                return _IsSelected;
             }
             set
             {
-                if (_expanded == value)
+                if (_IsSelected == value)
                     return;
 
-                _expanded = value;
+                _IsSelected = value;
 
-                NotifyPropertyChanged("Expanded");
+                NotifyPropertyChanged("IsSelected");
             }
         }
 
+        private bool _isExpanded;
+        public bool IsExpanded
+        {
+            get
+            {
+                return _isExpanded;
+            }
+            set
+            {
+                if (_isExpanded == value)
+                    return;
+
+                _isExpanded = value;
+
+                NotifyPropertyChanged("IsExpanded");
+            }
+        }
+
+        private bool _isDragOver;
+        public bool IsDragOver
+        {
+            get
+            {
+                return _isDragOver;
+            }
+            set
+            {
+                if (_isDragOver == value)
+                    return;
+
+                _isDragOver = value;
+
+                NotifyPropertyChanged("IsDragOver");
+            }
+        }
+
+        private bool _isBeforeDragSeparator;
+        public bool IsBeforeDragSeparator
+        {
+            get
+            {
+                return _isBeforeDragSeparator;
+            }
+            set
+            {
+                if (_isBeforeDragSeparator == value)
+                    return;
+
+                _isBeforeDragSeparator = value;
+
+                NotifyPropertyChanged("IsBeforeDragSeparator");
+            }
+        }
+
+        private bool _isAfterDragSeparator;
+        public bool IsAfterDragSeparator
+        {
+            get
+            {
+                return _isAfterDragSeparator;
+            }
+            set
+            {
+                if (_isAfterDragSeparator == value)
+                    return;
+
+                _isAfterDragSeparator = value;
+
+                NotifyPropertyChanged("IsAfterDragSeparator");
+            }
+        }
+
+        private NodeTree _parent;
         public NodeTree Parent
         {
             get
             {
                 return this._parent;
             }
-
             set
             {
                 if (_parent == value)
                     return;
-
 
                 _parent = value;
 
@@ -125,6 +192,7 @@ namespace BlogWrite.Models
             }
         }
 
+        private ObservableCollection<NodeTree> _children = new ObservableCollection<NodeTree>();
         public ObservableCollection<NodeTree> Children
         {
             get
@@ -146,6 +214,33 @@ namespace BlogWrite.Models
             BindingOperations.EnableCollectionSynchronization(_children, new object());
         }
 
-    }
+        private bool ContainsChildLoop(ObservableCollection<NodeTree> childList, NodeTree ntc)
+        {
+            bool hasChild = false;
 
+            foreach (var c in childList)
+            {
+                if (c == ntc)
+                    return true;
+
+                if (c.Children.Count > 0)
+                {
+                    if (ContainsChildLoop(c.Children, ntc))
+                        return true;
+                }
+            }
+
+            return hasChild;
+        }
+
+        public bool ContainsChild(NodeTree nt)
+        {
+            if (ContainsChildLoop(this.Children, nt))
+                return true;
+            else
+                return false;
+
+        }
+
+    }
 }

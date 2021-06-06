@@ -66,7 +66,7 @@ namespace BlogWrite.Models.Clients
                 account.Children.Add(item);
             }
 
-            account.Expanded = true;
+            account.IsExpanded = true;
 
             return account;
         }
@@ -335,12 +335,12 @@ namespace BlogWrite.Models.Clients
 
                     }
 
-                    blog.Expanded = true;
+                    blog.IsExpanded = true;
 
                     blogs.Children.Add(blog);
                 }
 
-                //blogs.Expanded = true;
+                //blogs.IsExpanded = true;
             }
             else
             {

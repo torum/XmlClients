@@ -18,6 +18,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Diagnostics;
 using BlogWrite.ViewModels;
+using BlogWrite.Models;
 
 namespace BlogWrite.Views
 {
@@ -26,6 +27,26 @@ namespace BlogWrite.Views
     /// </summary>
     public partial class MainWindow : Window
     {
+        #region == Treeview D&D ==
+
+        private enum InsertType
+        {
+            After,
+            Before,
+            Children,
+            None
+        }
+
+        private InsertType _insertType = InsertType.None;
+
+        private NodeTree _draggedItem, _targetItem;
+
+        private Point _lastLeftMouseButtonDownPoint;
+
+        private readonly HashSet<NodeTree> _changedBlocks = new HashSet<NodeTree>();
+
+        #endregion
+
         public MainWindow()
         {
             InitializeComponent();
@@ -229,6 +250,276 @@ namespace BlogWrite.Views
                 DebugWindow.Visibility = Visibility.Visible;
             }
         }
+
+        #region == Treeview D&D ==
+
+        // https://aonasuzutsuki.hatenablog.jp/entry/2020/10/01/170406
+
+        private void TreeView_MouseDown (object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton != MouseButton.Left) { return; }
+            this._lastLeftMouseButtonDownPoint = e.GetPosition(this.TreeViewMenu);
+        }
+
+        private void TreeView_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Released)
+                return;
+
+            try
+            {
+                var currentPosition = e.GetPosition(this.TreeViewMenu);
+
+                if (Math.Abs(currentPosition.X - this._lastLeftMouseButtonDownPoint.X) <= 10.0 &&
+                    Math.Abs(currentPosition.Y - this._lastLeftMouseButtonDownPoint.Y) <= 10.0)
+                {
+                    return;
+                }
+
+                _draggedItem = this.TreeViewMenu.SelectedItem as NodeTree;
+
+                if (_draggedItem != null)
+                {
+                    if ((_draggedItem is NodeService) || (_draggedItem is NodeFolder) || (_draggedItem is NodeFeed))
+                    {
+                        DragDropEffects finalDropEffect = DragDrop.DoDragDrop(this.TreeViewMenu, this.TreeViewMenu.SelectedValue, DragDropEffects.Move);
+
+                        //Checking target is not null and item is dragging(moving)
+                        if ((finalDropEffect == DragDropEffects.Move) && (_targetItem != null))
+                        {
+                            // A Move drop was accepted
+                            if (!_draggedItem.Name.Equals(_targetItem.Name))
+                            {
+                                MoveItem(_draggedItem, _targetItem);
+                                _targetItem = null;
+                                _draggedItem = null;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception) { }
+        }
+
+        private void TreeView_DragOver(object sender, DragEventArgs e)
+        {
+            // 背景色やセパレータを元に戻します
+            ResetDragOver(_changedBlocks);
+
+            try
+            {
+                Point currentPosition = e.GetPosition(this.TreeViewMenu);
+
+                if ((Math.Abs(currentPosition.X - this._lastLeftMouseButtonDownPoint.X) > 10.0) || (Math.Abs(currentPosition.Y - this._lastLeftMouseButtonDownPoint.Y) > 10.0))
+                {
+                    // Verify that this is a valid drop and then store the drop target
+                    NodeTree item = GetNearestContainer(e.OriginalSource as UIElement);
+
+                    if (CheckDropTarget(_draggedItem, item))
+                    {
+                        // カーソル要素がドラッグ中の要素の子要素にある時は何もする必要がないのでreturn
+                        if (item.ContainsChild(_draggedItem))
+                            return;
+                        if (_draggedItem.ContainsChild(item))
+                            return;
+                        // Folderを別のFolder内にはドロップさせない
+                        if ((_draggedItem is NodeFolder) && (item.Parent is NodeFolder))
+                            return;
+                        // ServiceをFolder内にドロップさせない。
+                        if ((_draggedItem is NodeService) && (item.Parent is NodeFolder))
+                            return;
+
+                        var pos = e.GetPosition(e.OriginalSource as UIElement);
+                        if (pos.Y > 0 && pos.Y < 10.0)
+                        {
+                            _insertType = InsertType.Before;
+
+                            e.Effects = DragDropEffects.Move;
+
+                            item.IsBeforeDragSeparator = true;
+
+                            // 背景色などを変更したTreeViewItemInfoオブジェクトを_changedBlocksに追加
+                            if (!_changedBlocks.Contains(item))
+                                _changedBlocks.Add(item);
+                        }
+                        /*
+                        else if (targetParentLast == targetElementInfo && currentPosition.Y < parentGrid.ActualHeight && currentPosition.Y > parentGrid.ActualHeight - 10.0)
+                        {
+                        //_insertType = InsertType.After;
+                        //targetElementInfo.AfterSeparatorVisibility = Visibility.Visible;
+                        //e.Effects = DragDropEffects.Move;
+                        }
+                        */
+                        else
+                        {
+                            if ((_draggedItem is NodeService) && ((item is NodeFolder) || (item.Parent is NodeFolder)))
+                                return;
+
+                            if (item is NodeFolder)
+                            {
+                                _insertType = InsertType.Children;
+
+                                e.Effects = DragDropEffects.Move;
+
+                                // Change background color.
+                                item.IsDragOver = true;
+
+                                // 背景色などを変更したTreeViewItemInfoオブジェクトを_changedBlocksに追加
+                                if (!_changedBlocks.Contains(item))
+                                    _changedBlocks.Add(item);
+                            }
+                            else
+                            {
+                                e.Effects = DragDropEffects.None;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        e.Effects = DragDropEffects.None;
+                    }
+                }
+                else
+                {
+                    e.Effects = DragDropEffects.None;
+                }
+
+                e.Handled = true;
+            }
+            catch (Exception) { }
+        }
+
+        private void TreeView_Drop(object sender, DragEventArgs e)
+        {
+            // 背景色やセパレータを元に戻します
+            ResetDragOver(_changedBlocks);
+
+            try
+            {
+                e.Handled = true;
+                e.Effects = DragDropEffects.None;
+
+                // Verify that this is a valid drop and then store the drop target
+                NodeTree TargetItem = GetNearestContainer(e.OriginalSource as UIElement);
+                if (TargetItem != null && _draggedItem != null)
+                {
+                    // カーソル要素がドラッグ中の要素の子要素にある時は何もする必要がないのでreturn
+                    if (TargetItem.ContainsChild(_draggedItem))
+                        return;
+                    if (_draggedItem.ContainsChild(TargetItem))
+                        return;
+
+                    _targetItem = TargetItem;
+                    e.Effects = DragDropEffects.Move;
+
+                }
+            }
+            catch (Exception) { }
+        }
+
+        private bool CheckDropTarget(NodeTree sourceItem, NodeTree targetItem)
+        {
+            bool isEqual = false;
+
+            if ((sourceItem == null) || (targetItem == null))
+                return isEqual;
+
+            if (sourceItem.Name.Equals(targetItem.Name))
+                return isEqual;
+
+            // Only allow top level Node.
+            if ((targetItem is NodeFolder) || (targetItem is NodeFeed) || (targetItem is NodeService))
+                isEqual = true;
+
+            return isEqual;
+        }
+
+        private NodeTree GetNearestContainer(UIElement element)
+        {
+            // Walk up the element tree to the nearest tree view item.
+            TreeViewItem container = element as TreeViewItem;
+            NodeTree NVContainer = null;
+
+            while ((container == null) && (element != null))
+            {
+                element = VisualTreeHelper.GetParent(element) as UIElement;
+                container = element as TreeViewItem;
+            }
+            if (container != null)
+            {
+                NVContainer = container.DataContext as NodeTree;
+            }
+            return NVContainer;
+        }
+
+        private void MoveItem(NodeTree sourceItem, NodeTree targetItem)
+        {
+            if (_insertType == InsertType.Children)
+            {
+                if (targetItem is NodeFolder)
+                {
+                    //Asking user wether he want to drop the dragged TreeViewItem here or not
+                    if (MessageBox.Show("Would you like to drop " + sourceItem.Name + " into " + targetItem.Name + "", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                    {
+                        try
+                        {
+                            if ((sourceItem.Parent as NodeTree).Children.Remove(sourceItem))
+                            { 
+                                targetItem.Children.Add(sourceItem);
+                                sourceItem.Parent = targetItem;
+                                targetItem.IsExpanded = true;
+                            }
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+                    }
+                }
+            }
+            else if (_insertType == InsertType.Before)
+            {
+                if ((targetItem is NodeFolder) || (targetItem is NodeFeed) || (targetItem is NodeService))
+                {
+                    //Asking user wether he want to drop the dragged TreeViewItem here or not
+                    if (MessageBox.Show("Would you like to insert " + sourceItem.Name + " before " + targetItem.Name + "", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                    {
+                        try
+                        {
+                            if (sourceItem.Parent.Children.Remove(sourceItem))
+                            {
+                                int inx = targetItem.Parent.Children.IndexOf(targetItem);
+
+                                targetItem.Parent.Children.Insert(inx, sourceItem);
+                                sourceItem.Parent = targetItem.Parent;
+                                targetItem.IsExpanded = true;
+
+                            }
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+                    }
+                }
+            }
+        }
+
+        //--- 変更されたセパレータ、背景色を元に戻します
+        private static void ResetDragOver(ICollection<NodeTree> collection)
+        {
+            var list = collection.ToList();
+            foreach (var item in list)
+            {
+                item.IsDragOver = false;
+                item.IsBeforeDragSeparator = false;
+                item.IsAfterDragSeparator = false;
+
+                collection.Remove(item);
+            }
+        }
+
+        #endregion
 
         #region == MAXIMIZE時のタスクバー被りのFix ==
         // https://engy.us/blog/2020/01/01/implementing-a-custom-window-title-bar-in-wpf/

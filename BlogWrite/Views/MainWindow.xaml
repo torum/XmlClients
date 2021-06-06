@@ -136,7 +136,10 @@
                     <Button x:Name="PlusOutlineButton" Style="{StaticResource PathButton}" Command="{Binding ServiceAddCommand}" ToolTip="Add Service" ToolTipService.ToolTip="Add Service">
                         M15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4M15,5.9C16.16,5.9 17.1,6.84 17.1,8C17.1,9.16 16.16,10.1 15,10.1A2.1,2.1 0 0,1 12.9,8A2.1,2.1 0 0,1 15,5.9M4,7V10H1V12H4V15H6V12H9V10H6V7H4M15,13C12.33,13 7,14.33 7,17V20H23V17C23,14.33 17.67,13 15,13M15,14.9C17.97,14.9 21.1,16.36 21.1,17V18.1H8.9V17C8.9,16.36 12,14.9 15,14.9Z
                     </Button>
-                    <Button x:Name="ReloadButton" Style="{StaticResource PathButton}" ToolTip="Reload" ToolTipService.ToolTip="Reload">
+                    <Button x:Name="NewFolderButton" Style="{StaticResource PathButton}" Command="{Binding FolderAddCommand}" ToolTip="New Folder" ToolTipService.ToolTip="New Folder">
+                        M12 12H14V10H16V12H18V14H16V16H14V14H12V12M22 8V18C22 19.11 21.11 20 20 20H4C2.89 20 2 19.11 2 18V6C2 4.89 2.89 4 4 4H10L12 6H20C21.11 6 22 6.89 22 8M20 8H4V18H20V8Z
+                    </Button>
+                    <Button x:Name="ReloadButton" Style="{StaticResource PathButton}" Command="{Binding ServiceUpdateCommand}" ToolTip="Reload" ToolTipService.ToolTip="Reload">
                         M19,12H22.32L17.37,16.95L12.42,12H16.97C17,10.46 16.42,8.93 15.24,7.75C12.9,5.41 9.1,5.41 6.76,7.75C4.42,10.09 4.42,13.9 6.76,16.24C8.6,18.08 11.36,18.47 13.58,17.41L15.05,18.88C12,20.69 8,20.29 5.34,17.65C2.22,14.53 2.23,9.47 5.35,6.35C8.5,3.22 13.53,3.21 16.66,6.34C18.22,7.9 19,9.95 19,12Z
                     </Button>
 
@@ -222,12 +225,6 @@
                     ToolTip="New Entry" ToolTipService.ToolTip="New Entry">
                         M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M13,7H11V11H7V13H11V17H13V13H17V11H13V7Z
                     </Button>
-                    <Button x:Name="RefreshButton"
-                Style="{StaticResource PathButton}" 
-                    Command="{Binding RefreshEntriesCommand}"
-                    ToolTip="Refresh Entries" ToolTipService.ToolTip="Refresh Entries">
-                        M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z
-                    </Button>
                     <!--
             <Button x:Name="AutoRenewButton"
                 Style="{StaticResource PathButton}" 
@@ -311,7 +308,7 @@
 
             <!-- Left -->
             <Grid Grid.Row="2" Grid.Column="0" Background="{DynamicResource WindowBackgroundBaseColorBrush}">
-                <TreeView Margin="0 1 0 0" Style="{DynamicResource TreeViewMenuStyle}" ItemsSource="{Binding Services}" helpers:TreeViewHelper.SelectedItem="{Binding SelectedNode, Mode=TwoWay}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <TreeView x:Name="TreeViewMenu" Margin="0 1 0 0" Style="{DynamicResource TreeViewMenuStyle}" ItemsSource="{Binding Services}" helpers:TreeViewHelper.SelectedItem="{Binding SelectedNode, Mode=TwoWay}" AllowDrop="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto">
                     <TreeView.Resources>
                         <ContextMenu x:Key="TreeviewMenuItemContextMenu">
                         </ContextMenu>
@@ -329,22 +326,46 @@
                     </TreeView.Resources>
                     <TreeView.ItemTemplate>
                         <HierarchicalDataTemplate DataType="local:NodeTree" ItemsSource="{Binding Path=Children}">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                <Viewbox Width="12" Height="12" Margin="0 0 4 2">
-                                    <Canvas Width="18" Height="18">
-                                        <Path Data="{Binding PathIcon}" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}" />
-                                    </Canvas>
-                                </Viewbox>
-                                <TextBlock Text="{Binding Path=Name}" Padding="4"/>
+
+                            <StackPanel>
+                                <Separator x:Name="beforeSeparator" BorderThickness="1" BorderBrush="#fff" Visibility="Collapsed"/>
+                                <Border x:Name="PanelBackground" Background="Transparent" CornerRadius="3">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <Viewbox Width="12" Height="12" Margin="0 0 4 2">
+                                            <Canvas Width="18" Height="18">
+                                                <Path Data="{Binding PathIcon}" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}" />
+                                            </Canvas>
+                                        </Viewbox>
+                                        <TextBlock Text="{Binding Path=Name}" Padding="4"/>
+                                    </StackPanel>
+                                </Border>
+                                <Separator x:Name="afterSeparator" BorderThickness="1" BorderBrush="#fff" Visibility="Collapsed" />
                             </StackPanel>
+                            
+                            <HierarchicalDataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding IsDragOver}" Value="True">
+                                    <Setter TargetName="PanelBackground" Property="Background" Value="Gray"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsBeforeDragSeparator}" Value="True">
+                                    <Setter TargetName="beforeSeparator" Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsAfterDragSeparator}" Value="True">
+                                    <Setter TargetName="afterSeparator" Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </HierarchicalDataTemplate.Triggers>
                         </HierarchicalDataTemplate>
                     </TreeView.ItemTemplate>
                     <TreeView.ItemContainerStyle>
                         <Style TargetType="TreeViewItem" BasedOn="{StaticResource TreeViewMenuItemStyle}">
                             <Setter Property="OverridesDefaultStyle" Value="False" />
-                            <Setter Property="IsExpanded" Value="{Binding Expanded, Mode=TwoWay}"/>
-                            <Setter Property="IsSelected" Value="{Binding Selected, Mode=TwoWay}"/>
+                            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
                             <Setter Property="ContextMenu" Value="{StaticResource TreeviewMenuItemContextMenu}"/>
+
+                            <EventSetter Event="TreeViewItem.DragOver"  Handler="TreeView_DragOver"/>
+                            <EventSetter Event="TreeViewItem.Drop" Handler="TreeView_Drop"/>
+                            <EventSetter Event="TreeViewItem.MouseMove" Handler="TreeView_MouseMove"/>
+                            <EventSetter Event="TreeViewItem.MouseDown" Handler="TreeView_MouseDown"/>
                         </Style>
                     </TreeView.ItemContainerStyle>
                 </TreeView>

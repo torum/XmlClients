@@ -54,8 +54,8 @@ namespace BlogWrite.Models.Clients
                     + Environment.NewLine + Environment.NewLine
                     + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
                     + Environment.NewLine
-                    //+ s + Environment.NewLine);
-                    );
+                    + s + Environment.NewLine);
+                    
 
                 //System.Diagnostics.Debug.WriteLine("GET entries: " + s);
                 /*
