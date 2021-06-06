@@ -1,25 +1,4 @@
-﻿/// 
-/// 
-/// BlogWrite 
-///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
-/// https://github.com/torum/BlogWrite
-/// 
-/// 
-
-/**
- * 
- * EntryItem (Node)
- *   (EntryFull (EntryItem : Node))
- *   AtomEntry (EntryFull : EntryItem : Node)
- *     AtomEntryHatena (AtomEntry : EntryFull : EntryItem : Node)
- *   MTEntry (EntryFull : EntryItem : Node)
- *     WPEntry (MTEntry : EntryFull : EntryItem : Node)
- *   or
- *   WPEntry (EntryFull : EntryItem : Node)
- *      
- */
-
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;

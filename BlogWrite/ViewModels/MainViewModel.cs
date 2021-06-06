@@ -24,12 +24,13 @@ namespace BlogWrite.ViewModels
 {
     /// TODO: 
     /// 
-    /// Delete. Rename. 
-    /// SearviceDiscoveryでのパース（途中）。（HTML>RSS/Atom = Done）
+    /// TreeView nodeのDelete. Rename. 
+    /// SearviceDiscoveryでのRSS,Atomの直登録とパース（途中）。（HTML>RSS/Atom = Done）
     /// RSS(RDF) feed の自前パース。
     /// MainのMenu
 
     /// 更新履歴：
+    /// v0.0.0.5 TreeViewのD&Dと、feed登録と更新時のエラーハンドリング改善。
     /// v0.0.0.4 とりあえず、TreeViewのD&D（Folder内に入れるのとInsertBefore）実装。
     /// v0.0.0.3 とりあえず、HTML取得、解析、RSS/AtomのFeed検出、登録、表示までの流れは出来た。
     /// v0.0.0.2 色々。
@@ -42,7 +43,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.4";
+        const string _appVer = "0.0.0.5";
         public string AppVer
         {
             get

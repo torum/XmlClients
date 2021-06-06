@@ -1,20 +1,4 @@
-﻿/// 
-/// 
-/// BlogWrite 
-///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
-/// https://github.com/torum/BlogWrite
-/// 
-///  XML-RPC Movable Type API, MetaWeblog API, Blogger API
-///  https://codex.wordpress.org/XML-RPC_MovableType_API
-///  https://codex.wordpress.org/XML-RPC_MetaWeblog_API
-///  https://codex.wordpress.org/XML-RPC_Blogger_API
-///  
-///  TODO:
-///  Categories.
-///  Fault code.
-///  
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -140,6 +124,7 @@ namespace BlogWrite.Models.Clients
                 Content = new StringContent(AsUTF8Xml(xdoc), Encoding.UTF8, "text/xml")
             };
 
+            // TODO try exception
             var response = await _HTTPConn.Client.SendAsync(request);
 
             if (response.IsSuccessStatusCode)

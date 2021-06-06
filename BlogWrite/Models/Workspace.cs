@@ -1,12 +1,4 @@
-﻿/// 
-/// 
-/// BlogWrite 
-///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
-/// https://github.com/torum/BlogWrite
-/// 
-/// 
-
-using System;
+﻿using System;
 
 namespace BlogWrite.Models
 {

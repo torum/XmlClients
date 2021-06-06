@@ -1,18 +1,4 @@
-﻿/// 
-/// 
-/// BlogWrite 
-///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
-/// https://github.com/torum/BlogWrite
-/// 
-/// 
-/// Atom Syndication Format:
-///  https://tools.ietf.org/html/rfc4287
-/// Atom Publishing protocol:
-///  https://tools.ietf.org/html/rfc5023
-///  
-/// 
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -58,6 +44,7 @@ namespace BlogWrite.Models.Clients
         {
             NodeWorkspaces blogs = new NodeWorkspaces();
 
+            // TODO try exception
             var HTTPResponseMessage = await _HTTPConn.Client.GetAsync(_endpoint);
 
             if (HTTPResponseMessage.IsSuccessStatusCode)

@@ -1,23 +1,4 @@
-﻿/// 
-/// 
-/// BlogWrite 
-///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
-/// https://github.com/torum/BlogWrite
-/// 
-/// EditorViewModel
-/// 
-/// TODO:
-/// -- Priority 1 --
-///  Let MainWindow know that post has been made and let it update preview.
-///  
-/// -- Priority 2 --
-///  Better error messages for users.
-///
-/// Known issues:
-///  Hatena does not let draft=no once it is published.
-/// 
-
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using BlogWrite.Common;

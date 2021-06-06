@@ -8,18 +8,21 @@ using BlogWrite.Models;
 
 namespace BlogWrite.ViewModels
 {
-
-    /// <summary>
-    /// BlogEntryEventArgs. 
-    /// </summary>
+    // For opening editor window from MainViewModel.
     public class BlogEntryEventArgs : EventArgs
     {
         public EntryFull Entry;
     }
 
+    // For opening ServiceDiscovery window from MainViewModel.
     public class ServiceDiscoveryEventArgs : EventArgs
     {
 
     }
 
+    // For registering feed from ServiceDiscoveryViewModel.
+    public class RegisterFeedEventArgs : EventArgs
+    {
+        public FeedLink FeedLinkData { get; set; }
+    }
 }

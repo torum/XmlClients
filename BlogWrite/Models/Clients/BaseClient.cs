@@ -1,22 +1,4 @@
-﻿/// 
-/// 
-/// BlogWrite 
-///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
-/// https://github.com/torum/BlogWrite
-
-/**
- * 
- * (BaseClient)
- *   AtomFeedClient (BaseClient)
- * 
- *   (BlogClient (BaseClient))
- *     AtomPubClient : BlogClient : BaseClient
- *     XmlRpcMTClient : BlogClient : BaseClient
- *     XmlRpcWPClient : BlogClient : BaseClient
- * 
- */
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

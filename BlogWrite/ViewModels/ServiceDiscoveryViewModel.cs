@@ -1,19 +1,4 @@
-﻿/// 
-/// 
-/// BlogWrite 
-///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
-/// https://github.com/torum/BlogWrite
-/// 
-/// ServiceDiscoveryViewModel
-/// 
-/// TODO:
-///  Needs refactoring.
-/// 
-/// 
-/// Known issues:
-/// 
-
-using System;
+﻿using System;
 using System.Windows.Input;
 using System.Net.Http;
 using BlogWrite.Common;
@@ -24,91 +9,6 @@ using System.Collections.Generic;
 
 namespace BlogWrite.ViewModels
 {
-    public class RegisterFeedEventArgs : EventArgs
-    {
-        
-        public FeedLink FeedLinkData { get; set; }
-
-    }
-
-    public abstract class LinkItem : ViewModelBase
-    {
-        private string _iconPath;
-        public string IconPath
-        {
-            get
-            {
-                return _iconPath;
-            }
-            set
-            {
-                if (_iconPath == value)
-                    return;
-
-                _iconPath = value;
-
-                NotifyPropertyChanged(nameof(IconPath));
-            }
-        }
-
-        private string _typeText;
-        public string TypeText
-        {
-            get
-            {
-                return _typeText;
-            }
-            set
-            {
-                if (_typeText == value)
-                    return;
-
-                _typeText = value;
-
-                NotifyPropertyChanged(nameof(TypeText));
-            }
-        }
-
-        private string _title;
-        public string Title
-        {
-            get
-            {
-                return _title;
-            }
-            set
-            {
-                if (_title == value)
-                    return;
-
-                _title = value;
-
-                NotifyPropertyChanged(nameof(Title));
-            }
-        }
-
-    }
-
-    public class FeedLinkItem : LinkItem
-    {
-        public FeedLink FeedLinkData { get; set; }
-
-        public FeedLinkItem(FeedLink fd)
-        {
-            FeedLinkData = fd;
-        }
-    }
-
-    public class ServiceDocumentLinkItem : LinkItem
-    {
-        public SearviceDocumentLink SearviceDocumentLinkData { get; set; }
-
-        public ServiceDocumentLinkItem(SearviceDocumentLink sd)
-        {
-            SearviceDocumentLinkData = sd;
-        }
-    }
-
     public class ServiceDiscoveryViewModel : ViewModelBase
     {
         private ServiceDiscovery _serviceDiscovery;
@@ -139,6 +39,42 @@ namespace BlogWrite.ViewModels
 
                 NotifyPropertyChanged(nameof(IsBusy));
                 NotifyPropertyChanged(nameof(IsButtonEnabled));
+            }
+        }
+
+        private bool _isShowError;
+        public bool IsShowError
+        {
+            get
+            {
+                return _isShowError;
+            }
+            set
+            {
+                if (_isShowError == value)
+                    return;
+
+                _isShowError = value;
+
+                NotifyPropertyChanged(nameof(IsShowError));
+            }
+        }
+
+        private bool _isShowLog;
+        public bool IsShowLog
+        {
+            get
+            {
+                return _isShowLog;
+            }
+            set
+            {
+                if (_isShowLog == value)
+                    return;
+
+                _isShowLog = value;
+
+                NotifyPropertyChanged(nameof(IsShowLog));
             }
         }
 
@@ -276,8 +212,6 @@ namespace BlogWrite.ViewModels
             }
         }
         
-
-
         #endregion
 
         public ServiceDiscoveryViewModel()
@@ -348,7 +282,22 @@ namespace BlogWrite.ViewModels
             catch
             {
                 StatusTitleText = "Invalid URL format";
-                StatusText = "";
+                StatusText = "Should be something like http://www.test.com/test/atom";
+
+                IsShowError = true;
+                IsShowLog = false;
+
+                return;
+            }
+
+            if (!(uri.Scheme.Equals("http") || uri.Scheme.Equals("https")))
+            {
+                StatusTitleText = "Invalid URI scheme";
+                StatusText = "Should be http or https: " + uri.Scheme;
+
+                IsShowError = true;
+                IsShowLog = false;
+
                 return;
             }
 
@@ -366,17 +315,20 @@ namespace BlogWrite.ViewModels
                     StatusTitleText = (sr as ServiceResultErr).ErrTitle;
                     StatusText = (sr as ServiceResultErr).ErrDescription;
 
+                    IsShowError = true;
+                    IsShowLog = true;
+
                     return;
                 }
 
-                if (sr is ServiceResult)
+                if (sr is ServiceHtmlResult)
                 {
-                    if (((sr as ServiceResult).Feeds.Count > 0) || ((sr as ServiceResult).Services.Count > 0))
+                    if (((sr as ServiceHtmlResult).Feeds.Count > 0) || ((sr as ServiceHtmlResult).Services.Count > 0))
                     {
                         // Feeds
-                        if ((sr as ServiceResult).Feeds.Count > 0)
+                        if ((sr as ServiceHtmlResult).Feeds.Count > 0)
                         {
-                            foreach (var f in (sr as ServiceResult).Feeds)
+                            foreach (var f in (sr as ServiceHtmlResult).Feeds)
                             {
                                 FeedLinkItem li = new(f);
                                 li.Title = f.Title;
@@ -398,9 +350,9 @@ namespace BlogWrite.ViewModels
                         }
 
                         // TODO: Services
-                        if ((sr as ServiceResult).Services.Count > 0)
+                        if ((sr as ServiceHtmlResult).Services.Count > 0)
                         {
-                            foreach (var s in (sr as ServiceResult).Services)
+                            foreach (var s in (sr as ServiceHtmlResult).Services)
                             {
                                 //ServiceLinkItem li = new(s);
                                 //li.Title = 
@@ -410,6 +362,8 @@ namespace BlogWrite.ViewModels
 
                         }
 
+                        IsShowError = false;
+                        IsShowLog = false;
 
                         SelectedTabIndex = 1;
                     }
@@ -418,23 +372,20 @@ namespace BlogWrite.ViewModels
                         StatusTitleText = "Found 0 item";
                         StatusText = "Could not find any feeds or services.";
 
+                        IsShowError = true;
+                        IsShowLog = true;
+
                         return;
                     }
                 }
-
-                    
-
-                /*
-                if (sr is ServiceResultAtomFeed)
+                else if (sr is ServiceResultAtomFeed)
                 {
                     //(sr as ServiceResultAtomFeed).AtomFeedUrl
                 }
-
-                if (sr is ServiceResultRssFeed)
+                else if (sr is ServiceResultRssFeed)
                 {
                     //(sr as ServiceResultRssFeed).RssFeedUrl
                 }
-                */
 
                 //https://www.coindeskjapan.com/feed/
 
@@ -492,6 +443,9 @@ namespace BlogWrite.ViewModels
         {
             LinkItems.Clear();
             SelectedLinkItem = null;
+
+            IsShowError = false;
+            IsShowLog = false;
 
             SelectedTabIndex = 0;
         }

@@ -39,7 +39,7 @@ namespace BlogWrite.Views
 
         private InsertType _insertType = InsertType.None;
 
-        private NodeTree _draggedItem, _targetItem;
+        private NodeTree _draggingItem, _targetItem;
 
         private Point _lastLeftMouseButtonDownPoint;
 
@@ -276,11 +276,11 @@ namespace BlogWrite.Views
                     return;
                 }
 
-                _draggedItem = this.TreeViewMenu.SelectedItem as NodeTree;
+                _draggingItem = this.TreeViewMenu.SelectedItem as NodeTree;
 
-                if (_draggedItem != null)
+                if (_draggingItem != null)
                 {
-                    if ((_draggedItem is NodeService) || (_draggedItem is NodeFolder) || (_draggedItem is NodeFeed))
+                    if ((_draggingItem is NodeService) || (_draggingItem is NodeFolder) || (_draggingItem is NodeFeed))
                     {
                         DragDropEffects finalDropEffect = DragDrop.DoDragDrop(this.TreeViewMenu, this.TreeViewMenu.SelectedValue, DragDropEffects.Move);
 
@@ -288,11 +288,11 @@ namespace BlogWrite.Views
                         if ((finalDropEffect == DragDropEffects.Move) && (_targetItem != null))
                         {
                             // A Move drop was accepted
-                            if (!_draggedItem.Name.Equals(_targetItem.Name))
+                            if (!_draggingItem.Name.Equals(_targetItem.Name))
                             {
-                                MoveItem(_draggedItem, _targetItem);
+                                MoveItem(_draggingItem, _targetItem);
                                 _targetItem = null;
-                                _draggedItem = null;
+                                _draggingItem = null;
                             }
                         }
                     }
@@ -315,18 +315,18 @@ namespace BlogWrite.Views
                     // Verify that this is a valid drop and then store the drop target
                     NodeTree item = GetNearestContainer(e.OriginalSource as UIElement);
 
-                    if (CheckDropTarget(_draggedItem, item))
+                    if (CheckDropTarget(_draggingItem, item))
                     {
                         // カーソル要素がドラッグ中の要素の子要素にある時は何もする必要がないのでreturn
-                        if (item.ContainsChild(_draggedItem))
+                        if (item.ContainsChild(_draggingItem))
                             return;
-                        if (_draggedItem.ContainsChild(item))
+                        if (_draggingItem.ContainsChild(item))
                             return;
                         // Folderを別のFolder内にはドロップさせない
-                        if ((_draggedItem is NodeFolder) && (item.Parent is NodeFolder))
+                        if ((_draggingItem is NodeFolder) && (item.Parent is NodeFolder))
                             return;
                         // ServiceをFolder内にドロップさせない。
-                        if ((_draggedItem is NodeService) && (item.Parent is NodeFolder))
+                        if ((_draggingItem is NodeService) && (_draggingItem is not NodeFeed) && (item.Parent is NodeFolder))
                             return;
 
                         var pos = e.GetPosition(e.OriginalSource as UIElement);
@@ -352,8 +352,17 @@ namespace BlogWrite.Views
                         */
                         else
                         {
-                            if ((_draggedItem is NodeService) && ((item is NodeFolder) || (item.Parent is NodeFolder)))
-                                return;
+                            if (_draggingItem is NodeService)
+                            {
+                                if (_draggingItem is not NodeFeed)
+                                {
+                                    if ((item is NodeFolder) || (item.Parent is NodeFolder))
+                                    {
+                                        e.Effects = DragDropEffects.None;
+                                        return;
+                                    }
+                                }
+                            }
 
                             if (item is NodeFolder)
                             {
@@ -401,12 +410,12 @@ namespace BlogWrite.Views
 
                 // Verify that this is a valid drop and then store the drop target
                 NodeTree TargetItem = GetNearestContainer(e.OriginalSource as UIElement);
-                if (TargetItem != null && _draggedItem != null)
+                if (TargetItem != null && _draggingItem != null)
                 {
                     // カーソル要素がドラッグ中の要素の子要素にある時は何もする必要がないのでreturn
-                    if (TargetItem.ContainsChild(_draggedItem))
+                    if (TargetItem.ContainsChild(_draggingItem))
                         return;
-                    if (_draggedItem.ContainsChild(TargetItem))
+                    if (_draggingItem.ContainsChild(TargetItem))
                         return;
 
                     _targetItem = TargetItem;
@@ -430,6 +439,10 @@ namespace BlogWrite.Views
             // Only allow top level Node.
             if ((targetItem is NodeFolder) || (targetItem is NodeFeed) || (targetItem is NodeService))
                 isEqual = true;
+
+            // ServiceをFolder内にドロップさせない。
+            if ((_draggingItem is NodeService) && (_draggingItem is not NodeFeed) && (targetItem.Parent is NodeFolder))
+                isEqual = false;
 
             return isEqual;
         }

@@ -1,15 +1,4 @@
-﻿/// 
-/// 
-/// BlogWrite 
-///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
-/// https://github.com/torum/BlogWrite
-/// 
-/// TODO:
-/// 
-/// need Atom NodeMediaCollection
-/// 
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,6 +8,11 @@ using BlogWrite.Models.Clients;
 
 namespace BlogWrite.Models
 {
+    /// TODO:
+    /// 
+    /// need Atom NodeMediaCollection
+    /// 
+
     /// <summary>
     /// class for EntryNode child (for treeview).
     /// </summary>

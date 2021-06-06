@@ -27,68 +27,106 @@ namespace BlogWrite.Models.Clients
 
             List<EntryItem> list = new List<EntryItem>();
 
-            var HTTPResponseMessage = await _HTTPConn.Client.GetAsync(entriesUrl);
-
-            if (HTTPResponseMessage.IsSuccessStatusCode)
+            if (!(entriesUrl.Scheme.Equals("http") || entriesUrl.Scheme.Equals("https")))
             {
-                string s = await HTTPResponseMessage.Content.ReadAsStringAsync();
-
-                ToDebugWindow(">> HTTP Request GET "
-                    //+ Environment.NewLine
-                    + entriesUrl.AbsoluteUri
-                    + Environment.NewLine + Environment.NewLine
-                    + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
+                ToDebugWindow("<< Invalid URI scheme:"
                     + Environment.NewLine
-                    + s + Environment.NewLine);
-                    
-                try
-                {
-                    TextReader tr = new StringReader(s);
-                    XmlReader reader = XmlReader.Create(tr);
-                    SyndicationFeed feed = SyndicationFeed.Load(reader);
-                    tr.Close();
-                    reader.Close();
+                    + entriesUrl.Scheme
+                    + Environment.NewLine);
 
-                    foreach (SyndicationItem item in feed.Items)
-                    {
-                        EntryItem ent = new EntryItem("", this);
-                        ent.Status = EntryItem.EntryStatus.esNormal;
+                ClientErrorMessage = "Invalid URI scheme (should be http or https): " + entriesUrl.Scheme;
 
-                        FillEntryItemFromSynItem(ent, item);
-
-                        list.Add(ent);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine("Invalid RSS/XML: " + e.Message);
-
-                    ToDebugWindow("<< Invalid RSS/XML returned:"
-                        + Environment.NewLine
-                        + e.Message
-                        + Environment.NewLine);
-
-                    ClientErrorMessage = "Invalid RSS/XML returned: " + e.Message;
-
-                    return list;
-                }
+                return list;
             }
-            else
-            {
-                var contents = await HTTPResponseMessage.Content.ReadAsStringAsync();
 
-                if (contents != null)
+            try
+            {
+                var HTTPResponseMessage = await _HTTPConn.Client.GetAsync(entriesUrl);
+
+                if (HTTPResponseMessage.IsSuccessStatusCode)
                 {
+                    string s = await HTTPResponseMessage.Content.ReadAsStringAsync();
+
                     ToDebugWindow(">> HTTP Request GET "
                         //+ Environment.NewLine
                         + entriesUrl.AbsoluteUri
                         + Environment.NewLine + Environment.NewLine
                         + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
                         + Environment.NewLine
-                        + contents + Environment.NewLine);
+                        + s + Environment.NewLine);
+
+                    try
+                    {
+                        TextReader tr = new StringReader(s);
+                        XmlReader reader = XmlReader.Create(tr);
+                        SyndicationFeed feed = SyndicationFeed.Load(reader);
+                        tr.Close();
+                        reader.Close();
+
+                        foreach (SyndicationItem item in feed.Items)
+                        {
+                            EntryItem ent = new EntryItem("", this);
+                            ent.Status = EntryItem.EntryStatus.esNormal;
+
+                            FillEntryItemFromSynItem(ent, item);
+
+                            list.Add(ent);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine("Invalid RSS/XML: " + e.Message);
+
+                        ToDebugWindow("<< Invalid RSS/XML returned:"
+                            + Environment.NewLine
+                            + e.Message
+                            + Environment.NewLine);
+
+                        ClientErrorMessage = "Invalid RSS/XML returned: " + e.Message;
+
+                        return list;
+                    }
+                }
+                else
+                {
+                    var contents = await HTTPResponseMessage.Content.ReadAsStringAsync();
+
+                    if (contents != null)
+                    {
+                        ToDebugWindow(">> HTTP Request GET "
+                            //+ Environment.NewLine
+                            + entriesUrl.AbsoluteUri
+                            + Environment.NewLine + Environment.NewLine
+                            + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
+                            + Environment.NewLine
+                            + contents + Environment.NewLine);
+                    }
+
+                    ClientErrorMessage = "HTTP request failed: " + HTTPResponseMessage.StatusCode.ToString();
                 }
 
-                ClientErrorMessage = "HTTP request failed: " + HTTPResponseMessage.StatusCode.ToString();
+            }
+            catch (System.Net.Http.HttpRequestException e)
+            {
+                Debug.WriteLine("<< HttpRequestException: " + e.Message);
+
+                ToDebugWindow(" << HttpRequestException: "
+                    + Environment.NewLine
+                    + e.Message
+                    + Environment.NewLine);
+
+                ClientErrorMessage = "HTTP request error: " + e.Message;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("HTTP error: " + e.Message);
+
+                ToDebugWindow("<< HTTP error:"
+                    + Environment.NewLine
+                    + e.Message
+                    + Environment.NewLine);
+
+                ClientErrorMessage = "HTTP error: " + e.Message;
             }
 
             return list;
