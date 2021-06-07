@@ -95,6 +95,7 @@ namespace BlogWrite.ViewModels
         {
             FeedLinkData = fd;
             DisplayUrl = fd.FeedUri.AbsoluteUri;
+            Title = fd.Title;
         }
     }
 

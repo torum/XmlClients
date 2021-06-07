@@ -25,11 +25,16 @@ namespace BlogWrite.ViewModels
     /// TODO: 
     /// 
     /// TreeView nodeのDelete. Rename. 
-    /// SearviceDiscoveryでのRSS,Atomの直登録とパース（途中）。（HTML>RSS/Atom = Done）
-    /// RSS(RDF) feed の自前パース。
+    ///
     /// MainのMenu
+    /// 
+    /// Entryから画像の抽出とダウンロード。
+    /// ListViewの代わりにカード形式で表示。
+    /// 
+    /// SQLiteにエントリを保存。
 
     /// 更新履歴：
+    /// v0.0.0.6 とりあえず、SearviceDiscoveryでのRSS/Atomのパースと直登録。RSSのfeed の自前パース（Atomは既に済み）。
     /// v0.0.0.5 TreeViewのD&Dと、feed登録と更新時のエラーハンドリング改善。
     /// v0.0.0.4 とりあえず、TreeViewのD&D（Folder内に入れるのとInsertBefore）実装。
     /// v0.0.0.3 とりあえず、HTML取得、解析、RSS/AtomのFeed検出、登録、表示までの流れは出来た。
@@ -43,7 +48,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.5";
+        const string _appVer = "0.0.0.6";
         public string AppVer
         {
             get
@@ -502,7 +507,17 @@ li {
                     if (Application.Current == null) { return; }
                     Application.Current.Dispatcher.Invoke(() =>
                     {
-                        DebugWindowShowHide?.Invoke();
+                        //DebugWindowShowHide?.Invoke
+                        DebugWindowShowHide2?.Invoke(this, true);
+                    });
+                }
+                else
+                {
+                    if (Application.Current == null) { return; }
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        //DebugWindowShowHide?.Invoke();
+                        DebugWindowShowHide2?.Invoke(this, false);
                     });
                 }
             }
@@ -575,6 +590,8 @@ li {
         public delegate void DebugWindowShowHideEventHandler();
         public event DebugWindowShowHideEventHandler DebugWindowShowHide;
 
+        public event EventHandler<bool> DebugWindowShowHide2;
+
         public event EventHandler<string> DebugOutput;
 
         public delegate void DebugClearEventHandler();
@@ -596,6 +613,7 @@ li {
             System.IO.Directory.CreateDirectory(_appDataFolder);
 
             #endregion
+
             #region == Commands init ==
 
             ServiceAddCommand = new RelayCommand(ServiceAddCommand_Execute, ServiceAddCommand_CanExecute);
@@ -633,6 +651,7 @@ li {
             OpenEditorAsNewCommand = new RelayCommand(OpenEditorAsNewCommand_Execute, OpenEditorAsNewCommand_CanExecute);
             ShowSettingsCommand = new RelayCommand(ShowSettingsCommand_Execute, ShowSettingsCommand_CanExecute);
             ShowDebugWindowCommand = new RelayCommand(ShowDebugWindowCommand_Execute, ShowDebugWindowCommand_CanExecute);
+            CloseDebugWindowCommand = new RelayCommand(CloseDebugWindowCommand_Execute, CloseDebugWindowCommand_CanExecute);
             ClearDebugTextCommand = new RelayCommand(ClearDebugTextCommand_Execute, ClearDebugTextCommand_CanExecute);
 
             #endregion
@@ -1453,6 +1472,16 @@ li {
             {
                 DebugWindowShowHide?.Invoke();
             });
+        }
+
+        public ICommand CloseDebugWindowCommand { get; }
+        public bool CloseDebugWindowCommand_CanExecute()
+        {
+            return true;
+        }
+        public void CloseDebugWindowCommand_Execute()
+        {
+            DebugWindowShowHide2?.Invoke(this, false);
         }
 
         public ICommand ClearDebugTextCommand { get; }

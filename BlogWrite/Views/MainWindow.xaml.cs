@@ -62,6 +62,7 @@ namespace BlogWrite.Views
                 if (vm != null)
                 {
                     vm.DebugWindowShowHide += () => this.OnDebugWindowShowHide();
+                    vm.DebugWindowShowHide2 += (sender, arg) => OnDebugWindowShowHide2(arg);
 
                     vm.DebugOutput += (sender, arg) => { this.OnDebugOutput(arg); };
 
@@ -251,14 +252,45 @@ namespace BlogWrite.Views
             }
         }
 
+        public void OnDebugWindowShowHide2(bool on)
+        {
+            if (on)
+            {
+                LayoutGrid.RowDefinitions[2].Height = new GridLength(3, GridUnitType.Star);
+
+                LayoutGrid.RowDefinitions[3].Height = new GridLength(8);
+                LayoutGrid.RowDefinitions[4].Height = new GridLength(1, GridUnitType.Star);
+
+                DebugWindowGridSplitter.Visibility = Visibility.Visible;
+                DebugWindow.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                LayoutGrid.RowDefinitions[2].Height = new GridLength(1, GridUnitType.Star);
+
+                LayoutGrid.RowDefinitions[3].Height = new GridLength(0);
+                LayoutGrid.RowDefinitions[4].Height = new GridLength(0);
+
+                DebugWindowGridSplitter.Visibility = Visibility.Collapsed;
+                DebugWindow.Visibility = Visibility.Collapsed;
+            }
+        }
+
+
         #region == Treeview D&D ==
 
         // https://aonasuzutsuki.hatenablog.jp/entry/2020/10/01/170406
 
         private void TreeView_MouseDown (object sender, MouseButtonEventArgs e)
         {
-            if (e.ChangedButton != MouseButton.Left) { return; }
+            if (e.ChangedButton != MouseButton.Left)
+                return;
+
             this._lastLeftMouseButtonDownPoint = e.GetPosition(this.TreeViewMenu);
+        }
+
+        private void TreeView_MouseUp(object sender, MouseButtonEventArgs e)
+        {
         }
 
         private void TreeView_MouseMove(object sender, MouseEventArgs e)
@@ -364,6 +396,12 @@ namespace BlogWrite.Views
                                 }
                             }
 
+                            if ((_draggingItem is NodeFolder) && (item is NodeFolder))
+                            {
+                                e.Effects = DragDropEffects.None;
+                                return;
+                            }
+
                             if (item is NodeFolder)
                             {
                                 _insertType = InsertType.Children;
@@ -406,7 +444,6 @@ namespace BlogWrite.Views
             try
             {
                 e.Handled = true;
-                e.Effects = DragDropEffects.None;
 
                 // Verify that this is a valid drop and then store the drop target
                 NodeTree TargetItem = GetNearestContainer(e.OriginalSource as UIElement);
@@ -421,6 +458,10 @@ namespace BlogWrite.Views
                     _targetItem = TargetItem;
                     e.Effects = DragDropEffects.Move;
 
+                }
+                else
+                {
+                    e.Effects = DragDropEffects.None;
                 }
             }
             catch (Exception) { }
@@ -442,6 +483,9 @@ namespace BlogWrite.Views
 
             // ServiceをFolder内にドロップさせない。
             if ((_draggingItem is NodeService) && (_draggingItem is not NodeFeed) && (targetItem.Parent is NodeFolder))
+                isEqual = false;
+
+            if ((_draggingItem is NodeFolder) && (targetItem.Parent is NodeFolder))
                 isEqual = false;
 
             return isEqual;
@@ -472,22 +516,19 @@ namespace BlogWrite.Views
                 if (targetItem is NodeFolder)
                 {
                     //Asking user wether he want to drop the dragged TreeViewItem here or not
-                    if (MessageBox.Show("Would you like to drop " + sourceItem.Name + " into " + targetItem.Name + "", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                    //if (MessageBox.Show("Would you like to drop " + sourceItem.Name + " into " + targetItem.Name + "", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                    //{
+                    //}
+                    try
                     {
-                        try
+                        if ((sourceItem.Parent as NodeTree).Children.Remove(sourceItem))
                         {
-                            if ((sourceItem.Parent as NodeTree).Children.Remove(sourceItem))
-                            { 
-                                targetItem.Children.Add(sourceItem);
-                                sourceItem.Parent = targetItem;
-                                targetItem.IsExpanded = true;
-                            }
-                        }
-                        catch (Exception)
-                        {
-
+                            targetItem.Children.Add(sourceItem);
+                            sourceItem.Parent = targetItem;
+                            targetItem.IsExpanded = true;
                         }
                     }
+                    catch (Exception) { }
                 }
             }
             else if (_insertType == InsertType.Before)
@@ -495,25 +536,22 @@ namespace BlogWrite.Views
                 if ((targetItem is NodeFolder) || (targetItem is NodeFeed) || (targetItem is NodeService))
                 {
                     //Asking user wether he want to drop the dragged TreeViewItem here or not
-                    if (MessageBox.Show("Would you like to insert " + sourceItem.Name + " before " + targetItem.Name + "", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                    //if (MessageBox.Show("Would you like to insert " + sourceItem.Name + " before " + targetItem.Name + "", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                    //{
+                    //}
+                    try
                     {
-                        try
+                        if (sourceItem.Parent.Children.Remove(sourceItem))
                         {
-                            if (sourceItem.Parent.Children.Remove(sourceItem))
-                            {
-                                int inx = targetItem.Parent.Children.IndexOf(targetItem);
+                            int inx = targetItem.Parent.Children.IndexOf(targetItem);
 
-                                targetItem.Parent.Children.Insert(inx, sourceItem);
-                                sourceItem.Parent = targetItem.Parent;
-                                targetItem.IsExpanded = true;
-
-                            }
-                        }
-                        catch (Exception)
-                        {
+                            targetItem.Parent.Children.Insert(inx, sourceItem);
+                            sourceItem.Parent = targetItem.Parent;
+                            targetItem.IsExpanded = true;
 
                         }
                     }
+                    catch (Exception) { }
                 }
             }
         }

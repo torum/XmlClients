@@ -14,6 +14,7 @@ using System.Collections.ObjectModel;
 using System.Net;
 using AngleSharp;
 using AngleSharp.Html.Parser;
+using AngleSharp.Xml.Parser;
 
 namespace BlogWrite.Models
 {
@@ -131,32 +132,15 @@ namespace BlogWrite.Models
         }
     }
 
-    // base class for feed result
-    abstract class ServiceResultFeed : ServiceResultBase
+    class ServiceResultFeed : ServiceResultBase
     {
-        public Uri FeedUrl;
+        public FeedLink FeedlinkInfo;
 
-        public string Title { get; set; } = "New Feed";
-
-        public ServiceResultFeed(Uri addr)
-        {
-            FeedUrl = addr;
-        }
-    }
-
-    class ServiceResultAtomFeed : ServiceResultFeed
-    {
-        public ServiceResultAtomFeed(Uri addr) : base(addr)
+        public ServiceResultFeed()
         {
         }
     }
 
-    class ServiceResultRssFeed : ServiceResultFeed
-    {
-        public ServiceResultRssFeed(Uri addr) : base(addr)
-        {
-        }
-    }
 
     /*
     // Base result class for API or Protocol
@@ -294,8 +278,8 @@ namespace BlogWrite.Models
                         {
                             UpdateStatus("- Parsing the HTML document ...");
 
-                            //await ParseHTML(HTTPResponse.Content, res);
-                            ServiceResultBase res = await ParseHTML(HTTPResponse.Content);
+                            // HTML parse.
+                            ServiceResultBase res = await ParseHtml(HTTPResponse.Content);
 
                             if (res is ServiceHtmlResult)
                             {
@@ -308,14 +292,25 @@ namespace BlogWrite.Models
 
                             return res;
                         }
+                        else if (contenTypeString.StartsWith("text/xml") || contenTypeString.StartsWith("application/xml"))
+                        {
+                            UpdateStatus(string.Format("- Ambiguous Content-Type {0} returned. ", contenTypeString));
+
+                            UpdateStatus("- Parsing XML document to determine the what this is ...");
+
+                            // XML parse.
+                            ServiceResultBase xml = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
+
+                            return xml;
+                        }
                         else if (contenTypeString.StartsWith("application/rss+xml"))
                         {
                             UpdateStatus("- Parsing RSS feed ...");
 
                             // RSS parse.
-                            ServiceResultBase rss = await Task.Run(() => ParseRSS(HTTPResponse.Content, addr));
+                            ServiceResultBase feed = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
 
-                            return rss;
+                            return feed;
                         }
                         else if (contenTypeString.StartsWith("application/atomsvc+xml"))
                         {
@@ -336,7 +331,7 @@ namespace BlogWrite.Models
                         }
                         else if (contenTypeString.StartsWith("application/rsd+xml"))
                         {
-                            bool y = await GetRSD();
+                            bool y = await GetRsd();
                             /*
                             if (((_serviceTypes == ServiceTypes.XmlRpc_WordPress) || (_serviceTypes == ServiceTypes.XmlRpc_MovableType)) 
                                 && (_endpointUrl != null))
@@ -460,7 +455,7 @@ namespace BlogWrite.Models
             }
         }
 
-        private async Task<ServiceResultBase> ParseHTML(HttpContent content)
+        private async Task<ServiceResultBase> ParseHtml(HttpContent content)
         {
             ServiceHtmlResult res = new();
 
@@ -683,17 +678,136 @@ namespace BlogWrite.Models
             */
         }
 
-        private ServiceResultBase ParseRSS(HttpContent content, Uri addr)
+        private async Task<ServiceResultBase> ParseXml(HttpContent content, Uri addr)
         {
-            ServiceResultRssFeed ret = new ServiceResultRssFeed(addr);
+            var source = await content.ReadAsStreamAsync();
 
-            // for error
-            //ServiceResultErr ret = new ServiceResultErr("HTTP error.", "Could not retrieve any document.");
+            var parser = new XmlParser();
+            var document = await parser.ParseDocumentAsync(source);
 
-            return  (ret as ServiceResultBase);
+            bool isOK = false;
+            string feedTitle;
+
+            if (document != null)
+            {
+                if (document.DocumentElement != null)
+                {
+                    // Possibly RSS 2.0
+                    if (document.DocumentElement.LocalName.Equals("rss"))
+                    {
+                        string ver = document.DocumentElement.GetAttribute("version");
+
+                        if (!string.IsNullOrEmpty(ver))
+                        {
+                            if (ver.Equals("2.0"))
+                            {
+                                UpdateStatus("RSS 2.0 feed detected.");
+                                isOK = true;
+                            }
+                        }
+
+                        feedTitle = document.DocumentElement.QuerySelector("channel > title").TextContent;
+
+                        if (!string.IsNullOrEmpty(feedTitle))
+                        {
+                            UpdateStatus("Found a title for the RSS feed.");
+                        }
+                        else
+                        {
+                            feedTitle = "Empty RSS feed title";
+                        }
+
+                        if (isOK)
+                        {
+                            ServiceResultFeed rss = new ServiceResultFeed();
+                            rss.FeedlinkInfo = new(addr, FeedLink.FeedKinds.Rss, feedTitle);
+
+                            return (rss as ServiceResultBase);
+                        }
+                    }
+                    // Possibly RSS 1.0
+                    else if (document.DocumentElement.LocalName.Equals("RDF"))
+                    {
+                        string ns = document.DocumentElement.GetAttribute("xmlns");
+
+                        if (!string.IsNullOrEmpty(ns))
+                        {
+                            if (ns.Equals("http://purl.org/rss/1.0/"))
+                            {
+                                ns = document.DocumentElement.GetAttribute("xmlns:rdf");
+                                if (!string.IsNullOrEmpty(ns))
+                                {
+                                    if (ns.Equals("http://www.w3.org/1999/02/22-rdf-syntax-ns#"))
+                                    {
+                                        UpdateStatus("RSS 1.0 feed detected.");
+                                        isOK = true;
+                                    }
+                                }
+                            }
+                        }
+
+                        feedTitle = document.DocumentElement.QuerySelector("channel > title").TextContent;
+
+                        if (!string.IsNullOrEmpty(feedTitle))
+                        {
+                            UpdateStatus("Found a title for the RSS feed.");
+                        }
+                        else
+                        {
+                            feedTitle = "Empty RSS feed title";
+                        }
+
+                        if (isOK)
+                        {
+                            ServiceResultFeed rdf = new ServiceResultFeed();
+                            rdf.FeedlinkInfo = new(addr, FeedLink.FeedKinds.Rss, feedTitle);
+
+                            return (rdf as ServiceResultBase);
+                        }
+                    }
+                    // Possibly Atom feed
+                    else if (document.DocumentElement.LocalName.Equals("feed"))
+                    {
+                        string ns = document.DocumentElement.GetAttribute("xmlns");
+
+                        if (!string.IsNullOrEmpty(ns))
+                        {
+                            if (ns.Equals("http://www.w3.org/2005/Atom"))
+                            {
+
+                                UpdateStatus("Atom feed detected.");
+                                isOK = true;
+                            }
+                        }
+
+                        feedTitle = document.DocumentElement.QuerySelector("feed > title").TextContent;
+
+                        if (!string.IsNullOrEmpty(feedTitle))
+                        {
+                            UpdateStatus("Found a title for the Atom feed.");
+                        }
+                        else
+                        {
+                            feedTitle = "Empty Atom feed title";
+                        }
+
+                        if (isOK)
+                        {
+                            ServiceResultFeed atom = new ServiceResultFeed();
+                            atom.FeedlinkInfo = new(addr, FeedLink.FeedKinds.Atom, feedTitle);
+
+                            return (atom as ServiceResultBase);
+                        }
+                    }
+                }
+            }
+
+            ServiceResultErr ret = new ServiceResultErr("XML parse error.", "Could not parse the document.");
+
+            return (ret as ServiceResultBase);
         }
 
-        private async Task<bool> GetRSD()
+        private async Task<bool> GetRsd()
         {
             UpdateStatus(">> Trying to access the RSD document...");
             /*
@@ -899,35 +1013,6 @@ namespace BlogWrite.Models
     </feed>
     */
 
-    ////////////////////////////////////////////////////////////////////////////////
-
-
-
-    // IPersistStreamInit
-
-    [ComImport(), Guid("0000010c-0000-0000-C000-000000000046"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    interface IPersist
-    {
-        void GetClassID(Guid pClassId);
-    }
-    [ComImport(), Guid("7FD52380-4E07-101B-AE2D-08002B2EC713"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    interface IPersistStreamInit : IPersist
-    {
-        void GetClassID([In, Out] ref Guid pClassId);
-        [return: MarshalAs(UnmanagedType.I4)]
-        [PreserveSig()]
-        int IsDirty();
-        [return: MarshalAs(UnmanagedType.I4)]
-        [PreserveSig()]
-        void Load(IStream pStm); //System.Runtime.InteropServices.ComTypes.IStream
-        [return: MarshalAs(UnmanagedType.I4)]
-        [PreserveSig()]
-        void Save(IStream pStm, [In, MarshalAs(UnmanagedType.Bool)] bool fClearDirty);//System.Runtime.InteropServices.ComTypes.IStream
-        void GetMaxSize([Out]long pCbSize);
-        [return: MarshalAs(UnmanagedType.I4)]
-        [PreserveSig()]
-        void InitNew();
-    }
 }
 
 

@@ -239,6 +239,7 @@
                                         <Trigger Property="VirtualizingPanel.IsVirtualizing" Value="true">
                                             <Setter Property="CanContentScroll" TargetName="_tv_scrollviewer_" Value="true"/>
                                         </Trigger>
+
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
                             </Setter.Value>
@@ -344,6 +345,18 @@
                                             <Setter Property="Foreground" Value="{DynamicResource ItemSelectedForegroundColorBrush}"/>
                                             <Setter TargetName="Bd" Property="TextElement.FontWeight" Value="Bold"/>
                                         </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Foreground" Value="{DynamicResource ItemMouseOverForegroundColorBrush}" />
+                                        </Trigger>
+                                        <MultiTrigger>
+                                            <MultiTrigger.Conditions>
+                                                <Condition Property="IsSelected" Value="true"/>
+                                                <Condition Property="IsMouseOver" Value="True"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ItemSelectedBackgroundColorBrush}"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource ItemSelectedInactiveForegroundColorBrush}"/>
+                                            <Setter TargetName="Bd" Property="TextElement.FontWeight" Value="Bold"/>
+                                        </MultiTrigger>
                                         <MultiTrigger>
                                             <MultiTrigger.Conditions>
                                                 <Condition Property="IsSelected" Value="true"/>
@@ -356,6 +369,45 @@
                                         <Trigger Property="IsEnabled" Value="false">
                                             <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
                                         </Trigger>
+                                        <!--
+                                        <Trigger Property="IsExpanded" Value="false">
+                                            <Setter TargetName="ItemsHost" Property="Visibility" Value="Collapsed"/>
+                                        </Trigger>
+                                        <Trigger Property="HasItems" Value="false">
+                                            <Setter TargetName="Expander"  Property="Visibility"  Value="Hidden"/>
+                                        </Trigger>
+                                        <MultiTrigger>
+                                            <MultiTrigger.Conditions>
+                                                <Condition Property="HasHeader" Value="false"/>
+                                                <Condition Property="Width" Value="Auto"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter TargetName="PART_Header" Property="MinWidth" Value="75"/>
+                                        </MultiTrigger>
+                                        <MultiTrigger>
+                                            <MultiTrigger.Conditions>
+                                                <Condition Property="HasHeader" Value="false"/>
+                                                <Condition Property="Height" Value="Auto"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter TargetName="PART_Header" Property="MinHeight" Value="19"/>
+                                        </MultiTrigger>
+                                        <Trigger Property="IsSelected" Value="true">
+                                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ItemSelectedBackgroundColorBrush}"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource ItemSelectedForegroundColorBrush}"/>
+                                            <Setter TargetName="Bd" Property="TextElement.FontWeight" Value="Bold"/>
+                                        </Trigger>
+                                        <MultiTrigger>
+                                            <MultiTrigger.Conditions>
+                                                <Condition Property="IsSelected" Value="true"/>
+                                                <Condition Property="IsSelectionActive" Value="false"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ItemSelectedInactiveBackgroundColorBrush}"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource ItemSelectedInactiveForegroundColorBrush}"/>
+                                            <Setter TargetName="Bd" Property="TextElement.FontWeight" Value="Bold"/>
+                                        </MultiTrigger>
+                                        <Trigger Property="IsEnabled" Value="false">
+                                            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                                        </Trigger>
+                                        -->
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
                             </Setter.Value>

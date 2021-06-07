@@ -378,53 +378,32 @@ namespace BlogWrite.ViewModels
                         return;
                     }
                 }
-                else if (sr is ServiceResultAtomFeed)
+                else if (sr is ServiceResultFeed)
                 {
-                    //(sr as ServiceResultAtomFeed).AtomFeedUrl
-                }
-                else if (sr is ServiceResultRssFeed)
-                {
-                    //(sr as ServiceResultRssFeed).RssFeedUrl
-                }
+                    FeedLink feed = (sr as ServiceResultFeed).FeedlinkInfo;
 
-                //https://www.coindeskjapan.com/feed/
+                    FeedLinkItem li = new(feed);
 
-                //ServiceResultAuthRequired
+                    if (feed.FeedKind == FeedLink.FeedKinds.Atom)
+                    {
+                        li.IconPath = IconPathStrings["AtomFeed"];
+                        li.TypeText = "Atom Feed";
+                    }
+                    else if (feed.FeedKind == FeedLink.FeedKinds.Rss)
+                    {
+                        li.IconPath = IconPathStrings["RssFeed"];
+                        li.TypeText = "RSS Feed";
+                    }
 
-                //ServiceResultAtomPub
-                //ServiceResultXmlRpc
-                //ServiceResultAtomAPI
+                    LinkItems.Add(li);
 
-                //sr.EndpointUri
+                    IsShowError = false;
+                    IsShowLog = false;
 
-                /*
-                switch (sr.Service)
-                {
-                    case ServiceTypes.AtomPub:
-                        //
-                        break;
-                    case ServiceTypes.AtomPub_Hatena:
-                        //
-                        break;
-                    case ServiceTypes.XmlRpc_WordPress:
-                        //
-                        break;
-                    case ServiceTypes.XmlRpc_MovableType:
-                        //
-                        break;
-                    case ServiceTypes.AtomApi:
-                        //
-                        break;
-                    case ServiceTypes.AtomApi_GData:
-                        //
-                        break;
-                    case ServiceTypes.Unknown:
-                        //
-                        break;
-
+                    SelectedTabIndex = 1;
                 }
 
-                */
+
             }
             finally
             {
