@@ -45,6 +45,8 @@ namespace BlogWrite.Views
 
         private readonly HashSet<NodeTree> _changedBlocks = new HashSet<NodeTree>();
 
+        private bool IsRenamingInProgress;
+
         #endregion
 
         public MainWindow()
@@ -277,7 +279,179 @@ namespace BlogWrite.Views
         }
 
 
-        #region == Treeview D&D ==
+        #region == TreeviewItem Delete ==
+
+        private void TreeViewMenuItemDelete_Click(object sender, RoutedEventArgs e)
+        {
+            NodeTree targetItem = (TreeViewMenu.SelectedItem as NodeTree);
+
+            if (targetItem == null)
+                return;
+
+            if ((targetItem is NodeFolder) || (targetItem is NodeFeed) || (targetItem is NodeService))
+            {
+                if (MessageBox.Show(string.Format("Are you sure you want delete {0}?", targetItem.Name), "Comfirmation", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        if (targetItem.Parent.Children.Remove(targetItem))
+                        {
+                            
+                        }
+                    }
+                    catch (Exception) { }
+                }
+            }
+        }
+
+        #endregion
+
+        #region == TreeviewItem In-place Renaming ==
+
+        public static TreeViewItem ContainerFromItemRecursive(ItemContainerGenerator root, object item)
+        {
+            var treeViewItem = root.ContainerFromItem(item) as TreeViewItem;
+            if (treeViewItem != null)
+                return treeViewItem;
+            foreach (var subItem in root.Items)
+            {
+                treeViewItem = root.ContainerFromItem(subItem) as TreeViewItem;
+                if (treeViewItem != null)
+                {
+                    var search = ContainerFromItemRecursive(treeViewItem.ItemContainerGenerator, item);
+                    if (search != null)
+                        return search;
+                }
+            }
+            return null;
+        }
+
+        private childItem FindVisualChild<childItem>(DependencyObject obj) where childItem : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(obj, i);
+                if (child != null && child is childItem)
+                    return (childItem)child;
+                else
+                {
+                    childItem childOfChild = FindVisualChild<childItem>(child);
+                    if (childOfChild != null)
+                        return childOfChild;
+                }
+            }
+            return null;
+        }
+
+        private void TreeViewMenuItemRename_Click(object sender, RoutedEventArgs e)
+        {
+            if (!CheckRenameOK(TreeViewMenu.SelectedItem as NodeTree))
+                return;
+
+            TreeViewItem item = ContainerFromItemRecursive(TreeViewMenu.ItemContainerGenerator, TreeViewMenu.SelectedItem);
+            if (item == null) 
+                return;
+
+            //item.Focus();
+
+            TextBox renameTextBox = FindVisualChild<TextBox>(item as DependencyObject);
+            if (renameTextBox != null)
+            {
+                IsRenamingInProgress = true;
+
+                renameTextBox.Visibility = Visibility.Visible;
+
+                renameTextBox.Focus();
+                renameTextBox.SelectAll();
+
+            }
+        }
+
+        private void RenameTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            UpdateTreeViewItemName();
+        }
+
+        private void RenameTextBox_KeyUp(object sender, KeyEventArgs e)
+        {
+            // TODO: Enter key
+            if (e.Key == Key.Return)
+            {
+                // NOT GOOD if IME is on.
+                //UpdateTreeViewItemName();
+            }
+        }
+
+        private void UpdateTreeViewItemName()
+        {
+            TreeViewItem item = ContainerFromItemRecursive(TreeViewMenu.ItemContainerGenerator, TreeViewMenu.SelectedItem);
+            if (item == null)
+                return;
+
+            item.Focus();
+
+            TextBox renameTextBox = FindVisualChild<TextBox>(item as DependencyObject);
+            if (renameTextBox != null)
+            {
+                renameTextBox.Visibility = Visibility.Collapsed;
+
+                NodeTree tvm = TreeViewMenu.SelectedItem as NodeTree;
+                if (tvm != null)
+                {
+                    if (!string.IsNullOrEmpty(renameTextBox.Text))
+                    {
+                        if (tvm.Name != renameTextBox.Text)
+                            tvm.Name = renameTextBox.Text;
+                    }
+                }
+
+                IsRenamingInProgress = false;
+            }
+        }
+
+        private bool CheckRenameOK(NodeTree nd)
+        {
+            if ((nd is NodeFeed) || (nd is NodeFolder) || (nd is NodeService))
+                return true;
+            else
+                return false;
+        }
+
+        // Right click select
+        private void TreeViewItem_OnPreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            //NodeTree item = GetNearestContainer(e.OriginalSource as UIElement);
+            TreeViewItem item = GetParentObjectEx<TreeViewItem>(e.OriginalSource as DependencyObject) as TreeViewItem;
+            if (item != null)
+            {
+                // the current node has focus
+                item.Focus();
+                item.IsSelected = true;
+
+                // no longer handle the operating system
+                e.Handled = true;
+
+            }
+        }
+
+
+        public TreeViewItem GetParentObjectEx<TreeViewItem>(DependencyObject obj) where TreeViewItem : FrameworkElement
+        {
+            DependencyObject parent = VisualTreeHelper.GetParent(obj);
+            while (parent != null)
+            {
+                if (parent is TreeViewItem)
+                {
+                    return (TreeViewItem)parent;
+                }
+                parent = VisualTreeHelper.GetParent(parent);
+            }
+            return null;
+        }
+
+        #endregion
+
+        #region == Treeview Drag & Drop ==
 
         // https://aonasuzutsuki.hatenablog.jp/entry/2020/10/01/170406
 
@@ -296,6 +470,9 @@ namespace BlogWrite.Views
         private void TreeView_MouseMove(object sender, MouseEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Released)
+                return;
+
+            if (IsRenamingInProgress)
                 return;
 
             try
@@ -337,6 +514,9 @@ namespace BlogWrite.Views
         {
             // 背景色やセパレータを元に戻します
             ResetDragOver(_changedBlocks);
+
+            if (IsRenamingInProgress)
+                return;
 
             try
             {
@@ -441,9 +621,13 @@ namespace BlogWrite.Views
             // 背景色やセパレータを元に戻します
             ResetDragOver(_changedBlocks);
 
+            e.Handled = true;
+
+            if (IsRenamingInProgress)
+                return;
+
             try
             {
-                e.Handled = true;
 
                 // Verify that this is a valid drop and then store the drop target
                 NodeTree TargetItem = GetNearestContainer(e.OriginalSource as UIElement);
@@ -472,10 +656,13 @@ namespace BlogWrite.Views
             bool isEqual = false;
 
             if ((sourceItem == null) || (targetItem == null))
-                return isEqual;
+                return false;
 
             if (sourceItem.Name.Equals(targetItem.Name))
-                return isEqual;
+                return false;
+
+            if (IsRenamingInProgress)
+                return false;
 
             // Only allow top level Node.
             if ((targetItem is NodeFolder) || (targetItem is NodeFeed) || (targetItem is NodeService))
@@ -573,6 +760,7 @@ namespace BlogWrite.Views
         #endregion
 
         #region == MAXIMIZE時のタスクバー被りのFix ==
+
         // https://engy.us/blog/2020/01/01/implementing-a-custom-window-title-bar-in-wpf/
 
         protected override void OnSourceInitialized(EventArgs e)

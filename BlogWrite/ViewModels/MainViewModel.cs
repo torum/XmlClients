@@ -24,16 +24,15 @@ namespace BlogWrite.ViewModels
 {
     /// TODO: 
     /// 
-    /// TreeView nodeのDelete. Rename. 
-    ///
     /// MainのMenu
     /// 
     /// Entryから画像の抽出とダウンロード。
     /// ListViewの代わりにカード形式で表示。
+    /// SQLiteにエントリを保存し、Feed 既読管理。
     /// 
-    /// SQLiteにエントリを保存。
 
     /// 更新履歴：
+    /// v0.0.0.7 TreeviewItem's In-Place Renaming and Right Click Select.
     /// v0.0.0.6 とりあえず、SearviceDiscoveryでのRSS/Atomのパースと直登録。RSSのfeed の自前パース（Atomは既に済み）。
     /// v0.0.0.5 TreeViewのD&Dと、feed登録と更新時のエラーハンドリング改善。
     /// v0.0.0.4 とりあえず、TreeViewのD&D（Folder内に入れるのとInsertBefore）実装。
@@ -48,7 +47,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.6";
+        const string _appVer = "0.0.0.7";
         public string AppVer
         {
             get
@@ -666,6 +665,7 @@ li {
                 _services.LoadXmlDoc(doc);
 
                 InitClients();
+
             }
         }
 
@@ -753,7 +753,7 @@ li {
 
             #endregion
 
-            IsShowDebugWindow = true;
+            IsShowDebugWindow = false;
         }
 
         // 終了時の処理

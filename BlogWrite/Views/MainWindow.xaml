@@ -313,6 +313,21 @@
                 <TreeView x:Name="TreeViewMenu" Margin="0 1 0 0" Style="{DynamicResource TreeViewMenuStyle}" ItemsSource="{Binding Services}" helpers:TreeViewHelper.SelectedItem="{Binding SelectedNode, Mode=TwoWay}" AllowDrop="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto">
                     <TreeView.Resources>
                         <ContextMenu x:Key="TreeviewMenuItemContextMenu">
+                            <MenuItem Name="TreeViewMenuItemRename" Header="名前の変更" Click="TreeViewMenuItemRename_Click">
+                            </MenuItem>
+                            <Separator/>
+                            <MenuItem Name="TreeViewMenuItemDelete" Header="削除" Click="TreeViewMenuItemDelete_Click">
+                                <MenuItem.Resources>
+                                    <ControlTemplate x:Key="TreeViewItemRemoveIcon">
+                                        <Canvas Background="Transparent" >
+                                            <Path Fill="#373737" Width="14.3775" Height="14" Canvas.Left="0.311264" Canvas.Top="0.500005" Stretch="Uniform" Data="M2,6V8H14V6H2M2,10V12H11V10H2M14.17,10.76L12.76,12.17L15.59,15L12.76,17.83L14.17,19.24L17,16.41L19.83,19.24L21.24,17.83L18.41,15L21.24,12.17L19.83,10.76L17,13.59L14.17,10.76M2,14V16H11V14H2Z" />
+                                        </Canvas>
+                                    </ControlTemplate>
+                                </MenuItem.Resources>
+                                <MenuItem.Icon>
+                                    <ContentControl Template="{StaticResource TreeViewItemRemoveIcon}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
                         </ContextMenu>
                         <Style TargetType="{x:Type ScrollBar}">
                             <Setter Property="Margin" Value="0,0,0,0" />
@@ -328,17 +343,19 @@
                     </TreeView.Resources>
                     <TreeView.ItemTemplate>
                         <HierarchicalDataTemplate DataType="local:NodeTree" ItemsSource="{Binding Path=Children}">
-
                             <StackPanel>
                                 <Separator x:Name="beforeSeparator" BorderThickness="1" BorderBrush="#fff" Visibility="Collapsed"/>
                                 <Border x:Name="PanelBackground" Background="Transparent" CornerRadius="3">
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <Viewbox Width="12" Height="12" Margin="0 0 4 2">
-                                            <Canvas Width="18" Height="18">
-                                                <Path Data="{Binding PathIcon}" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}" />
-                                            </Canvas>
-                                        </Viewbox>
-                                        <TextBlock Text="{Binding Path=Name}" Padding="4"/>
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <Viewbox Width="12" Height="12" Margin="0 0 4 2">
+                                                <Canvas Width="18" Height="18">
+                                                    <Path Data="{Binding PathIcon}" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}" />
+                                                </Canvas>
+                                            </Viewbox>
+                                            <TextBlock x:Name="NodeTextBlock" Text="{Binding Path=Name}" Padding="4"/>
+                                        </StackPanel>
+                                        <TextBox x:Name="RenameTextBox" Text="{Binding Name, Mode=TwoWay}" HorizontalAlignment="Left" Margin="20,-23,0,0" Width="Auto" MinWidth="{Binding ElementName=NodeTextBlock, Path=ActualWidth}" Visibility="Collapsed" LostFocus="RenameTextBox_LostFocus" KeyUp="RenameTextBox_KeyUp"/>
                                     </StackPanel>
                                 </Border>
                                 <Separator x:Name="afterSeparator" BorderThickness="1" BorderBrush="#fff" Visibility="Collapsed" />
@@ -364,6 +381,10 @@
                             <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
                             <Setter Property="ContextMenu" Value="{StaticResource TreeviewMenuItemContextMenu}"/>
 
+                            <!-- For right click select -->
+                            <EventSetter Event="TreeViewItem.PreviewMouseRightButtonDown"  Handler="TreeViewItem_OnPreviewMouseRightButtonDown"/>
+
+                            <!-- For drag and drop -->
                             <EventSetter Event="TreeViewItem.DragOver"  Handler="TreeView_DragOver"/>
                             <EventSetter Event="TreeViewItem.Drop" Handler="TreeView_Drop"/>
                             <EventSetter Event="TreeViewItem.MouseMove" Handler="TreeView_MouseMove"/>
