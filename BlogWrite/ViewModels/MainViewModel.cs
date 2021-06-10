@@ -28,10 +28,12 @@ namespace BlogWrite.ViewModels
     /// 
     /// Entryから画像の抽出とダウンロード。
     /// ListViewの代わりにカード形式で表示。
+    /// 
     /// SQLiteにエントリを保存し、Feed 既読管理。
     /// 
 
     /// 更新履歴：
+    /// v0.0.0.8 Listview と Cardview の切り替えTabControlを付けた。BrowserとDebugWindow の表示切替を実装。 Browserが非表示の際はデフォルトのブラウザを立ち上げる。
     /// v0.0.0.7 TreeviewItem's In-Place Renaming and Right Click Select.
     /// v0.0.0.6 とりあえず、SearviceDiscoveryでのRSS/Atomのパースと直登録。RSSのfeed の自前パース（Atomは既に済み）。
     /// v0.0.0.5 TreeViewのD&Dと、feed登録と更新時のエラーハンドリング改善。
@@ -47,7 +49,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.7";
+        const string _appVer = "0.0.0.8";
         public string AppVer
         {
             get
@@ -219,6 +221,10 @@ namespace BlogWrite.ViewModels
                 if (_selectedItem == null)
                     return;
 
+                NavigateUrlToContentPreviewBrowser?.Invoke(this, _selectedItem.AltHTMLUri);
+
+
+                /*
                 if (IsContentHTML)
                 {
                     if (Application.Current == null) { return; }
@@ -227,6 +233,8 @@ namespace BlogWrite.ViewModels
                         WriteHtmlToContentPreviewBrowser?.Invoke(this, EntryHTML);
                     });
                 }
+
+                */
             }
         }
 
@@ -487,21 +495,21 @@ li {
 
         #region == Visivility flags == 
 
-        private bool _isShowDebugWindow;
-        public bool IsShowDebugWindow
+        private bool _isDebugWindowEnabled;
+        public bool IsDebugWindowEnabled
 
         {
-            get { return _isShowDebugWindow; }
+            get { return _isDebugWindowEnabled; }
             set
             {
-                if (_isShowDebugWindow == value)
+                if (_isDebugWindowEnabled == value)
                     return;
 
-                _isShowDebugWindow = value;
+                _isDebugWindowEnabled = value;
 
-                NotifyPropertyChanged("IsShowDebugWindow");
-
-                if (_isShowDebugWindow)
+                NotifyPropertyChanged("IsDebugWindowEnabled");
+                /*
+                if (_isDebugWindowEnabled)
                 {
                     if (Application.Current == null) { return; }
                     Application.Current.Dispatcher.Invoke(() =>
@@ -519,8 +527,28 @@ li {
                         DebugWindowShowHide2?.Invoke(this, false);
                     });
                 }
+                */
             }
         }
+
+
+        private bool _isShowContentBrowserWindow;
+        public bool IsShowContentBrowserWindow
+
+        {
+            get { return _isShowContentBrowserWindow; }
+            set
+            {
+                if (_isShowContentBrowserWindow == value)
+                    return;
+
+                _isShowContentBrowserWindow = value;
+
+                NotifyPropertyChanged("IsShowContentBrowserWindow");
+
+            }
+        }
+
 
         #endregion
 
@@ -596,7 +624,15 @@ li {
         public delegate void DebugClearEventHandler();
         public event DebugClearEventHandler DebugClear;
 
-        public event EventHandler<string> WriteHtmlToContentPreviewBrowser;
+        //public event EventHandler<string> WriteHtmlToContentPreviewBrowser;
+
+        public event EventHandler<Uri> NavigateUrlToContentPreviewBrowser;
+
+
+        public delegate void ContentsBrowserWindowShowHideEventHandler();
+        public event ContentsBrowserWindowShowHideEventHandler ContentsBrowserWindowShowHide;
+
+        public event EventHandler<bool> ContentsBrowserWindowShowHide2;
 
         #endregion
 
@@ -652,6 +688,10 @@ li {
             ShowDebugWindowCommand = new RelayCommand(ShowDebugWindowCommand_Execute, ShowDebugWindowCommand_CanExecute);
             CloseDebugWindowCommand = new RelayCommand(CloseDebugWindowCommand_Execute, CloseDebugWindowCommand_CanExecute);
             ClearDebugTextCommand = new RelayCommand(ClearDebugTextCommand_Execute, ClearDebugTextCommand_CanExecute);
+
+            CloseContentBrowserCommand = new RelayCommand(CloseContentBrowserCommand_Execute, CloseContentBrowserCommand_CanExecute);
+
+            ShowBrowserWindowCommand = new RelayCommand(ShowBrowserWindowCommand_Execute, ShowBrowserWindowCommand_CanExecute);
 
             #endregion
 
@@ -753,7 +793,8 @@ li {
 
             #endregion
 
-            IsShowDebugWindow = false;
+            IsDebugWindowEnabled = true;
+            CloseContentBrowserCommand_Execute();
         }
 
         // 終了時の処理
@@ -881,7 +922,7 @@ li {
 
         public void OnDebugOutput(BaseClient sender, string data)
         {
-            if (IsShowDebugWindow)
+            if (IsDebugWindowEnabled)
             {
                 if (Application.Current == null) { return; }
                 Application.Current.Dispatcher.Invoke(() =>
@@ -1498,6 +1539,25 @@ li {
             });
         }
 
+        public ICommand CloseContentBrowserCommand { get; }
+        public bool CloseContentBrowserCommand_CanExecute()
+        {
+            return true;
+        }
+        public void CloseContentBrowserCommand_Execute()
+        {
+            ContentsBrowserWindowShowHide2?.Invoke(this, false);
+        }
+
+        public ICommand ShowBrowserWindowCommand { get; }
+        public bool ShowBrowserWindowCommand_CanExecute()
+        {
+            return true;
+        }
+        public void ShowBrowserWindowCommand_Execute()
+        {
+            ContentsBrowserWindowShowHide?.Invoke();
+        }
 
         #endregion
 

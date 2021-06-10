@@ -70,10 +70,15 @@ namespace BlogWrite.Views
 
                     vm.DebugClear += () => this.OnDebugClear();
 
-                    vm.WriteHtmlToContentPreviewBrowser += (sender, arg) => { this.OnWriteHtmlToContentPreviewBrowser(arg); };
+                    //vm.WriteHtmlToContentPreviewBrowser += (sender, arg) => { this.OnWriteHtmlToContentPreviewBrowser(arg); };
+                    
+                    vm.NavigateUrlToContentPreviewBrowser += (sender, arg) => { this.OnNavigateUrlToContentPreviewBrowser(arg); };
 
                     vm.OpenServiceDiscoveryView += (sender, arg) => { this.OnCreateServiceDiscoveryWindow(this); };
 
+                    vm.ContentsBrowserWindowShowHide += () => this.OnContentsBrowserWindowShowHide();
+
+                    vm.ContentsBrowserWindowShowHide2 += (sender, arg) => this.OnContentsBrowserWindowShowHide2(arg);
 
                     App app = App.Current as App;
                     if (app != null)
@@ -87,6 +92,7 @@ namespace BlogWrite.Views
                 }
             }
         }
+
 
         public void BringToForeground()
         {
@@ -216,6 +222,24 @@ namespace BlogWrite.Views
             ContentPreviewWebBrowser.NavigateToString(arg);
         }
 
+        public void OnNavigateUrlToContentPreviewBrowser(Uri arg)
+        {
+            if (arg == null)
+                return;
+
+            if (GridRightBottom.Visibility == Visibility.Visible)
+            {
+                // 
+                ContentPreviewWebBrowser.Source = arg;
+            }
+            else
+            {
+                ProcessStartInfo psi = new ProcessStartInfo(arg.AbsoluteUri);
+                psi.UseShellExecute = true;
+                Process.Start(psi);
+            }
+        }
+
         public void OnDebugOutput(string arg)
         {
             // AppendText() is much faster than data binding.
@@ -275,6 +299,42 @@ namespace BlogWrite.Views
 
                 DebugWindowGridSplitter.Visibility = Visibility.Collapsed;
                 DebugWindow.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        public void OnContentsBrowserWindowShowHide()
+        {
+            if (GridRightBottom.Visibility == Visibility.Visible)
+            {
+                OnContentsBrowserWindowShowHide2(false);
+            }
+            else
+            {
+                OnContentsBrowserWindowShowHide2(true);
+            }
+        }
+
+        public void OnContentsBrowserWindowShowHide2(bool on)
+        {
+            if (on)
+            {
+                GridRight.RowDefinitions[2].Height = new GridLength(2, GridUnitType.Star);
+
+                GridRight.RowDefinitions[3].Height = new GridLength(8, GridUnitType.Pixel);
+                GridRight.RowDefinitions[4].Height = new GridLength(5, GridUnitType.Star);
+
+                SplitterRightMiddle.Visibility = Visibility.Visible;
+                GridRightBottom.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                GridRight.RowDefinitions[2].Height = new GridLength(1, GridUnitType.Star);
+
+                GridRight.RowDefinitions[3].Height = new GridLength(0);
+                GridRight.RowDefinitions[4].Height = new GridLength(0);
+
+                SplitterRightMiddle.Visibility = Visibility.Collapsed;
+                GridRightBottom.Visibility = Visibility.Collapsed;
             }
         }
 
