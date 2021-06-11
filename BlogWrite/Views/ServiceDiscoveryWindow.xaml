@@ -93,7 +93,7 @@
 
             </Grid>
 
-            <TabControl Grid.Row="1" Grid.Column="1" Margin="6" Background="Transparent" SelectedIndex="{Binding SelectedTabIndex}" Style="{DynamicResource HiddlenTabControl}">
+            <TabControl Grid.Row="1" Grid.Column="1" Margin="6 6 6 12" Background="Transparent" SelectedIndex="{Binding SelectedTabIndex}" Style="{DynamicResource HiddlenTabControl}">
                 <!-- URL input page -->
                 <TabItem>
                     <Grid>
@@ -110,7 +110,7 @@
                         
                         <!-- URL input textbox -->
                         <StackPanel Grid.Row="0" Grid.Column="1">
-                            <Label Content="Website address, feed URL or API endpoint:" Style="{DynamicResource DefaultLabelStyle}" Margin="6"></Label>
+                            <Label Content="URL (Website, Feed or API endpoint) :" Style="{DynamicResource DefaultLabelStyle}" Margin="6"></Label>
                             <Border VerticalAlignment="Center" HorizontalAlignment="Stretch" CornerRadius="3" Background="{StaticResource NormalTextBoxBackgroundColorBrush}" Padding="0" Margin="6">
                                 <TextBox VerticalAlignment="Center" HorizontalAlignment="Stretch" Text="{Binding WebsiteOrEndpointUrl, UpdateSourceTrigger=PropertyChanged}" IsVisibleChanged="TextBox_IsVisibleChanged">
                                     <TextBox.Style>
@@ -253,7 +253,7 @@
 
                             <Viewbox Grid.Row="0" Grid.Column="0" Margin="12" HorizontalAlignment="Left" VerticalAlignment="Top" Stretch="Uniform" Width="24" Height="24" Focusable="False" FocusVisualStyle="{x:Null}">
                                 <Canvas Opacity="1" Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                    <Path Opacity="0.9" Width="12" Height="12" Fill="#E81123" Stretch="Uniform" Data="M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z">
+                                    <Path Opacity="0.9" Width="12" Height="12" Fill="Yellow" Stretch="Uniform" Data="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16">
                                     </Path>
                                 </Canvas>
                             </Viewbox>

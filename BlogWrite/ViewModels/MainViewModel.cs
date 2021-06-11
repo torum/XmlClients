@@ -24,15 +24,20 @@ namespace BlogWrite.ViewModels
 {
     /// TODO: 
     /// 
-    /// MainのMenu
+    /// App Icon / App name
+    /// 
+    /// ListView Published/Updated
     /// 
     /// Entryから画像の抽出とダウンロード。
     /// ListViewの代わりにカード形式で表示。
     /// 
     /// SQLiteにエントリを保存し、Feed 既読管理。
     /// 
+    /// AtomPub and XML-RPC ..
+    /// 
 
     /// 更新履歴：
+    /// v0.0.0.9 とりあえず、MainMenuのスタイル。Listviewのソート。
     /// v0.0.0.8 Listview と Cardview の切り替えTabControlを付けた。BrowserとDebugWindow の表示切替を実装。 Browserが非表示の際はデフォルトのブラウザを立ち上げる。
     /// v0.0.0.7 TreeviewItem's In-Place Renaming and Right Click Select.
     /// v0.0.0.6 とりあえず、SearviceDiscoveryでのRSS/Atomのパースと直登録。RSSのfeed の自前パース（Atomは既に済み）。
@@ -49,7 +54,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.8";
+        const string _appVer = "0.0.0.9";
         public string AppVer
         {
             get
@@ -1176,6 +1181,7 @@ li {
         {
             NodeFolder folder = new("New Folder");
             folder.Parent = _services;
+            folder.IsSelected = true;
 
             // Add NodeFolder to internal (virtual) Treeview.
             Application.Current.Dispatcher.Invoke(() => Services.Add(folder));
