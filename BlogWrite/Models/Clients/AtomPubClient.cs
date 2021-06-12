@@ -483,7 +483,7 @@ namespace BlogWrite.Models.Clients
 
                 foreach (XmlNode l in entryList)
                 {
-                    EntryItem ent = new EntryItem("", this);
+                    AtomEntry ent = new AtomEntry("", this);
 
                     FillEntryItemFromXML(ent, l, atomNsMgr);
 
@@ -509,7 +509,7 @@ namespace BlogWrite.Models.Clients
             return list;
         }
 
-        private void FillEntryItemFromXML(EntryItem entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr)
+        private void FillEntryItemFromXML(AtomEntry entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr)
         {
 
             AtomEntry entry = CreateAtomEntryFromXML(entryNode, atomNsMgr);
@@ -518,9 +518,9 @@ namespace BlogWrite.Models.Clients
 
             entItem.Name = entry.Name;
             //entItem.ID = entry.ID;
-            entItem.EntryID = entry.EntryID;
+            entItem.EntryId = entry.EntryId;
             entItem.EditUri = entry.EditUri;
-            entItem.AltHTMLUri = entry.AltHTMLUri;
+            entItem.AltHtmlUri = entry.AltHtmlUri;
             entItem.EntryBody = entry;
 
             entItem.Status = entry.Status;
@@ -759,9 +759,9 @@ namespace BlogWrite.Models.Clients
 
 
             entry.Name = (entryTitle != null) ? entryTitle.InnerText : "";
-            entry.EntryID = (entryID != null) ? entryID.InnerText : "";
+            entry.EntryId = (entryID != null) ? entryID.InnerText : "";
             entry.EditUri = editUri;
-            entry.AltHTMLUri = altUri;
+            entry.AltHtmlUri = altUri;
 
             XmlNode cont = entryNode.SelectSingleNode("atom:content", atomNsMgr);
             if (cont == null)

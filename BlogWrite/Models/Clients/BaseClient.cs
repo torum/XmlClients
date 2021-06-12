@@ -7,11 +7,13 @@ using System.Xml.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using BlogWrite.Models;
+using AngleSharp;
+using BlogWrite.Common;
 
 namespace BlogWrite.Models.Clients
 {
     /// <summary>
-    /// Plain wrapped HTTP client.
+    /// Plain HTTP client wrapped.
     /// </summary>
     /// 
     public class HTTPConnection
@@ -32,8 +34,10 @@ namespace BlogWrite.Models.Clients
         // HTTP client
         protected HTTPConnection _HTTPConn;
 
+        //
         public abstract Task<List<EntryItem>> GetEntries(Uri entriesUrl);
 
+        //
         private string _clientErrorMessage;
         public string ClientErrorMessage
         {
@@ -61,12 +65,54 @@ namespace BlogWrite.Models.Clients
             _HTTPConn = new HTTPConnection();
         }
 
+        /// <summary>
+        /// Writes to Debug (raises event)
+        /// </summary>
         protected void ToDebugWindow(string data)
         {
             Task nowait = Task.Run(() => { DebugOutput?.Invoke(this, data); });
         }
 
+        /// <summary>
+        /// Strips style attributes from HTML string.
+        /// </summary>
+        protected async Task<string> StripStyleAttributes(string s)
+        {
+            var context = BrowsingContext.New(Configuration.Default);
+            var document = await context.OpenAsync(req => req.Content(s));
+            //var blueListItemsLinq = document.QuerySelectorAll("*")
+            var ItemsLinq = document.All.Where(m => m.HasAttribute("style"));
+            foreach (var item in ItemsLinq)
+            {
+                item.RemoveAttribute("style");
+            }
+
+            //return document.DocumentElement.TextContent;
+            return document.DocumentElement.InnerHtml;
+
+        }
+
+        /// <summary>
+        /// Strips HTML tags from HTML string.
+        /// </summary>
+        protected async Task<string> StripHtmlTags(string s)
+        {
+            var context = BrowsingContext.New(Configuration.Default);
+            var document = await context.OpenAsync(req => req.Content(s));
+
+            return document.DocumentElement.TextContent;
+        }
+
+        /// <summary>
+        /// Truncates string with maxLength.
+        /// </summary>
+        protected static string Truncate(string value, int maxLength)
+        {
+            if (string.IsNullOrEmpty(value)) return value;
+            return value.Length <= maxLength ? value : value.Substring(0, maxLength) + " ...";
+        }
     }
+}
 
     /*
     /// <summary>
@@ -96,4 +142,4 @@ namespace BlogWrite.Models.Clients
     }
     */
 
-}
+

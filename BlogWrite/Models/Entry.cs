@@ -21,15 +21,15 @@ namespace BlogWrite.Models
         private EntryStatus _es;
 
         /// <summary>
-        /// System unique id used for file name or unique id for table in db. We auto-generate at constructer.
+        /// System-wide unique id used for file name or unique id for table in db. We auto-generate at constructer.
         /// </summary>
-        public string ID { get; }
+        public string Id { get; }
 
         /// <summary>
         /// Entry' ID provided by services.
         /// In XML-RPC, this is the "postid"
         /// </summary>
-        public string EntryID { get; set; }
+        public string EntryId { get; set; }
 
         /// <summary>
         /// Pointer to the NodeEntryCollection. Used in an Editor window to post entry etc.
@@ -37,29 +37,10 @@ namespace BlogWrite.Models
         public NodeEntryCollection NodeEntry { get; set; }
 
         /// <summary>
-        /// Entry's PostUri. In XML-RPC, this is xmlrpcUri same as EditUri.
-        /// </summary>
-        public Uri PostUri { get; set; }
-
-        /// <summary>
-        /// Entry's EditUri. In XML-RPC, this is xmlrpcUri.
-        /// </summary>
-        public Uri EditUri { get; set; }
-
-        /// <summary>
         /// A link to Entry's HTML webpage.
         /// </summary>
-        public Uri AltHTMLUri { get; set; }
+        public Uri AltHtmlUri { get; set; }
 
-        // TODO:
-        // created
-        // last update
-
-        // author
-
-        /// <summary>
-        /// Entry's title.
-        /// </summary>
         public string Title
         {
             get
@@ -75,6 +56,71 @@ namespace BlogWrite.Models
                 NotifyPropertyChanged(nameof(Title));
             }
         }
+
+        private string _summary;
+        public string Summary
+        {
+            get
+            {
+                return _summary;
+            }
+            set
+            {
+                if (_summary == value)
+                    return;
+
+                _summary = value;
+                NotifyPropertyChanged(nameof(Summary));
+            }
+        }
+
+        private string _summaryPlainText;
+        public string SummaryPlainText
+        {
+            get
+            {
+                return _summaryPlainText;
+            }
+            set
+            {
+                if (_summaryPlainText == value)
+                    return;
+
+                _summaryPlainText = value;
+                NotifyPropertyChanged(nameof(SummaryPlainText));
+            }
+        }
+
+        // in UTC
+        private DateTime _published;
+        public DateTime Published
+        {
+            get
+            {
+                return _published;
+            }
+            set
+            {
+                if (_published == value)
+                    return;
+
+                _published = value;
+                NotifyPropertyChanged(nameof(Published));
+            }
+        }
+
+        public string PublishedDateTimeFormated
+        {
+            get
+            {
+                var culture = System.Globalization.CultureInfo.CurrentCulture;
+                return _published.ToString(culture);
+            }
+        }
+
+        // TODO:
+        // author
+
 
         /// <summary>
         /// IsDraft flag. AtomPub and XML-PRC WP. MP doesn't have this?
@@ -139,16 +185,25 @@ namespace BlogWrite.Models
 
         public BaseClient Client { get; } = null;
 
-        public EntryFull EntryBody { get; set; }
-
         // Constructor.
         public EntryItem(string title, BaseClient bc) : base(title)
         {
             Client = bc;
-            ID = Guid.NewGuid().ToString();
+            Id = Guid.NewGuid().ToString();
             Status = EntryStatus.esNew;
         }
         
+    }
+
+    /// <summary>
+    /// Feed Entry class, which represents Feed Entry.
+    /// </summary>
+    public class FeedEntry : EntryItem
+    {
+        public FeedEntry(string title, BaseClient bc) : base(title, bc)
+        {
+
+        }
     }
 
     /// <summary>
@@ -158,6 +213,16 @@ namespace BlogWrite.Models
     {
         protected string _content = "";
 
+
+        /// <summary>
+        /// Entry's PostUri. In XML-RPC, this is xmlrpcUri same as EditUri.
+        /// </summary>
+        public Uri PostUri { get; set; }
+
+        /// <summary>
+        /// Entry's EditUri. In XML-RPC, this is xmlrpcUri.
+        /// </summary>
+        public Uri EditUri { get; set; }
 
         //type="text/html"
         //type="text/x-hatena-syntax"
@@ -189,6 +254,9 @@ namespace BlogWrite.Models
                 NotifyPropertyChanged(nameof(Content));
             }
         }
+
+        public EntryFull EntryBody { get; set; }
+
 
         protected EntryFull(string title, BaseClient bc) : base(title, bc)
         {
@@ -246,7 +314,7 @@ namespace BlogWrite.Models
             xdoc.AppendChild(rootNode);
 
             XmlElement idNode = xdoc.CreateElement(string.Empty, "id", "http://www.w3.org/2005/Atom");
-            XmlText idTextNode = xdoc.CreateTextNode(this.EntryID);
+            XmlText idTextNode = xdoc.CreateTextNode(this.EntryId);
             idNode.AppendChild(idTextNode);
             rootNode.AppendChild(idNode);
 

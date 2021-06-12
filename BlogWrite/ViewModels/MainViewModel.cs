@@ -26,10 +26,7 @@ namespace BlogWrite.ViewModels
     /// 
     /// App Icon / App name
     /// 
-    /// ListView Published/Updated
-    /// 
     /// Entryから画像の抽出とダウンロード。
-    /// ListViewの代わりにカード形式で表示。
     /// 
     /// SQLiteにエントリを保存し、Feed 既読管理。
     /// 
@@ -37,6 +34,7 @@ namespace BlogWrite.ViewModels
     /// 
 
     /// 更新履歴：
+    /// v0.0.0.10 とりあえず、カード表示を実装。タイトル、要約、日付の表示。
     /// v0.0.0.9 とりあえず、MainMenuのスタイル。Listviewのソート。
     /// v0.0.0.8 Listview と Cardview の切り替えTabControlを付けた。BrowserとDebugWindow の表示切替を実装。 Browserが非表示の際はデフォルトのブラウザを立ち上げる。
     /// v0.0.0.7 TreeviewItem's In-Place Renaming and Right Click Select.
@@ -54,7 +52,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.9";
+        const string _appVer = "0.0.0.10";
         public string AppVer
         {
             get
@@ -133,52 +131,6 @@ namespace BlogWrite.ViewModels
             }
         }
 
-        public bool IsContentText
-        {
-            get
-            {
-                if (_selectedItem == null)
-                    return false;
-
-                if (!(_selectedItem is EntryItem))
-                    return false;
-
-                if ((_selectedItem as EntryItem).EntryBody == null)
-                    return false;
-
-                if ((_selectedItem as EntryItem).EntryBody.ContentType == EntryFull.ContentTypes.text)
-                {
-                    // Debug.WriteLine("IsContentText");
-                    return true;
-                }
-
-                return false;
-            }
-        }
-
-        public bool IsContentHTML
-        {
-            get
-            {
-                if (_selectedItem == null)
-                    return false;
-
-                if (!(_selectedItem is EntryItem))
-                    return false;
-
-                if ((_selectedItem as EntryItem).EntryBody == null)
-                    return false;
-
-                if ((_selectedItem as EntryItem).EntryBody.ContentType == EntryFull.ContentTypes.textHtml)
-                {
-                    //Debug.WriteLine("IsContentHTML");
-                    return true;
-                }
-
-                return false;
-            }
-        }
-
         #endregion
 
         #region == ListView ==
@@ -226,26 +178,65 @@ namespace BlogWrite.ViewModels
                 if (_selectedItem == null)
                     return;
 
-                NavigateUrlToContentPreviewBrowser?.Invoke(this, _selectedItem.AltHTMLUri);
+                //NavigateUrlToContentPreviewBrowser?.Invoke(this, _selectedItem.AltHTMLUri);
 
-
-                /*
                 if (IsContentHTML)
                 {
-                    if (Application.Current == null) { return; }
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        WriteHtmlToContentPreviewBrowser?.Invoke(this, EntryHTML);
-                    });
+                    //WriteHtmlToContentPreviewBrowser?.Invoke(this, EntryHTML);
                 }
+            }
+        }
 
+        public bool IsContentText
+        {
+            get
+            {
+                if (_selectedItem == null)
+                    return false;
+
+                if (!(_selectedItem is EntryItem))
+                    return false;
+                /*
+                if ((_selectedItem as EntryItem).EntryBody == null)
+                    return false;
+
+                if ((_selectedItem as EntryItem).EntryBody.ContentType == EntryFull.ContentTypes.text)
+                {
+                    // Debug.WriteLine("IsContentText");
+                    return true;
+                }
                 */
+
+                return false;
+            }
+        }
+
+        public bool IsContentHTML
+        {
+            get
+            {
+                if (_selectedItem == null)
+                    return false;
+
+                if (!(_selectedItem is EntryItem))
+                    return false;
+                /*
+                if ((_selectedItem as EntryItem).EntryBody == null)
+                    return false;
+
+                if ((_selectedItem as EntryItem).EntryBody.ContentType == EntryFull.ContentTypes.textHtml)
+                {
+                    //Debug.WriteLine("IsContentHTML");
+                    return true;
+                }
+                */
+                return false;
             }
         }
 
         #endregion
 
-        #region == Content View ==
+        #region == Content View (TODO) ==
 
         public string Entry
         {
@@ -256,37 +247,18 @@ namespace BlogWrite.ViewModels
 
                 if (_selectedItem is EntryItem)
                 {
+                    /*
                     if ((_selectedItem as EntryItem).EntryBody != null)
                     {
                         return (_selectedItem as EntryItem).EntryBody.Content;
-                        /*
-                        if ((_selectedItem as EntryItem).EntryBody.ContentType == EntryFull.ContentTypes.textHtml)
-                        {
-                            return null;
-                        }
-                        else
-                        {
-                            return (_selectedItem as EntryItem).EntryBody.Content;
-                        }
-                        */
+
                     }
                     else
                     {
-                        // For testing only.
-                        /*
-                        Task.Run(async () => {
-                            bool b = await this.GetEntry(_selectedItem as EntryItem);
-                            if (b)
-                            {
-                                NotifyPropertyChanged(nameof(Entry));
-                                NotifyPropertyChanged(nameof(EntryHTML));
-                                NotifyPropertyChanged(nameof(IsContentText));
-                                NotifyPropertyChanged(nameof(IsContentHTML));
-                            }
-                        });
-                        */
                         return null;
                     }
+                    */
+                    return null;
                 }
                 else
                 {
@@ -302,6 +274,7 @@ namespace BlogWrite.ViewModels
                 if (_selectedItem == null)
                     return WrapHtmlContent("");
 
+                /*
                 if (_selectedItem is EntryItem)
                 {
                     if ((_selectedItem as EntryItem).EntryBody != null)
@@ -320,18 +293,6 @@ namespace BlogWrite.ViewModels
                     }
                     else
                     {
-                        /*
-                        Task.Run(async () => {
-                            bool b = await GetEntry(_selectedItem as EntryItem);
-                            if (b)
-                            {
-                                NotifyPropertyChanged(nameof(Entry));
-                                NotifyPropertyChanged(nameof(EntryHTML));
-                                NotifyPropertyChanged(nameof(IsContentText));
-                                NotifyPropertyChanged(nameof(IsContentHTML));
-                            }
-                        });
-                        */
                         return WrapHtmlContent("");
                     }
                 }
@@ -339,6 +300,8 @@ namespace BlogWrite.ViewModels
                 {
                     return WrapHtmlContent("");
                 }
+                */
+                return WrapHtmlContent("");
             }
         }
 
@@ -536,7 +499,6 @@ li {
             }
         }
 
-
         private bool _isShowContentBrowserWindow;
         public bool IsShowContentBrowserWindow
 
@@ -629,7 +591,7 @@ li {
         public delegate void DebugClearEventHandler();
         public event DebugClearEventHandler DebugClear;
 
-        //public event EventHandler<string> WriteHtmlToContentPreviewBrowser;
+        public event EventHandler<string> WriteHtmlToContentPreviewBrowser;
 
         public event EventHandler<Uri> NavigateUrlToContentPreviewBrowser;
 
@@ -1115,19 +1077,23 @@ li {
             if (!(_selectedNode is NodeEntryCollection))
                 return false;
 
+            // Skip FeedEntry
+            if (selectedEntry is not EntryFull)
+                return false;
+
             BlogClient bc = selectedEntry.Client as BlogClient;
             if (bc == null)
                 return false;
 
-            if (selectedEntry.EditUri == null)
+            if ((selectedEntry as EntryFull).EditUri == null)
                 return false;
 
-            EntryFull bfe = await bc.GetFullEntry(selectedEntry.EditUri, selectedEntry.EntryID);
+            EntryFull bfe = await bc.GetFullEntry((selectedEntry as EntryFull).EditUri, selectedEntry.EntryId);
 
             if (selectedEntry == null)
                 return false;
 
-            selectedEntry.EntryBody = bfe;
+            //selectedEntry.EntryBody = bfe;
 
             return true;
         }
@@ -1137,15 +1103,22 @@ li {
             if (selectedEntry == null)
                 return false;
 
+            if (!(_selectedNode is NodeEntryCollection))
+                return false;
+
+            // Skip FeedEntry
+            if (selectedEntry is not EntryFull)
+                return false;
+
             BlogClient bc = selectedEntry.Client as BlogClient;
 
             if (bc == null)
                 return false;
 
-            if (selectedEntry.EditUri == null)
+            if ((selectedEntry as EntryFull).EditUri == null)
                 return false;
 
-            bool b = await bc.DeleteEntry(selectedEntry.EditUri);
+            bool b = await bc.DeleteEntry((selectedEntry as EntryFull).EditUri);
 
             return b;
         }
@@ -1260,6 +1233,7 @@ li {
 
         public bool ListviewLeftDoubleClickCommand_CanExecute()
         {
+            if (SelectedItem == null) return false;
             return true;
         }
 
@@ -1317,9 +1291,9 @@ li {
             if (selectedEntry == null)
                 return;
 
-            if (selectedEntry is EntryItem)
+            if (selectedEntry is EntryFull)
             {
-                if (selectedEntry.EntryBody == null)
+                if ((selectedEntry as EntryFull).EntryBody == null)
                     return;
 
                 if (selectedEntry.Client == null)
@@ -1327,7 +1301,7 @@ li {
 
                 BlogEntryEventArgs ag = new BlogEntryEventArgs
                 {
-                    Entry = selectedEntry.EntryBody
+                    Entry = (selectedEntry as EntryFull).EntryBody
                     //
                 };
 
@@ -1473,17 +1447,18 @@ li {
 
         public bool OpenInBrowserCommand_CanExecute()
         {
-            if (SelectedItem == null) return false;
-            if (SelectedItem.AltHTMLUri == null) return false;
             return true;
         }
 
         public void OpenInBrowserCommand_Execute(EntryItem selectedEntry)
         {
-            if (selectedEntry.AltHTMLUri != null)
+            if (selectedEntry == null)
+                return;
+
+            if (selectedEntry.AltHtmlUri != null)
             {
                 //System.Diagnostics.Process.Start(selectedEntry.AltHTMLUri.AbsoluteUri);
-                ProcessStartInfo psi = new ProcessStartInfo(selectedEntry.AltHTMLUri.AbsoluteUri);
+                ProcessStartInfo psi = new ProcessStartInfo(selectedEntry.AltHtmlUri.AbsoluteUri);
                 psi.UseShellExecute = true;
                 Process.Start(psi);
             }

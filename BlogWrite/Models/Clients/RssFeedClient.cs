@@ -8,18 +8,12 @@ using System.Xml;
 using System.IO;
 using System.Diagnostics;
 using AngleSharp;
+using BlogWrite.Common;
 
 namespace BlogWrite.Models.Clients
 {
     class RssFeedClient : BaseClient
     {
-        public Uri FeedUrl { get; }
-
-        public RssFeedClient(Uri feedUrl)
-        {
-            FeedUrl = feedUrl;
-        }
-
         public override async Task<List<EntryItem>> GetEntries(Uri entriesUrl)
         {
             // Clear err msg.
@@ -55,28 +49,9 @@ namespace BlogWrite.Models.Clients
                         + Environment.NewLine
                         + s + Environment.NewLine);
 
-                    /*
-                     * SyndicationFeed does not support RSS 1.0.
-                     * 
-                    TextReader tr = new StringReader(s);
-                    XmlReader reader = XmlReader.Create(tr);
-                    SyndicationFeed feed = SyndicationFeed.Load(reader);
-                    tr.Close();
-                    reader.Close();
-
-                    foreach (SyndicationItem item in feed.Items)
-                    {
-                        EntryItem ent = new EntryItem("", this);
-                        ent.Status = EntryItem.EntryStatus.esNormal;
-
-                        FillEntryItemFromSynItem(ent, item);
-
-                        list.Add(ent);
-                    }
-                    */
-
                     var source = await HTTPResponseMessage.Content.ReadAsStreamAsync();
 
+                    // Load XML
                     XmlDocument xdoc = new XmlDocument();
                     try
                     {
@@ -95,6 +70,7 @@ namespace BlogWrite.Models.Clients
                         return list;
                     }
 
+                    // RSS 2.0
                     if (xdoc.DocumentElement.LocalName.Equals("rss"))
                     {
                         XmlNodeList entryList;
@@ -112,6 +88,7 @@ namespace BlogWrite.Models.Clients
                             list.Add(ent);
                         }
                     }
+                    // RSS 1.0
                     else if (xdoc.DocumentElement.LocalName.Equals("RDF"))
                     {
                         XmlNamespaceManager NsMgr = new XmlNamespaceManager(xdoc.NameTable);
@@ -134,6 +111,7 @@ namespace BlogWrite.Models.Clients
                         }
                     }
                 }
+                // HTTP non 200 status code.
                 else
                 {
                     var contents = await HTTPResponseMessage.Content.ReadAsStringAsync();
@@ -153,6 +131,7 @@ namespace BlogWrite.Models.Clients
                 }
 
             }
+            // Internet connection errors
             catch (System.Net.Http.HttpRequestException e)
             {
                 Debug.WriteLine("<< HttpRequestException: " + e.Message);
@@ -181,285 +160,92 @@ namespace BlogWrite.Models.Clients
 
         public async void FillEntryItemFromXmlRss(EntryItem entItem, XmlNode entryNode)
         {
+            XmlNode entryTitle = entryNode.SelectSingleNode("title");
+            entItem.Name = (entryTitle != null) ? entryTitle.InnerText : "";
 
-            AtomEntry entry = await CreateAtomEntryFromXmlRss(entryNode);
+            XmlNode entryId = entryNode.SelectSingleNode("guid");
+            entItem.EntryId = (entryId != null) ? entryId.InnerText : "";
 
-            entItem.Name = entry.Name;
-            //entItem.ID = entry.ID;
-            entItem.EntryID = entry.EntryID;
-            entItem.AltHTMLUri = entry.AltHTMLUri;
-            entItem.EntryBody = entry;
+            XmlNode entryLinkUri = entryNode.SelectSingleNode("link");
+            try
+            {
+                if (entryLinkUri != null)
+                    if (!string.IsNullOrEmpty(entryLinkUri.InnerText))
+                        entItem.AltHtmlUri = new Uri(entryLinkUri.InnerText);
+            }
+            catch { }
 
-            entItem.Status = entry.Status;
+            XmlNode entryPudDate = entryNode.SelectSingleNode("pubDate");
+            if (entryPudDate != null)
+            {
+                string s = entryPudDate.InnerText;
+                if (!string.IsNullOrEmpty(s))
+                {
+                    try
+                    {
+                        DateTimeOffset dtf = DateTimeParser.ParseDateTimeRFC822(s);
 
+                        entItem.Published = dtf.ToUniversalTime().DateTime;
+                    }
+                    catch { }
+                }
+            }
+
+            XmlNode sum = entryNode.SelectSingleNode("description");
+            if (sum != null)
+            {
+                entItem.Summary = await StripStyleAttributes(sum.InnerText);
+
+                if (!string.IsNullOrEmpty(sum.InnerText))
+                {
+                    entItem.SummaryPlainText = await StripHtmlTags(sum.InnerText);
+
+                    entItem.SummaryPlainText = Truncate(entItem.SummaryPlainText, 78);
+                }
+            }
         }
 
         public async void FillEntryItemFromXmlRdf(EntryItem entItem, XmlNode entryNode, XmlNamespaceManager NsMgr)
         {
-
-            AtomEntry entry = await CreateAtomEntryFromXmlRdf(entryNode, NsMgr);
-
-            entItem.Name = entry.Name;
-            //entItem.ID = entry.ID;
-            entItem.EntryID = entry.EntryID;
-            entItem.AltHTMLUri = entry.AltHTMLUri;
-            entItem.EntryBody = entry;
-
-            entItem.Status = entry.Status;
-
-        }
-
-        private async Task<AtomEntry> CreateAtomEntryFromXmlRss(XmlNode entryNode)
-        {
-
-            XmlNode entryTitle = entryNode.SelectSingleNode("title");
-            if (entryTitle == null)
-            {
-                //Debug.WriteLine("title: is null. ");
-                //return;
-            }
-
-            XmlNode entryID = entryNode.SelectSingleNode("guid");
-            if (entryID == null)
-            {
-                //Debug.WriteLine("guid: is null. ");
-                //return;
-            }
-
-            XmlNodeList entryLinkUris = entryNode.SelectNodes("link");
-
-            Uri altUri = null;
-            if (entryLinkUris == null)
-            {
-                //Debug.WriteLine("link: is null. ");
-                //continue;
-            }
-            else
-            {
-                // TODO:
-                foreach (XmlNode u in entryLinkUris)
-                {
-                    try
-                    {
-                        altUri = new Uri(u.InnerText);
-                        break;
-                    }
-                    catch
-                    {
-                        break;
-                    }
-                }
-            }
-
-            // TODO:
-            //updated
-            //published
-            //app:edited
-            //summary
-            //category
-
-            AtomEntry entry = new AtomEntry("", this);
-            // TODO:
-            //AtomEntryHatena
-            /*
-            // Hatena's formatted-content
-            XmlNode formattedContent = entryNode.SelectSingleNode("hatena:formatted-content", atomNsMgr);
-            if (formattedContent != null)
-            {
-                entry.FormattedContent = formattedContent.InnerText;
-            }
-            */
-
-            entry.Name = (entryTitle != null) ? entryTitle.InnerText : "";
-            entry.EntryID = (entryID != null) ? entryID.InnerText : "";
-            entry.AltHTMLUri = altUri;
-
-            XmlNode cont = entryNode.SelectSingleNode("description");
-            if (cont == null)
-            {
-                //Debug.WriteLine("description is null.");
-            }
-            else
-            {
-                entry.ContentType = EntryFull.ContentTypes.textHtml;
-                entry.Content = await StripStyleAttributes(cont.InnerText);
-            }
-
-            /*
-            //app:control/app:draft(yes/no)
-            XmlNode entryDraft = entryNode.SelectSingleNode("app:control/app:draft", atomNsMgr);
-            if (entryDraft == null) System.Diagnostics.Debug.WriteLine("app:draft: is null.");
-
-            string draft = entryDraft?.InnerText;
-            entry.IsDraft = (String.Compare(draft, "yes", true) == 0) ? true : false;
-            */
-
-            entry.Status = EntryItem.EntryStatus.esNormal;
-
-
-            return entry;
-        }
-
-        private async Task<AtomEntry> CreateAtomEntryFromXmlRdf(XmlNode entryNode, XmlNamespaceManager NsMgr)
-        {
-
             XmlNode entryTitle = entryNode.SelectSingleNode("rss:title", NsMgr);
-            if (entryTitle == null)
-            {
-                //Debug.WriteLine("title: is null. ");
-                //return;
-            }
+            entItem.Name = (entryTitle != null) ? entryTitle.InnerText : "";
 
-            XmlNodeList entryLinkUris = entryNode.SelectNodes("rss:link", NsMgr);
-
-            Uri altUri = null;
-            if (entryLinkUris == null)
+            XmlNode entryLinkUri = entryNode.SelectSingleNode("rss:link", NsMgr);
+            try
             {
-                //Debug.WriteLine("link: is null. ");
-                //continue;
+                if (entryLinkUri != null)
+                    if (!string.IsNullOrEmpty(entryLinkUri.InnerText))
+                        entItem.AltHtmlUri = new Uri(entryLinkUri.InnerText);
             }
-            else
+            catch { }
+
+            XmlNode entryPudDate = entryNode.SelectSingleNode("dc:date", NsMgr);
+            if (entryPudDate != null)
             {
-                // TODO:
-                foreach (XmlNode u in entryLinkUris)
+                string s = entryPudDate.InnerText;
+                if (!string.IsNullOrEmpty(s))
                 {
                     try
                     {
-                        altUri = new Uri(u.InnerText);
-                        break;
+                        entItem.Published = DateTime.Parse(s, null, System.Globalization.DateTimeStyles.RoundtripKind);
                     }
-                    catch
-                    {
-                        break;
-                    }
+                    catch { }
                 }
             }
 
-            // TODO:
-            //updated
-            //published
-            //app:edited
-            //summary
-            //category
-
-            AtomEntry entry = new AtomEntry("", this);
-            // TODO:
-            //AtomEntryHatena
-            /*
-            // Hatena's formatted-content
-            XmlNode formattedContent = entryNode.SelectSingleNode("hatena:formatted-content", atomNsMgr);
-            if (formattedContent != null)
+            XmlNode sum = entryNode.SelectSingleNode("rss:description", NsMgr);
+            if (sum != null)
             {
-                entry.FormattedContent = formattedContent.InnerText;
-            }
-            */
+                entItem.Summary = await StripStyleAttributes(sum.InnerText);
+                //entry.ContentType = EntryFull.ContentTypes.textHtml;
 
-            entry.Name = (entryTitle != null) ? entryTitle.InnerText : "";
-            entry.AltHTMLUri = altUri;
-
-            XmlNode cont = entryNode.SelectSingleNode("rss:description", NsMgr);
-            if (cont == null)
-            {
-                //Debug.WriteLine("description is null.");
-            }
-            else
-            {
-                entry.ContentType = EntryFull.ContentTypes.textHtml;
-                entry.Content = await StripStyleAttributes(cont.InnerText);
-            }
-
-            /*
-            //app:control/app:draft(yes/no)
-            XmlNode entryDraft = entryNode.SelectSingleNode("app:control/app:draft", atomNsMgr);
-            if (entryDraft == null) System.Diagnostics.Debug.WriteLine("app:draft: is null.");
-
-            string draft = entryDraft?.InnerText;
-            entry.IsDraft = (String.Compare(draft, "yes", true) == 0) ? true : false;
-            */
-
-            entry.Status = EntryItem.EntryStatus.esNormal;
-
-
-            return entry;
-        }
-
-        // using System.ServiceModel.Syndication;
-        // System.ServiceModel.Syndication class does not support RSS 1.0.
-        /*
-        public async void FillEntryItemFromSynItem(EntryItem entItem, SyndicationItem SynItem)
-        {
-
-            AtomEntry entry = await CreateAtomEntryFromSynItem(SynItem);
-
-            entItem.Name = entry.Name;
-            //entItem.ID = entry.ID;
-            entItem.EntryID = entry.EntryID;
-            entItem.EditUri = entry.EditUri;
-            entItem.AltHTMLUri = entry.AltHTMLUri;
-            entItem.EntryBody = entry;
-
-            entItem.Status = entry.Status;
-
-        }
-
-        private async Task<AtomEntry> CreateAtomEntryFromSynItem(SyndicationItem SynItem)
-        {
-            AtomEntry entry = new AtomEntry("", this);
-
-            entry.Name = (SynItem.Title.Text != null) ? SynItem.Title.Text : "";
-            entry.EntryID = (SynItem.Id != null) ? SynItem.Id : "";
-
-            foreach (SyndicationLink u in SynItem.Links)
-            {
-                entry.AltHTMLUri = u.Uri;
-                break;
-            }
-
-            if (string.IsNullOrEmpty(entry.Content.ToString()))
-            {
-                //Debug.WriteLine("RSS Content null");
-
-                // force html
-                entry.ContentType = EntryFull.ContentTypes.textHtml;
-                
-                if (SynItem.Summary != null)
-                    entry.Content = SynItem.Summary.Text;
-
-                if (!string.IsNullOrEmpty(entry.Content))
+                if (!string.IsNullOrEmpty(sum.InnerText))
                 {
-                    entry.Content = await StripStyleAttributes(entry.Content);
+                    entItem.SummaryPlainText = await StripHtmlTags(sum.InnerText);
+
+                    entItem.SummaryPlainText = Truncate(entItem.SummaryPlainText, 78);
                 }
             }
-            else
-            {
-                //Debug.WriteLine("RSS Content NOT null");
-
-                // force html
-                entry.ContentType = EntryFull.ContentTypes.textHtml;
-
-                entry.Content = SynItem.Content.ToString();
-            }
-
-            entry.Status = EntryItem.EntryStatus.esNormal;
-
-            return entry;
-        }
-        */
-
-        private async Task<string> StripStyleAttributes(string s)
-        {
-            var context = BrowsingContext.New(Configuration.Default);
-            var document = await context.OpenAsync(req => req.Content(s));
-            //var blueListItemsLinq = document.QuerySelectorAll("*")
-            var ItemsLinq = document.All.Where(m => m.HasAttribute("style"));
-            foreach (var item in ItemsLinq)
-            {
-                item.RemoveAttribute("style");
-            }
-
-            //return document.DocumentElement.TextContent;
-            return document.DocumentElement.InnerHtml;
-
         }
     }
 }

@@ -90,10 +90,10 @@ namespace BlogWrite.Models
                 //    Client = new XmlRpcWPClient(UserName, UserPassword, EndPoint);
                 //    break;
                 case ApiTypes.atAtomFeed:
-                    Client = new AtomFeedClient(EndPoint);
+                    Client = new AtomFeedClient();
                     break;
                 case ApiTypes.atRssFeed:
-                    Client = new RssFeedClient(EndPoint);
+                    Client = new RssFeedClient();
                     break;
                     //TODO: WP, AtomAPI
             }
@@ -125,10 +125,10 @@ namespace BlogWrite.Models
                 //    Client = new XmlRpcWPClient(UserName, UserPassword, EndPoint);
                 //    break;
                 case ApiTypes.atAtomFeed:
-                    Client = new AtomFeedClient(EndPoint);
+                    Client = new AtomFeedClient();
                     break;
                 case ApiTypes.atRssFeed:
-                    Client = new RssFeedClient(EndPoint);
+                    Client = new RssFeedClient();
                     break;
 
                     //TODO: WP, AtomAPI

@@ -702,7 +702,7 @@ namespace BlogWrite.Models.Clients
 
                     foreach (XmlNode l in entryList)
                     {
-                        EntryItem ent = new EntryItem("", this);
+                        MTEntry ent = new MTEntry("", this);
 
                         FillEntryItemFromXML(ent, l, entryUri);
 
@@ -720,7 +720,7 @@ namespace BlogWrite.Models.Clients
             return list;
         }
 
-        private void FillEntryItemFromXML(EntryItem entItem, XmlNode entryNode, Uri xmlrpcUri)
+        private void FillEntryItemFromXML(MTEntry entItem, XmlNode entryNode, Uri xmlrpcUri)
         {
 
             MTEntry entry = CreateMTEntryFromXML(entryNode);
@@ -733,10 +733,10 @@ namespace BlogWrite.Models.Clients
 
             entItem.Name = entry.Name;
             //entItem.ID = entry.ID;
-            entItem.EntryID = entry.EntryID;
+            entItem.EntryId = entry.EntryId;
             entItem.EditUri = entry.EditUri;
             entItem.PostUri = entry.PostUri;
-            entItem.AltHTMLUri = entry.AltHTMLUri;
+            entItem.AltHtmlUri = entry.AltHtmlUri;
             entItem.EntryBody = entry;
 
             entItem.Status = entry.Status;
@@ -986,8 +986,8 @@ name: wp_post_thumbnail - value:
             }
 
             MTEntry entry = new MTEntry(title, this);
-            entry.AltHTMLUri = url;
-            entry.EntryID = postid;
+            entry.AltHtmlUri = url;
+            entry.EntryId = postid;
             //entry.EditUri = _endpoint; No, don't. Multisite has multiple endpoints for each blog.
 
             entry.Content = description;
@@ -1024,7 +1024,7 @@ name: wp_post_thumbnail - value:
             objParamNode.AppendChild(objValueNode);
 
             objTypeNode = xdoc.CreateElement(string.Empty, "int", string.Empty);
-            xt = xdoc.CreateTextNode(entry.EntryID);
+            xt = xdoc.CreateTextNode(entry.EntryId);
             objTypeNode.AppendChild(xt);
             objValueNode.AppendChild(objTypeNode);
 

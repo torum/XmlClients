@@ -107,7 +107,7 @@ namespace BlogWrite
             if (arg.Entry == null)
                 return;
 
-            string id = arg.Entry.ID;
+            string id = arg.Entry.Id;
 
             App app = App.Current as App;
 
@@ -124,7 +124,7 @@ namespace BlogWrite
                 if (!((w as EditorWindow).DataContext is EditorViewModel))
                     continue;
 
-                if (id == ((w as EditorWindow).DataContext as EditorViewModel).ID)
+                if (id == ((w as EditorWindow).DataContext as EditorViewModel).Id)
                 {
                     //w.Activate();
 

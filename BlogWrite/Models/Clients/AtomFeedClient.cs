@@ -15,13 +15,6 @@ namespace BlogWrite.Models.Clients
     /// </summary>
     class AtomFeedClient : BaseClient
     {
-        public Uri FeedUrl { get; }
-
-        public AtomFeedClient(Uri feedUrl)
-        {
-            FeedUrl = feedUrl;
-        }
-
         public override async Task<List<EntryItem>> GetEntries(Uri entriesUrl)
         {            
             // Clear err msg.
@@ -107,6 +100,7 @@ namespace BlogWrite.Models.Clients
             </feed>
                     */
 
+                    // Load XML
                     XmlDocument xdoc = new XmlDocument();
                     try
                     {
@@ -137,7 +131,7 @@ namespace BlogWrite.Models.Clients
 
                     foreach (XmlNode l in entryList)
                     {
-                        EntryItem ent = new EntryItem("", this);
+                        AtomEntry ent = new AtomEntry("", this);
                         ent.Status = EntryItem.EntryStatus.esNormal;
 
                         FillEntryItemFromXML(ent, l, atomNsMgr);
@@ -145,6 +139,7 @@ namespace BlogWrite.Models.Clients
                         list.Add(ent);
                     }
                 }
+                // HTTP non 200 status code
                 else
                 {
                     var contents = await HTTPResponseMessage.Content.ReadAsStringAsync();
@@ -164,6 +159,7 @@ namespace BlogWrite.Models.Clients
                 }
 
             }
+            // Internet connection errors
             catch (System.Net.Http.HttpRequestException e)
             {
                 Debug.WriteLine("<< HttpRequestException: " + e.Message);
@@ -190,23 +186,27 @@ namespace BlogWrite.Models.Clients
             return list;
         }
 
-        public void FillEntryItemFromXML(EntryItem entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr)
+        public async void FillEntryItemFromXML(AtomEntry entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr)
         {
 
-            AtomEntry entry = CreateAtomEntryFromXML(entryNode, atomNsMgr);
+            AtomEntry entry = await CreateAtomEntryFromXML(entryNode, atomNsMgr);
 
             entItem.Name = entry.Name;
             //entItem.ID = entry.ID;
-            entItem.EntryID = entry.EntryID;
+            entItem.EntryId = entry.EntryId;
             entItem.EditUri = entry.EditUri;
-            entItem.AltHTMLUri = entry.AltHTMLUri;
-            entItem.EntryBody = entry;
+            entItem.AltHtmlUri = entry.AltHtmlUri;
+            entItem.Published = entry.Published;
+            entItem.Summary = entry.Summary;
+            entItem.SummaryPlainText = entry.SummaryPlainText;
+
+            // entItem.EntryBody = entry;
 
             entItem.Status = entry.Status;
 
         }
 
-        private AtomEntry CreateAtomEntryFromXML(XmlNode entryNode, XmlNamespaceManager atomNsMgr)
+        private async Task<AtomEntry> CreateAtomEntryFromXML(XmlNode entryNode, XmlNamespaceManager atomNsMgr)
         {
 
             XmlNode entryTitle = entryNode.SelectSingleNode("atom:title", atomNsMgr);
@@ -319,9 +319,9 @@ namespace BlogWrite.Models.Clients
             */
 
             entry.Name = (entryTitle != null) ? entryTitle.InnerText : "";
-            entry.EntryID = (entryID != null) ? entryID.InnerText : "";
+            entry.EntryId = (entryID != null) ? entryID.InnerText : "";
             entry.EditUri = editUri;
-            entry.AltHTMLUri = altUri;
+            entry.AltHtmlUri = altUri;
 
             XmlNode cont = entryNode.SelectSingleNode("atom:content", atomNsMgr);
             if (cont == null)
@@ -366,6 +366,58 @@ namespace BlogWrite.Models.Clients
 
                 entry.Content = cont.InnerText;
             }
+
+            XmlNode sum = entryNode.SelectSingleNode("atom:summary", atomNsMgr);
+            if (sum != null)
+            {
+                entry.Summary = await StripStyleAttributes(sum.InnerText);
+                //entry.ContentType = EntryFull.ContentTypes.textHtml;
+
+                if (!string.IsNullOrEmpty(sum.InnerText))
+                {
+                    //entry.SummaryPlainText = await StripHtmlTags(sum.InnerText);
+
+                    entry.SummaryPlainText = Truncate(sum.InnerText, 78);
+                }
+            }
+            else
+            {
+                string s = entry.Content;
+
+                if (!string.IsNullOrEmpty(s))
+                {
+                    if (entry.ContentType == EntryFull.ContentTypes.textHtml)
+                    {
+                        s = await StripHtmlTags(s);
+                        entry.SummaryPlainText = Truncate(s, 78);
+                    }
+                    else if (entry.ContentType == EntryFull.ContentTypes.text)
+                    {
+                        entry.SummaryPlainText = Truncate(s, 78);
+                    }
+                }
+            }
+
+            XmlNode entryPublished = entryNode.SelectSingleNode("atom:published", atomNsMgr);
+            if (entryPublished != null)
+            {
+                if (!string.IsNullOrEmpty(entryPublished.InnerText))
+                {
+                    entry.Published = XmlConvert.ToDateTime(entryPublished.InnerText, XmlDateTimeSerializationMode.Utc);
+                }
+            }
+
+            /*
+            XmlNode entryUpdated = entryNode.SelectSingleNode("atom:updated", atomNsMgr);
+            if (entryUpdated != null)
+            {
+                if (!string.IsNullOrEmpty(entryUpdated.InnerText))
+                {
+                     = XmlConvert.ToDateTime(entryUpdated.InnerText, XmlDateTimeSerializationMode.Utc);
+                }
+            }
+            */
+
 
             /*
             //app:control/app:draft(yes/no)

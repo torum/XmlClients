@@ -70,7 +70,7 @@ namespace BlogWrite.Views
 
                     vm.DebugClear += () => this.OnDebugClear();
 
-                    //vm.WriteHtmlToContentPreviewBrowser += (sender, arg) => { this.OnWriteHtmlToContentPreviewBrowser(arg); };
+                    vm.WriteHtmlToContentPreviewBrowser += (sender, arg) => { this.OnWriteHtmlToContentPreviewBrowser(arg); };
                     
                     vm.NavigateUrlToContentPreviewBrowser += (sender, arg) => { this.OnNavigateUrlToContentPreviewBrowser(arg); };
 
@@ -218,6 +218,7 @@ namespace BlogWrite.Views
 
         public void OnWriteHtmlToContentPreviewBrowser(string arg)
         {
+            Debug.WriteLine(arg);
             // 
             ContentPreviewWebBrowser.NavigateToString(arg);
         }

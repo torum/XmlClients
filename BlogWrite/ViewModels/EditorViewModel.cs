@@ -19,14 +19,14 @@ namespace BlogWrite.ViewModels
 
         #region == Properties ==
 
-        public string ID
+        public string Id
         {
             get
             {
                 if (_ent == null)
                     return null;
 
-                return _ent.ID;
+                return _ent.Id;
             }
         }
 
