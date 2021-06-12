@@ -850,7 +850,7 @@
                                             </LinearGradientBrush>
                                         </Border.Background>
 
-                                        <Path x:Name="PathIcon" Data="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" Stretch="Uniform" Stroke="Transparent" StrokeThickness="0" Margin="8" RenderTransformOrigin="0.5,0.5">
+                                        <Path x:Name="PathIcon" Data="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" Stretch="Uniform" Stroke="Transparent" StrokeThickness="0" Margin="6" RenderTransformOrigin="0.5,0.5">
                                             <Path.RenderTransform>
                                                 <TransformGroup>
                                                     <TransformGroup.Children>
@@ -2509,6 +2509,7 @@
                                 <Setter Property="Foreground" Value="{DynamicResource ItemSelectedForegroundColorBrush}" />
                                 <Setter Property="TextElement.FontWeight" Value="Bold"/>
                             </Trigger>
+                            
                             <MultiTrigger>
                                 <MultiTrigger.Conditions>
                                     <Condition Property="IsSelected" Value="True" />
@@ -2518,6 +2519,7 @@
                                 <Setter Property="Foreground" Value="{DynamicResource ItemSelectedForegroundColorBrush}" />
                                 <Setter Property="TextElement.FontWeight" Value="Bold"/>
                             </MultiTrigger>
+                            
                         </Style.Triggers>
                     </Style>
                     <!-- AlternateIndexを使わない場合  -->
@@ -3490,8 +3492,6 @@
                     <SolidColorBrush x:Key="TabItem.Selected.Border" Color="#ACACAC"/>
                     <Style x:Key="TabControlBottomStyle" TargetType="{x:Type TabControl}">
                         <Setter Property="Padding" Value="0"/>
-                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                        <Setter Property="VerticalContentAlignment" Value="Center"/>
                         <Setter Property="Background" Value="{DynamicResource WindowBackgroundBaseColorBrush}"/>
                         <Setter Property="BorderBrush" Value="#212121"/>
                         <Setter Property="BorderThickness" Value="0"/>
@@ -3577,8 +3577,6 @@
                         <Setter Property="BorderBrush" Value="{StaticResource TabItem.Static.Border}"/>
                         <Setter Property="Margin" Value="0"/>
                         <Setter Property="Padding" Value="12,3,12,3"/>
-                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
                         <Setter Property="Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="{x:Type TabItem}">

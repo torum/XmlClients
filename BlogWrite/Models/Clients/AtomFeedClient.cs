@@ -199,7 +199,8 @@ namespace BlogWrite.Models.Clients
             entItem.Published = entry.Published;
             entItem.Summary = entry.Summary;
             entItem.SummaryPlainText = entry.SummaryPlainText;
-
+            entItem.Content = entry.Content;
+            entItem.ContentType = entry.ContentType;
             // entItem.EntryBody = entry;
 
             entItem.Status = entry.Status;

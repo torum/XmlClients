@@ -24,16 +24,25 @@ namespace BlogWrite.ViewModels
 {
     /// TODO: 
     /// 
-    /// App Icon / App name
+    /// App Icon / App name .... FeedDesk?
     /// 
     /// Entryから画像の抽出とダウンロード。
     /// 
-    /// SQLiteにエントリを保存し、Feed 既読管理。
+    /// Feed listview item "author" etc.
+    /// 
+    /// Feed Folderまとめ表示。
+    /// 
+    /// View形式をFeedやサービスごとに覚える。
     /// 
     /// AtomPub and XML-RPC ..
     /// 
+    /// SQLiteにエントリを保存し、Feed 既読管理。
+    /// 
 
     /// 更新履歴：
+    /// v0.0.0.13 WebView2のinstallationとversionを確認してダイアログを出すようにした。
+    /// v0.0.0.12 WebView2の環境設定をするようにした。＞Binフォルダ内ではなく、Tempフォルダにブラウザデータを展開。
+    /// v0.0.0.11 In App Browserを、CardViewとListViewで分けた。
     /// v0.0.0.10 とりあえず、カード表示を実装。タイトル、要約、日付の表示。
     /// v0.0.0.9 とりあえず、MainMenuのスタイル。Listviewのソート。
     /// v0.0.0.8 Listview と Cardview の切り替えTabControlを付けた。BrowserとDebugWindow の表示切替を実装。 Browserが非表示の際はデフォルトのブラウザを立ち上げる。
@@ -52,7 +61,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.10";
+        const string _appVer = "0.0.0.13";
         public string AppVer
         {
             get
@@ -170,8 +179,8 @@ namespace BlogWrite.ViewModels
                 NotifyPropertyChanged(nameof(SelectedItem));
 
                 // This changes the contents.
-                NotifyPropertyChanged(nameof(Entry));
-                NotifyPropertyChanged(nameof(EntryHTML));
+                NotifyPropertyChanged(nameof(EntryContentText));
+                NotifyPropertyChanged(nameof(EntryContentHTML));
                 NotifyPropertyChanged(nameof(IsContentText));
                 NotifyPropertyChanged(nameof(IsContentHTML));
 
@@ -182,8 +191,12 @@ namespace BlogWrite.ViewModels
 
                 if (IsContentHTML)
                 {
-                    //WriteHtmlToContentPreviewBrowser?.Invoke(this, EntryHTML);
+                    string s = EntryContentHTML;
+                    WriteHtmlToContentPreviewBrowser?.Invoke(this, s);
                 }
+
+                NotifyPropertyChanged(nameof(Entries));
+                
             }
         }
 
@@ -196,18 +209,15 @@ namespace BlogWrite.ViewModels
 
                 if (!(_selectedItem is EntryItem))
                     return false;
-                /*
-                if ((_selectedItem as EntryItem).EntryBody == null)
-                    return false;
 
-                if ((_selectedItem as EntryItem).EntryBody.ContentType == EntryFull.ContentTypes.text)
+                if ((_selectedItem as EntryItem).ContentType == EntryItem.ContentTypes.text)
                 {
-                    // Debug.WriteLine("IsContentText");
                     return true;
                 }
-                */
-
-                return false;
+                else
+                {
+                    return false;
+                }
             }
         }
 
@@ -220,17 +230,15 @@ namespace BlogWrite.ViewModels
 
                 if (!(_selectedItem is EntryItem))
                     return false;
-                /*
-                if ((_selectedItem as EntryItem).EntryBody == null)
-                    return false;
 
-                if ((_selectedItem as EntryItem).EntryBody.ContentType == EntryFull.ContentTypes.textHtml)
+                if ((_selectedItem as EntryItem).ContentType == EntryItem.ContentTypes.textHtml)
                 {
-                    //Debug.WriteLine("IsContentHTML");
                     return true;
                 }
-                */
-                return false;
+                else
+                {
+                    return false;
+                }
             }
         }
 
@@ -238,58 +246,37 @@ namespace BlogWrite.ViewModels
 
         #region == Content View (TODO) ==
 
-        public string Entry
+        public string EntryContentText
         {
             get
             {
                 if (_selectedItem == null)
-                    return null;
+                    return "";
 
                 if (_selectedItem is EntryItem)
                 {
-                    /*
-                    if ((_selectedItem as EntryItem).EntryBody != null)
+                    if (!string.IsNullOrEmpty((_selectedItem as EntryItem).Content))
                     {
-                        return (_selectedItem as EntryItem).EntryBody.Content;
+                        return (_selectedItem as EntryItem).Content;
+                    }
+                }
 
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                    */
-                    return null;
-                }
-                else
-                {
-                    return null;
-                }
+                return "";
             }
         }
 
-        public string EntryHTML
+        public string EntryContentHTML
         {
             get
             {
                 if (_selectedItem == null)
                     return WrapHtmlContent("");
 
-                /*
                 if (_selectedItem is EntryItem)
                 {
-                    if ((_selectedItem as EntryItem).EntryBody != null)
+                    if ((_selectedItem as EntryItem).ContentType == EntryFull.ContentTypes.textHtml)
                     {
-                        if ((_selectedItem as EntryItem).EntryBody.ContentType == EntryFull.ContentTypes.textHtml)
-                        {
-
-                            //System.Diagnostics.Debug.WriteLine(WrapHtmlContent((_selectedItem as EntryItem).EntryBody.Content));
-
-                            return WrapHtmlContent((_selectedItem as EntryItem).EntryBody.Content);
-                        }
-                        else
-                        {
-                            return WrapHtmlContent("");
-                        }
+                        return WrapHtmlContent((_selectedItem as EntryItem).Content);
                     }
                     else
                     {
@@ -300,8 +287,6 @@ namespace BlogWrite.ViewModels
                 {
                     return WrapHtmlContent("");
                 }
-                */
-                return WrapHtmlContent("");
             }
         }
 
@@ -310,7 +295,7 @@ namespace BlogWrite.ViewModels
             if (styles == null)
             {
                 styles = @"
-::-webkit-scrollbar { width: 18px; height: 3px;}
+::-webkit-scrollbar { width: 17px; height: 3px;}
 ::-webkit-scrollbar-button {  background-color: #666; }
 ::-webkit-scrollbar-track {  background-color: #646464; box-shadow: 0 0 4px #aaa inset;}
 ::-webkit-scrollbar-track-piece { background-color: #212121;}
@@ -642,9 +627,13 @@ li {
                 param => GetEntryCommand_Execute(param),
                 param => GetEntryCommand_CanExecute());
 
-            OpenInBrowserCommand = new GenericRelayCommand<EntryItem>(
-                param => OpenInBrowserCommand_Execute(param),
-                param => OpenInBrowserCommand_CanExecute());
+            OpenInExternalBrowserCommand = new GenericRelayCommand<EntryItem>(
+                param => OpenInExternalBrowserCommand_Execute(param),
+                param => OpenInExternalBrowserCommand_CanExecute());
+
+            OpenInAppBrowserCommand = new GenericRelayCommand<EntryItem>(
+                param => OpenInAppBrowserCommand_Execute(param),
+                param => OpenInAppBrowserCommand_CanExecute());
 
             ListviewEnterKeyCommand = new GenericRelayCommand<EntryItem>(
                 param => ListviewEnterKeyCommand_Execute(param),
@@ -988,31 +977,40 @@ li {
 
             if (selectedNode is NodeFeed)
             {
-                if (((selectedNode as NodeFeed).Api != ApiTypes.atRssFeed) && (selectedNode as NodeFeed).Api != ApiTypes.atAtomFeed)
+                NodeFeed selectedFeedNode = selectedNode as NodeFeed;
+
+                if ((selectedFeedNode.Api != ApiTypes.atRssFeed) && selectedFeedNode.Api != ApiTypes.atAtomFeed)
                     return;
 
-                var fc = (selectedNode as NodeFeed).Client;
+                var fc = selectedFeedNode.Client;
 
                 if (fc == null)
                     return;
 
-                (selectedNode as NodeFeed).Status = NodeFeed.DownloadStatus.loading;
+                selectedFeedNode.Status = NodeFeed.DownloadStatus.loading;
 
-                List<EntryItem> entLi = await fc.GetEntries((selectedNode as NodeFeed).EndPoint);
+                // TODO: need return result object
+                List<EntryItem> entLi = await fc.GetEntries(selectedFeedNode.EndPoint);
 
                 if (string.IsNullOrEmpty(fc.ClientErrorMessage))
                 {
-                    ClientErrorMessage = "";
-                    IsShowClientErrorMessage = false;
+                    if (selectedFeedNode == SelectedNode)
+                    {
+                        ClientErrorMessage = "";
+                        IsShowClientErrorMessage = false;
+                    }
 
-                    (selectedNode as NodeFeed).Status = NodeFeed.DownloadStatus.normal;
+                    selectedFeedNode.Status = NodeFeed.DownloadStatus.normal;
                 }
                 else
                 {
-                    ClientErrorMessage = fc.ClientErrorMessage;
-                    IsShowClientErrorMessage = true;
+                    if (selectedFeedNode == SelectedNode)
+                    {
+                        ClientErrorMessage = fc.ClientErrorMessage;
+                        IsShowClientErrorMessage = true;
+                    }
 
-                    (selectedNode as NodeFeed).Status = NodeFeed.DownloadStatus.error;
+                    selectedFeedNode.Status = NodeFeed.DownloadStatus.error;
                 }
 
                 // Minimize the time to block UI thread.
@@ -1246,8 +1244,8 @@ li {
 
             if (SelectedNode is NodeFeed)
             {
-                if (OpenInBrowserCommand_CanExecute())
-                    OpenInBrowserCommand_Execute(selectedEntry);
+                if (OpenInExternalBrowserCommand_CanExecute())
+                    OpenInExternalBrowserCommand_Execute(selectedEntry);
             }
             else if (SelectedNode is NodeEntryCollection)
                 if (OpenEditorCommand_CanExecute())
@@ -1270,8 +1268,8 @@ li {
 
             if (SelectedNode is NodeFeed)
             {
-                if (OpenInBrowserCommand_CanExecute())
-                    OpenInBrowserCommand_Execute(selectedEntry);
+                if (OpenInExternalBrowserCommand_CanExecute())
+                    OpenInExternalBrowserCommand_Execute(selectedEntry);
             }
             else if (SelectedNode is NodeEntryCollection)
                 if (OpenEditorCommand_CanExecute())
@@ -1443,24 +1441,46 @@ li {
             OpenEditorNewView?.Invoke(this, ag);
         }
 
-        public ICommand OpenInBrowserCommand { get; }
+        public ICommand OpenInExternalBrowserCommand { get; }
 
-        public bool OpenInBrowserCommand_CanExecute()
+        public bool OpenInExternalBrowserCommand_CanExecute()
         {
             return true;
         }
 
-        public void OpenInBrowserCommand_Execute(EntryItem selectedEntry)
+        public void OpenInExternalBrowserCommand_Execute(EntryItem selectedEntry)
         {
             if (selectedEntry == null)
                 return;
 
             if (selectedEntry.AltHtmlUri != null)
             {
+                SelectedItem = selectedEntry;
+
                 //System.Diagnostics.Process.Start(selectedEntry.AltHTMLUri.AbsoluteUri);
                 ProcessStartInfo psi = new ProcessStartInfo(selectedEntry.AltHtmlUri.AbsoluteUri);
                 psi.UseShellExecute = true;
                 Process.Start(psi);
+            }
+        }
+
+        public ICommand OpenInAppBrowserCommand { get; }
+
+        public bool OpenInAppBrowserCommand_CanExecute()
+        {
+            return true;
+        }
+
+        public void OpenInAppBrowserCommand_Execute(EntryItem selectedEntry)
+        {
+            if (selectedEntry == null)
+                return;
+
+            if (selectedEntry.AltHtmlUri != null)
+            {
+                SelectedItem = selectedEntry;
+
+                NavigateUrlToContentPreviewBrowser?.Invoke(this, selectedEntry.AltHtmlUri);
             }
         }
 

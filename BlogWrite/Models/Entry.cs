@@ -91,6 +91,38 @@ namespace BlogWrite.Models
             }
         }
 
+        //type="text/html"
+        //type="text/x-hatena-syntax"
+        //type = "text/x-markdown"
+
+        public enum ContentTypes
+        {
+            text,
+            textHtml,
+            markdown,
+            hatena
+        }
+
+        public ContentTypes ContentType { get; set; }
+
+        protected string _content = "";
+        public string Content
+        {
+            get
+            {
+                return _content;
+            }
+            set
+            {
+                if (value == _content)
+                    return;
+
+                _content = value;
+
+                NotifyPropertyChanged(nameof(Content));
+            }
+        }
+
         // in UTC
         private DateTime _published;
         public DateTime Published
@@ -113,7 +145,7 @@ namespace BlogWrite.Models
         {
             get
             {
-                var culture = System.Globalization.CultureInfo.CurrentCulture;
+                var culture = System.Globalization.CultureInfo.CurrentCulture;//BlogWrite.Properties.Resources.Culture;//
                 return _published.ToString(culture);
             }
         }
@@ -211,8 +243,6 @@ namespace BlogWrite.Models
     /// </summary>
     public abstract class EntryFull : EntryItem
     {
-        protected string _content = "";
-
 
         /// <summary>
         /// Entry's PostUri. In XML-RPC, this is xmlrpcUri same as EditUri.
@@ -224,36 +254,7 @@ namespace BlogWrite.Models
         /// </summary>
         public Uri EditUri { get; set; }
 
-        //type="text/html"
-        //type="text/x-hatena-syntax"
-        //type = "text/x-markdown"
 
-        public enum ContentTypes
-        {
-            text,
-            textHtml,
-            markdown,
-            hatena
-        }
-
-        public ContentTypes ContentType { get; set; }
-
-        public string Content
-        {
-            get
-            {
-                return _content;
-            }
-            set
-            {
-                if (value == _content)
-                    return;
-
-                _content = value;
-
-                NotifyPropertyChanged(nameof(Content));
-            }
-        }
 
         public EntryFull EntryBody { get; set; }
 

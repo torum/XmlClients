@@ -34,7 +34,7 @@ namespace BlogWrite.Models.Clients
         // HTTP client
         protected HTTPConnection _HTTPConn;
 
-        //
+        // TODO: create result class which inclues error info
         public abstract Task<List<EntryItem>> GetEntries(Uri entriesUrl);
 
         //

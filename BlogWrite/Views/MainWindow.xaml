@@ -14,7 +14,6 @@
         Title="{Binding AppTitle}"
         StateChanged="Window_StateChanged"
         Closing="MainWindow_Closing"
-        Loaded="Window_Loaded"
         Height="450" Width="800">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="32" ResizeBorderThickness="{x:Static SystemParameters.WindowResizeBorderThickness}"/>
@@ -287,9 +286,9 @@
                     ToolTip="Edit" ToolTipService.ToolTip="Edit">
                         M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z
                     </Button>
-                    <Button x:Name="OpenInButton"
+                    <Button x:Name="OpenInExternalButton"
                 Style="{StaticResource PathButton}" 
-                    Command="{Binding OpenInBrowserCommand}"
+                    Command="{Binding OpenInExternalBrowserCommand}"
                     CommandParameter="{Binding SelectedItem}"
                     ToolTip="Open in Browser" ToolTipService.ToolTip="Open in Browser">
                         M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z
@@ -438,10 +437,7 @@
             <Grid Grid.Row="2" Grid.Column="2" x:Name="GridRight" MinWidth="24">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="0"/>
-                    <RowDefinition Height="2*" MinHeight="24"/>
-                    <RowDefinition Height="8"/>
-                    <RowDefinition Height="5*" MinHeight="0"/>
+                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -472,7 +468,7 @@
                 </Border>
 
                 <!-- Entries cardview/listview -->
-                <TabControl Style="{DynamicResource TabControlBottomStyle}" Grid.Row="2" Grid.Column="0" TabStripPlacement="Bottom">
+                <TabControl x:Name="ViewTab" Style="{DynamicResource TabControlBottomStyle}" Grid.Row="2" Grid.Column="0" TabStripPlacement="Bottom">
 
                     <!-- CardView -->
                     <TabItem Header="CardView" Style="{DynamicResource TabItemBottomStyle}" Height="32">
@@ -505,7 +501,7 @@
                                     </Setter>
                                 </Style>
                                 <ContextMenu x:Key="ItemContextMenu">
-                                    <MenuItem Header="Open In Default Browser" Command="{Binding Path=DataContext.OpenInBrowserCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}">
+                                    <MenuItem Header="Open In Default Browser" Command="{Binding Path=DataContext.OpenInExternalBrowserCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}">
                                         <MenuItem.Resources>
                                             <ControlTemplate x:Key="OpenInBrowser">
                                                 <Canvas Background="Transparent" >
@@ -613,9 +609,9 @@
                             </ListView.ItemsPanel>
                             <ListView.ItemTemplate>
                                 <DataTemplate>
-                                    <Border x:Name="Border" Width="210" Height="180" Background="#1E1E1E" CornerRadius="3">
+                                    <Border x:Name="Border" Width="229" Height="180" Background="#1E1E1E" CornerRadius="3">
                                         <Border.InputBindings>
-                                            <MouseBinding Command="{Binding Path=DataContext.OpenInBrowserCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding}" Gesture="LeftDoubleClick" />
+                                            <MouseBinding Command="{Binding Path=DataContext.OpenInExternalBrowserCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding}" Gesture="LeftDoubleClick" />
                                         </Border.InputBindings>
 
                                         <Grid>
@@ -628,9 +624,12 @@
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
 
-                                            <Grid x:Name="TopBar" Grid.Row="0" Grid.Column="0">
-                                                <Button Width="24" Height="24" Style="{DynamicResource PathButton}" Content="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z" HorizontalAlignment="Right" Command="{Binding Path=DataContext.OpenInBrowserCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding}"></Button>
-                                            </Grid>
+                                            <StackPanel x:Name="TopBar" Orientation="Horizontal" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right">
+
+                                                <Button Width="24" Height="24" Style="{DynamicResource PathButton}" Content="M12,10L8,14H11V20H13V14H16M19,4H5C3.89,4 3,4.9 3,6V18A2,2 0 0,0 5,20H9V18H5V8H19V18H15V20H19A2,2 0 0,0 21,18V6A2,2 0 0,0 19,4Z" HorizontalAlignment="Right" Command="{Binding Path=DataContext.OpenInAppBrowserCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding}"></Button>
+                                                <Button Width="24" Height="24" Style="{DynamicResource PathButton}" Content="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z" HorizontalAlignment="Right" Command="{Binding Path=DataContext.OpenInExternalBrowserCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding}"></Button>
+                                            
+                                            </StackPanel>
 
                                             <!--
                                             <Image Stretch="Uniform" Width="210" Height="130" Margin="0"></Image>
@@ -665,17 +664,27 @@
                                 </DataTemplate>
                             </ListView.ItemTemplate>
                         </ListView>
+                    
                     </TabItem>
 
                     <!-- ListView -->
                     <TabItem Header="ListView" Style="{DynamicResource TabItemBottomStyle}" Height="32">
-                        <Grid>
-
-                            <Grid Grid.Row="1" Grid.Column="0" Margin="0 0 8 0" HorizontalAlignment="Stretch" Visibility="Hidden">
+                        <Grid x:Name="GridListView" Background="{DynamicResource BoardBackgroundColorBrush}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="0"/>
+                                <RowDefinition Height="2*" MinHeight="0"/>
+                                <RowDefinition Height="8"/>
+                                <RowDefinition Height="5*" MinHeight="0"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <Grid Grid.Row="0" Grid.Column="0" Margin="0 0 23 0" HorizontalAlignment="Stretch" Visibility="Hidden">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="0" MinWidth="0"  MaxWidth="1" />
                                     <ColumnDefinition Width="*" MinWidth="180"/>
-                                    <ColumnDefinition Width="200" MinWidth="110" MaxWidth="200"/>
+                                    <ColumnDefinition Width="160" MinWidth="110" MaxWidth="200"/>
                                 </Grid.ColumnDefinitions>
 
                                 <Grid x:Name="hwidth0" Grid.Column="0" />
@@ -684,7 +693,7 @@
                             </Grid>
 
                             <!-- Entries listview -->
-                            <ListView Grid.Row="2" Grid.Column="0" x:Name="EntryListView" MinHeight="80" BorderThickness="0" Padding="0" Foreground="LightGray" helpers:GridViewSort.AutoSort="True" helpers:GridViewSort.ShowSortGlyph="True" IsSynchronizedWithCurrentItem="True" Background="{DynamicResource WindowBackgroundBaseColorBrush}" Margin="0" ItemsSource="{Binding Entries}" SelectedItem="{Binding Mode=TwoWay,Path=SelectedItem}" SelectionMode="Extended" SelectionChanged="EntryListView_SelectionChanged" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" AlternationCount="2" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible">
+                            <ListView x:Name="EntryListView" Grid.Row="1" Grid.Column="0" MinHeight="80" BorderThickness="0" Padding="0" Foreground="LightGray" helpers:GridViewSort.AutoSort="True" helpers:GridViewSort.ShowSortGlyph="True" IsSynchronizedWithCurrentItem="True" Background="{DynamicResource WindowBackgroundBaseColorBrush}" Margin="0" ItemsSource="{Binding Entries}" SelectedItem="{Binding Mode=TwoWay,Path=SelectedItem}" SelectionMode="Extended" SelectionChanged="EntryListView_SelectionChanged" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" AlternationCount="2">
                                 <ListView.InputBindings>
                                     <KeyBinding Key="Enter"
                                 Command="{Binding Path=DataContext.ListviewEnterKeyCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}"
@@ -692,16 +701,28 @@
                                 </ListView.InputBindings>
                                 <ListView.Resources>
                                     <ContextMenu x:Key="ItemContextMenu">
-                                        <MenuItem Header="Open In Default Browser" Command="{Binding Path=DataContext.OpenInBrowserCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}">
+                                        <MenuItem Header="Open In App Browser" Command="{Binding Path=DataContext.OpenInAppBrowserCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}">
                                             <MenuItem.Resources>
-                                                <ControlTemplate x:Key="OpenInBrowser">
+                                                <ControlTemplate x:Key="OpenInAppBrowser">
+                                                    <Canvas Background="Transparent" >
+                                                        <Path Fill="#373737" Width="14.3775" Height="14" Canvas.Left="0.311264" Canvas.Top="0.500005" Stretch="Uniform" Data="M12,10L8,14H11V20H13V14H16M19,4H5C3.89,4 3,4.9 3,6V18A2,2 0 0,0 5,20H9V18H5V8H19V18H15V20H19A2,2 0 0,0 21,18V6A2,2 0 0,0 19,4Z" />
+                                                    </Canvas>
+                                                </ControlTemplate>
+                                            </MenuItem.Resources>
+                                            <MenuItem.Icon>
+                                                <ContentControl Template="{StaticResource OpenInAppBrowser}" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="Open In Default Browser" Command="{Binding Path=DataContext.OpenInExternalBrowserCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}">
+                                            <MenuItem.Resources>
+                                                <ControlTemplate x:Key="OpenInExtBrowser">
                                                     <Canvas Background="Transparent" >
                                                         <Path Fill="#373737" Width="14.3775" Height="14" Canvas.Left="0.311264" Canvas.Top="0.500005" Stretch="Uniform" Data="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z" />
                                                     </Canvas>
                                                 </ControlTemplate>
                                             </MenuItem.Resources>
                                             <MenuItem.Icon>
-                                                <ContentControl Template="{StaticResource OpenInBrowser}" />
+                                                <ContentControl Template="{StaticResource OpenInExtBrowser}" />
                                             </MenuItem.Icon>
                                         </MenuItem>
                                         <MenuItem Header="Edit"
@@ -774,9 +795,79 @@
                                                 <Setter Property="Height" Value="Auto" />
                                                 <Setter Property="Template" Value="{StaticResource VerticalScrollBar}" />
                                             </Trigger>
+                                            <Trigger Property="Orientation" Value="Horizontal">
+                                                <Setter Property="Width" Value="Auto"/>
+                                                <Setter Property="Height" Value="18" />
+                                                <Setter Property="Template" Value="{StaticResource HorizontalScrollBar}" />
+                                            </Trigger>
                                         </Style.Triggers>
                                     </Style>
+                                    <Style x:Key="ListViewScrollViewerStyle" TargetType="{x:Type ScrollViewer}">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="{x:Type ScrollViewer}">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition/>
+                                                            <RowDefinition Height="Auto"/>
+                                                        </Grid.RowDefinitions>
+
+                                                        <!--
+                                                    <ScrollContentPresenter Grid.Column="0"/>
+                                                    -->
+                                                        <DockPanel Margin="{TemplateBinding Padding}">
+                                                            <ScrollViewer DockPanel.Dock="Top" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" Focusable="False">
+                                                                <GridViewHeaderRowPresenter Margin="2,0,2,0"
+                                                        Columns="{Binding Path=TemplatedParent.View.Columns, RelativeSource={RelativeSource TemplatedParent}}"
+                                                        ColumnHeaderContainerStyle="{Binding Path=TemplatedParent.View.ColumnHeaderContainerStyle, RelativeSource={RelativeSource TemplatedParent}}"
+                                                        ColumnHeaderTemplate="{Binding Path=TemplatedParent.View.ColumnHeaderTemplate, RelativeSource={RelativeSource TemplatedParent}}"
+                                                        ColumnHeaderTemplateSelector="{Binding Path=TemplatedParent.View.ColumnHeaderTemplateSelector, RelativeSource={RelativeSource TemplatedParent}}"
+                                                        AllowsColumnReorder="{Binding Path=TemplatedParent.View.AllowsColumnReorder, RelativeSource={RelativeSource TemplatedParent}}"
+                                                        ColumnHeaderContextMenu="{Binding Path=TemplatedParent.View.ColumnHeaderContextMenu, RelativeSource={RelativeSource TemplatedParent}}"
+                                                        ColumnHeaderToolTip="{Binding Path=TemplatedParent.View.ColumnHeaderToolTip, RelativeSource={RelativeSource TemplatedParent}}"
+                                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                                            </ScrollViewer>
+
+                                                            <ScrollContentPresenter Name="PART_ScrollContentPresenter" KeyboardNavigation.DirectionalNavigation="Local"/>
+                                                        </DockPanel>
+
+
+                                                        <ScrollBar Name="PART_VerticalScrollBar" Grid.Row="0" Grid.Column="1" Value="{TemplateBinding VerticalOffset}" Maximum="{TemplateBinding ScrollableHeight}" ViewportSize="{TemplateBinding ViewportHeight}" Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"/>
+                                                        <ScrollBar Name="PART_HorizontalScrollBar" Orientation="Horizontal" Grid.Row="1" Grid.Column="0" Value="{TemplateBinding HorizontalOffset}" Maximum="{TemplateBinding ScrollableWidth}" ViewportSize="{TemplateBinding ViewportWidth}" Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}"/>
+                                                        <Rectangle Grid.Row="1" Grid.Column="1" Fill="Transparent"/>
+                                                    </Grid>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
                                 </ListView.Resources>
+                                <ListView.Style>
+                                    <Style TargetType="ListView">
+                                        <Setter Property="SnapsToDevicePixels" Value="true" />
+                                        <Setter Property="OverridesDefaultStyle" Value="True" />
+                                        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
+                                        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+                                        <Setter Property="ScrollViewer.CanContentScroll" Value="true" />
+                                        <Setter Property="AlternationCount" Value="2"/>
+                                        <Setter Property="Margin" Value="0"/>
+                                        <Setter Property="Padding" Value="0"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="ListView">
+                                                    <Border Name="Border" BorderThickness="0" Background="{TemplateBinding Background}">
+                                                        <ScrollViewer Style="{DynamicResource ListViewScrollViewerStyle}">
+                                                            <ItemsPresenter />
+                                                        </ScrollViewer>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </ListView.Style>
                                 <ListView.View>
                                     <GridView>
                                         <GridView.ColumnHeaderContainerStyle>
@@ -791,12 +882,14 @@
                                             <GridViewColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0">
+
                                                         <Viewbox Width="12" Height="12" Margin="0 0 4 2">
                                                             <Canvas Width="18" Height="18">
                                                                 <Path Data="{Binding PathIcon}" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}}" />
                                                             </Canvas>
                                                         </Viewbox>
                                                         <TextBlock Text="{Binding Path=Name}" Padding="3" />
+
                                                     </StackPanel>
                                                 </DataTemplate>
                                             </GridViewColumn.CellTemplate>
@@ -833,96 +926,101 @@
                                 </ListView.ItemContainerStyle>
                             </ListView>
 
+                            <!-- ListView middle splitter -->
+                            <GridSplitter x:Name="SplitterListViewContentPreviewWebBrowser" Grid.Row="2" Grid.Column="0" ResizeDirection="Rows" Style="{StaticResource GridSplitterStyle}"></GridSplitter>
+
+                            <!-- ListView Right Bottom -->
+                            <Grid x:Name="GridListViewContentPreviewWebBrowser" Grid.Row="3" Grid.Column="0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid Grid.Row="0" Grid.Column="0">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Button Grid.Row="0" Grid.Column="0" Width="24" Height="24" Style="{DynamicResource PathButton}" Content="M12,10L8,14H11V20H13V14H16M19,4H5C3.89,4 3,4.9 3,6V18A2,2 0 0,0 5,20H9V18H5V8H19V18H15V20H19A2,2 0 0,0 21,18V6A2,2 0 0,0 19,4Z" HorizontalAlignment="Center" Command="{Binding Path=OpenInAppBrowserCommand}" CommandParameter="{Binding SelectedItem}"></Button>
+
+                                    <Button Grid.Row="0" Grid.Column="1" Width="24" Height="24" Style="{DynamicResource PathButton}" Content="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z" HorizontalAlignment="Center" Command="{Binding Path=OpenInExternalBrowserCommand}" CommandParameter="{Binding SelectedItem}"></Button>
+
+                                    <!-- Browser close button -->
+                                    <Button Grid.Row="0" Grid.Column="3" Command="{Binding CloseContentBrowserCommand}" Style="{StaticResource PathButton}" Width="24" Height="24" Margin="0" HorizontalAlignment="Right" VerticalAlignment="Center" Content="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19M17,8.4L13.4,12L17,15.6L15.6,17L12,13.4L8.4,17L7,15.6L10.6,12L7,8.4L8.4,7L12,10.6L15.6,7L17,8.4Z"></Button>
+
+                                </Grid>
+
+                                <!-- Contents viewer -->
+                                <Grid Grid.Row="1" Grid.Column="0">
+
+                                    <!-- Text contents viewer -->
+                                    <TextBox x:Name="ListViewContentPreviewTextBox" Text="{Binding EntryContentText, Mode=OneWay}" Background="{DynamicResource WindowBackgroundBaseColorBrush}" TextWrapping="Wrap" IsReadOnly="True" IsTabStop="False" MinHeight="24" Style="{StaticResource FlatTextBoxStyle}">
+                                        <TextBox.Resources>
+                                            <Style TargetType="{x:Type ScrollBar}">
+                                                <Setter Property="SnapsToDevicePixels" Value="True" />
+                                                <Setter Property="OverridesDefaultStyle" Value="true" />
+                                                <Setter Property="Margin" Value="0,0,0,0" />
+                                                <Setter Property="BorderThickness" Value="0" />
+                                                <Style.Triggers>
+                                                    <Trigger Property="Orientation" Value="Vertical">
+                                                        <Setter Property="Width" Value="18"/>
+                                                        <Setter Property="Height" Value="Auto" />
+                                                        <Setter Property="Template" Value="{StaticResource VerticalScrollBar}" />
+                                                    </Trigger>
+                                                    <Trigger Property="Orientation" Value="Horizontal">
+                                                        <Setter Property="Width" Value="Auto"/>
+                                                        <Setter Property="Height" Value="18" />
+                                                        <Setter Property="Template" Value="{StaticResource HorizontalScrollBar}" />
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                            <Style TargetType="{x:Type ScrollViewer}">
+                                                <Setter Property="OverridesDefaultStyle" Value="True" />
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="{x:Type ScrollViewer}">
+                                                            <Grid x:Name="Grid" Background="{TemplateBinding Background}">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
+                                                                <Grid.RowDefinitions>
+                                                                    <RowDefinition Height="*" />
+                                                                    <RowDefinition Height="Auto" />
+                                                                </Grid.RowDefinitions>
+                                                                <!--
+                                                    <Rectangle x:Name="Corner" Grid.Row="1" Grid.Column="1" Fill="Transparent" />
+                                                    -->
+                                                                <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" Grid.Row="0" Grid.Column="0" Margin="{TemplateBinding Padding}" CanContentScroll="{TemplateBinding CanContentScroll}" CanHorizontallyScroll="False" CanVerticallyScroll="False" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                                                                <ScrollBar x:Name="PART_VerticalScrollBar" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" AutomationProperties.AutomationId="VerticalScrollBar" Cursor="Arrow" Maximum="{TemplateBinding ScrollableHeight}" Minimum="0" ViewportSize="{TemplateBinding ViewportHeight}" Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" Value="{Binding VerticalOffset, Mode=OneWay,RelativeSource={RelativeSource TemplatedParent}}" />
+                                                                <ScrollBar x:Name="PART_HorizontalScrollBar" Grid.Row="1" Grid.Column="0" AutomationProperties.AutomationId="HorizontalScrollBar" Cursor="Arrow" Maximum="{TemplateBinding ScrollableWidth}" Minimum="0" Orientation="Horizontal" ViewportSize="{TemplateBinding ViewportWidth}" Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}" Value="{Binding HorizontalOffset,Mode=OneWay,RelativeSource={RelativeSource TemplatedParent}}" />
+                                                            </Grid>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </TextBox.Resources>
+                                    </TextBox>
+
+                                    <wv2:WebView2 Name="ListViewContentPreviewWebBrowser" Visibility="{Binding IsContentHTML, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}"/>
+
+                                </Grid>
+
+                            </Grid>
+
                         </Grid>
                     </TabItem>
                     
                 </TabControl>
-
-                <!-- Right middle splitter -->
-                <GridSplitter x:Name="SplitterRightMiddle" Grid.Row="3" Grid.Column="0" ResizeDirection="Rows" Style="{StaticResource GridSplitterStyle}"></GridSplitter>
-
-                <!-- Right Bottom -->
-                <Grid Grid.Row="4" Grid.Column="0" x:Name="GridRightBottom">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <Grid Grid.Row="0" Grid.Column="0">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <!-- Browser close button -->
-                        <Button Grid.Row="0" Grid.Column="1" Visibility="Collapsed" Command="{Binding CloseContentBrowserCommand}" Style="{StaticResource PathButton}" Width="30" Height="30" Margin="0" HorizontalAlignment="Right" VerticalAlignment="Center" Content="M19,3H16.3H7.7H5A2,2 0 0,0 3,5V7.7V16.4V19A2,2 0 0,0 5,21H7.7H16.4H19A2,2 0 0,0 21,19V16.3V7.7V5A2,2 0 0,0 19,3M15.6,17L12,13.4L8.4,17L7,15.6L10.6,12L7,8.4L8.4,7L12,10.6L15.6,7L17,8.4L13.4,12L17,15.6L15.6,17Z"></Button>
-
-                    </Grid>
-
-                    <!-- Contents viewer -->
-                    <Grid Grid.Row="1" Grid.Column="0">
-                        
-                        <!-- Text contents viewer -->
-                        <TextBox x:Name="ContentPreviewTextBox" Text="{Binding Entry, Mode=OneWay}" Background="{DynamicResource WindowBackgroundBaseColorBrush}" TextWrapping="Wrap" IsReadOnly="True" IsTabStop="False" MinHeight="24" Style="{StaticResource FlatTextBoxStyle}">
-                            <TextBox.Resources>
-                                <Style TargetType="{x:Type ScrollBar}">
-                                    <Setter Property="SnapsToDevicePixels" Value="True" />
-                                    <Setter Property="OverridesDefaultStyle" Value="true" />
-                                    <Setter Property="Margin" Value="0,0,0,0" />
-                                    <Setter Property="BorderThickness" Value="0" />
-                                    <Style.Triggers>
-                                        <Trigger Property="Orientation" Value="Vertical">
-                                            <Setter Property="Width" Value="18"/>
-                                            <Setter Property="Height" Value="Auto" />
-                                            <Setter Property="Template" Value="{StaticResource VerticalScrollBar}" />
-                                        </Trigger>
-                                        <Trigger Property="Orientation" Value="Horizontal">
-                                            <Setter Property="Width" Value="Auto"/>
-                                            <Setter Property="Height" Value="18" />
-                                            <Setter Property="Template" Value="{StaticResource HorizontalScrollBar}" />
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="{x:Type ScrollViewer}">
-                                    <Setter Property="OverridesDefaultStyle" Value="True" />
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="{x:Type ScrollViewer}">
-                                                <Grid x:Name="Grid" Background="{TemplateBinding Background}">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <Grid.RowDefinitions>
-                                                        <RowDefinition Height="*" />
-                                                        <RowDefinition Height="Auto" />
-                                                    </Grid.RowDefinitions>
-                                                    <!--
-                                                    <Rectangle x:Name="Corner" Grid.Row="1" Grid.Column="1" Fill="Transparent" />
-                                                    -->
-                                                    <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" Grid.Row="0" Grid.Column="0" Margin="{TemplateBinding Padding}" CanContentScroll="{TemplateBinding CanContentScroll}" CanHorizontallyScroll="False" CanVerticallyScroll="False" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
-                                                    <ScrollBar x:Name="PART_VerticalScrollBar" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" AutomationProperties.AutomationId="VerticalScrollBar" Cursor="Arrow" Maximum="{TemplateBinding ScrollableHeight}" Minimum="0" ViewportSize="{TemplateBinding ViewportHeight}" Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" Value="{Binding VerticalOffset, Mode=OneWay,RelativeSource={RelativeSource TemplatedParent}}" />
-                                                    <ScrollBar x:Name="PART_HorizontalScrollBar" Grid.Row="1" Grid.Column="0" AutomationProperties.AutomationId="HorizontalScrollBar" Cursor="Arrow" Maximum="{TemplateBinding ScrollableWidth}" Minimum="0" Orientation="Horizontal" ViewportSize="{TemplateBinding ViewportWidth}" Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}" Value="{Binding HorizontalOffset,Mode=OneWay,RelativeSource={RelativeSource TemplatedParent}}" />
-                                                </Grid>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </TextBox.Resources>
-                        </TextBox>
-                        
-                        <!-- WebView2 -->
-                        <wv2:WebView2 Name="ContentPreviewWebBrowser" Visibility="{Binding IsContentHTML, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-
-                    </Grid>
-
-                </Grid>
 
             </Grid>
 
@@ -941,7 +1039,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <Button Grid.Row="0" Grid.Column="0" Command="{Binding CloseDebugWindowCommand}" Style="{StaticResource PathButton}" Width="30" Height="30" Margin="0 0 0 0" HorizontalAlignment="Right" VerticalAlignment="Center" Content="M19,3H16.3H7.7H5A2,2 0 0,0 3,5V7.7V16.4V19A2,2 0 0,0 5,21H7.7H16.4H19A2,2 0 0,0 21,19V16.3V7.7V5A2,2 0 0,0 19,3M15.6,17L12,13.4L8.4,17L7,15.6L10.6,12L7,8.4L8.4,7L12,10.6L15.6,7L17,8.4L13.4,12L17,15.6L15.6,17Z"></Button>
+                    <Button Grid.Row="0" Grid.Column="0" Command="{Binding CloseDebugWindowCommand}" Style="{StaticResource PathButton}" Width="24" Height="24" Margin="0 0 0 0" HorizontalAlignment="Right" VerticalAlignment="Center" Content="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19M17,8.4L13.4,12L17,15.6L15.6,17L12,13.4L8.4,17L7,15.6L10.6,12L7,8.4L8.4,7L12,10.6L15.6,7L17,8.4Z"></Button>
 
                     <Grid Grid.Row="1" Grid.Column="0">
                         <TextBox x:Name="DebugTextBox" Padding="6 6 24 6" Background="{DynamicResource WindowBackgroundBaseColorBrush}" Foreground="Gray" BorderThickness="0" VerticalAlignment="Stretch" TextWrapping="NoWrap" IsReadOnly="True" IsTabStop="False" Margin="0" MinHeight="24" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto">
@@ -1033,10 +1131,10 @@
 
                 </StatusBarItem>
 
-                <Separator Grid.Column="3" Background="#202020" Margin="1" />
+                <Separator Grid.Column="3" Background="#202020" Margin="1" Visibility="Collapsed" />
 
                 <!-- Browser (Open in App) Icon  -->
-                <StatusBarItem Grid.Column="4" HorizontalContentAlignment="Center" Padding="0" Margin="0" Background="{DynamicResource BoardBackgroundColorBrush}">
+                <StatusBarItem Grid.Column="4" HorizontalContentAlignment="Center" Padding="0" Margin="0" Background="{DynamicResource BoardBackgroundColorBrush}" Visibility="Collapsed">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="6 0 6 0" Width="24">
 
                         <Button Width="24" Height="24" Margin="00" Command="{Binding ShowBrowserWindowCommand}" VerticalAlignment="Center" ToolTip="In-App Browser Window Show/Hide">
@@ -1205,6 +1303,42 @@
                 </StatusBarItem>
 
             </StatusBar>
+
+            <Grid x:Name="GridCardViewContentPreviewWebBrowser" Grid.Row="1" Grid.Column="0" Grid.RowSpan="6" Grid.ColumnSpan="3" Visibility="Collapsed">
+                <Rectangle HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="#313131" Opacity="0.8"></Rectangle>
+                
+                <Grid Background="{DynamicResource BoardBackgroundColorBrush}" Margin="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Row="0" Grid.Column="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Row="0" Grid.Column="1" Width="24" Height="24" Style="{DynamicResource PathButton}" Content="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z" HorizontalAlignment="Center" Command="{Binding Path=OpenInExternalBrowserCommand}" CommandParameter="{Binding SelectedItem}"></Button>
+
+                        <!-- Browser close button -->
+                        <Button Grid.Row="0" Grid.Column="3" Command="{Binding CloseContentBrowserCommand}" Style="{StaticResource PathButton}" Width="24" Height="24" Margin="0" HorizontalAlignment="Right" VerticalAlignment="Center" Content="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19M17,8.4L13.4,12L17,15.6L15.6,17L12,13.4L8.4,17L7,15.6L10.6,12L7,8.4L8.4,7L12,10.6L15.6,7L17,8.4Z"></Button>
+
+                    </Grid>
+
+                    <!-- WebView2 -->
+                    <wv2:WebView2 Name="CardViewContentPreviewWebBrowser" Grid.Row="1" Grid.Column="0"/>
+                </Grid>
+
+            </Grid>
 
         </Grid>
     </Border>

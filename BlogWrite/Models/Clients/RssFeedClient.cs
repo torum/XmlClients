@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.ServiceModel.Syndication;
 using System.Xml;
 using System.IO;
 using System.Diagnostics;
@@ -194,6 +193,12 @@ namespace BlogWrite.Models.Clients
             XmlNode sum = entryNode.SelectSingleNode("description");
             if (sum != null)
             {
+                // Content
+                entItem.ContentType = EntryItem.ContentTypes.textHtml;
+
+                entItem.Content = sum.InnerText;
+
+                // Summary
                 entItem.Summary = await StripStyleAttributes(sum.InnerText);
 
                 if (!string.IsNullOrEmpty(sum.InnerText))
@@ -236,8 +241,13 @@ namespace BlogWrite.Models.Clients
             XmlNode sum = entryNode.SelectSingleNode("rss:description", NsMgr);
             if (sum != null)
             {
+                // Content
+                entItem.ContentType = EntryItem.ContentTypes.textHtml;
+
+                entItem.Content = sum.InnerText;
+
+                // Summary
                 entItem.Summary = await StripStyleAttributes(sum.InnerText);
-                //entry.ContentType = EntryFull.ContentTypes.textHtml;
 
                 if (!string.IsNullOrEmpty(sum.InnerText))
                 {

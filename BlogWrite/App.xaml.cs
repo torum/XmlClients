@@ -8,6 +8,9 @@ using System.Windows;
 using System.Threading;
 using BlogWrite.Views;
 using BlogWrite.ViewModels;
+using System.Globalization;
+using Microsoft.Web.WebView2.Core;
+using System.Diagnostics;
 
 namespace BlogWrite
 {
@@ -33,6 +36,23 @@ namespace BlogWrite
         /// <summary> Check and bring to front if already exists.</summary>
         private void AppOnStartup(object sender, StartupEventArgs e)
         {
+            if (!IsWebViewVersionInstalled())
+            {
+                // show dialog.
+
+                var dialog = new WebView2RuntimeInstall()
+                {
+                    Owner = null,
+                    Width = 800,
+                    Height = 380,
+                    Title = "Microsoft Edge WebView2 Runtime Installation",
+                };
+
+                dialog.ShowDialog();
+
+                this.Shutdown();
+            }
+
             // テスト用
             //ChangeTheme("DefaultTheme");
             //ChangeTheme("LightTheme");
@@ -167,7 +187,6 @@ namespace BlogWrite
             WindowList.Remove(editor);
         }
 
-
         // テーマ切替メソッド
         public void ChangeTheme(string themeName)
         {
@@ -189,6 +208,27 @@ namespace BlogWrite
             string themeUri = String.Format("pack://application:,,,/Themes/{0}.xaml", themeName);
             _themeDict.Source = new Uri(themeUri);
 
+        }
+
+        private bool IsWebViewVersionInstalled()
+        {
+            try
+            {
+                string verNo = CoreWebView2Environment.GetAvailableBrowserVersionString();
+
+                //Debug.WriteLine("versionNo:" + verNo);//versionNo: 91.0.864.41
+
+                Version ver = new Version(verNo); //
+
+                Version asmVerNo = typeof(CoreWebView2Environment).Assembly.GetName().Version;
+
+                if (ver.Build >= asmVerNo.Build)
+                    return true;
+
+            }
+            catch { }
+
+            return false;
         }
 
     }

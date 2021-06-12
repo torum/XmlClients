@@ -19,6 +19,8 @@ using System.Globalization;
 using System.Diagnostics;
 using BlogWrite.ViewModels;
 using BlogWrite.Models;
+using Microsoft.Web.WebView2.Core;
+using System.IO;
 
 namespace BlogWrite.Views
 {
@@ -27,6 +29,8 @@ namespace BlogWrite.Views
     /// </summary>
     public partial class MainWindow : Window
     {
+        CoreWebView2Environment env;
+
         #region == Treeview D&D ==
 
         private enum InsertType
@@ -52,6 +56,8 @@ namespace BlogWrite.Views
         public MainWindow()
         {
             InitializeComponent();
+
+            InitializeWebView2Async();
 
             Loaded += (this.DataContext as MainViewModel).OnWindowLoaded;
             Closing += (this.DataContext as MainViewModel).OnWindowClosing;
@@ -91,8 +97,32 @@ namespace BlogWrite.Views
                     }
                 }
             }
+
+
         }
 
+        private async void InitializeWebView2Async()
+        {
+            var html = @"
+                <html>
+                    <head>
+                        <title></title>
+                    </head>
+                    <body style=""background-color:#212121;"">
+                    </body>
+                </html>";
+
+            env = await CoreWebView2Environment.CreateAsync(userDataFolder: System.IO.Path.Combine(System.IO.Path.GetTempPath(), "BlogWrite"));
+
+            await ListViewContentPreviewWebBrowser.EnsureCoreWebView2Async(env);
+
+            ListViewContentPreviewWebBrowser.NavigateToString(html);
+
+            await CardViewContentPreviewWebBrowser.EnsureCoreWebView2Async(env);
+
+            CardViewContentPreviewWebBrowser.NavigateToString(html);
+
+        }
 
         public void BringToForeground()
         {
@@ -106,22 +136,6 @@ namespace BlogWrite.Views
             this.Focus();
         }
         
-        private async void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            var html = @"
-                <html>
-                    <head>
-                        <title></title>
-                    </head>
-                    <body style=""background-color:#212121;"">
-                    </body>
-                </html>";
-
-            await ContentPreviewWebBrowser.EnsureCoreWebView2Async();
-
-            ContentPreviewWebBrowser.NavigateToString(html);
-        }
-
         private void MainWindow_Closing(object sender, CancelEventArgs e)
         {
             // TODO: When MainWindow try to close itself, confirm to close all the child windows. 
@@ -216,29 +230,48 @@ namespace BlogWrite.Views
             (this.DataContext as MainViewModel).AddFeed(arg.FeedLinkData);
         }
 
-        public void OnWriteHtmlToContentPreviewBrowser(string arg)
+        public async void OnWriteHtmlToContentPreviewBrowser(string arg)
         {
-            Debug.WriteLine(arg);
-            // 
-            ContentPreviewWebBrowser.NavigateToString(arg);
+            await ListViewContentPreviewWebBrowser.EnsureCoreWebView2Async(env);
+
+            ListViewContentPreviewWebBrowser.NavigateToString(arg);
         }
 
-        public void OnNavigateUrlToContentPreviewBrowser(Uri arg)
+        public async void OnNavigateUrlToContentPreviewBrowser(Uri arg)
         {
             if (arg == null)
                 return;
 
-            if (GridRightBottom.Visibility == Visibility.Visible)
+            if (ViewTab.SelectedIndex == 0)
             {
-                // 
-                ContentPreviewWebBrowser.Source = arg;
+                if (GridCardViewContentPreviewWebBrowser.Visibility != Visibility.Visible)
+                {
+                    GridCardViewContentPreviewWebBrowser.Visibility = Visibility.Visible;
+                }
+
+                await CardViewContentPreviewWebBrowser.EnsureCoreWebView2Async(env);
+
+                CardViewContentPreviewWebBrowser.Source = arg;
+                
             }
-            else
+            else if (ViewTab.SelectedIndex == 1)
             {
-                ProcessStartInfo psi = new ProcessStartInfo(arg.AbsoluteUri);
-                psi.UseShellExecute = true;
-                Process.Start(psi);
+                if (GridListViewContentPreviewWebBrowser.Visibility != Visibility.Visible)
+                {
+                    // Re-set Listview, splitter and browser heights.
+                    GridListView.RowDefinitions[1].Height = new GridLength(2, GridUnitType.Star);
+                    GridListView.RowDefinitions[2].Height = new GridLength(8);
+                    GridListView.RowDefinitions[3].Height = new GridLength(5, GridUnitType.Star);
+
+                    SplitterListViewContentPreviewWebBrowser.Visibility = Visibility.Visible;
+                    GridListViewContentPreviewWebBrowser.Visibility = Visibility.Visible;
+                }
+
+                await ListViewContentPreviewWebBrowser.EnsureCoreWebView2Async(env);
+
+                ListViewContentPreviewWebBrowser.Source = arg;
             }
+
         }
 
         public void OnDebugOutput(string arg)
@@ -277,6 +310,9 @@ namespace BlogWrite.Views
                 DebugWindowGridSplitter.Visibility = Visibility.Visible;
                 DebugWindow.Visibility = Visibility.Visible;
             }
+            /*
+
+            */
         }
 
         public void OnDebugWindowShowHide2(bool on)
@@ -301,10 +337,14 @@ namespace BlogWrite.Views
                 DebugWindowGridSplitter.Visibility = Visibility.Collapsed;
                 DebugWindow.Visibility = Visibility.Collapsed;
             }
+            /*
+
+            */
         }
 
         public void OnContentsBrowserWindowShowHide()
         {
+            /*
             if (GridRightBottom.Visibility == Visibility.Visible)
             {
                 OnContentsBrowserWindowShowHide2(false);
@@ -313,29 +353,45 @@ namespace BlogWrite.Views
             {
                 OnContentsBrowserWindowShowHide2(true);
             }
+            */
         }
 
         public void OnContentsBrowserWindowShowHide2(bool on)
         {
             if (on)
             {
-                GridRight.RowDefinitions[2].Height = new GridLength(2, GridUnitType.Star);
+                if (ViewTab.SelectedIndex == 0)
+                {
 
-                GridRight.RowDefinitions[3].Height = new GridLength(8, GridUnitType.Pixel);
-                GridRight.RowDefinitions[4].Height = new GridLength(5, GridUnitType.Star);
+                }
+                else if (ViewTab.SelectedIndex == 1)
+                {
 
-                SplitterRightMiddle.Visibility = Visibility.Visible;
-                GridRightBottom.Visibility = Visibility.Visible;
+                }
             }
             else
             {
-                GridRight.RowDefinitions[2].Height = new GridLength(1, GridUnitType.Star);
+                if (ViewTab.SelectedIndex == 0)
+                {
+                    if (GridCardViewContentPreviewWebBrowser.Visibility == Visibility.Visible)
+                    {
+                        GridCardViewContentPreviewWebBrowser.Visibility = Visibility.Collapsed;
+                    }
 
-                GridRight.RowDefinitions[3].Height = new GridLength(0);
-                GridRight.RowDefinitions[4].Height = new GridLength(0);
+                }
+                else if (ViewTab.SelectedIndex == 1)
+                {
+                    if (GridListViewContentPreviewWebBrowser.Visibility == Visibility.Visible)
+                    {
+                        SplitterListViewContentPreviewWebBrowser.Visibility = Visibility.Collapsed;
+                        GridListViewContentPreviewWebBrowser.Visibility = Visibility.Collapsed;
 
-                SplitterRightMiddle.Visibility = Visibility.Collapsed;
-                GridRightBottom.Visibility = Visibility.Collapsed;
+                        // Sets Listview, splitter and browser heights.
+                        GridListView.RowDefinitions[1].Height = new GridLength(1, GridUnitType.Star);
+                        GridListView.RowDefinitions[2].Height = new GridLength(0);
+                        GridListView.RowDefinitions[3].Height = new GridLength(0);
+                    }
+                }
             }
         }
 
