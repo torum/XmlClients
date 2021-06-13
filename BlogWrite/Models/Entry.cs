@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
+using System.Windows.Media.Imaging;
 using System.Xml;
 using BlogWrite.Models.Clients;
 
@@ -153,6 +154,40 @@ namespace BlogWrite.Models
         // TODO:
         // author
 
+
+        private Uri _imageUri;
+        public Uri ImageUri
+        {
+            get
+            {
+                return _imageUri;
+            }
+            set
+            {
+                if (_imageUri == value)
+                    return;
+
+                _imageUri = value;
+                NotifyPropertyChanged(nameof(ImageUri));
+            }
+        }
+
+        private BitmapImage _image;
+        public BitmapImage Image
+        {
+            get
+            {
+                return _image;
+            }
+            set
+            {
+                if (_image == value)
+                    return;
+
+                _image = value;
+                NotifyPropertyChanged(nameof(Image));
+            }
+        }
 
         /// <summary>
         /// IsDraft flag. AtomPub and XML-PRC WP. MP doesn't have this?

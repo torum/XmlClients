@@ -8,6 +8,8 @@ using System.IO;
 using System.Diagnostics;
 using AngleSharp;
 using BlogWrite.Common;
+using System.Windows.Media.Imaging;
+using System.Windows;
 
 namespace BlogWrite.Models.Clients
 {
@@ -157,7 +159,7 @@ namespace BlogWrite.Models.Clients
             return list;
         }
 
-        public async void FillEntryItemFromXmlRss(EntryItem entItem, XmlNode entryNode)
+        private async void FillEntryItemFromXmlRss(EntryItem entItem, XmlNode entryNode)
         {
             XmlNode entryTitle = entryNode.SelectSingleNode("title");
             entItem.Name = (entryTitle != null) ? entryTitle.InnerText : "";
@@ -207,10 +209,27 @@ namespace BlogWrite.Models.Clients
 
                     entItem.SummaryPlainText = Truncate(entItem.SummaryPlainText, 78);
                 }
+
+                // gets image Uri
+                entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
+
+                // TODO: this is just a test.
+                if (entItem.ImageUri != null)
+                {
+                    Byte[] bytes = await this.GetImage(entItem.ImageUri);
+                    if (bytes != Array.Empty<byte>())
+                    {
+                        if (Application.Current == null) { return; }
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            entItem.Image = BitmapImageFromBytes(bytes);
+                        });
+                    }
+                }
             }
         }
 
-        public async void FillEntryItemFromXmlRdf(EntryItem entItem, XmlNode entryNode, XmlNamespaceManager NsMgr)
+        private async void FillEntryItemFromXmlRdf(EntryItem entItem, XmlNode entryNode, XmlNamespaceManager NsMgr)
         {
             XmlNode entryTitle = entryNode.SelectSingleNode("rss:title", NsMgr);
             entItem.Name = (entryTitle != null) ? entryTitle.InnerText : "";
@@ -255,7 +274,26 @@ namespace BlogWrite.Models.Clients
 
                     entItem.SummaryPlainText = Truncate(entItem.SummaryPlainText, 78);
                 }
+
+                // gets image Uri
+                entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
+
+                // TODO: this is just a test.
+                if (entItem.ImageUri != null)
+                {
+                    Byte[] bytes = await this.GetImage(entItem.ImageUri);
+                    if (bytes != Array.Empty<byte>())
+                    {
+                        if (Application.Current == null) { return; }
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            entItem.Image = BitmapImageFromBytes(bytes);
+                        });
+                    }
+                }
             }
         }
+
+
     }
 }

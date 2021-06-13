@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using BlogWrite.Models;
 using AngleSharp;
 using BlogWrite.Common;
+using System.Windows.Media.Imaging;
+using System.IO;
 
 namespace BlogWrite.Models.Clients
 {
@@ -49,6 +51,15 @@ namespace BlogWrite.Models.Clients
             {
                 _clientErrorMessage = value;
             }
+        }
+
+        public async Task<byte[]> GetImage(Uri imageUri)
+        {
+            byte[] res = Array.Empty<byte>();
+
+            res = await _HTTPConn.Client.GetByteArrayAsync(imageUri);
+
+            return res;
         }
 
         #region == Events ==
@@ -111,6 +122,62 @@ namespace BlogWrite.Models.Clients
             if (string.IsNullOrEmpty(value)) return value;
             return value.Length <= maxLength ? value : value.Substring(0, maxLength) + " ...";
         }
+
+        protected async Task<Uri> GetImageUriFromHtml(string s)
+        {
+            Uri imageUri = null;
+
+            var context = BrowsingContext.New(Configuration.Default);
+            var document = await context.OpenAsync(req => req.Content(s));
+            var sl = document.DocumentElement.QuerySelector("img");
+            if (sl != null)
+            {
+                string imgSrc = sl.GetAttribute("src");
+                if (!string.IsNullOrEmpty(imgSrc))
+                {
+                    try
+                    {
+                        //Debug.WriteLine("imgSrc: " + imgSrc);
+                        imageUri = new Uri(imgSrc);
+                    }
+                    catch { }
+                }
+            }
+
+            return imageUri;
+        }
+
+        protected static BitmapImage BitmapImageFromBytes(Byte[] bytes)
+        {
+            using (var stream = new MemoryStream(bytes))
+            {
+                BitmapImage bmimage = new BitmapImage();
+                bmimage.BeginInit();
+                bmimage.CacheOption = BitmapCacheOption.OnLoad;
+
+                bmimage.DecodePixelWidth = 220;
+
+                bmimage.StreamSource = stream;
+                bmimage.EndInit();
+                return bmimage;
+            }
+        }
+
+        /*
+        public static Byte[] BitmapImageToByteArray(BitmapImage bitmapImage)
+        {
+            byte[] data;
+            JpegBitmapEncoder encoder = new JpegBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(bitmapImage));
+            using (MemoryStream ms = new MemoryStream())
+            {
+                encoder.Save(ms);
+                data = ms.ToArray();
+            }
+
+            return data;
+        }
+        */
     }
 }
 

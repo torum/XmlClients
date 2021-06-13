@@ -6,6 +6,7 @@ using System.Xml.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Windows;
 
 namespace BlogWrite.Models.Clients
 {
@@ -186,7 +187,7 @@ namespace BlogWrite.Models.Clients
             return list;
         }
 
-        public async void FillEntryItemFromXML(AtomEntry entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr)
+        private async void FillEntryItemFromXML(AtomEntry entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr)
         {
 
             AtomEntry entry = await CreateAtomEntryFromXML(entryNode, atomNsMgr);
@@ -204,6 +205,26 @@ namespace BlogWrite.Models.Clients
             // entItem.EntryBody = entry;
 
             entItem.Status = entry.Status;
+
+            if (entItem.ContentType == EntryItem.ContentTypes.textHtml)
+            {
+                // gets image Uri
+                entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
+
+                // TODO: this is just a test.
+                if (entItem.ImageUri != null)
+                {
+                    Byte[] bytes = await this.GetImage(entItem.ImageUri);
+                    if (bytes != Array.Empty<byte>())
+                    {
+                        if (Application.Current == null) { return; }
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            entItem.Image = BitmapImageFromBytes(bytes);
+                        });
+                    }
+                }
+            }
 
         }
 

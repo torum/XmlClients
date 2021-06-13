@@ -632,7 +632,7 @@
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="24"/>
-                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="132"/>
                                                 <RowDefinition Height="24"/>
                                             </Grid.RowDefinitions>
                                             <Grid.ColumnDefinitions>
@@ -646,14 +646,27 @@
                                             
                                             </StackPanel>
 
-                                            <!--
-                                            <Image Stretch="Uniform" Width="210" Height="130" Margin="0"></Image>
-                                            -->
-                                            <StackPanel Grid.Row="1" Grid.Column="0">
-                                                <TextBlock x:Name="EntryTitle" Text="{Binding Name}" TextWrapping="Wrap" Padding="6 0 3 0" Foreground="{DynamicResource NormalTextColorBrush}"></TextBlock>
-                                                <TextBlock x:Name="EntrySummary" Text="{Binding SummaryPlainText}" TextWrapping="Wrap" Padding="9 9 3 6" Foreground="#555"></TextBlock>
-                                            </StackPanel>
+                                            <Grid Grid.Row="1" Grid.Column="0">
 
+                                                <Border Background="#1E1E1E" CornerRadius="3" VerticalAlignment="Top" Margin="0 5 0 0">
+                                                    <Grid>
+                                                        <!--  Adding rounded corners here  -->
+                                                        <Border Name="EntryImageMask" Margin="0" Background="#1E1E1E" CornerRadius="3"/>
+                                                        <!--  Image  -->
+                                                        <Grid>
+                                                            <Grid.OpacityMask>
+                                                                <VisualBrush Visual="{Binding ElementName=EntryImageMask}" />
+                                                            </Grid.OpacityMask>
+                                                            <Image x:Name="EntryImage" Stretch="Uniform" Width="220" Height="127" Margin="0" Source="{Binding Image}" Opacity="0.1"></Image>
+                                                        </Grid>
+                                                    </Grid>
+                                                </Border>
+                                                
+                                                <StackPanel>
+                                                    <TextBlock x:Name="EntryTitle" Text="{Binding Name}" TextWrapping="Wrap" Padding="6 0 3 0" Foreground="{DynamicResource NormalTextColorBrush}"></TextBlock>
+                                                    <TextBlock x:Name="EntrySummary" Text="{Binding SummaryPlainText}" TextWrapping="Wrap" Padding="9 9 3 6" Foreground="#555"></TextBlock>
+                                                </StackPanel>
+                                            </Grid>
                                             <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="{Binding PublishedDateTimeFormated}" Foreground="#444" HorizontalAlignment="Right" VerticalAlignment="Bottom"></TextBlock>
 
                                         </Grid>
@@ -666,6 +679,7 @@
                                         <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}" Value="True">
                                             <Setter TargetName="EntryTitle" Property="Foreground" Value="White"/>
                                             <Setter TargetName="EntrySummary" Property="Foreground" Value="#888"/>
+                                            <Setter TargetName="EntryImage" Property="Opacity" Value="0.4"/>
                                         </DataTrigger>
                                         <!--
                                         <DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListViewItem}}, Path=IsSelected}" Value="True">

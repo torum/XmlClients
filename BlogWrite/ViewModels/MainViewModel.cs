@@ -26,7 +26,7 @@ namespace BlogWrite.ViewModels
     /// 
     /// App Icon / App name .... FeedDesk?
     /// 
-    /// Entryから画像の抽出とダウンロード。
+    /// Entry画像のダウンロードは、visibilityChanged か何かで、ListView内で表示されたタイミングで取得するように変更。
     /// 
     /// Feed listview item "author" etc.
     /// 
@@ -39,6 +39,7 @@ namespace BlogWrite.ViewModels
     /// 
 
     /// 更新履歴：
+    /// v0.0.0.18 gets and display Entry's Image in CardView.
     /// v0.0.0.17 Reset scroll position when Entries updated.
     /// v0.0.0.16 NodeFeedのParent設定洩れ。Feed Folderまとめ表示はSQLite化してからDBから読み込むようにする。
     /// v0.0.0.15 FeedのSiteUriとSiteTitleを取得と保存するようにした。情報を見るメニュとInfoWindowを作成。
@@ -64,7 +65,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.17";
+        const string _appVer = "0.0.0.18";
         public string AppVer
         {
             get
