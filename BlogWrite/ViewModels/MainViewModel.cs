@@ -30,16 +30,17 @@ namespace BlogWrite.ViewModels
     /// 
     /// Feed listview item "author" etc.
     /// 
-    /// Feed Folderまとめ表示。
-    /// 
     /// View形式をFeedやサービスごとに覚える。
     /// 
     /// AtomPub and XML-RPC ..
     /// 
     /// SQLiteにエントリを保存し、Feed 既読管理。
+    /// Feed Folderまとめ表示。
     /// 
 
     /// 更新履歴：
+    /// v0.0.0.17 Reset scroll position when Entries updated.
+    /// v0.0.0.16 NodeFeedのParent設定洩れ。Feed Folderまとめ表示はSQLite化してからDBから読み込むようにする。
     /// v0.0.0.15 FeedのSiteUriとSiteTitleを取得と保存するようにした。情報を見るメニュとInfoWindowを作成。
     /// v0.0.0.14 WebView2のSmooth Scrollig をOffにする方法を見つけた。
     /// v0.0.0.13 WebView2のinstallationとversionを確認してダイアログを出すようにした。
@@ -63,7 +64,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.15";
+        const string _appVer = "0.0.0.17";
         public string AppVer
         {
             get
@@ -160,6 +161,11 @@ namespace BlogWrite.ViewModels
                 else if (_selectedNode is NodeFeed)
                 {
                     return (_selectedNode as NodeFeed).List;
+                }
+                else if (_selectedNode is NodeFolder)
+                {
+                    // TODO:
+                    return (_selectedNode as NodeFolder).ListAll;
                 }
                 else
                 {
@@ -954,6 +960,7 @@ li {
             }
         }
 
+        // TODO: not working?
         private bool FeedDupeCheck(string feedUri)
         {
             return FeedDupeCheckRecursiveLoop(Services, feedUri);
@@ -1031,6 +1038,13 @@ li {
                         //ent.NodeEntry = (selectedNode as NodeEntry);
 
                         (selectedNode as NodeFeed).List.Add(ent);
+
+                        // Folder
+                        if ((selectedNode as NodeFeed).Parent is NodeFolder)
+                        {
+                            //((selectedNode as NodeFeed).Parent as NodeFolder).ListAll.Add(ent);
+                            //((selectedNode as NodeFeed).Parent as NodeFolder).ListAll = new ObservableCollection<EntryItem>(((selectedNode as NodeFeed).Parent as NodeFolder).ListAll.OrderByDescending(n => n.Published));
+                        }
                     }
                 });
             }
@@ -1213,8 +1227,6 @@ li {
             }
 
         }
-
-
 
         public ICommand TreeviewLeftDoubleClickCommand { get; }
 

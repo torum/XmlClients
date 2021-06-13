@@ -217,6 +217,8 @@ namespace BlogWrite.Models
     // Folder
     public class NodeFolder : NodeTree
     {
+        public ObservableCollection<EntryItem> ListAll { get; set; } = new ObservableCollection<EntryItem>();
+
         public NodeFolder(string name) : base(name)
         {
             PathIcon = "M5,3H19A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,1 5,3M7.5,15A1.5,1.5 0 0,0 6,16.5A1.5,1.5 0 0,0 7.5,18A1.5,1.5 0 0,0 9,16.5A1.5,1.5 0 0,0 7.5,15M6,10V12A6,6 0 0,1 12,18H14A8,8 0 0,0 6,10M6,6V8A10,10 0 0,1 16,18H18A12,12 0 0,0 6,6Z";
@@ -486,6 +488,7 @@ namespace BlogWrite.Models
                     else if (s.LocalName.Equals("Feed"))
                     {
                         NodeFeed feed = LoadXmlChildFeed(s);
+                        feed.Parent = this;
 
                         if (feed != null)
                             this.Children.Add(feed);
@@ -512,6 +515,7 @@ namespace BlogWrite.Models
                             foreach (XmlNode f in feedList)
                             {
                                 NodeFeed feed = LoadXmlChildFeed(f);
+                                feed.Parent = folder;
 
                                 if (feed != null)
                                     folder.Children.Add(feed);

@@ -474,7 +474,7 @@
                     <!-- CardView -->
                     <TabItem Header="CardView" Style="{DynamicResource TabItemBottomStyle}" Height="32">
 
-                        <ListView Background="Transparent" Foreground="LightGray" BorderThickness="0" Padding="0" ItemsSource="{Binding Entries}" SelectedItem="{Binding Mode=TwoWay,Path=SelectedItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListView x:Name="CardViewListview" Background="Transparent" Foreground="LightGray" BorderThickness="0" Padding="0" ItemsSource="{Binding Entries, NotifyOnTargetUpdated=True}" TargetUpdated="CardViewListview_TargetUpdated" SelectedItem="{Binding Mode=TwoWay,Path=SelectedItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListView.InputBindings>
                                 <KeyBinding Key="Return" Command="{Binding Path=DataContext.ListviewEnterKeyCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" />
                             </ListView.InputBindings>
@@ -502,6 +502,18 @@
                                     </Setter>
                                 </Style>
                                 <ContextMenu x:Key="ItemContextMenu">
+                                    <MenuItem Header="Open In App Browser" Command="{Binding Path=DataContext.OpenInAppBrowserCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}">
+                                        <MenuItem.Resources>
+                                            <ControlTemplate x:Key="OpenInAppBrowser">
+                                                <Canvas Background="Transparent" >
+                                                    <Path Fill="#373737" Width="14.3775" Height="14" Canvas.Left="0.311264" Canvas.Top="0.500005" Stretch="Uniform" Data="M12,10L8,14H11V20H13V14H16M19,4H5C3.89,4 3,4.9 3,6V18A2,2 0 0,0 5,20H9V18H5V8H19V18H15V20H19A2,2 0 0,0 21,18V6A2,2 0 0,0 19,4Z" />
+                                                </Canvas>
+                                            </ControlTemplate>
+                                        </MenuItem.Resources>
+                                        <MenuItem.Icon>
+                                            <ContentControl Template="{StaticResource OpenInAppBrowser}" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
                                     <MenuItem Header="Open In Default Browser" Command="{Binding Path=DataContext.OpenInExternalBrowserCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}">
                                         <MenuItem.Resources>
                                             <ControlTemplate x:Key="OpenInBrowser">
@@ -514,6 +526,7 @@
                                             <ContentControl Template="{StaticResource OpenInBrowser}" />
                                         </MenuItem.Icon>
                                     </MenuItem>
+                                    <Separator/>
                                     <MenuItem Header="Edit"
                                   Command="{Binding Path=DataContext.OpenEditorCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}"
                                   CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}">
@@ -554,6 +567,7 @@
                                             <ContentControl Template="{StaticResource GetEntry}" />
                                         </MenuItem.Icon>
                                     </MenuItem>
+                                    <Separator/>
                                     <MenuItem Header="Delete"
                                   Command="{Binding Path=DataContext.DeleteEntryCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}"
                                   CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}">
@@ -670,6 +684,7 @@
 
                     <!-- ListView -->
                     <TabItem Header="ListView" Style="{DynamicResource TabItemBottomStyle}" Height="32">
+                        
                         <Grid x:Name="GridListView" Background="{DynamicResource BoardBackgroundColorBrush}">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="0"/>
@@ -694,7 +709,7 @@
                             </Grid>
 
                             <!-- Entries listview -->
-                            <ListView x:Name="EntryListView" Grid.Row="1" Grid.Column="0" MinHeight="80" BorderThickness="0" Padding="0" Foreground="LightGray" helpers:GridViewSort.AutoSort="True" helpers:GridViewSort.ShowSortGlyph="True" IsSynchronizedWithCurrentItem="True" Background="{DynamicResource WindowBackgroundBaseColorBrush}" Margin="0" ItemsSource="{Binding Entries}" SelectedItem="{Binding Mode=TwoWay,Path=SelectedItem}" SelectionMode="Extended" SelectionChanged="EntryListView_SelectionChanged" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" AlternationCount="2">
+                            <ListView x:Name="ListViewListView" Grid.Row="1" Grid.Column="0" MinHeight="80" BorderThickness="0" Padding="0" Foreground="LightGray" helpers:GridViewSort.AutoSort="True" helpers:GridViewSort.ShowSortGlyph="True" IsSynchronizedWithCurrentItem="True" Background="{DynamicResource WindowBackgroundBaseColorBrush}" Margin="0" ItemsSource="{Binding Entries, NotifyOnTargetUpdated=True}" TargetUpdated="ListViewListView_TargetUpdated" SelectedItem="{Binding Mode=TwoWay,Path=SelectedItem}" SelectionMode="Extended" SelectionChanged="EntryListView_SelectionChanged" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" AlternationCount="2">
                                 <ListView.InputBindings>
                                     <KeyBinding Key="Enter"
                                 Command="{Binding Path=DataContext.ListviewEnterKeyCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}"
@@ -726,6 +741,7 @@
                                                 <ContentControl Template="{StaticResource OpenInExtBrowser}" />
                                             </MenuItem.Icon>
                                         </MenuItem>
+                                        <Separator/>
                                         <MenuItem Header="Edit"
                                   Command="{Binding Path=DataContext.OpenEditorCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}"
                                   CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}">
@@ -766,6 +782,7 @@
                                                 <ContentControl Template="{StaticResource GetEntry}" />
                                             </MenuItem.Icon>
                                         </MenuItem>
+                                        <Separator/>
                                         <MenuItem Header="Delete"
                                   Command="{Binding Path=DataContext.DeleteEntryCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}"
                                   CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}">
@@ -1019,6 +1036,7 @@
                             </Grid>
 
                         </Grid>
+                        
                     </TabItem>
                     
                 </TabControl>

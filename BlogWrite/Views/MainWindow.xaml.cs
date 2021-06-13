@@ -428,6 +428,21 @@ namespace BlogWrite.Views
             }
         }
 
+        private void CardViewListview_TargetUpdated(object sender, DataTransferEventArgs e)
+        {
+            if (CardViewListview.Items.Count > 0)
+            {
+                CardViewListview.ScrollIntoView(CardViewListview.Items[0]);
+            }
+        }
+
+        private void ListViewListView_TargetUpdated(object sender, DataTransferEventArgs e)
+        {
+            if (ListViewListView.Items.Count > 0)
+            {
+                ListViewListView.ScrollIntoView(ListViewListView.Items[0]);
+            }
+        }
 
         #region == TreeviewItem Delete ==
 
@@ -1006,6 +1021,7 @@ namespace BlogWrite.Views
                 this.Y = y;
             }
         }
+
 
         [StructLayout(LayoutKind.Sequential)]
         public struct MINMAXINFO
