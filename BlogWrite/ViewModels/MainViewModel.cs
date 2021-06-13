@@ -40,6 +40,8 @@ namespace BlogWrite.ViewModels
     /// 
 
     /// 更新履歴：
+    /// v0.0.0.15 FeedのSiteUriとSiteTitleを取得と保存するようにした。情報を見るメニュとInfoWindowを作成。
+    /// v0.0.0.14 WebView2のSmooth Scrollig をOffにする方法を見つけた。
     /// v0.0.0.13 WebView2のinstallationとversionを確認してダイアログを出すようにした。
     /// v0.0.0.12 WebView2の環境設定をするようにした。＞Binフォルダ内ではなく、Tempフォルダにブラウザデータを展開。
     /// v0.0.0.11 In App Browserを、CardViewとListViewで分けた。
@@ -61,7 +63,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.13";
+        const string _appVer = "0.0.0.15";
         public string AppVer
         {
             get
@@ -927,6 +929,9 @@ li {
                 a.ServiceType = ServiceTypes.Feed;
                 a.Parent = _services;
 
+                a.SiteTitle = fl.Title;
+                a.SiteUri = fl.SiteUri;
+
                 a.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
 
                 // Add Account Node to internal (virtual) Treeview.
@@ -938,6 +943,9 @@ li {
                 a.Api = ApiTypes.atRssFeed;
                 a.ServiceType = ServiceTypes.Feed;
                 a.Parent = _services;
+
+                a.SiteTitle = fl.Title;
+                a.SiteUri = fl.SiteUri;
 
                 a.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
 

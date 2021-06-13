@@ -31,13 +31,16 @@ namespace BlogWrite.Models
 
         public string Title { get; set; }
 
+        public Uri SiteUri { get; set; }
+
         public FeedKinds FeedKind { get; set; }
 
-        public FeedLink(Uri fu, FeedKinds fk, string t)
+        public FeedLink(Uri feedUri, FeedKinds feedKind, string title, Uri siteUri)
         {
-            FeedUri = fu;
-            FeedKind = fk;
-            Title = t;
+            FeedUri = feedUri;
+            FeedKind = feedKind;
+            Title = title;
+            SiteUri = siteUri;
         }
     }
 
@@ -279,7 +282,7 @@ namespace BlogWrite.Models
                             UpdateStatus("- Parsing the HTML document ...");
 
                             // HTML parse.
-                            ServiceResultBase res = await ParseHtml(HTTPResponse.Content);
+                            ServiceResultBase res = await ParseHtml(HTTPResponse.Content, addr);
 
                             if (res is ServiceHtmlResult)
                             {
@@ -359,16 +362,19 @@ namespace BlogWrite.Models
                         {
                             // TODO:
                             // Possibly AtomApi endopoint. Or Atom Feed...
-                            /*
-                            UpdateStatus("<< Atom format returned...");
 
-                            ServiceResultAtomFeed ap = new ServiceResultAtomFeed(addr);
-                            return ap;
-                            */
+                            UpdateStatus("- Parsing Atom feed ...");
+
+                            // RSS parse.
+                            ServiceResultBase feed = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
+
+                            return feed;
+                            /*
                             UpdateStatus("- Atom (UNDERDEVELOPENT).");
 
                             ServiceResultErr re = new ServiceResultErr("Atom (UNDERDEVELOPENT).", string.Format("{0} is Atom. (UNDERDEVELOPENT)", contenTypeString));
                             return re;
+                            */
                         }
                         else if (contenTypeString.StartsWith("application/x.atom+xml"))
                         {
@@ -455,7 +461,7 @@ namespace BlogWrite.Models
             }
         }
 
-        private async Task<ServiceResultBase> ParseHtml(HttpContent content)
+        private async Task<ServiceResultBase> ParseHtml(HttpContent content, Uri addr)
         {
             ServiceHtmlResult res = new();
 
@@ -477,6 +483,9 @@ namespace BlogWrite.Models
             //Create a virtual request to specify the document to load (here from our fixed string)
             var document = await context.OpenAsync(req => req.Content(source));
             
+            // gets page title
+
+
             //
             var elements = document.QuerySelectorAll("link");
 
@@ -515,7 +524,7 @@ namespace BlogWrite.Models
                                 {
                                     var _atomFeedUrl = new Uri(hf);
 
-                                    FeedLink fl = new(_atomFeedUrl, FeedLink.FeedKinds.Atom, t);
+                                    FeedLink fl = new(_atomFeedUrl, FeedLink.FeedKinds.Atom, t, addr);
 
                                     res.Feeds.Add(fl);
 
@@ -532,7 +541,7 @@ namespace BlogWrite.Models
                                 {
                                     var _rssFeedUrl = new Uri(hf);
 
-                                    FeedLink fl = new(_rssFeedUrl, FeedLink.FeedKinds.Rss, t);
+                                    FeedLink fl = new(_rssFeedUrl, FeedLink.FeedKinds.Rss, t, addr);
 
                                     res.Feeds.Add(fl);
 
@@ -686,7 +695,8 @@ namespace BlogWrite.Models
             var document = await parser.ParseDocumentAsync(source);
 
             bool isOK = false;
-            string feedTitle;
+            string feedTitle, siteLink;
+            Uri siteUri = null;
 
             if (document != null)
             {
@@ -696,7 +706,6 @@ namespace BlogWrite.Models
                     if (document.DocumentElement.LocalName.Equals("rss"))
                     {
                         string ver = document.DocumentElement.GetAttribute("version");
-
                         if (!string.IsNullOrEmpty(ver))
                         {
                             if (ver.Equals("2.0"))
@@ -707,7 +716,6 @@ namespace BlogWrite.Models
                         }
 
                         feedTitle = document.DocumentElement.QuerySelector("channel > title").TextContent;
-
                         if (!string.IsNullOrEmpty(feedTitle))
                         {
                             UpdateStatus("Found a title for the RSS feed.");
@@ -717,10 +725,32 @@ namespace BlogWrite.Models
                             feedTitle = "Empty RSS feed title";
                         }
 
+                        //siteLink = document.DocumentElement.QuerySelector("channel > link").TextContent;
+                        var sl = document.DocumentElement.QuerySelectorAll("channel > link");
+                        if (sl != null)
+                        {
+                            foreach (var sle in sl)
+                            {
+                                if (string.IsNullOrEmpty(sle.NamespaceUri))
+                                {
+                                    siteLink = sle.TextContent;
+                                    if (!string.IsNullOrEmpty(siteLink))
+                                    {
+                                        try
+                                        {
+                                            siteUri = new Uri(siteLink);
+                                        }
+                                        catch { }
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+
                         if (isOK)
                         {
                             ServiceResultFeed rss = new ServiceResultFeed();
-                            rss.FeedlinkInfo = new(addr, FeedLink.FeedKinds.Rss, feedTitle);
+                            rss.FeedlinkInfo = new(addr, FeedLink.FeedKinds.Rss, feedTitle, siteUri);
 
                             return (rss as ServiceResultBase);
                         }
@@ -757,10 +787,20 @@ namespace BlogWrite.Models
                             feedTitle = "Empty RSS feed title";
                         }
 
+                        siteLink = document.DocumentElement.QuerySelector("channel > link").TextContent;
+                        if (!string.IsNullOrEmpty(siteLink))
+                        {
+                            try
+                            {
+                                siteUri = new Uri(siteLink);
+                            }
+                            catch { }
+                        }
+
                         if (isOK)
                         {
                             ServiceResultFeed rdf = new ServiceResultFeed();
-                            rdf.FeedlinkInfo = new(addr, FeedLink.FeedKinds.Rss, feedTitle);
+                            rdf.FeedlinkInfo = new(addr, FeedLink.FeedKinds.Rss, feedTitle, siteUri);
 
                             return (rdf as ServiceResultBase);
                         }
@@ -791,10 +831,35 @@ namespace BlogWrite.Models
                             feedTitle = "Empty Atom feed title";
                         }
 
+                        //siteLink = document.DocumentElement.QuerySelector("feed > link[href]").TextContent;
+                        var sl = document.DocumentElement.QuerySelector("feed > link");
+                        if (sl != null)
+                        {
+                            siteLink = sl.GetAttribute("href");
+                            if (!string.IsNullOrEmpty(siteLink))
+                            {
+                                try
+                                {
+                                    Debug.WriteLine("atom siteLink: " + siteLink);
+                                    siteUri = new Uri(siteLink);
+                                }
+                                catch { }
+                            }
+                            else
+                            {
+                                Debug.WriteLine("atom siteLink is empty ");
+                            }
+                        }
+                        else
+                        {
+                            Debug.WriteLine("atom siteLink is null ");
+                        }
+
+
                         if (isOK)
                         {
                             ServiceResultFeed atom = new ServiceResultFeed();
-                            atom.FeedlinkInfo = new(addr, FeedLink.FeedKinds.Atom, feedTitle);
+                            atom.FeedlinkInfo = new(addr, FeedLink.FeedKinds.Atom, feedTitle, siteUri);
 
                             return (atom as ServiceResultBase);
                         }

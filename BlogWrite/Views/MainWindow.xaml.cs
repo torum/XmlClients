@@ -29,7 +29,7 @@ namespace BlogWrite.Views
     /// </summary>
     public partial class MainWindow : Window
     {
-        CoreWebView2Environment env;
+        private CoreWebView2Environment _env;
 
         #region == Treeview D&D ==
 
@@ -98,7 +98,6 @@ namespace BlogWrite.Views
                 }
             }
 
-
         }
 
         private async void InitializeWebView2Async()
@@ -112,13 +111,16 @@ namespace BlogWrite.Views
                     </body>
                 </html>";
 
-            env = await CoreWebView2Environment.CreateAsync(userDataFolder: System.IO.Path.Combine(System.IO.Path.GetTempPath(), "BlogWrite"));
+            // I really do hate smooth-scrolling.
+            var op = new CoreWebView2EnvironmentOptions("--disable-smooth-scrolling");
 
-            await ListViewContentPreviewWebBrowser.EnsureCoreWebView2Async(env);
+            _env = await CoreWebView2Environment.CreateAsync(userDataFolder: System.IO.Path.Combine(System.IO.Path.GetTempPath(), "BlogWrite"), options:op);
+
+            await ListViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
 
             ListViewContentPreviewWebBrowser.NavigateToString(html);
 
-            await CardViewContentPreviewWebBrowser.EnsureCoreWebView2Async(env);
+            await CardViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
 
             CardViewContentPreviewWebBrowser.NavigateToString(html);
 
@@ -232,7 +234,7 @@ namespace BlogWrite.Views
 
         public async void OnWriteHtmlToContentPreviewBrowser(string arg)
         {
-            await ListViewContentPreviewWebBrowser.EnsureCoreWebView2Async(env);
+            await ListViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
 
             ListViewContentPreviewWebBrowser.NavigateToString(arg);
         }
@@ -249,7 +251,7 @@ namespace BlogWrite.Views
                     GridCardViewContentPreviewWebBrowser.Visibility = Visibility.Visible;
                 }
 
-                await CardViewContentPreviewWebBrowser.EnsureCoreWebView2Async(env);
+                await CardViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
 
                 CardViewContentPreviewWebBrowser.Source = arg;
                 
@@ -267,7 +269,7 @@ namespace BlogWrite.Views
                     GridListViewContentPreviewWebBrowser.Visibility = Visibility.Visible;
                 }
 
-                await ListViewContentPreviewWebBrowser.EnsureCoreWebView2Async(env);
+                await ListViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
 
                 ListViewContentPreviewWebBrowser.Source = arg;
             }
@@ -395,6 +397,37 @@ namespace BlogWrite.Views
             }
         }
 
+        private void TreeViewMenuItemShowInfo_Click(object sender, RoutedEventArgs e)
+        {
+            NodeTree targetItem = TreeViewMenu.SelectedItem as NodeTree;
+
+            if (targetItem == null)
+                return;
+
+            if ((targetItem is NodeFeed) || (targetItem is NodeService))
+            {
+                if (targetItem is NodeFeed)
+                {
+                    var dialog = new InfoWindow()
+                    {
+                        Owner = this,
+                        Width = 600,
+                        Height = 500,
+                        Title = "Info Window",
+                        WindowStartupLocation = WindowStartupLocation.CenterOwner
+                    };
+
+                    dialog.InfoFeedTitleTextBox.Text = (targetItem as NodeFeed).Name;
+                    dialog.InfoFeedUrlTextBox.Text = (targetItem as NodeFeed).EndPoint.AbsoluteUri;
+                    dialog.InfoSiteTitleTextBox.Text = (targetItem as NodeFeed).SiteTitle;
+                    if ((targetItem as NodeFeed).SiteUri != null)
+                        dialog.InfoSiteUrlTextBox.Text = (targetItem as NodeFeed).SiteUri.AbsoluteUri;
+
+                    dialog.ShowDialog();
+                }
+            }
+        }
+
 
         #region == TreeviewItem Delete ==
 
@@ -491,7 +524,7 @@ namespace BlogWrite.Views
 
         private void RenameTextBox_KeyUp(object sender, KeyEventArgs e)
         {
-            // TODO: Enter key
+            // TODO: Save on Enter key
             if (e.Key == Key.Return)
             {
                 // NOT GOOD if IME is on.
@@ -499,8 +532,10 @@ namespace BlogWrite.Views
             }
         }
 
+        
         private void UpdateTreeViewItemName()
         {
+
             TreeViewItem item = ContainerFromItemRecursive(TreeViewMenu.ItemContainerGenerator, TreeViewMenu.SelectedItem);
             if (item == null)
                 return;
@@ -512,16 +547,21 @@ namespace BlogWrite.Views
             {
                 renameTextBox.Visibility = Visibility.Collapsed;
 
+                // Didn't need this. It turned out XAML binding took care of updating.
+                /*
                 NodeTree tvm = TreeViewMenu.SelectedItem as NodeTree;
                 if (tvm != null)
                 {
-                    if (!string.IsNullOrEmpty(renameTextBox.Text))
+                    var s = renameTextBox.Text.Trim();
+                    if (!string.IsNullOrEmpty(s))
                     {
-                        if (tvm.Name != renameTextBox.Text)
-                            tvm.Name = renameTextBox.Text;
+                        if (tvm.Name != s)
+                        {
+                            tvm.Name = s;
+                        }
                     }
                 }
-
+                */
                 IsRenamingInProgress = false;
             }
         }

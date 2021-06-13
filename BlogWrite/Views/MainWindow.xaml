@@ -348,8 +348,9 @@
                 <TreeView x:Name="TreeViewMenu" Margin="0 1 0 0" Style="{DynamicResource TreeViewMenuStyle}" ItemsSource="{Binding Services}" helpers:TreeViewHelper.SelectedItem="{Binding SelectedNode, Mode=TwoWay}" AllowDrop="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto">
                     <TreeView.Resources>
                         <ContextMenu x:Key="TreeviewMenuItemContextMenu">
-                            <MenuItem Name="TreeViewMenuItemRename" Header="名前の変更" Click="TreeViewMenuItemRename_Click">
-                            </MenuItem>
+                            <MenuItem Name="TreeViewMenuItemShowInfo" Header="情報の表示" Click="TreeViewMenuItemShowInfo_Click"></MenuItem>
+                            <Separator/>
+                            <MenuItem Name="TreeViewMenuItemRename" Header="名前の変更" Click="TreeViewMenuItemRename_Click"></MenuItem>
                             <Separator/>
                             <MenuItem Name="TreeViewMenuItemDelete" Header="削除" Click="TreeViewMenuItemDelete_Click">
                                 <MenuItem.Resources>
@@ -929,7 +930,7 @@
                             <!-- ListView middle splitter -->
                             <GridSplitter x:Name="SplitterListViewContentPreviewWebBrowser" Grid.Row="2" Grid.Column="0" ResizeDirection="Rows" Style="{StaticResource GridSplitterStyle}"></GridSplitter>
 
-                            <!-- ListView Right Bottom -->
+                            <!-- ListView Bottom -->
                             <Grid x:Name="GridListViewContentPreviewWebBrowser" Grid.Row="3" Grid.Column="0">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -1011,7 +1012,7 @@
                                         </TextBox.Resources>
                                     </TextBox>
 
-                                    <wv2:WebView2 Name="ListViewContentPreviewWebBrowser" Visibility="{Binding IsContentHTML, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}"/>
+                                    <wv2:WebView2 Name="ListViewContentPreviewWebBrowser" Margin="3" Visibility="{Binding IsContentHTML, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}"/>
 
                                 </Grid>
 
@@ -1304,6 +1305,7 @@
 
             </StatusBar>
 
+            <!-- In-App Browser -->
             <Grid x:Name="GridCardViewContentPreviewWebBrowser" Grid.Row="1" Grid.Column="0" Grid.RowSpan="6" Grid.ColumnSpan="3" Visibility="Collapsed">
                 <Rectangle HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="#313131" Opacity="0.8"></Rectangle>
                 
@@ -1335,7 +1337,7 @@
                     </Grid>
 
                     <!-- WebView2 -->
-                    <wv2:WebView2 Name="CardViewContentPreviewWebBrowser" Grid.Row="1" Grid.Column="0"/>
+                    <wv2:WebView2 Name="CardViewContentPreviewWebBrowser" Grid.Row="1" Grid.Column="0" Margin="3"/>
                 </Grid>
 
             </Grid>

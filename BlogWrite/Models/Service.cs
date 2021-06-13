@@ -139,6 +139,10 @@ namespace BlogWrite.Models
     // Base class for NodeAtomFeed and NodeRssFeed
     abstract public class NodeFeed : NodeService
     {
+        public string SiteTitle { get; set; }
+
+        public Uri SiteUri { get; set; }
+
         public enum DownloadStatus
         {
             normal,
@@ -317,6 +321,7 @@ namespace BlogWrite.Models
 
                         if (stp == ServiceTypes.Feed)
                         {
+                            /*
                             if ((!string.IsNullOrEmpty(accountName)) && (!string.IsNullOrEmpty(endpoint)))
                             {
                                 if (at == ApiTypes.atAtomFeed)
@@ -345,16 +350,12 @@ namespace BlogWrite.Models
                                     this.Children.Add(account);
                                 }
                             }
-
+                            */
                             continue;
                         }
 
-                        if ((!string.IsNullOrEmpty(accountName))
-                            && (!string.IsNullOrEmpty(userName))
-                            && (!string.IsNullOrEmpty(userPassword))
-                            && (!string.IsNullOrEmpty(endpoint)))
+                        if ((!string.IsNullOrEmpty(accountName)) && (!string.IsNullOrEmpty(userName)) && (!string.IsNullOrEmpty(userPassword)) && (!string.IsNullOrEmpty(endpoint)))
                         {
-
                             NodeService account = new NodeService(accountName, userName, userPassword, new Uri(endpoint), at, stp);
                             account.IsSelected = isSelecteds;
                             account.IsExpanded = isExpandeds;
@@ -484,61 +485,11 @@ namespace BlogWrite.Models
                     }
                     else if (s.LocalName.Equals("Feed"))
                     {
-                        var feedName = s.Attributes["Name"].Value;
+                        NodeFeed feed = LoadXmlChildFeed(s);
 
-                        if (!string.IsNullOrEmpty(feedName))
-                        {
-                            var selecteds = string.IsNullOrEmpty(s.Attributes["Selected"].Value) ? "" : s.Attributes["Selected"].Value;
-                            var expandeds = string.IsNullOrEmpty(s.Attributes["Expanded"].Value) ? "" : s.Attributes["Expanded"].Value;
-                            bool isSelectedf = (selecteds == "true") ? true : false;
-                            bool isExpandedf = (expandeds == "true") ? true : false;
+                        if (feed != null)
+                            this.Children.Add(feed);
 
-                            var endpoint = s.Attributes["EndPoint"].Value;
-                            string api = (s.Attributes["Api"] != null) ? s.Attributes["Api"].Value : "Unknown";
-
-                            ApiTypes at;
-                            switch (api)
-                            {
-                                case "AtomFeed":
-                                    at = ApiTypes.atAtomFeed;
-                                    break;
-                                case "RssFeed":
-                                    at = ApiTypes.atRssFeed;
-                                    break;
-                                default:
-                                    at = ApiTypes.atUnknown;
-                                    break;
-                            }
-
-                            if (!string.IsNullOrEmpty(endpoint))
-                            {
-                                if (at == ApiTypes.atAtomFeed)
-                                {
-                                    NodeAtomFeed feed = new NodeAtomFeed(feedName, new Uri(endpoint));
-
-                                    feed.IsSelected = isSelectedf;
-                                    feed.IsExpanded = isExpandedf;
-                                    feed.Parent = this;
-
-                                    feed.ServiceType = ServiceTypes.Feed;
-                                    feed.Api = at;
-
-                                    this.Children.Add(feed);
-                                }
-                                else if (at == ApiTypes.atRssFeed)
-                                {
-                                    NodeRssFeed feed = new NodeRssFeed(feedName, new Uri(endpoint));
-                                    feed.IsSelected = isSelectedf;
-                                    feed.IsExpanded = isExpandedf;
-                                    feed.Parent = this;
-
-                                    feed.ServiceType = ServiceTypes.Feed;
-                                    feed.Api = at;
-
-                                    this.Children.Add(feed);
-                                }
-                            }
-                        }
                     }
                     else if (s.LocalName.Equals("Folder"))
                     {
@@ -560,68 +511,116 @@ namespace BlogWrite.Models
                             XmlNodeList feedList = s.SelectNodes("Feed");
                             foreach (XmlNode f in feedList)
                             {
-                                var feedName = f.Attributes["Name"].Value;
-                                var selectedw = string.IsNullOrEmpty(f.Attributes["Selected"].Value) ? "" : f.Attributes["Selected"].Value;
-                                var expandedw = string.IsNullOrEmpty(f.Attributes["Expanded"].Value) ? "" : f.Attributes["Expanded"].Value;
-                                bool isSelectedf = (selectedw == "true") ? true : false;
-                                bool isExpandedf = (expandedw == "true") ? true : false;
+                                NodeFeed feed = LoadXmlChildFeed(f);
 
-                                var endpoint = f.Attributes["EndPoint"].Value;
-                                string api = (f.Attributes["Api"] != null) ? f.Attributes["Api"].Value : "Unknown";
-
-                                ApiTypes at;
-                                switch (api)
-                                {
-                                    case "AtomFeed":
-                                        at = ApiTypes.atAtomFeed;
-                                        break;
-                                    case "RssFeed":
-                                        at = ApiTypes.atRssFeed;
-                                        break;
-                                    default:
-                                        at = ApiTypes.atUnknown;
-                                        break;
-                                }
-
-                                if (!string.IsNullOrEmpty(endpoint))
-                                {
-                                    if (at == ApiTypes.atAtomFeed)
-                                    {
-                                        NodeAtomFeed feed = new NodeAtomFeed(feedName, new Uri(endpoint));
-
-                                        feed.IsSelected = isSelectedf;
-                                        feed.IsExpanded = isExpandedf;
-                                        feed.Parent = folder;
-
-                                        feed.ServiceType = ServiceTypes.Feed;
-                                        feed.Api = at;
-
-                                        folder.Children.Add(feed);
-                                    }
-                                    else if (at == ApiTypes.atRssFeed)
-                                    {
-                                        NodeRssFeed feed = new NodeRssFeed(feedName, new Uri(endpoint));
-                                        feed.IsSelected = isSelectedf;
-                                        feed.IsExpanded = isExpandedf;
-                                        feed.Parent = folder;
-
-                                        feed.ServiceType = ServiceTypes.Feed;
-                                        feed.Api = at;
-
-                                        folder.Children.Add(feed);
-                                    }
-                                }
+                                if (feed != null)
+                                    folder.Children.Add(feed);
 
                             }
-
 
                             this.Children.Add(folder);
                         }
                     }
+
                 }
 
                 break;
             }
+        }
+
+        private NodeFeed LoadXmlChildFeed(XmlNode node)
+        {
+            var feedName = node.Attributes["Name"].Value;
+
+            if (!string.IsNullOrEmpty(feedName))
+            {
+                var selecteds = string.IsNullOrEmpty(node.Attributes["Selected"].Value) ? "" : node.Attributes["Selected"].Value;
+                var expandeds = string.IsNullOrEmpty(node.Attributes["Expanded"].Value) ? "" : node.Attributes["Expanded"].Value;
+                bool isSelectedf = (selecteds == "true") ? true : false;
+                bool isExpandedf = (expandeds == "true") ? true : false;
+
+                var endpoint = node.Attributes["EndPoint"].Value;
+                string api = (node.Attributes["Api"] != null) ? node.Attributes["Api"].Value : "Unknown";
+
+                string siteTitle = "";
+                var attr = node.Attributes["SiteTitle"];
+                if (attr != null)
+                {
+                    siteTitle = string.IsNullOrEmpty(node.Attributes["SiteTitle"].Value) ? "" : node.Attributes["SiteTitle"].Value;
+                }
+
+                Uri siteUri = null;
+                attr = node.Attributes["SiteUri"];
+                if (attr != null)
+                {
+                    var siteLink = string.IsNullOrEmpty(node.Attributes["SiteUri"].Value) ? "" : node.Attributes["SiteUri"].Value;
+                    
+                    if (!string.IsNullOrEmpty(siteLink))
+                    {
+                        try
+                        {
+                            siteUri = new Uri(siteLink);
+                        }
+                        catch { }
+                    }
+                }
+
+
+                ApiTypes at;
+                switch (api)
+                {
+                    case "AtomFeed":
+                        at = ApiTypes.atAtomFeed;
+                        break;
+                    case "RssFeed":
+                        at = ApiTypes.atRssFeed;
+                        break;
+                    default:
+                        at = ApiTypes.atUnknown;
+                        break;
+                }
+
+                if (!string.IsNullOrEmpty(endpoint))
+                {
+                    if (at == ApiTypes.atAtomFeed)
+                    {
+                        NodeAtomFeed feed = new NodeAtomFeed(feedName, new Uri(endpoint));
+
+                        feed.IsSelected = isSelectedf;
+                        feed.IsExpanded = isExpandedf;
+                        feed.Parent = this;
+
+                        feed.ServiceType = ServiceTypes.Feed;
+                        feed.Api = at;
+
+                        feed.SiteTitle = siteTitle;
+                        feed.SiteUri = siteUri;
+
+                        //this.Children.Add(feed);
+                        return feed;
+                    }
+                    else if (at == ApiTypes.atRssFeed)
+                    {
+                        NodeRssFeed feed = new NodeRssFeed(feedName, new Uri(endpoint));
+                        feed.IsSelected = isSelectedf;
+                        feed.IsExpanded = isExpandedf;
+                        feed.Parent = this;
+
+                        feed.ServiceType = ServiceTypes.Feed;
+                        feed.Api = at;
+
+                        feed.SiteTitle = siteTitle;
+                        feed.SiteUri = siteUri;
+
+                        //this.Children.Add(feed);
+                        return feed;
+                    }
+                }
+
+
+            }
+
+            return null;
         }
 
         public XmlDocument AsXmlDoc()
@@ -638,44 +637,7 @@ namespace BlogWrite.Models
                 {
                     if (s is NodeFeed)
                     {
-                        XmlElement feed = doc.CreateElement(string.Empty, "Feed", string.Empty);
-
-                        XmlAttribute attrf = doc.CreateAttribute("Name");
-                        attrf.Value = s.Name;
-                        feed.SetAttributeNode(attrf);
-
-                        attrf = doc.CreateAttribute("Expanded");
-                        attrf.Value = s.IsExpanded ? "true" : "false";
-                        feed.SetAttributeNode(attrf);
-
-                        attrf = doc.CreateAttribute("Selected");
-                        attrf.Value = s.IsSelected ? "true" : "false";
-                        feed.SetAttributeNode(attrf);
-
-                        attrf = doc.CreateAttribute("EndPoint");
-                        attrf.Value = (s as NodeFeed).EndPoint.AbsoluteUri;
-                        feed.SetAttributeNode(attrf);
-
-                        attrf = doc.CreateAttribute("Type");
-                        attrf.Value = "Feed";
-                        feed.SetAttributeNode(attrf);
-
-                        attrf = doc.CreateAttribute("Api");
-                        switch ((s as NodeFeed).Api)
-                        {
-                            case ApiTypes.atAtomFeed:
-                                attrf.Value = "AtomFeed";
-                                feed.SetAttributeNode(attrf);
-                                break;
-                            case ApiTypes.atRssFeed:
-                                attrf.Value = "RssFeed";
-                                feed.SetAttributeNode(attrf);
-                                break;
-                            case ApiTypes.atUnknown:
-                                attrf.Value = "Unknown";
-                                feed.SetAttributeNode(attrf);
-                                break;
-                        }
+                        XmlElement feed = AsXmlFeedElement(doc, (s as NodeFeed));
 
                         root.AppendChild(feed);
                     }
@@ -902,44 +864,7 @@ namespace BlogWrite.Models
                     {
                         if (!(fd is NodeFeed)) continue;
 
-                        XmlElement feed = doc.CreateElement(string.Empty, "Feed", string.Empty);
-
-                        XmlAttribute attrf = doc.CreateAttribute("Name");
-                        attrf.Value = (fd).Name;
-                        feed.SetAttributeNode(attrf);
-
-                        attrf = doc.CreateAttribute("Expanded");
-                        attrf.Value = (fd).IsExpanded ? "true" : "false";
-                        feed.SetAttributeNode(attrf);
-
-                        attrf = doc.CreateAttribute("Selected");
-                        attrf.Value = (fd).IsSelected ? "true" : "false";
-                        feed.SetAttributeNode(attrf);
-
-                        attrf = doc.CreateAttribute("EndPoint");
-                        attrf.Value = (fd as NodeFeed).EndPoint.AbsoluteUri;
-                        feed.SetAttributeNode(attrf);
-
-                        attrf = doc.CreateAttribute("Type");
-                        attrf.Value = "Feed";
-                        feed.SetAttributeNode(attrf);
-
-                        attrf = doc.CreateAttribute("Api");
-                        switch ((fd as NodeFeed).Api)
-                        {
-                            case ApiTypes.atAtomFeed:
-                                attrf.Value = "AtomFeed";
-                                feed.SetAttributeNode(attrf);
-                                break;
-                            case ApiTypes.atRssFeed:
-                                attrf.Value = "RssFeed";
-                                feed.SetAttributeNode(attrf);
-                                break;
-                            case ApiTypes.atUnknown:
-                                attrf.Value = "Unknown";
-                                feed.SetAttributeNode(attrf);
-                                break;
-                        }
+                        XmlElement feed = AsXmlFeedElement(doc, (fd as NodeFeed));
 
                         folder.AppendChild(feed);
                     }
@@ -950,6 +875,59 @@ namespace BlogWrite.Models
             //System.Diagnostics.Debug.WriteLine(doc.OuterXml);
 
             return doc;
+        }
+
+        private XmlElement AsXmlFeedElement(XmlDocument doc, NodeFeed fd)
+        {
+            XmlElement feed = doc.CreateElement(string.Empty, "Feed", string.Empty);
+
+            XmlAttribute attrf = doc.CreateAttribute("Name");
+            attrf.Value = (fd).Name;
+            feed.SetAttributeNode(attrf);
+
+            attrf = doc.CreateAttribute("Expanded");
+            attrf.Value = (fd).IsExpanded ? "true" : "false";
+            feed.SetAttributeNode(attrf);
+
+            attrf = doc.CreateAttribute("Selected");
+            attrf.Value = (fd).IsSelected ? "true" : "false";
+            feed.SetAttributeNode(attrf);
+
+            attrf = doc.CreateAttribute("EndPoint");
+            attrf.Value = (fd as NodeFeed).EndPoint.AbsoluteUri;
+            feed.SetAttributeNode(attrf);
+
+            attrf = doc.CreateAttribute("Type");
+            attrf.Value = "Feed";
+            feed.SetAttributeNode(attrf);
+
+            attrf = doc.CreateAttribute("Api");
+            switch ((fd as NodeFeed).Api)
+            {
+                case ApiTypes.atAtomFeed:
+                    attrf.Value = "AtomFeed";
+                    feed.SetAttributeNode(attrf);
+                    break;
+                case ApiTypes.atRssFeed:
+                    attrf.Value = "RssFeed";
+                    feed.SetAttributeNode(attrf);
+                    break;
+                case ApiTypes.atUnknown:
+                    attrf.Value = "Unknown";
+                    feed.SetAttributeNode(attrf);
+                    break;
+            }
+
+            attrf = doc.CreateAttribute("SiteTitle");
+            attrf.Value = (fd as NodeFeed).SiteTitle;
+            feed.SetAttributeNode(attrf);
+
+            attrf = doc.CreateAttribute("SiteUri");
+            if ((fd as NodeFeed).SiteUri != null)
+                attrf.Value = (fd as NodeFeed).SiteUri.AbsoluteUri;
+            feed.SetAttributeNode(attrf);
+
+            return feed;
         }
     }
 }

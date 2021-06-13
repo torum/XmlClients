@@ -39,12 +39,11 @@ namespace BlogWrite
             if (!IsWebViewVersionInstalled())
             {
                 // show dialog.
-
                 var dialog = new WebView2RuntimeInstall()
                 {
                     Owner = null,
                     Width = 800,
-                    Height = 380,
+                    Height = 400,
                     Title = "Microsoft Edge WebView2 Runtime Installation",
                 };
 
