@@ -11,7 +11,7 @@ namespace BlogWrite.ViewModels
 {
     // For ServiceDiscoveryViewModel.
 
-    public abstract class LinkItem : ViewModelBase
+    public abstract class ServiceDiscoveryLinkItem : ViewModelBase
     {
         private string _iconPath;
         public string IconPath
@@ -87,7 +87,7 @@ namespace BlogWrite.ViewModels
 
     }
 
-    public class FeedLinkItem : LinkItem
+    public class FeedLinkItem : ServiceDiscoveryLinkItem
     {
         public FeedLink FeedLinkData { get; set; }
 
@@ -99,7 +99,7 @@ namespace BlogWrite.ViewModels
         }
     }
 
-    public class ServiceDocumentLinkItem : LinkItem
+    public class ServiceDocumentLinkItem : ServiceDiscoveryLinkItem
     {
         public SearviceDocumentLink SearviceDocumentLinkData { get; set; }
 

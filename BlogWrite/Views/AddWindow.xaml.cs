@@ -9,9 +9,9 @@ namespace BlogWrite.Views
     /// <summary>
     /// ServiceDiscovery.xaml
     /// </summary>
-    public partial class ServiceDiscoveryWindow : Window
+    public partial class AddWindow : Window
     {
-        public ServiceDiscoveryWindow()
+        public AddWindow()
         {
             InitializeComponent();
 

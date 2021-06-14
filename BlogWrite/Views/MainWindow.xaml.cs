@@ -116,12 +116,10 @@ namespace BlogWrite.Views
 
             _env = await CoreWebView2Environment.CreateAsync(userDataFolder: System.IO.Path.Combine(System.IO.Path.GetTempPath(), "BlogWrite"), options:op);
 
-            await ListViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
-
+            Task nowait = ListViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
             ListViewContentPreviewWebBrowser.CoreWebView2InitializationCompleted += ListViewContentPreviewWebBrowser_InitializationCompleted;
-            
-            await CardViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
 
+            nowait = CardViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
             CardViewContentPreviewWebBrowser.CoreWebView2InitializationCompleted += CardViewContentPreviewWebBrowser_InitializationCompleted;
 
         }
@@ -221,7 +219,7 @@ namespace BlogWrite.Views
 
         public void OnCreateServiceDiscoveryWindow(Window owner)
         {
-            var win = new ServiceDiscoveryWindow();
+            var win = new AddWindow();
             win.DataContext = new ServiceDiscoveryViewModel();
 
             var vm = (win.DataContext as ServiceDiscoveryViewModel);
@@ -435,7 +433,7 @@ namespace BlogWrite.Views
                     {
                         Owner = this,
                         Width = 600,
-                        Height = 500,
+                        Height = 450,
                         Title = "Info Window",
                         WindowStartupLocation = WindowStartupLocation.CenterOwner
                     };

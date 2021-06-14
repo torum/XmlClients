@@ -295,7 +295,7 @@
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                     <ControlTemplate x:Key="{ComponentResourceKey ResourceId=TopLevelHeaderTemplateKey, TypeInTargetAssembly={x:Type MenuItem}}" TargetType="{x:Type MenuItem}">
-                        <Border x:Name="templateRoot" VerticalAlignment="Center" Padding="0" Margin="0" Background="{DynamicResource BoardBackgroundColorBrush}" TextElement.Foreground="{DynamicResource NormalTextColorBrush}" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" SnapsToDevicePixels="true">
+                        <Border x:Name="templateRoot" VerticalAlignment="Center" Padding="0" Margin="0" Background="{DynamicResource BoardBackgroundColorBrush}" TextElement.Foreground="{DynamicResource ControlMediumColorBrush}" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" SnapsToDevicePixels="true">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="32"/>
@@ -507,16 +507,32 @@
                         <Setter Property="Padding" Value="3"/>
                         <Setter Property="HorizontalAlignment" Value="Left"/>
                         <Setter Property="VerticalAlignment" Value="Center"/>
+                        <Setter Property="VerticalAlignment" Value="Center"/>
+                        <Setter Property="Foreground" Value="#000" />
                         <Setter Property="Background" Value="{DynamicResource NormalTextBoxBackgroundColorBrush}" />
                         <Style.Triggers>
-                            <Trigger Property="IsKeyboardFocusWithin" Value="true">
-                                <Setter Property="Background" Value="Gainsboro" />
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="true">
-                                <Setter Property="Background" Value="White" />
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Foreground" Value="{DynamicResource NormalTextBoxBackgroundColorBrush}" />
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsReadOnly" Value="False" />
+                                    <Condition Property="IsKeyboardFocusWithin" Value="True" />
+                                </MultiTrigger.Conditions>
+                                <MultiTrigger.Setters>
+                                    <Setter Property="Background" Value="Gainsboro" />
+                                </MultiTrigger.Setters>
+                            </MultiTrigger>
+
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsReadOnly" Value="False" />
+                                    <Condition Property="IsMouseOver" Value="True" />
+                                </MultiTrigger.Conditions>
+                                <MultiTrigger.Setters>
+                                    <Setter Property="Background" Value="Gainsboro" />
+                                </MultiTrigger.Setters>
+                            </MultiTrigger>
+
+                            <Trigger Property="IsReadOnly" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource ControlMediumColorBrush}" />
                             </Trigger>
                         </Style.Triggers>
                     </Style>

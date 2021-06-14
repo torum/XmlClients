@@ -17,9 +17,6 @@
     <Setting Name="MainWindow_Width" Type="System.Double" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
-    <Setting Name="Profiles" Type="BlogWrite.ViewModels.ProfileSettings" Scope="User">
-      <Value Profile="(Default)" />
-    </Setting>
     <Setting Name="EditorWindow_Left" Type="System.Double" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>

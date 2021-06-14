@@ -20,188 +20,6 @@ using System.Net.Http.Headers;
 
 namespace BlogWrite.Models
 {
-    public class FeedLink
-    {
-        public enum FeedKinds
-        {
-            Atom,
-            Rss,
-            Unknown
-        }
-
-        public Uri FeedUri { get; set; }
-
-        public string Title { get; set; }
-
-        public Uri SiteUri { get; set; }
-
-        public FeedKinds FeedKind { get; set; }
-
-        public FeedLink(Uri feedUri, FeedKinds feedKind, string title, Uri siteUri)
-        {
-            FeedUri = feedUri;
-            FeedKind = feedKind;
-            Title = title;
-            SiteUri = siteUri;
-        }
-    }
-
-    public class SearviceDocumentLink
-    {
-        public enum ServiceDocumentKinds
-        {
-            Feed,
-            RSD,
-            AtomSrv,
-            AtomApi,
-            Unknown
-        }
-
-        public Uri EndpointUri { get; set; }
-
-        public ServiceDocumentKinds ServiceDocumentKind { get; set; }
-
-        // XML-RPC specific blogid. 
-        public string BlogID { get; set; }
-
-        public SearviceDocumentLink(Uri fu, ServiceDocumentKinds fk)
-        {
-            EndpointUri = fu;
-            ServiceDocumentKind = fk;
-        }
-    }
-
-    /// <summary>
-    /// Service Discovery Result class.
-    /// </summary>
-    abstract class ServiceResultBase
-    {
-
-    }
-
-    class ServiceResultErr : ServiceResultBase
-    {
-        public string ErrTitle { get; set; }
-        public string ErrDescription { get; set; }
-
-        public ServiceResultErr(string et, string ed)
-        {
-            ErrTitle = et;
-            ErrDescription = ed;
-        }
-    }
-
-    class ServiceResultAuthRequired : ServiceResultBase
-    {
-        public Uri Addr { get; set; }
-
-        public ServiceResultAuthRequired(Uri addr)
-        {
-            Addr = addr;
-        }
-    }
-
-    class ServiceHtmlResult: ServiceResultBase
-    {
-        private ObservableCollection<FeedLink> _feeds = new();
-        public ObservableCollection<FeedLink> Feeds
-        {
-            get { return _feeds; }
-            set
-            {
-
-                if (_feeds == value)
-                    return;
-
-                _feeds = value;
-            }
-        }
-
-        private ObservableCollection<SearviceDocumentLink> _services = new();
-        public ObservableCollection<SearviceDocumentLink> Services
-        {
-            get { return _services; }
-            set
-            {
-
-                if (_services == value)
-                    return;
-
-                _services = value;
-            }
-        }
-
-        public ServiceHtmlResult()
-        {
-
-        }
-    }
-
-    class ServiceResultFeed : ServiceResultBase
-    {
-        public FeedLink FeedlinkInfo;
-
-        public ServiceResultFeed()
-        {
-
-        }
-    }
-
-    // Base result class for API or Protocol
-    abstract class ServiceResult : ServiceResultBase
-    {
-        public ServiceTypes ServiceType { get; set; }
-
-        public Uri EndpointUri;
-
-        public AuthTypes AuthType { get; set; } = AuthTypes.Wsse;
-
-        public ServiceResult(ServiceTypes serviceType, Uri endpointUri, AuthTypes authType)
-        {
-            ServiceType = serviceType;
-            EndpointUri = endpointUri;
-            AuthType = authType;
-        }
-    }
-
-    class ServiceResultAtomPub : ServiceResult
-    {
-        public NodeService AtomService { get; set; }
-
-        public ServiceResultAtomPub(Uri endpointUri, AuthTypes authType, NodeService nodeService) : base(ServiceTypes.AtomPub, endpointUri, authType)
-        {
-            //Service = ServiceTypes.AtomPub;
-            //EndpointUri = endpointUri;
-            AtomService = nodeService;
-        }
-    }
-
-    class ServiceResultAtomAPI : ServiceResult
-    {
-        public ServiceResultAtomAPI(Uri endpointUri, AuthTypes authType) : base(ServiceTypes.AtomApi, endpointUri, authType)
-        {
-            //ServiceType = ServiceTypes.AtomApi;
-            //EndpointUri = endpointUri;
-        }
-    }
-
-    class ServiceResultXmlRpc : ServiceResult
-    {
-        // XML-RPC specific blogid. 
-        public string BlogID { get; set; }
-
-        public ServiceResultXmlRpc(Uri endpointUri, AuthTypes authType) : base(ServiceTypes.XmlRpc, endpointUri, authType)
-        {
-            ServiceType = ServiceTypes.XmlRpc;
-            EndpointUri = endpointUri;
-        }
-    }
-
-    // TODO:
-    // ServiceResultXmlRpc_MT
-    // ServiceResultXmlRpc_WP
-
-
     /// <summary>
     /// Service Discovery class.
     /// </summary>
@@ -1109,6 +927,7 @@ namespace BlogWrite.Models
                     foreach (XmlNode ws in workspaceList)
                     {
                         NodeWorkspace workspace = new NodeWorkspace("Workspace Name");
+                        workspace.IsExpanded = true;
                         workspace.Parent = account;
 
                         XmlNode wtl = ws.SelectSingleNode("atom:title", atomNsMgr);
@@ -1138,6 +957,7 @@ namespace BlogWrite.Models
                                 }
 
                                 NodeAtomPubCollection collection = new NodeAtomPubCollection("Collection Name", colHrefUri);
+                                collection.IsExpanded = true;
                                 collection.Parent = workspace;
 
                                 XmlNode ctl = col.SelectSingleNode("atom:title", atomNsMgr);
@@ -1177,6 +997,7 @@ namespace BlogWrite.Models
                                     foreach (XmlNode cats in categoriesList)
                                     {
                                         NodeAtomPubCatetories categories = new NodeAtomPubCatetories("Categories");
+                                        categories.IsExpanded = true;
                                         categories.Parent = collection;
 
                                         Uri catHrefUri = null;
@@ -1217,6 +1038,7 @@ namespace BlogWrite.Models
                                             foreach (XmlNode cat in categoryList)
                                             {
                                                 NodeAtomPubCategory category = new NodeAtomPubCategory("Category");
+                                                category.IsExpanded = true;
                                                 category.Parent = categories;
 
                                                 if (cat.Attributes["term"] != null)
@@ -1477,13 +1299,36 @@ namespace BlogWrite.Models
         #endregion
     }
 
-
     ////////////////////////////////////////////////////////////////////////////////
 
+    // AtomPub Service Document
+    // Content-Type: application/atomsvc+xml
+    /*
+    <?xml version="1.0" encoding="UTF-8"?>
+    <service
+        xmlns="http://www.w3.org/2007/app"
+        xmlns:atom="http://www.w3.org/2005/Atom">
+        <workspace>
+            <atom:title>BlogTitle</atom:title>
+            <collection href="https://livedoor.blogcms.jp/atompub/userid/article">
+                <atom:title>BlogTitle - Entries</atom:title>
+                <accept>application/atom+xml;type=entry</accept>
+            
+                <categories fixed="no" scheme="https://livedoor.blogcms.jp/atompub/userid/category">
+                </categories>
+            </collection>
+            <collection href="https://livedoor.blogcms.jp/atompub/userid/image">
+                <atom:title>BlogTitle - Images</atom:title>
+                <accept>image/png</accept>
+                <accept>image/jpeg</accept>
+                <accept>image/gif</accept>
+            </collection>
+        </workspace>
+    </service>
+    */
 
     // AtomAPI at vox
     // Content-Type: application/atom+xml
-
     /*
     <?xml version="1.0" encoding="utf-8"?>
     <feed xmlns="http://purl.org/atom/ns#">
@@ -1497,7 +1342,6 @@ namespace BlogWrite.Models
 
     // AtomAPI at livedoor http://cms.blog.livedoor.com/atom
     // Content-Type: application/x.atom+xml
-
     /*
     <?xml version="1.0" encoding="UTF-8"?>
     <feed xmlns="http://purl.org/atom/ns#">

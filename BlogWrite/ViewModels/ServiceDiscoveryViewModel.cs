@@ -13,7 +13,6 @@ using System.Security.Cryptography;
 
 namespace BlogWrite.ViewModels
 {
-
     public class ServiceDiscoveryViewModel : ViewModelBase
     {
         private ServiceDiscovery _serviceDiscovery;
@@ -252,8 +251,8 @@ namespace BlogWrite.ViewModels
             }
         }
 
-        private ObservableCollection<LinkItem> _linkItems = new();
-        public ObservableCollection<LinkItem> LinkItems
+        private ObservableCollection<ServiceDiscoveryLinkItem> _linkItems = new();
+        public ObservableCollection<ServiceDiscoveryLinkItem> LinkItems
         {
             get
             {
@@ -270,8 +269,8 @@ namespace BlogWrite.ViewModels
             }
         }
 
-        private LinkItem _selectedLinkItem;
-        public LinkItem SelectedLinkItem
+        private ServiceDiscoveryLinkItem _selectedLinkItem;
+        public ServiceDiscoveryLinkItem SelectedLinkItem
         {
             get
             {
@@ -321,13 +320,9 @@ namespace BlogWrite.ViewModels
 
             #endregion
 
-
-            DialogTitle = "Add a new feed or a publishing service";
+            DialogTitle = "Add";
 
             GoToFirstPage();
-
-            // test
-            WebsiteOrEndpointUrl = "https://livedoor.blogcms.jp/atompub/torumyax";
         }
 
         #region == Events ==
@@ -360,7 +355,6 @@ namespace BlogWrite.ViewModels
             SelectedTabIndex = 3;
         }
         
-
         #endregion
 
         #region == ICommands ==
@@ -439,10 +433,6 @@ namespace BlogWrite.ViewModels
                 {
                     IsShowError = false;
                     IsShowLog = false;
-
-                    // test
-                    UserId = "torumyax";
-                    ApiKey = "MJoNoNNQVz";
 
                     // Auth input page.
                     GoToAuthInputPage();
@@ -670,7 +660,5 @@ namespace BlogWrite.ViewModels
         }
 
         #endregion
-
     }
-
 }

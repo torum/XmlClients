@@ -47,6 +47,7 @@ namespace BlogWrite.ViewModels
     /// 
 
     /// 更新履歴：
+    /// v0.0.0.22 Renameing and Restructure of files and folder names.
     /// v0.0.0.21 とりあえず、AtomPubのServiceDocument解析とNodeの追加まで。カテゴリとか、保存時に消えてる可能性あり。
     /// v0.0.0.20 AutoDiscoveryで、Auth対応。認証情報入力ページを実装。AtomPub判定まで。
     /// v0.0.0.19 "Description" が存在してないRSSの場合、ContentTypeが設定されずHTMLと判定されず、ブラウザがVisibleにならないため In-app-browserで表示できてなかった。手動で表に表示するようにした。
@@ -76,7 +77,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.21";
+        const string _appVer = "0.0.0.22";
         public string AppVer
         {
             get
@@ -990,6 +991,8 @@ li {
         public void AddService(NodeService nodeService)
         {
             nodeService.Parent = _services;
+            nodeService.IsExpanded = true;
+            nodeService.IsSelected = true;
             nodeService.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
 
             // Add Node to internal (virtual) Treeview.

@@ -52,13 +52,13 @@
                     <RowDefinition Height="32"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- App icon -->
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Collapsed">
                     <Button ToolTip="{Binding AppTitle}" Width="32" Height="32" IsHitTestVisible="True" WindowChrome.IsHitTestVisibleInChrome="True">
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">
@@ -93,35 +93,63 @@
                     </Button>
                 </StackPanel>
 
-                <!-- Window Main Menu -->
+                <!-- Main Menu -->
                 <Menu Style="{DynamicResource MainMenuStyle}" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="0 0 0 0" IsHitTestVisible="True" WindowChrome.IsHitTestVisibleInChrome="True">
-                    <MenuItem Header="_Files" Style="{DynamicResource MainMenuItemStyle}">
-                        <MenuItem Header="Add URL" Command="{Binding ServiceAddCommand}" />
-                        <MenuItem Header="New Folder" Command="{Binding FolderAddCommand}" />
+                    <MenuItem x:Name="MainMenuMainItem" Header="_Files" Style="{DynamicResource MainMenuItemStyle}">
+                        <MenuItem.Resources>
+                            <ControlTemplate x:Key="hamburger-menu">
+                                <Canvas Background="Transparent">
+                                    <Canvas.RenderTransform>
+                                        <TranslateTransform X="4" Y="0"/>
+                                    </Canvas.RenderTransform>
+                                    <Path Fill="{TemplateBinding Foreground}" Width="14.3775" Height="14" Canvas.Left="0.311264" Canvas.Top="0.500005" Stretch="Uniform" Data="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" />
+                                </Canvas>
+                            </ControlTemplate>
+                        </MenuItem.Resources>
+                        <MenuItem.Icon>
+                            <ContentControl Template="{StaticResource hamburger-menu}"/>
+                        </MenuItem.Icon>
+                        <MenuItem Header="Add" Command="{Binding ServiceAddCommand}">
+                            <MenuItem.Resources>
+                                <ControlTemplate x:Key="add">
+                                    <Canvas Background="Transparent">
+                                        <Canvas.RenderTransform>
+                                            <TranslateTransform X="4" Y="0"/>
+                                        </Canvas.RenderTransform>
+                                        <Path Fill="{TemplateBinding Foreground}" Width="14.3775" Height="14" Canvas.Left="0.311264" Canvas.Top="0.500005" Stretch="Uniform" Data="M17,13H13V17H11V13H7V11H11V7H13V11H17M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
+                                    </Canvas>
+                                </ControlTemplate>
+                            </MenuItem.Resources>
+                            <MenuItem.Icon>
+                                <ContentControl Template="{StaticResource add}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="New Folder" Command="{Binding FolderAddCommand}">
+                            <MenuItem.Resources>
+                                <ControlTemplate x:Key="new-folder">
+                                    <Canvas Background="Transparent">
+                                        <Canvas.RenderTransform>
+                                            <TranslateTransform X="4" Y="0"/>
+                                        </Canvas.RenderTransform>
+                                        <Path Fill="{TemplateBinding Foreground}" Width="14.3775" Height="14" Canvas.Left="0.311264" Canvas.Top="0.500005" Stretch="Uniform" Data="M12 12H14V10H16V12H18V14H16V16H14V14H12V12M22 8V18C22 19.11 21.11 20 20 20H4C2.89 20 2 19.11 2 18V6C2 4.89 2.89 4 4 4H10L12 6H20C21.11 6 22 6.89 22 8M20 8H4V18H20V8Z" />
+                                    </Canvas>
+                                </ControlTemplate>
+                            </MenuItem.Resources>
+                            <MenuItem.Icon>
+                                <ContentControl Template="{StaticResource new-folder}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
                         <Separator/>
+                        <MenuItem Header="Import">
+                            <MenuItem Header="OPML"/>
+                        </MenuItem>
                         <MenuItem Header="Export">
-                            <MenuItem Header="Services as OPML"/>
+                            <MenuItem Header="OPML"/>
                             <MenuItem Header="Entries as Feed"/>
                         </MenuItem>
+                        <Separator/>
                         <MenuItem Header="E_xit"/>
                     </MenuItem>
-
-                    <MenuItem Header="_Edit" Style="{DynamicResource MainMenuItemStyle}">
-                        <MenuItem Header="Reload"/>
-                        <Separator/>
-                        <MenuItem Header="メニュー 1-3">
-                            <MenuItem Header="メニュー 1-3-1"/>
-                            <MenuItem Header="メニュー 1-3-2"/>
-                        </MenuItem>
-                    </MenuItem>
-                    <MenuItem Header="_View" Style="{DynamicResource MainMenuItemStyle}">
-                        <MenuItem Header="メニュー 1-3">
-                            <MenuItem Header="メニュー 1-3-1"/>
-                            <MenuItem Header="メニュー 1-3-2"/>
-                        </MenuItem>
-                    </MenuItem>
-                    
-
                 </Menu>
 
                 <!-- System icons -->
@@ -1247,7 +1275,7 @@
                             </TextBox.Resources>
                         </TextBox>
 
-                        <Button Command="{Binding ClearDebugTextCommand}" ToolTip="Clear" Style="{StaticResource PathButton}" Width="30" Height="30" HorizontalAlignment="Right" Margin="0 0 18 0" VerticalAlignment="Top" Content="M16.24,3.56L21.19,8.5C21.97,9.29 21.97,10.55 21.19,11.34L12,20.53C10.44,22.09 7.91,22.09 6.34,20.53L2.81,17C2.03,16.21 2.03,14.95 2.81,14.16L13.41,3.56C14.2,2.78 15.46,2.78 16.24,3.56M4.22,15.58L7.76,19.11C8.54,19.9 9.8,19.9 10.59,19.11L14.12,15.58L9.17,10.63L4.22,15.58Z"></Button>
+                        <Button Command="{Binding ClearDebugTextCommand}" ToolTip="Clear" Style="{StaticResource PathButton}" Width="24" Height="24" HorizontalAlignment="Right" Margin="0 0 18 0" VerticalAlignment="Top" Content="M16.24,3.56L21.19,8.5C21.97,9.29 21.97,10.55 21.19,11.34L12,20.53C10.44,22.09 7.91,22.09 6.34,20.53L2.81,17C2.03,16.21 2.03,14.95 2.81,14.16L13.41,3.56C14.2,2.78 15.46,2.78 16.24,3.56M4.22,15.58L7.76,19.11C8.54,19.9 9.8,19.9 10.59,19.11L14.12,15.58L9.17,10.63L4.22,15.58Z"></Button>
 
                     </Grid>
 

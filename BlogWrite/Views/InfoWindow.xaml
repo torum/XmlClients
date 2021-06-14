@@ -8,7 +8,7 @@
         Background="{DynamicResource WindowBackgroundBaseColorBrush}"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
-        Title="Info Window" Height="500" Width="600">
+        Title="Info Window" Height="450" Width="600">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="32" ResizeBorderThickness="{x:Static SystemParameters.WindowResizeBorderThickness}"/>
     </WindowChrome.WindowChrome>
