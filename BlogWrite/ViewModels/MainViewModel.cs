@@ -26,19 +26,30 @@ namespace BlogWrite.ViewModels
     /// 
     /// App Icon / App name .... FeedDesk?
     /// 
-    /// Entry画像のダウンロードは、visibilityChanged か何かで、ListView内で表示されたタイミングで取得するように変更。
+    /// [Bug] Feed取得中はDrag and Dropできないようにする。
     /// 
-    /// Feed listview item "author" etc.
+    /// TreeViewの大元の方のコンテキストメニューにUrl追加とFolder追加メニューを作る。
     /// 
-    /// View形式をFeedやサービスごとに覚える。
+    /// Feedを追加する時に、選択されているフォルダ内に追加する？追加したら選択する。
     /// 
-    /// AtomPub and XML-RPC ..
+    /// [Usability] ServiceDiscoveryのFeed追加で、もう一画面かましてサイト名を表示して、Feedの名前を変更できるようにする?
     /// 
-    /// SQLiteにエントリを保存し、Feed 既読管理。
-    /// Feed Folderまとめ表示。
+    /// 
+    /// [Editer][TODO]  AtomPub and XML-RPC ..
+    /// 
+    /// [Usability] Feed listview item "author" etc.
+    /// [Usability] View形式をFeedやサービスごとに覚える。
+    /// 
+    /// [Database][TODO]  SQLiteにエントリを保存。
+    /// [Database][Usability]  Feed 既読管理。
+    /// [Database][TODO] Entry画像のダウンロードは、visibilityChanged か何かで、ListView内で表示されたタイミングで取得するように変更。
+    /// [Database][Usability] Feed Folderまとめ表示。
     /// 
 
     /// 更新履歴：
+    /// v0.0.0.21 とりあえず、AtomPubのServiceDocument解析とNodeの追加まで。カテゴリとか、保存時に消えてる可能性あり。
+    /// v0.0.0.20 AutoDiscoveryで、Auth対応。認証情報入力ページを実装。AtomPub判定まで。
+    /// v0.0.0.19 "Description" が存在してないRSSの場合、ContentTypeが設定されずHTMLと判定されず、ブラウザがVisibleにならないため In-app-browserで表示できてなかった。手動で表に表示するようにした。
     /// v0.0.0.18 gets and display Entry's Image in CardView.
     /// v0.0.0.17 Reset scroll position when Entries updated.
     /// v0.0.0.16 NodeFeedのParent設定洩れ。Feed Folderまとめ表示はSQLite化してからDBから読み込むようにする。
@@ -65,7 +76,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.18";
+        const string _appVer = "0.0.0.21";
         public string AppVer
         {
             get
@@ -187,25 +198,26 @@ namespace BlogWrite.ViewModels
                 _selectedItem = value;
                 NotifyPropertyChanged(nameof(SelectedItem));
 
-                // This changes the contents.
+                // This updates the view contents.
                 NotifyPropertyChanged(nameof(EntryContentText));
                 NotifyPropertyChanged(nameof(EntryContentHTML));
                 NotifyPropertyChanged(nameof(IsContentText));
-                NotifyPropertyChanged(nameof(IsContentHTML));
-
-                if (_selectedItem == null)
-                    return;
-
-                //NavigateUrlToContentPreviewBrowser?.Invoke(this, _selectedItem.AltHTMLUri);
-
+                //NotifyPropertyChanged(nameof(IsContentHTML));
                 if (IsContentHTML)
                 {
+                    // Bring the browser to front.
+                    IsContentBrowserVisible = true;
+
                     string s = EntryContentHTML;
                     WriteHtmlToContentPreviewBrowser?.Invoke(this, s);
                 }
+                else
+                {
+                    IsContentBrowserVisible = false;
+                }
 
                 NotifyPropertyChanged(nameof(Entries));
-                
+
             }
         }
 
@@ -248,6 +260,20 @@ namespace BlogWrite.ViewModels
                 {
                     return false;
                 }
+            }
+        }
+
+        private bool _isContentBrowserVisible;
+        public bool IsContentBrowserVisible
+        {
+            get { return _isContentBrowserVisible; }
+            set
+            {
+                if (_isContentBrowserVisible == value)
+                    return;
+
+                _isContentBrowserVisible = value;
+                NotifyPropertyChanged(nameof(IsContentBrowserVisible));
             }
         }
 
@@ -941,7 +967,7 @@ li {
 
                 a.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
 
-                // Add Account Node to internal (virtual) Treeview.
+                // Add Node to internal (virtual) Treeview.
                 Application.Current.Dispatcher.Invoke(() => Services.Add(a));
             }
             else if (fl.FeedKind == FeedLink.FeedKinds.Rss)
@@ -956,9 +982,18 @@ li {
 
                 a.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
 
-                // Add Account Node to internal (virtual) Treeview.
+                // Add Node to internal (virtual) Treeview.
                 Application.Current.Dispatcher.Invoke(() => Services.Add(a));
             }
+        }
+
+        public void AddService(NodeService nodeService)
+        {
+            nodeService.Parent = _services;
+            nodeService.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
+
+            // Add Node to internal (virtual) Treeview.
+            Application.Current.Dispatcher.Invoke(() => Services.Add(nodeService));
         }
 
         // TODO: not working?
@@ -1008,30 +1043,30 @@ li {
                 // TODO: need return result object
                 List<EntryItem> entLi = await fc.GetEntries(selectedFeedNode.EndPoint);
 
-                if (string.IsNullOrEmpty(fc.ClientErrorMessage))
-                {
-                    if (selectedFeedNode == SelectedNode)
-                    {
-                        ClientErrorMessage = "";
-                        IsShowClientErrorMessage = false;
-                    }
-
-                    selectedFeedNode.Status = NodeFeed.DownloadStatus.normal;
-                }
-                else
-                {
-                    if (selectedFeedNode == SelectedNode)
-                    {
-                        ClientErrorMessage = fc.ClientErrorMessage;
-                        IsShowClientErrorMessage = true;
-                    }
-
-                    selectedFeedNode.Status = NodeFeed.DownloadStatus.error;
-                }
-
                 // Minimize the time to block UI thread.
                 Application.Current.Dispatcher.Invoke(() =>
                 {
+                    if (string.IsNullOrEmpty(fc.ClientErrorMessage))
+                    {
+                        if (selectedFeedNode == SelectedNode)
+                        {
+                            ClientErrorMessage = "";
+                            IsShowClientErrorMessage = false;
+                        }
+
+                        selectedFeedNode.Status = NodeFeed.DownloadStatus.normal;
+                    }
+                    else
+                    {
+                        if (selectedFeedNode == SelectedNode)
+                        {
+                            ClientErrorMessage = fc.ClientErrorMessage;
+                            IsShowClientErrorMessage = true;
+                        }
+
+                        selectedFeedNode.Status = NodeFeed.DownloadStatus.error;
+                    }
+
                     (selectedNode as NodeFeed).List.Clear();
 
                     foreach (EntryItem ent in entLi)
@@ -1039,13 +1074,6 @@ li {
                         //ent.NodeEntry = (selectedNode as NodeEntry);
 
                         (selectedNode as NodeFeed).List.Add(ent);
-
-                        // Folder
-                        if ((selectedNode as NodeFeed).Parent is NodeFolder)
-                        {
-                            //((selectedNode as NodeFeed).Parent as NodeFolder).ListAll.Add(ent);
-                            //((selectedNode as NodeFeed).Parent as NodeFolder).ListAll = new ObservableCollection<EntryItem>(((selectedNode as NodeFeed).Parent as NodeFolder).ListAll.OrderByDescending(n => n.Published));
-                        }
                     }
                 });
             }
@@ -1436,7 +1464,7 @@ li {
 
             EntryFull newEntry = null;
 
-            if (SelectedNode is NodeAtomPubEntryCollection)
+            if (SelectedNode is NodeAtomPubCollection)
             {
                 newEntry = new AtomEntry("", (SelectedNode as NodeEntryCollection).Client);
             }
@@ -1499,7 +1527,11 @@ li {
 
             if (selectedEntry.AltHtmlUri != null)
             {
-                SelectedItem = selectedEntry;
+                // Not good. This write html to browser....
+                //SelectedItem = selectedEntry;
+
+                // Bring Browser to front.
+                IsContentBrowserVisible = true;
 
                 NavigateUrlToContentPreviewBrowser?.Invoke(this, selectedEntry.AltHtmlUri);
             }

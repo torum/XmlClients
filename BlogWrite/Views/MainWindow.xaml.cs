@@ -31,6 +31,15 @@ namespace BlogWrite.Views
     {
         private CoreWebView2Environment _env;
 
+        private static string html = @"
+                <html>
+                    <head>
+                        <title></title>
+                    </head>
+                    <body style=""background-color:#212121;"">
+                    </body>
+                </html>";
+
         #region == Treeview D&D ==
 
         private enum InsertType
@@ -102,15 +111,6 @@ namespace BlogWrite.Views
 
         private async void InitializeWebView2Async()
         {
-            var html = @"
-                <html>
-                    <head>
-                        <title></title>
-                    </head>
-                    <body style=""background-color:#212121;"">
-                    </body>
-                </html>";
-
             // I really do hate smooth-scrolling.
             var op = new CoreWebView2EnvironmentOptions("--disable-smooth-scrolling");
 
@@ -118,12 +118,26 @@ namespace BlogWrite.Views
 
             await ListViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
 
-            ListViewContentPreviewWebBrowser.NavigateToString(html);
-
+            ListViewContentPreviewWebBrowser.CoreWebView2InitializationCompleted += ListViewContentPreviewWebBrowser_InitializationCompleted;
+            
             await CardViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
 
-            CardViewContentPreviewWebBrowser.NavigateToString(html);
+            CardViewContentPreviewWebBrowser.CoreWebView2InitializationCompleted += CardViewContentPreviewWebBrowser_InitializationCompleted;
 
+        }
+
+        private void ListViewContentPreviewWebBrowser_InitializationCompleted(object sender, EventArgs e)
+        {
+            //ListViewContentPreviewWebBrowser.CoreWebView2.Settings.UserAgent = "";
+
+            ListViewContentPreviewWebBrowser.NavigateToString(html);
+        }
+
+        private void CardViewContentPreviewWebBrowser_InitializationCompleted(object sender, EventArgs e)
+        {
+            //CardViewContentPreviewWebBrowser.CoreWebView2.Settings.UserAgent = "";
+
+            CardViewContentPreviewWebBrowser.NavigateToString(html);
         }
 
         public void BringToForeground()
@@ -207,17 +221,15 @@ namespace BlogWrite.Views
 
         public void OnCreateServiceDiscoveryWindow(Window owner)
         {
-            // TODO: Before opening the window, make sure no other window is open.
-            // If a user minimize and restore, Modal window can get behind of the child window.
-
             var win = new ServiceDiscoveryWindow();
             win.DataContext = new ServiceDiscoveryViewModel();
 
             var vm = (win.DataContext as ServiceDiscoveryViewModel);
             vm.RegisterFeed += (sender, arg) => OnRegisterFeed(arg);
+            vm.RegisterService += (sender, arg) => OnRegisterService(arg);
             vm.CloseAction = new Action(win.Close);
 
-            win.Owner = owner;
+            win.Owner = this;//owner;
             win.ShowDialog();
         }
 
@@ -230,6 +242,17 @@ namespace BlogWrite.Views
                 return;
 
             (this.DataContext as MainViewModel).AddFeed(arg.FeedLinkData);
+        }
+
+        public void OnRegisterService(RegisterServiceEventArgs arg)
+        {
+            if (this.DataContext == null)
+                return;
+
+            if (this.DataContext is not MainViewModel)
+                return;
+
+            (this.DataContext as MainViewModel).AddService(arg.nodeService);
         }
 
         public async void OnWriteHtmlToContentPreviewBrowser(string arg)
@@ -254,14 +277,14 @@ namespace BlogWrite.Views
                 await CardViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
 
                 CardViewContentPreviewWebBrowser.Source = arg;
-                
+
             }
             else if (ViewTab.SelectedIndex == 1)
             {
                 if (GridListViewContentPreviewWebBrowser.Visibility != Visibility.Visible)
                 {
                     // Re-set Listview, splitter and browser heights.
-                    GridListView.RowDefinitions[1].Height = new GridLength(2, GridUnitType.Star);
+                    GridListView.RowDefinitions[1].Height = new GridLength(3, GridUnitType.Star);
                     GridListView.RowDefinitions[2].Height = new GridLength(8);
                     GridListView.RowDefinitions[3].Height = new GridLength(5, GridUnitType.Star);
 
@@ -547,7 +570,13 @@ namespace BlogWrite.Views
             }
         }
 
-        
+        private void UpdateNodeNameButton_Click(object sender, RoutedEventArgs e)
+        {
+            // This ensures "Enter" key press event even if IME is on. 
+
+            UpdateTreeViewItemName();
+        }
+
         private void UpdateTreeViewItemName()
         {
 
@@ -589,9 +618,13 @@ namespace BlogWrite.Views
                 return false;
         }
 
-        // Right click select
+        #region == Right click select ==
+        
         private void TreeViewItem_OnPreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
+            if (IsRenamingInProgress)
+                return;
+
             //NodeTree item = GetNearestContainer(e.OriginalSource as UIElement);
             TreeViewItem item = GetParentObjectEx<TreeViewItem>(e.OriginalSource as DependencyObject) as TreeViewItem;
             if (item != null)
@@ -620,6 +653,8 @@ namespace BlogWrite.Views
             }
             return null;
         }
+
+        #endregion
 
         #endregion
 
@@ -1021,7 +1056,6 @@ namespace BlogWrite.Views
                 this.Y = y;
             }
         }
-
 
         [StructLayout(LayoutKind.Sequential)]
         public struct MINMAXINFO

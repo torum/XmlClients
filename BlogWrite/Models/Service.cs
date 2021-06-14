@@ -5,24 +5,30 @@ using System.Xml;
 
 namespace BlogWrite.Models
 {
-    // List of recognized services.
+
+    public enum AuthTypes
+    {
+        Wsse, Basic
+    }
+
     public enum ServiceTypes
     {
+        Feed,
         AtomPub,
         AtomPub_Hatena,
-        Feed,
+        XmlRpc,
         XmlRpc_WordPress,
         XmlRpc_MovableType,
         AtomApi,
         Unknown
     }
 
-    // List of APIs
     public enum ApiTypes
     {
-        atAtomPub,
+        
         atAtomFeed,
-        atRssFeed,
+        atRssFeed, 
+        atAtomPub,
         //atXMLRPC,
         atXMLRPC_MovableType,
         atXMLRPC_WordPress,
@@ -52,6 +58,8 @@ namespace BlogWrite.Models
         public string UserName { get; set; }
 
         public string UserPassword { get; set; }
+
+        public AuthTypes AuthType { get; set; }
 
         public ApiTypes Api { get; set; }
 
@@ -280,6 +288,9 @@ namespace BlogWrite.Models
                             case "Feed":
                                 stp = ServiceTypes.Feed;
                                 break;
+                            case "XML-RPC":
+                                stp = ServiceTypes.XmlRpc;
+                                break;
                             case "XML-RPC_MovableType":
                                 stp = ServiceTypes.XmlRpc_MovableType;
                                 break;
@@ -322,39 +333,7 @@ namespace BlogWrite.Models
                         }
 
                         if (stp == ServiceTypes.Feed)
-                        {
-                            /*
-                            if ((!string.IsNullOrEmpty(accountName)) && (!string.IsNullOrEmpty(endpoint)))
-                            {
-                                if (at == ApiTypes.atAtomFeed)
-                                {
-                                    NodeAtomFeed account = new NodeAtomFeed(accountName, new Uri(endpoint));
-
-                                    account.IsSelected = isSelecteds;
-                                    account.IsExpanded = isExpandeds;
-                                    account.Parent = this;
-
-                                    account.ServiceType = ServiceTypes.Feed;
-                                    account.Api = at;
-
-                                    this.Children.Add(account);
-                                }
-                                else if (at == ApiTypes.atRssFeed)
-                                {
-                                    NodeRssFeed account = new NodeRssFeed(accountName, new Uri(endpoint));
-                                    account.IsSelected = isSelecteds;
-                                    account.IsExpanded = isExpandeds;
-                                    account.Parent = this;
-
-                                    account.ServiceType = ServiceTypes.Feed;
-                                    account.Api = at;
-
-                                    this.Children.Add(account);
-                                }
-                            }
-                            */
                             continue;
-                        }
 
                         if ((!string.IsNullOrEmpty(accountName)) && (!string.IsNullOrEmpty(userName)) && (!string.IsNullOrEmpty(userPassword)) && (!string.IsNullOrEmpty(endpoint)))
                         {
@@ -401,7 +380,7 @@ namespace BlogWrite.Models
                                             switch ((blog.Parent as NodeService).Api)
                                             {
                                                 case ApiTypes.atAtomPub:
-                                                    entry = new NodeAtomPubEntryCollection(collectionName, new Uri(collectionHref));
+                                                    entry = new NodeAtomPubCollection(collectionName, new Uri(collectionHref));
                                                     break;
                                                 //case ApiTypes.atXMLRPC:
                                                 //    break;
@@ -488,6 +467,9 @@ namespace BlogWrite.Models
                     else if (s.LocalName.Equals("Feed"))
                     {
                         NodeFeed feed = LoadXmlChildFeed(s);
+                        if (feed == null)
+                            continue;
+
                         feed.Parent = this;
 
                         if (feed != null)
@@ -515,6 +497,9 @@ namespace BlogWrite.Models
                             foreach (XmlNode f in feedList)
                             {
                                 NodeFeed feed = LoadXmlChildFeed(f);
+                                if (feed == null)
+                                    continue;
+
                                 feed.Parent = folder;
 
                                 if (feed != null)
@@ -537,91 +522,88 @@ namespace BlogWrite.Models
             var feedName = node.Attributes["Name"].Value;
 
             if (!string.IsNullOrEmpty(feedName))
+            { }
+
+            var selecteds = string.IsNullOrEmpty(node.Attributes["Selected"].Value) ? "" : node.Attributes["Selected"].Value;
+            var expandeds = string.IsNullOrEmpty(node.Attributes["Expanded"].Value) ? "" : node.Attributes["Expanded"].Value;
+            bool isSelectedf = (selecteds == "true") ? true : false;
+            bool isExpandedf = (expandeds == "true") ? true : false;
+
+            var endpoint = node.Attributes["EndPoint"].Value;
+            string api = (node.Attributes["Api"] != null) ? node.Attributes["Api"].Value : "Unknown";
+
+            string siteTitle = "";
+            var attr = node.Attributes["SiteTitle"];
+            if (attr != null)
             {
-                var selecteds = string.IsNullOrEmpty(node.Attributes["Selected"].Value) ? "" : node.Attributes["Selected"].Value;
-                var expandeds = string.IsNullOrEmpty(node.Attributes["Expanded"].Value) ? "" : node.Attributes["Expanded"].Value;
-                bool isSelectedf = (selecteds == "true") ? true : false;
-                bool isExpandedf = (expandeds == "true") ? true : false;
+                siteTitle = string.IsNullOrEmpty(node.Attributes["SiteTitle"].Value) ? "" : node.Attributes["SiteTitle"].Value;
+            }
 
-                var endpoint = node.Attributes["EndPoint"].Value;
-                string api = (node.Attributes["Api"] != null) ? node.Attributes["Api"].Value : "Unknown";
+            Uri siteUri = null;
+            attr = node.Attributes["SiteUri"];
+            if (attr != null)
+            {
+                var siteLink = string.IsNullOrEmpty(node.Attributes["SiteUri"].Value) ? "" : node.Attributes["SiteUri"].Value;
 
-                string siteTitle = "";
-                var attr = node.Attributes["SiteTitle"];
-                if (attr != null)
+                if (!string.IsNullOrEmpty(siteLink))
                 {
-                    siteTitle = string.IsNullOrEmpty(node.Attributes["SiteTitle"].Value) ? "" : node.Attributes["SiteTitle"].Value;
-                }
-
-                Uri siteUri = null;
-                attr = node.Attributes["SiteUri"];
-                if (attr != null)
-                {
-                    var siteLink = string.IsNullOrEmpty(node.Attributes["SiteUri"].Value) ? "" : node.Attributes["SiteUri"].Value;
-                    
-                    if (!string.IsNullOrEmpty(siteLink))
+                    try
                     {
-                        try
-                        {
-                            siteUri = new Uri(siteLink);
-                        }
-                        catch { }
+                        siteUri = new Uri(siteLink);
                     }
+                    catch { }
                 }
+            }
 
+            ApiTypes at;
+            switch (api)
+            {
+                case "AtomFeed":
+                    at = ApiTypes.atAtomFeed;
+                    break;
+                case "RssFeed":
+                    at = ApiTypes.atRssFeed;
+                    break;
+                default:
+                    at = ApiTypes.atUnknown;
+                    break;
+            }
 
-                ApiTypes at;
-                switch (api)
+            if (!string.IsNullOrEmpty(endpoint))
+            {
+                if (at == ApiTypes.atAtomFeed)
                 {
-                    case "AtomFeed":
-                        at = ApiTypes.atAtomFeed;
-                        break;
-                    case "RssFeed":
-                        at = ApiTypes.atRssFeed;
-                        break;
-                    default:
-                        at = ApiTypes.atUnknown;
-                        break;
-                }
+                    NodeAtomFeed feed = new NodeAtomFeed(feedName, new Uri(endpoint));
 
-                if (!string.IsNullOrEmpty(endpoint))
+                    feed.IsSelected = isSelectedf;
+                    feed.IsExpanded = isExpandedf;
+                    feed.Parent = this;
+
+                    feed.ServiceType = ServiceTypes.Feed;
+                    feed.Api = at;
+
+                    feed.SiteTitle = siteTitle;
+                    feed.SiteUri = siteUri;
+
+                    //this.Children.Add(feed);
+                    return feed;
+                }
+                else if (at == ApiTypes.atRssFeed)
                 {
-                    if (at == ApiTypes.atAtomFeed)
-                    {
-                        NodeAtomFeed feed = new NodeAtomFeed(feedName, new Uri(endpoint));
+                    NodeRssFeed feed = new NodeRssFeed(feedName, new Uri(endpoint));
+                    feed.IsSelected = isSelectedf;
+                    feed.IsExpanded = isExpandedf;
+                    feed.Parent = this;
 
-                        feed.IsSelected = isSelectedf;
-                        feed.IsExpanded = isExpandedf;
-                        feed.Parent = this;
+                    feed.ServiceType = ServiceTypes.Feed;
+                    feed.Api = at;
 
-                        feed.ServiceType = ServiceTypes.Feed;
-                        feed.Api = at;
+                    feed.SiteTitle = siteTitle;
+                    feed.SiteUri = siteUri;
 
-                        feed.SiteTitle = siteTitle;
-                        feed.SiteUri = siteUri;
-
-                        //this.Children.Add(feed);
-                        return feed;
-                    }
-                    else if (at == ApiTypes.atRssFeed)
-                    {
-                        NodeRssFeed feed = new NodeRssFeed(feedName, new Uri(endpoint));
-                        feed.IsSelected = isSelectedf;
-                        feed.IsExpanded = isExpandedf;
-                        feed.Parent = this;
-
-                        feed.ServiceType = ServiceTypes.Feed;
-                        feed.Api = at;
-
-                        feed.SiteTitle = siteTitle;
-                        feed.SiteUri = siteUri;
-
-                        //this.Children.Add(feed);
-                        return feed;
-                    }
+                    //this.Children.Add(feed);
+                    return feed;
                 }
-
-
             }
 
             return null;
@@ -686,6 +668,10 @@ namespace BlogWrite.Models
                                 break;
                             case ServiceTypes.Feed:
                                 atstp.Value = "Feed";
+                                service.SetAttributeNode(atstp);
+                                break;
+                            case ServiceTypes.XmlRpc:
+                                atstp.Value = "XML-RPC";
                                 service.SetAttributeNode(atstp);
                                 break;
                             case ServiceTypes.XmlRpc_MovableType:
@@ -788,9 +774,9 @@ namespace BlogWrite.Models
 
                                 workspace.AppendChild(collection);
 
-                                if (c is NodeAtomPubEntryCollection)
+                                if (c is NodeAtomPubCollection)
                                 {
-                                    foreach (var a in (c as NodeAtomPubEntryCollection).AcceptTypes)
+                                    foreach (var a in (c as NodeAtomPubCollection).AcceptTypes)
                                     {
                                         XmlElement acceptType = doc.CreateElement(string.Empty, "Accept", string.Empty);
                                         XmlText xt = doc.CreateTextNode(a);

@@ -7,9 +7,25 @@ using System.Threading.Tasks;
 namespace BlogWrite.Models
 {
 
+    public class NodeAtomPubCatetories : NodeTree
+    {
+        public Uri href { get; set; }
+
+        public bool IsCategoryFixed { get; set; }
+
+        public List<NodeAtomPubCategory> CategoryList = new();
+
+        public NodeAtomPubCatetories(string title) : base(title)
+        {
+            PathIcon = "M16,17H5V7H16L19.55,12M17.63,5.84C17.27,5.33 16.67,5 16,5H5A2,2 0 0,0 3,7V17A2,2 0 0,0 5,19H16C16.67,19 17.27,18.66 17.63,18.15L22,12L17.63,5.84Z";
+
+            //ID = Guid.NewGuid().ToString();
+
+        }
+    }
+
     public class NodeCategory : NodeTree
     {
-        // Constructor.
         public NodeCategory(string title) : base(title)
         {
             PathIcon = "M16,17H5V7H16L19.55,12M17.63,5.84C17.27,5.33 16.67,5 16,5H5A2,2 0 0,0 3,7V17A2,2 0 0,0 5,19H16C16.67,19 17.27,18.66 17.63,18.15L22,12L17.63,5.84Z";
@@ -20,11 +36,12 @@ namespace BlogWrite.Models
 
     }
 
+
     public class NodeAtomPubCategory : NodeCategory
     {
         public string Term { get; set; }
-
-        // Constructor.
+        public string Scheme { get; set; }
+        
         public NodeAtomPubCategory(string title) : base(title)
         {
             //PathIcon = "M16,17H5V7H16L19.55,12M17.63,5.84C17.27,5.33 16.67,5 16,5H5A2,2 0 0,0 3,7V17A2,2 0 0,0 5,19H16C16.67,19 17.27,18.66 17.63,18.15L22,12L17.63,5.84Z";

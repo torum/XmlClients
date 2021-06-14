@@ -9,6 +9,9 @@
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         Title="Info Window" Height="500" Width="600">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="32" ResizeBorderThickness="{x:Static SystemParameters.WindowResizeBorderThickness}"/>
+    </WindowChrome.WindowChrome>
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

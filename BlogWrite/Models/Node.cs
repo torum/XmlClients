@@ -20,6 +20,9 @@ namespace BlogWrite.Models
             }
             set
             {
+                if (string.IsNullOrEmpty(value))
+                    return;
+
                 if (_name == value)
                     return;
 
@@ -201,6 +204,7 @@ namespace BlogWrite.Models
 
         protected NodeTree(){}
 
+        // TODO: Parent should be ....
         protected NodeTree(string name): base(name)
         {
             BindingOperations.EnableCollectionSynchronization(_children, new object());

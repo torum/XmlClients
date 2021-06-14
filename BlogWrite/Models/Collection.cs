@@ -63,11 +63,14 @@ namespace BlogWrite.Models
         }
     }
 
-    public class NodeAtomPubEntryCollection : NodeEntryCollection
+    public class NodeAtomPubCollection : NodeEntryCollection
     {
         public Uri CategoriesUri { get; set; }
 
-        public bool CategoryIsFixed { get; set; }
+        //public List CategoriesList { get; set; }
+
+
+        public bool IsAcceptEntry { get; set; }
 
         public string CategoryScheme { get; set; }
 
@@ -75,10 +78,13 @@ namespace BlogWrite.Models
         // "application/atom+xml"
         // "application/atom+xml;type=entry"
         // "application/atomcat+xml"
+        //image/png
+        //image/jpeg
+        //image/gif
         public Collection<string> AcceptTypes = new Collection<string>();
 
         // Constructor.
-        public NodeAtomPubEntryCollection(string name, Uri uri) : base(name, uri)
+        public NodeAtomPubCollection(string name, Uri uri) : base(name, uri)
         {
             Uri = uri;
             PathIcon = "M4,5V7H21V5M4,11H21V9H4M4,19H21V17H4M4,15H21V13H4V15Z";

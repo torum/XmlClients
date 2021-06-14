@@ -209,7 +209,7 @@ namespace BlogWrite.Models.Clients
                     continue;
                 }
 
-                NodeAtomPubEntryCollection entry = new NodeAtomPubEntryCollection(title.InnerText, new Uri(hrefAttr));
+                NodeAtomPubCollection entry = new NodeAtomPubCollection(title.InnerText, new Uri(hrefAttr));
 
                 foreach (XmlNode a in acceptList)
                 {

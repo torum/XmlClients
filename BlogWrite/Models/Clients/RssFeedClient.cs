@@ -192,12 +192,13 @@ namespace BlogWrite.Models.Clients
                 }
             }
 
+            // Force textHtml for RSS feed. Even though description was missing. (needs this for browser)
+            entItem.ContentType = EntryItem.ContentTypes.textHtml;
+
             XmlNode sum = entryNode.SelectSingleNode("description");
             if (sum != null)
             {
                 // Content
-                entItem.ContentType = EntryItem.ContentTypes.textHtml;
-
                 entItem.Content = sum.InnerText;
 
                 // Summary
@@ -257,12 +258,13 @@ namespace BlogWrite.Models.Clients
                 }
             }
 
+            // Force textHtml for RSS feed. Even though description was missing. (needs this for browser)
+            entItem.ContentType = EntryItem.ContentTypes.textHtml;
+
             XmlNode sum = entryNode.SelectSingleNode("rss:description", NsMgr);
             if (sum != null)
             {
                 // Content
-                entItem.ContentType = EntryItem.ContentTypes.textHtml;
-
                 entItem.Content = sum.InnerText;
 
                 // Summary

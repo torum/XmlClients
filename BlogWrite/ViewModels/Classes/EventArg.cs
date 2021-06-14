@@ -25,4 +25,10 @@ namespace BlogWrite.ViewModels
     {
         public FeedLink FeedLinkData { get; set; }
     }
+
+    // For registering Service from ServiceDiscoveryViewModel.
+    public class RegisterServiceEventArgs : EventArgs
+    {
+        public NodeService nodeService { get; set; }
+    }
 }

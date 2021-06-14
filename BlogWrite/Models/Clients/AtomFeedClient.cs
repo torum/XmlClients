@@ -100,12 +100,15 @@ namespace BlogWrite.Models.Clients
              </entry>
             </feed>
                     */
+                    var source = await HTTPResponseMessage.Content.ReadAsStreamAsync();
 
                     // Load XML
                     XmlDocument xdoc = new XmlDocument();
                     try
                     {
-                        xdoc.LoadXml(s);
+                        XmlReader reader = XmlReader.Create(source);
+                        xdoc.Load(reader);
+                        //xdoc.LoadXml(s);
                     }
                     catch (Exception e)
                     {
@@ -360,28 +363,28 @@ namespace BlogWrite.Models.Clients
                     switch (contype)
                     {
                         case "text":
-                            entry.ContentType = EntryFull.ContentTypes.text;
+                            entry.ContentType = EntryItem.ContentTypes.text;
                             break;
                         case "html":
-                            entry.ContentType = EntryFull.ContentTypes.textHtml;
+                            entry.ContentType = EntryItem.ContentTypes.textHtml;
                             break;
                         case "xhtml":
-                            entry.ContentType = EntryFull.ContentTypes.textHtml;
+                            entry.ContentType = EntryItem.ContentTypes.textHtml;
                             break;
                         case "text/plain":
-                            entry.ContentType = EntryFull.ContentTypes.text;
+                            entry.ContentType = EntryItem.ContentTypes.text;
                             break;
                         case "text/html":
-                            entry.ContentType = EntryFull.ContentTypes.textHtml;
+                            entry.ContentType = EntryItem.ContentTypes.textHtml;
                             break;
                         case "text/x-markdown":
-                            entry.ContentType = EntryFull.ContentTypes.markdown;
+                            entry.ContentType = EntryItem.ContentTypes.markdown;
                             break;
                         case "text/x-hatena-syntax":
-                            entry.ContentType = EntryFull.ContentTypes.hatena;
+                            entry.ContentType = EntryItem.ContentTypes.hatena;
                             break;
                         default:
-                            entry.ContentType = EntryFull.ContentTypes.text;
+                            entry.ContentType = EntryItem.ContentTypes.text;
                             break;
                     }
                 }

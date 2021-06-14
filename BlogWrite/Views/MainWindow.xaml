@@ -348,8 +348,6 @@
                 <TreeView x:Name="TreeViewMenu" Margin="0 1 0 0" Style="{DynamicResource TreeViewMenuStyle}" ItemsSource="{Binding Services}" helpers:TreeViewHelper.SelectedItem="{Binding SelectedNode, Mode=TwoWay}" AllowDrop="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto">
                     <TreeView.Resources>
                         <ContextMenu x:Key="TreeviewMenuItemContextMenu">
-                            <MenuItem Name="TreeViewMenuItemShowInfo" Header="情報の表示" Click="TreeViewMenuItemShowInfo_Click"></MenuItem>
-                            <Separator/>
                             <MenuItem Name="TreeViewMenuItemRename" Header="名前の変更" Click="TreeViewMenuItemRename_Click"></MenuItem>
                             <Separator/>
                             <MenuItem Name="TreeViewMenuItemDelete" Header="削除" Click="TreeViewMenuItemDelete_Click">
@@ -364,6 +362,8 @@
                                     <ContentControl Template="{StaticResource TreeViewItemRemoveIcon}" />
                                 </MenuItem.Icon>
                             </MenuItem>
+                            <Separator/>
+                            <MenuItem Name="TreeViewMenuItemShowInfo" Header="情報の表示" Click="TreeViewMenuItemShowInfo_Click"></MenuItem>
                         </ContextMenu>
                         <Style TargetType="{x:Type ScrollBar}">
                             <Setter Property="Margin" Value="0,0,0,0" />
@@ -391,7 +391,131 @@
                                             </Viewbox>
                                             <TextBlock x:Name="NodeTextBlock" Text="{Binding Path=Name}" Padding="4"/>
                                         </StackPanel>
-                                        <TextBox x:Name="RenameTextBox" Text="{Binding Name, Mode=TwoWay}" HorizontalAlignment="Left" Margin="20,-23,0,0" Width="Auto" MinWidth="{Binding ElementName=NodeTextBlock, Path=ActualWidth}" Visibility="Collapsed" LostFocus="RenameTextBox_LostFocus" KeyUp="RenameTextBox_KeyUp"/>
+                                        <TextBox x:Name="RenameTextBox" Text="{Binding Name, Mode=TwoWay}" HorizontalAlignment="Left" Margin="20,-23,0,0" Width="Auto" MinWidth="{Binding ElementName=NodeTextBlock, Path=ActualWidth}" Visibility="Collapsed" LostFocus="RenameTextBox_LostFocus" KeyUp="RenameTextBox_KeyUp">
+                                            <TextBox.Style>
+                                                <Style TargetType="TextBox" BasedOn="{StaticResource DefaultTextBoxStyle}">
+                                                    <Setter Property="Background" Value="{StaticResource NormalTextBoxBackgroundColorBrush}" />
+                                                    <Setter Property="Margin" Value="0" />
+                                                    <Setter Property="Padding" Value="3" />
+                                                    <Setter Property="HorizontalContentAlignment" Value="Left" />
+                                                    <Setter Property="VerticalContentAlignment" Value="Center" />
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="{x:Type TextBox}">
+                                                                <Border x:Name="Border" BorderThickness="1" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" CornerRadius="3">
+                                                                    <Grid>
+                                                                        <Grid.RowDefinitions>
+                                                                            <RowDefinition Height="*"/>
+                                                                        </Grid.RowDefinitions>
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="*"/>
+                                                                            <ColumnDefinition Width="28"/>
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
+                                                                        <Button x:Name="UpdateNodeNameButton" Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent" IsDefault="True" Click="UpdateNodeNameButton_Click" Content="M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z">
+                                                                            <Button.Style>
+                                                                                <Style TargetType="Button">
+                                                                                    <Setter Property="SnapsToDevicePixels" Value="true" />
+                                                                                    <Setter Property="OverridesDefaultStyle" Value="true" />
+                                                                                    <Setter Property="FocusVisualStyle" Value="{DynamicResource ButtonFocusVisual}" />
+                                                                                    <Setter Property="Background" Value="Transparent" />
+                                                                                    <Setter Property="Foreground" Value="{DynamicResource ControlForegroundColorBrush}"/>
+                                                                                    <Setter Property="Template">
+                                                                                        <Setter.Value>
+                                                                                            <ControlTemplate TargetType="Button">
+                                                                                                <Border x:Name="Border" TextBlock.Foreground="{DynamicResource ControlForegroundColorBrush}" CornerRadius="0" BorderThickness="0">
+                                                                                                    <Border.BorderBrush>
+                                                                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                                                                            <LinearGradientBrush.GradientStops>
+                                                                                                                <GradientStopCollection>
+                                                                                                                    <GradientStop Color="{DynamicResource BorderLightColor}" Offset="0.0" />
+                                                                                                                    <GradientStop Color="{DynamicResource BorderDarkColor}" Offset="1.0" />
+                                                                                                                </GradientStopCollection>
+                                                                                                            </LinearGradientBrush.GradientStops>
+                                                                                                        </LinearGradientBrush>
+                                                                                                    </Border.BorderBrush>
+                                                                                                    <Border.Background>
+                                                                                                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0" Opacity="0">
+                                                                                                            <GradientStop Color="{DynamicResource ControlLightColor}" Offset="0" />
+                                                                                                            <GradientStop Color="{DynamicResource ControlMediumColor}" Offset="1" />
+                                                                                                        </LinearGradientBrush>
+                                                                                                    </Border.Background>
+
+                                                                                                    <Path x:Name="PathIcon" Data="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" Stretch="Uniform" Stroke="Transparent" StrokeThickness="0" Margin="8" RenderTransformOrigin="0.5,0.5">
+                                                                                                        <Path.RenderTransform>
+                                                                                                            <TransformGroup>
+                                                                                                                <TransformGroup.Children>
+                                                                                                                    <RotateTransform Angle="0" />
+                                                                                                                    <ScaleTransform ScaleX="1" ScaleY="1" />
+                                                                                                                </TransformGroup.Children>
+                                                                                                            </TransformGroup>
+                                                                                                        </Path.RenderTransform>
+                                                                                                        <Path.Fill>
+                                                                                                            <SolidColorBrush x:Name="PathIconColor" Color="#333"/>
+                                                                                                        </Path.Fill>
+                                                                                                    </Path>
+                                                                                                </Border>
+                                                                                                <ControlTemplate.Triggers>
+                                                                                                    <Trigger Property="IsDefault" Value="true">
+                                                                                                        <Setter TargetName="Border" Property="BorderBrush">
+                                                                                                            <Setter.Value>
+                                                                                                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                                                                                    <GradientBrush.GradientStops>
+                                                                                                                        <GradientStopCollection>
+                                                                                                                            <GradientStop Color="{DynamicResource ControlDarkColor}" Offset="0.0" />
+                                                                                                                            <GradientStop Color="{DynamicResource ControlDarkColor}" Offset="1.0" />
+                                                                                                                        </GradientStopCollection>
+                                                                                                                    </GradientBrush.GradientStops>
+                                                                                                                </LinearGradientBrush>
+
+                                                                                                            </Setter.Value>
+                                                                                                        </Setter>
+                                                                                                    </Trigger>
+
+                                                                                                    <Trigger Property="IsEnabled" Value="False">
+                                                                                                        <Setter TargetName="PathIcon" Property="Fill" Value="#666"/>
+                                                                                                    </Trigger>
+
+                                                                                                    <Trigger Property="IsMouseOver" Value="true">
+                                                                                                        <Setter TargetName="PathIcon" Property="Fill" Value="#222"/>
+                                                                                                    </Trigger>
+
+                                                                                                    <MultiTrigger>
+                                                                                                        <MultiTrigger.Conditions>
+                                                                                                            <Condition Property="IsPressed" Value="False" />
+                                                                                                            <Condition Property="IsMouseOver" Value="True" />
+                                                                                                        </MultiTrigger.Conditions>
+                                                                                                        <Setter TargetName="PathIcon" Property="Fill" Value="#000"/>
+                                                                                                    </MultiTrigger>
+
+                                                                                                    <MultiTrigger>
+                                                                                                        <MultiTrigger.Conditions>
+                                                                                                            <Condition Property="IsPressed" Value="true" />
+                                                                                                            <Condition Property="IsMouseOver" Value="True" />
+                                                                                                        </MultiTrigger.Conditions>
+                                                                                                        <Setter TargetName="PathIcon" Property="Fill" Value="#222"/>
+                                                                                                    </MultiTrigger>
+
+                                                                                                </ControlTemplate.Triggers>
+                                                                                            </ControlTemplate>
+                                                                                        </Setter.Value>
+                                                                                    </Setter>
+                                                                                </Style>
+                                                                            </Button.Style>
+                                                                        </Button>
+                                                                    </Grid>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsKeyboardFocusWithin" Value="true">
+                                                                        <Setter Property="Background" Value="Gainsboro" />
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </TextBox.Style>
+                                        </TextBox>
                                     </StackPanel>
                                 </Border>
                                 <Separator x:Name="afterSeparator" BorderThickness="1" BorderBrush="#fff" Visibility="Collapsed" />
@@ -471,8 +595,8 @@
                 <!-- Entries cardview/listview -->
                 <TabControl x:Name="ViewTab" Style="{DynamicResource TabControlBottomStyle}" Grid.Row="2" Grid.Column="0" TabStripPlacement="Bottom">
 
-                    <!-- CardView -->
-                    <TabItem Header="CardView" Style="{DynamicResource TabItemBottomStyle}" Height="32">
+                    <!-- CardsView -->
+                    <TabItem Header="Cards" Style="{DynamicResource TabItemBottomStyle}" Height="32">
 
                         <ListView x:Name="CardViewListview" Background="Transparent" Foreground="LightGray" BorderThickness="0" Padding="0" ItemsSource="{Binding Entries, NotifyOnTargetUpdated=True}" TargetUpdated="CardViewListview_TargetUpdated" SelectedItem="{Binding Mode=TwoWay,Path=SelectedItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListView.InputBindings>
@@ -697,12 +821,12 @@
                     </TabItem>
 
                     <!-- ListView -->
-                    <TabItem Header="ListView" Style="{DynamicResource TabItemBottomStyle}" Height="32">
+                    <TabItem Header="List" Style="{DynamicResource TabItemBottomStyle}" Height="32">
                         
                         <Grid x:Name="GridListView" Background="{DynamicResource BoardBackgroundColorBrush}">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="0"/>
-                                <RowDefinition Height="2*" MinHeight="0"/>
+                                <RowDefinition Height="3*" MinHeight="0"/>
                                 <RowDefinition Height="8"/>
                                 <RowDefinition Height="5*" MinHeight="0"/>
                             </Grid.RowDefinitions>
@@ -1043,7 +1167,7 @@
                                         </TextBox.Resources>
                                     </TextBox>
 
-                                    <wv2:WebView2 Name="ListViewContentPreviewWebBrowser" Margin="3" Visibility="{Binding IsContentHTML, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}"/>
+                                    <wv2:WebView2 Name="ListViewContentPreviewWebBrowser" Margin="3" Visibility="{Binding IsContentBrowserVisible, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}"/>
 
                                 </Grid>
 

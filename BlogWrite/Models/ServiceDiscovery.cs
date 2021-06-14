@@ -15,6 +15,8 @@ using System.Net;
 using AngleSharp;
 using AngleSharp.Html.Parser;
 using AngleSharp.Xml.Parser;
+using System.Security.Cryptography;
+using System.Net.Http.Headers;
 
 namespace BlogWrite.Models
 {
@@ -141,48 +143,64 @@ namespace BlogWrite.Models
 
         public ServiceResultFeed()
         {
+
         }
     }
 
-
-    /*
     // Base result class for API or Protocol
     abstract class ServiceResult : ServiceResultBase
     {
-        public ServiceTypes Service { get; set; }
+        public ServiceTypes ServiceType { get; set; }
 
         public Uri EndpointUri;
 
-        public ServiceResult(ServiceTypes type, Uri ep)
-        {
-            Service = type;
-            EndpointUri = ep;
-        }
+        public AuthTypes AuthType { get; set; } = AuthTypes.Wsse;
 
-        public ServiceResult()
+        public ServiceResult(ServiceTypes serviceType, Uri endpointUri, AuthTypes authType)
         {
-            Service = ServiceTypes.Unknown;
-            EndpointUri = null;
+            ServiceType = serviceType;
+            EndpointUri = endpointUri;
+            AuthType = authType;
         }
     }
 
-    class ServiceResultAtomPub: ServiceResult
+    class ServiceResultAtomPub : ServiceResult
     {
-        
+        public NodeService AtomService { get; set; }
+
+        public ServiceResultAtomPub(Uri endpointUri, AuthTypes authType, NodeService nodeService) : base(ServiceTypes.AtomPub, endpointUri, authType)
+        {
+            //Service = ServiceTypes.AtomPub;
+            //EndpointUri = endpointUri;
+            AtomService = nodeService;
+        }
     }
 
     class ServiceResultAtomAPI : ServiceResult
     {
-
+        public ServiceResultAtomAPI(Uri endpointUri, AuthTypes authType) : base(ServiceTypes.AtomApi, endpointUri, authType)
+        {
+            //ServiceType = ServiceTypes.AtomApi;
+            //EndpointUri = endpointUri;
+        }
     }
 
-    class ServiceResultXmlRpc: ServiceResult
+    class ServiceResultXmlRpc : ServiceResult
     {
         // XML-RPC specific blogid. 
         public string BlogID { get; set; }
+
+        public ServiceResultXmlRpc(Uri endpointUri, AuthTypes authType) : base(ServiceTypes.XmlRpc, endpointUri, authType)
+        {
+            ServiceType = ServiceTypes.XmlRpc;
+            EndpointUri = endpointUri;
+        }
     }
 
-    */
+    // TODO:
+    // ServiceResultXmlRpc_MT
+    // ServiceResultXmlRpc_WP
+
 
     /// <summary>
     /// Service Discovery class.
@@ -190,44 +208,10 @@ namespace BlogWrite.Models
     class ServiceDiscovery
     {
         private HttpClient _httpClient;
-        //private _serviceDocumentKind _serviceDocKind;
-        //private string _serviceDocUrl;
-        //private Uri _endpointUrl;
-        //private Uri _feedUrl;
-        //private feedKind _feedKind;
-        //private string _blogId = "";
-        //private ServiceTypes _serviceTypes;
-
-
-        /*
-        private enum _rsdApiType
-        {
-            WordPress,      // WordPress XML-RPC
-            MovableType,    // Movable Type XML-RPC
-            MetaWeblog,     // Used with Movable Type XML-RPC API
-            Blogger,        // Deprecated. May be used with Movable Type XML-RPC API
-            WordPressJsonRestApi,  // WordPress Jason REST API
-            AtomAPI         // Deprecated Atom 0.3 API
-        }
-        */
-
-        /*
-        private enum _atomType
-        {
-            atomFeed,
-            atomPub,
-            atomAPI,
-            atomGData
-        }
-        */
 
         public ServiceDiscovery()
         {
             _httpClient = new HttpClient();
-
-            //_serviceDocKind = _serviceDocumentKind.Unknown;
-
-            //_serviceTypes = ServiceTypes.Unknown;
         }
 
         #region == Events ==
@@ -310,11 +294,21 @@ namespace BlogWrite.Models
                         {
                             UpdateStatus("- Parsing RSS feed ...");
 
-                            // RSS parse.
+                            // XML parse.
                             ServiceResultBase feed = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
 
                             return feed;
                         }
+                        else if (contenTypeString.StartsWith("application/rdf+xml"))
+                        {
+                            UpdateStatus("- Parsing RSS feed ...");
+
+                            // XML parse.
+                            ServiceResultBase feed = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
+
+                            return feed;
+                        }
+                        //
                         else if (contenTypeString.StartsWith("application/atomsvc+xml"))
                         {
                             // This is the AtomPub endpoint.
@@ -434,6 +428,217 @@ namespace BlogWrite.Models
                     if (HTTPResponse.StatusCode == HttpStatusCode.Unauthorized)
                     {
                         UpdateStatus("- Authorization is required. ");
+
+                        ServiceResultAuthRequired rea = new ServiceResultAuthRequired(addr);
+                        return rea;
+                    }
+                    else
+                    {
+                        ServiceResultErr re = new ServiceResultErr("HTTP error.", "Could not retrieve any document.");
+                        return re;
+                    }
+                }
+
+            }
+            catch (System.Net.Http.HttpRequestException e)
+            {
+                UpdateStatus("<< HttpRequestException: " + e.Message);
+                ServiceResultErr re = new ServiceResultErr("HTTP request error.", e.Message);
+                return re;
+            }
+            catch (Exception e)
+            {
+
+                UpdateStatus("<< HTTP error: " + e.Message);
+                ServiceResultErr re = new ServiceResultErr("HTTP error.", e.Message);
+                return re;
+            }
+        }
+
+        public async Task<ServiceResultBase> DiscoverServiceWithAuth(Uri addr, string userName, string apiKey, AuthTypes authType)
+        {
+            try
+            {
+                HttpRequestMessage webreq = new HttpRequestMessage(HttpMethod.Get, addr);
+
+                if (authType == AuthTypes.Wsse)
+                {
+                    // WSSE Auth header
+                    webreq.Headers.Add("Authorization", @"WSSE profile = ""UsernameToken""");
+                    webreq.Headers.Add("X-WSSE", MakeWSSEHeader(userName, apiKey));
+                }
+                else
+                {
+                    // BASIC Auth
+                    string s = userName + ":" + apiKey;
+                    var byteArray = Encoding.UTF8.GetBytes(s);
+                    webreq.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+                }
+
+
+                UpdateStatus(">> HTTP GET " + addr.AbsoluteUri);
+
+                var HTTPResponse = await _httpClient.SendAsync(webreq);
+
+                //var HTTPResponse = await _httpClient.GetAsync(addr);
+
+                UpdateStatus(string.Format("<< HTTP status {0} returned.", HTTPResponse.StatusCode.ToString()));
+
+                if (HTTPResponse.IsSuccessStatusCode)
+                {
+                    if (HTTPResponse.Content == null)
+                    {
+                        UpdateStatus("<< Content is emptty.");
+                        ServiceResultErr re = new ServiceResultErr("Received no content.", "Content empty.");
+                        return re;
+                    }
+
+                    string contenTypeString = HTTPResponse.Content.Headers.GetValues("Content-Type").FirstOrDefault();
+
+                    if (!string.IsNullOrEmpty(contenTypeString))
+                    {
+                        UpdateStatus(string.Format("- Content-Type header is {0}", contenTypeString));
+
+                        // HTML page.
+                        if (contenTypeString.StartsWith("text/html"))
+                        {
+                            UpdateStatus("- HTML document returned. Something is wrong.");
+
+                            // Error
+                            ServiceResultErr re = new ServiceResultErr("API/Protocol authentication failed", "A HTML page returned.");
+                            return re;
+                        }
+                        else if (contenTypeString.StartsWith("text/xml") || contenTypeString.StartsWith("application/xml"))
+                        {
+                            UpdateStatus(string.Format("- Ambiguous Content-Type {0} returned. ", contenTypeString));
+
+                            UpdateStatus("- Parsing XML document to determine the what this is ...");
+
+                            // TODO;
+
+                            // XML parse.
+                            ServiceResultBase xml = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
+
+                            return xml;
+                        }
+                        else if (contenTypeString.StartsWith("application/rss+xml"))
+                        {
+                            UpdateStatus("- RSS feed returned. Something is wrong.");
+
+                            // Error
+                            ServiceResultErr re = new ServiceResultErr("API/Protocol authentication failed", "A RSS feed returned.");
+                            return re;
+                        }
+                        else if (contenTypeString.StartsWith("application/rdf+xml"))
+                        {
+                            UpdateStatus("- RSS/RDF feed returned. Something is wrong.");
+
+                            // Error
+                            ServiceResultErr re = new ServiceResultErr("API/Protocol authentication failed", "A RSS/RDF feed returned.");
+                            return re;
+                        }
+                        //
+                        else if (contenTypeString.StartsWith("application/atomsvc+xml"))
+                        {
+                            // AtomPub endpoint.
+                            UpdateStatus("- Atom Publishing Protocol Service document returned.");
+
+                            ServiceResultBase ap = await Task.Run(() => ParseAtomServiceDocument(HTTPResponse.Content, addr, userName, apiKey, authType));
+                            return ap;
+                        }
+                        else if (contenTypeString.StartsWith("application/rsd+xml"))
+                        {
+                            bool y = await GetRsd();
+                            /*
+                            if (((_serviceTypes == ServiceTypes.XmlRpc_WordPress) || (_serviceTypes == ServiceTypes.XmlRpc_MovableType)) 
+                                && (_endpointUrl != null))
+                            {
+                                ServiceResultXmlRpc xp = new ServiceResultXmlRpc();
+                                xp.Service = _serviceTypes;
+                                xp.EndpointUri = _endpointUrl;
+                                xp.BlogID = _blogId;
+                                return xp;
+                            }
+                            else
+                            {
+                                UpdateStatus("Could not determin service type. [WordPress,MovableType] not found.");
+                                ServiceResultErr re = new ServiceResultErr("Failed", "Could not determin service type.");
+                                return re;
+                            }
+                            */
+
+                            UpdateStatus("- RSD (UNDERDEVELOPENT).");
+
+                            ServiceResultErr re = new ServiceResultErr("RSD (UNDERDEVELOPENT).", string.Format("{0} is RSD. (UNDERDEVELOPENT)", contenTypeString));
+                            return re;
+                        }
+                        else if (contenTypeString.StartsWith("application/atom+xml"))
+                        {
+                            UpdateStatus("- Parsing Atom feed ...");
+
+                            // XML parse.
+                            ServiceResultBase feed = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
+
+                            return feed;
+                        }
+                        else if (contenTypeString.StartsWith("application/x.atom+xml"))
+                        {
+                            /*
+                            // TODO:
+                            // Possibly AtomApi endopoint.
+                            UpdateStatus("<< Old Atom format returned... ");
+
+                            ServiceResultAtomAPI ap = new ServiceResultAtomAPI();
+                            ap.EndpointUri = addr;
+                            ap.Service = ServiceTypes.AtomApi;
+                            return ap;
+                            */
+                            UpdateStatus("- AtomAPI (UNDERDEVELOPENT).");
+
+                            ServiceResultErr re = new ServiceResultErr("AtomAPI (UNDERDEVELOPENT).", string.Format("{0} is AtomAPI. (UNDERDEVELOPENT)", contenTypeString));
+                            return re;
+                        }
+                        else if (contenTypeString.StartsWith("application/x.atom+xml"))
+                        {
+                            /*
+                            // TODO:
+                            // Possibly AtomApi endopoint.
+                            UpdateStatus("<< Old Atom format returned... ");
+
+                            ServiceResultAtomAPI ap = new ServiceResultAtomAPI();
+                            ap.EndpointUri = addr;
+                            ap.Service = ServiceTypes.AtomApi;
+                            return ap;
+                            */
+                            UpdateStatus("- AtomAPI (UNDERDEVELOPENT).");
+
+                            ServiceResultErr re = new ServiceResultErr("AtomAPI (UNDERDEVELOPENT).", string.Format("{0} is AtomAPI. (UNDERDEVELOPENT)", contenTypeString));
+                            return re;
+                        }
+                        else
+                        {
+                            UpdateStatus("- Unknown Content-Type returned.");
+
+                            ServiceResultErr re = new ServiceResultErr("Received unsupported Content-Type.", string.Format("{0} is not supported.", contenTypeString));
+                            return re;
+                        }
+                    }
+                    else
+                    {
+                        UpdateStatus("- No Content-Type returned. ");
+                        ServiceResultErr re = new ServiceResultErr("Download failed", "No Content-Type reveived.");
+                        return re;
+                    }
+                }
+                else
+                {
+                    UpdateStatus("- Could not retrieve any document. ");
+
+                    //If 401 Unauthorized,
+                    // A user may or may not enter an AtomPub endpoint which require auth to get service document.
+                    if (HTTPResponse.StatusCode == HttpStatusCode.Unauthorized)
+                    {
+                        UpdateStatus("- Authorization failed. ");
 
                         ServiceResultAuthRequired rea = new ServiceResultAuthRequired(addr);
                         return rea;
@@ -840,21 +1045,11 @@ namespace BlogWrite.Models
                             {
                                 try
                                 {
-                                    Debug.WriteLine("atom siteLink: " + siteLink);
                                     siteUri = new Uri(siteLink);
                                 }
                                 catch { }
                             }
-                            else
-                            {
-                                Debug.WriteLine("atom siteLink is empty ");
-                            }
                         }
-                        else
-                        {
-                            Debug.WriteLine("atom siteLink is null ");
-                        }
-
 
                         if (isOK)
                         {
@@ -868,6 +1063,202 @@ namespace BlogWrite.Models
             }
 
             ServiceResultErr ret = new ServiceResultErr("XML parse error.", "Could not parse the document.");
+
+            return (ret as ServiceResultBase);
+        }
+
+        private async Task<ServiceResultBase> ParseAtomServiceDocument(HttpContent content, Uri addr, string userName, string apiKey, AuthTypes authType)
+        {
+            var source = await content.ReadAsStreamAsync();
+
+            XmlDocument xdoc = new XmlDocument();
+            try
+            {
+                XmlReader reader = XmlReader.Create(source);
+                xdoc.Load(reader);
+            }
+            catch (Exception e)
+            {
+                UpdateStatus("<< XML parse error (Atom Service document): " + e.Message);
+
+                ServiceResultErr xe = new ServiceResultErr("XML parse error.", "Could not parse the Atom Service document: " + e.Message);
+
+                return (xe as ServiceResultBase);
+            }
+
+            XmlNamespaceManager atomNsMgr = new XmlNamespaceManager(xdoc.NameTable);
+            atomNsMgr.AddNamespace("atom", "http://www.w3.org/2005/Atom");
+            atomNsMgr.AddNamespace("app", "http://www.w3.org/2007/app");
+
+            if ((xdoc.DocumentElement.Name == "app:service") || (xdoc.DocumentElement.Name == "service"))
+            {
+                NodeService account = new NodeService("New Service (Atom Publishing Protocol)", userName, apiKey, addr, ApiTypes.atAtomPub, ServiceTypes.AtomPub);
+
+                account.EndPoint = addr;
+                account.ServiceType = ServiceTypes.AtomPub;
+                account.UserName = userName;
+                account.UserPassword = apiKey;
+                account.Api = ApiTypes.atAtomPub;
+                account.AuthType = authType;
+
+                XmlNodeList workspaceList = xdoc.DocumentElement.SelectNodes("app:workspace", atomNsMgr);
+                //XmlNodeList workspaceList = xdoc.SelectNodes("//service/app:workspace", atomNsMgr);
+
+                if (workspaceList != null)
+                {
+                    foreach (XmlNode ws in workspaceList)
+                    {
+                        NodeWorkspace workspace = new NodeWorkspace("Workspace Name");
+                        workspace.Parent = account;
+
+                        XmlNode wtl = ws.SelectSingleNode("atom:title", atomNsMgr);
+                        if (wtl != null)
+                        {
+                            if (string.IsNullOrEmpty(wtl.InnerText))
+                                workspace.Name = wtl.InnerText;
+                        }
+                        
+                        XmlNodeList collectionList = ws.SelectNodes("app:collection", atomNsMgr);
+                        if (collectionList != null)
+                        {
+                            foreach (XmlNode col in collectionList)
+                            {
+                                Uri colHrefUri = null;
+                                if (col.Attributes["href"] != null)
+                                {
+                                    string href = col.Attributes["href"].Value;
+                                    if (!string.IsNullOrEmpty(href))
+                                    {
+                                        try
+                                        {
+                                            colHrefUri = new Uri(href);
+                                        }
+                                        catch { }
+                                    }
+                                }
+
+                                NodeAtomPubCollection collection = new NodeAtomPubCollection("Collection Name", colHrefUri);
+                                collection.Parent = workspace;
+
+                                XmlNode ctl = col.SelectSingleNode("atom:title", atomNsMgr);
+                                if (ctl != null)
+                                {
+                                    if (!string.IsNullOrEmpty(ctl.InnerText))
+                                        collection.Name = ctl.InnerText;
+                                }
+
+                                XmlNodeList accepts = col.SelectNodes("app:accept", atomNsMgr);
+                                if (accepts != null)
+                                {
+                                    foreach (XmlNode acp in accepts)
+                                    {
+                                        string acpt = acp.InnerText;
+                                        if (!string.IsNullOrEmpty(acpt))
+                                        {
+                                            collection.AcceptTypes.Add(acpt);
+
+                                            if ((acpt == "application/atom+xml;type=entry") 
+                                                || (acpt == "application/atom+xml"))
+                                            {
+                                                collection.IsAcceptEntry = true;
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    // default entry
+                                    collection.IsAcceptEntry = true;
+                                }
+
+                                XmlNodeList categoriesList = col.SelectNodes("app:categories", atomNsMgr); 
+                                if (categoriesList != null)
+                                {
+                                    foreach (XmlNode cats in categoriesList)
+                                    {
+                                        NodeAtomPubCatetories categories = new NodeAtomPubCatetories("Categories");
+                                        categories.Parent = collection;
+
+                                        Uri catHrefUri = null;
+                                        if (cats.Attributes["href"] != null)
+                                        {
+                                            string cathref = cats.Attributes["href"].Value;
+                                            if (!string.IsNullOrEmpty(cathref))
+                                            {
+                                                try
+                                                {
+                                                    catHrefUri = new Uri(cathref);
+
+                                                    categories.href = catHrefUri;
+                                                }
+                                                catch { }
+                                            }
+                                        }
+
+                                        if (cats.Attributes["fixed"] != null)
+                                        {
+                                            string catFix = cats.Attributes["fixed"].Value;
+                                            if (!string.IsNullOrEmpty(catFix))
+                                            {
+                                                if (catFix == "yes")
+                                                {
+                                                    categories.IsCategoryFixed = true;
+                                                }
+                                                else
+                                                {
+                                                    categories.IsCategoryFixed = false;
+                                                }
+                                            }
+                                        }
+
+                                        XmlNodeList categoryList = cats.SelectNodes("app:category", atomNsMgr);
+                                        if (categoryList != null)
+                                        {
+                                            foreach (XmlNode cat in categoryList)
+                                            {
+                                                NodeAtomPubCategory category = new NodeAtomPubCategory("Category");
+                                                category.Parent = categories;
+
+                                                if (cat.Attributes["term"] != null)
+                                                {
+                                                    string term = cat.Attributes["term"].Value;
+                                                    if (!string.IsNullOrEmpty(term))
+                                                    {
+                                                        category.Term = term;
+                                                    }
+                                                }
+
+                                                if (cat.Attributes["scheme"] != null)
+                                                {
+                                                    string scheme = cat.Attributes["scheme"].Value;
+                                                    if (!string.IsNullOrEmpty(scheme))
+                                                    {
+                                                        category.Scheme = scheme;
+                                                    }
+                                                }
+
+                                                categories.Children.Add(category);
+                                            }
+                                        }
+
+                                        collection.Children.Add(categories);
+                                    }
+                                }
+
+                                workspace.Children.Add(collection);
+                            }
+                        }
+
+                        account.Children.Add(workspace);
+                    }
+                }
+
+                ServiceResultAtomPub ap = new ServiceResultAtomPub(addr, authType, account);
+
+                return (ap as ServiceResultBase);
+            }
+
+            ServiceResultErr ret = new ServiceResultErr("Fail to read service document.", "No service element found in the Atom Service document:" + xdoc.OuterXml.ToString());
 
             return (ret as ServiceResultBase);
         }
@@ -1043,6 +1434,45 @@ namespace BlogWrite.Models
         {
             await Task.Run(() => { StatusUpdate?.Invoke(this, data); });
         }
+
+        #region == WSSE == 
+
+        private string MakeWSSEHeader(string userName, string password)
+        {
+            string nonce = GenNounce(40);
+            byte[] nonceBytes = Encoding.UTF8.GetBytes(nonce);
+            string nonce64 = Convert.ToBase64String(nonceBytes);
+            string createdString = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
+            string digest = GenDigest(password, createdString, nonce);
+            string header = string.Format(
+                @"UsernameToken Username=""{0}"", PasswordDigest=""{1}"", Nonce=""{2}"", Created=""{3}""",
+                userName, digest, nonce64, createdString);
+            return header;
+        }
+
+        private string GenDigest(string password, string created, string nonce)
+        {
+            byte[] digest;
+            using (SHA1Managed sha1 = new SHA1Managed())
+            {
+                string digestText = nonce + created + password;
+                byte[] digestBytes = Encoding.UTF8.GetBytes(digestText);
+                digest = sha1.ComputeHash(digestBytes);
+            }
+            string digest64 = Convert.ToBase64String(digest);
+            return digest64;
+        }
+
+        private string GenNounce(int length)
+        {
+            RNGCryptoServiceProvider rnd = new RNGCryptoServiceProvider();
+            byte[] buffer = new byte[length];
+            rnd.GetBytes(buffer);
+            string nonce64 = Convert.ToBase64String(buffer);
+            return nonce64;
+        }
+
+        #endregion
 
         #endregion
     }
