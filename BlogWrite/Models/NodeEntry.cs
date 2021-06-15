@@ -22,9 +22,18 @@ namespace BlogWrite.Models
         private EntryStatus _es;
 
         /// <summary>
-        /// System-wide unique id used for file name or unique id for table in db. We auto-generate at constructer.
+        /// System-wide unique id used for file name or unique id for table in db. 
         /// </summary>
-        public string Id { get; }
+        public string Id
+        {
+            get
+            {
+                // please don't change.
+                return ServiceId + ":" + EntryId;
+            }
+        }
+
+        public string ServiceId { get; protected set; }
 
         /// <summary>
         /// Entry' ID provided by services.
@@ -92,16 +101,16 @@ namespace BlogWrite.Models
             }
         }
 
-        //type="text/html"
-        //type="text/x-hatena-syntax"
-        //type = "text/x-markdown"
-
         public enum ContentTypes
         {
             text,
             textHtml,
             markdown,
             hatena
+
+            //type="text/html"
+            //type="text/x-hatena-syntax"
+            //type = "text/x-markdown"
         }
 
         public ContentTypes ContentType { get; set; }
@@ -152,7 +161,7 @@ namespace BlogWrite.Models
         }
 
         // TODO:
-        // author
+        // author, etc
 
 
         private Uri _imageUri;
@@ -186,6 +195,23 @@ namespace BlogWrite.Models
 
                 _image = value;
                 NotifyPropertyChanged(nameof(Image));
+            }
+        }
+
+        private byte[] _imageByteArray = Array.Empty<byte>();
+        public byte[] ImageByteArray
+        {
+            get
+            {
+                return _imageByteArray;
+            }
+            set
+            {
+                if (_imageByteArray == value)
+                    return;
+
+                _imageByteArray = value;
+                NotifyPropertyChanged(nameof(ImageByteArray));
             }
         }
 
@@ -253,10 +279,10 @@ namespace BlogWrite.Models
         public BaseClient Client { get; } = null;
 
         // Constructor.
-        public EntryItem(string title, BaseClient bc) : base(title)
+        public EntryItem(string title, string serviceId, BaseClient bc) : base(title)
         {
             Client = bc;
-            Id = Guid.NewGuid().ToString();
+            ServiceId = serviceId;
             Status = EntryStatus.esNew;
         }
         
@@ -267,7 +293,7 @@ namespace BlogWrite.Models
     /// </summary>
     public class FeedEntry : EntryItem
     {
-        public FeedEntry(string title, BaseClient bc) : base(title, bc)
+        public FeedEntry(string title, string serviceId, BaseClient bc) : base(title, serviceId, bc)
         {
 
         }
@@ -294,7 +320,7 @@ namespace BlogWrite.Models
         public EntryFull EntryBody { get; set; }
 
 
-        protected EntryFull(string title, BaseClient bc) : base(title, bc)
+        protected EntryFull(string title, string serviceId, BaseClient bc) : base(title, serviceId, bc)
         {
 
         }
@@ -309,7 +335,7 @@ namespace BlogWrite.Models
         public string ContentTypeString { get; set; }
         public string ETag { get; set; }
 
-        public AtomEntry(string title, BaseClient bc) : base(title, bc)
+        public AtomEntry(string title, string serviceId, BaseClient bc) : base(title, serviceId, bc)
         {
 
         }
@@ -440,7 +466,7 @@ namespace BlogWrite.Models
             }
         }
 
-        public AtomEntryHatena(string title, BlogClient bc) : base(title, bc)
+        public AtomEntryHatena(string title, string serviceId, BlogClient bc) : base(title, serviceId, bc)
         {
 
         }
@@ -453,7 +479,7 @@ namespace BlogWrite.Models
 
     public class MTEntry : EntryFull
     {
-        public MTEntry(string title, BaseClient bc) : base(title, bc)
+        public MTEntry(string title, string serviceId, BaseClient bc) : base(title, serviceId, bc)
         {
             //
         }
@@ -461,7 +487,7 @@ namespace BlogWrite.Models
 
     public class WPEntry : EntryFull
     {
-        public WPEntry(string title, BaseClient bc) : base(title, bc)
+        public WPEntry(string title, string serviceId, BaseClient bc) : base(title, serviceId, bc)
         {
             //
         }

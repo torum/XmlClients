@@ -34,7 +34,7 @@ namespace BlogWrite.Models.Clients
         // This has been moved to BaseClient.
         //public abstract Task<List<EntryItem>> GetEntries(Uri entriesUrl);
 
-        public abstract Task<EntryFull> GetFullEntry(Uri entryUri, string postid = "");
+        public abstract Task<EntryFull> GetFullEntry(Uri entryUri, string serviceId, string postid = "");
 
         public abstract Task<bool> UpdateEntry(EntryFull entry);
 

@@ -12,6 +12,7 @@
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="0.15.0" />
     <PackageReference Include="AngleSharp.Xml" Version="0.15.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="5.0.7" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.864.35" />
   </ItemGroup>
 

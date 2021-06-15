@@ -15,7 +15,7 @@ namespace BlogWrite.Models.Clients
 {
     class RssFeedClient : BaseClient
     {
-        public override async Task<List<EntryItem>> GetEntries(Uri entriesUrl)
+        public override async Task<List<EntryItem>> GetEntries(Uri entriesUrl, string feedId)
         {
             // Clear err msg.
             ClientErrorMessage = "";
@@ -49,9 +49,9 @@ namespace BlogWrite.Models.Clients
                         + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
                         + Environment.NewLine
                         + s + Environment.NewLine);
-
+                    
                     var source = await HTTPResponseMessage.Content.ReadAsStreamAsync();
-
+                    
                     // Load XML
                     XmlDocument xdoc = new XmlDocument();
                     try
@@ -81,12 +81,13 @@ namespace BlogWrite.Models.Clients
 
                         foreach (XmlNode l in entryList)
                         {
-                            EntryItem ent = new EntryItem("", this);
+                            EntryItem ent = new EntryItem("", feedId, this);
                             ent.Status = EntryItem.EntryStatus.esNormal;
 
                             FillEntryItemFromXmlRss(ent, l);
 
-                            list.Add(ent);
+                            if (!string.IsNullOrEmpty(ent.EntryId))
+                                list.Add(ent);
                         }
                     }
                     // RSS 1.0
@@ -103,12 +104,13 @@ namespace BlogWrite.Models.Clients
 
                         foreach (XmlNode l in entryList)
                         {
-                            EntryItem ent = new EntryItem("", this);
+                            EntryItem ent = new EntryItem("", feedId, this);
                             ent.Status = EntryItem.EntryStatus.esNormal;
 
                             FillEntryItemFromXmlRdf(ent, l, NsMgr);
 
-                            list.Add(ent);
+                            if (!string.IsNullOrEmpty(ent.EntryId))
+                                list.Add(ent);
                         }
                     }
                 }
@@ -176,6 +178,10 @@ namespace BlogWrite.Models.Clients
             }
             catch { }
 
+            if (string.IsNullOrEmpty(entItem.EntryId))
+                if (entItem.AltHtmlUri != null)
+                    entItem.EntryId = entItem.AltHtmlUri.AbsoluteUri;
+
             XmlNode entryPudDate = entryNode.SelectSingleNode("pubDate");
             if (entryPudDate != null)
             {
@@ -188,7 +194,7 @@ namespace BlogWrite.Models.Clients
 
                         entItem.Published = dtf.ToUniversalTime().DateTime;
                     }
-                    catch { }
+                    catch {}
                 }
             }
 
@@ -203,7 +209,7 @@ namespace BlogWrite.Models.Clients
 
                 // Summary
                 entItem.Summary = await StripStyleAttributes(sum.InnerText);
-
+                
                 if (!string.IsNullOrEmpty(sum.InnerText))
                 {
                     entItem.SummaryPlainText = await StripHtmlTags(sum.InnerText);
@@ -220,6 +226,8 @@ namespace BlogWrite.Models.Clients
                     Byte[] bytes = await this.GetImage(entItem.ImageUri);
                     if (bytes != Array.Empty<byte>())
                     {
+                        entItem.ImageByteArray = bytes;
+
                         if (Application.Current == null) { return; }
                         Application.Current.Dispatcher.Invoke(() =>
                         {
@@ -243,6 +251,10 @@ namespace BlogWrite.Models.Clients
                         entItem.AltHtmlUri = new Uri(entryLinkUri.InnerText);
             }
             catch { }
+
+            if (string.IsNullOrEmpty(entItem.EntryId))
+                if (entItem.AltHtmlUri != null)
+                    entItem.EntryId = entItem.AltHtmlUri.AbsoluteUri;
 
             XmlNode entryPudDate = entryNode.SelectSingleNode("dc:date", NsMgr);
             if (entryPudDate != null)
@@ -286,6 +298,8 @@ namespace BlogWrite.Models.Clients
                     Byte[] bytes = await this.GetImage(entItem.ImageUri);
                     if (bytes != Array.Empty<byte>())
                     {
+                        entItem.ImageByteArray = bytes;
+
                         if (Application.Current == null) { return; }
                         Application.Current.Dispatcher.Invoke(() =>
                         {

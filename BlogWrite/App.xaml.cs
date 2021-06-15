@@ -11,6 +11,8 @@ using BlogWrite.ViewModels;
 using System.Globalization;
 using Microsoft.Web.WebView2.Core;
 using System.Diagnostics;
+using System.Text;
+using System.IO;
 
 namespace BlogWrite
 {
@@ -186,7 +188,7 @@ namespace BlogWrite
             WindowList.Remove(editor);
         }
 
-        // テーマ切替メソッド
+        // Theme change
         public void ChangeTheme(string themeName)
         {
             System.Diagnostics.Debug.WriteLine(themeName);
@@ -209,6 +211,7 @@ namespace BlogWrite
 
         }
 
+        // WebView2 runtime check
         private bool IsWebViewVersionInstalled()
         {
             try
@@ -228,6 +231,89 @@ namespace BlogWrite
             catch { }
 
             return false;
+        }
+
+        public App()
+        {
+            DispatcherUnhandledException += App_DispatcherUnhandledException;
+            TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+        }
+
+        private StringBuilder Errortxt = new StringBuilder();
+        public bool IsSaveErrorLog;
+        public string LogFilePath;
+
+        private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            var exception = e.Exception as Exception;
+
+            System.Diagnostics.Debug.WriteLine("App_DispatcherUnhandledException: " + exception.Message);
+
+            AppendErrorLog("App_DispatcherUnhandledException", exception.Message);
+
+            SaveErrorLog();
+
+            e.Handled = false;
+        }
+
+        private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+        {
+            var exception = e.Exception.InnerException as Exception;
+
+            System.Diagnostics.Debug.WriteLine("TaskScheduler_UnobservedTaskException: " + exception.Message);
+
+            AppendErrorLog("TaskScheduler_UnobservedTaskException", exception.Message);
+            // save
+            SaveErrorLog();
+
+            e.SetObserved();
+        }
+
+        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            var exception = e.ExceptionObject as Exception;
+
+            if (exception is TaskCanceledException)
+            {
+                // can ignore.
+                System.Diagnostics.Debug.WriteLine("CurrentDomain_UnhandledException (TaskCanceledException): " + exception.Message);
+
+                AppendErrorLog("CurrentDomain_UnhandledException (TaskCanceledException)", exception.Message);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("CurrentDomain_UnhandledException: " + exception.Message);
+
+                AppendErrorLog("CurrentDomain_UnhandledException", exception.Message);
+
+                // save
+                SaveErrorLog();
+            }
+
+            // TODO:
+            //Environment.Exit(1);
+        }
+
+        public void AppendErrorLog(string errorTxt, string kindTxt)
+        {
+            DateTime dt = DateTime.Now;
+            string nowString = dt.ToString("yyyy/MM/dd HH:mm:ss");
+
+            Errortxt.AppendLine(nowString + " - " + kindTxt + " - " + errorTxt);
+        }
+
+        public void SaveErrorLog()
+        {
+            if (!IsSaveErrorLog)
+                return;
+
+            if (string.IsNullOrEmpty(LogFilePath))
+                return;
+
+            string s = Errortxt.ToString();
+            if (!string.IsNullOrEmpty(s))
+                File.WriteAllText(LogFilePath, s);
         }
 
     }

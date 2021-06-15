@@ -19,6 +19,7 @@ using System.ComponentModel;
 using BlogWrite.Common;
 using BlogWrite.Models;
 using BlogWrite.Models.Clients;
+using Microsoft.Data.Sqlite;
 
 namespace BlogWrite.ViewModels
 {
@@ -26,14 +27,11 @@ namespace BlogWrite.ViewModels
     /// 
     /// App Icon / App name .... FeedDesk?
     /// 
+    /// InfoWindowでService情報も見れるようにする。
+    /// 
     /// [Bug] Feed取得中はDrag and Dropできないようにする。
     /// 
-    /// TreeViewの大元の方のコンテキストメニューにUrl追加とFolder追加メニューを作る。
-    /// 
-    /// Feedを追加する時に、選択されているフォルダ内に追加する？追加したら選択する。
-    /// 
     /// [Usability] ServiceDiscoveryのFeed追加で、もう一画面かましてサイト名を表示して、Feedの名前を変更できるようにする?
-    /// 
     /// 
     /// [Editer][TODO]  AtomPub and XML-RPC ..
     /// 
@@ -47,6 +45,8 @@ namespace BlogWrite.ViewModels
     /// 
 
     /// 更新履歴：
+    /// v0.0.0.24 とりあえず、SQLiteの初期化からInsertとSelectまで。
+    /// v0.0.0.23 とりあえず、古いAtom0.3のFeed読み込みにも対応した。Atom0.3 Apiの方は対応予定無し。
     /// v0.0.0.22 Renameing and Restructure of files and folder names.
     /// v0.0.0.21 とりあえず、AtomPubのServiceDocument解析とNodeの追加まで。カテゴリとか、保存時に消えてる可能性あり。
     /// v0.0.0.20 AutoDiscoveryで、Auth対応。認証情報入力ページを実装。AtomPub判定まで。
@@ -77,7 +77,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.22";
+        const string _appVer = "0.0.0.24";
         public string AppVer
         {
             get
@@ -593,6 +593,29 @@ li {
 
         #endregion
 
+        private bool _isSaveLog;
+        public bool IsSaveLog
+        {
+            get { return _isSaveLog; }
+            set
+            {
+                if (_isSaveLog == value)
+                    return;
+
+                _isSaveLog = value;
+
+                NotifyPropertyChanged(nameof(IsSaveLog));
+            }
+        }
+
+        #region == SQLite Database ==
+
+        private readonly DataAccess dataAccessModule = new DataAccess();
+
+        public SqliteConnectionStringBuilder connectionStringBuilder;
+
+        #endregion
+
         #endregion
 
         #region == Events ==
@@ -687,6 +710,36 @@ li {
 
             #endregion
 
+            // TODO:
+            #region == SQLite DB init ==
+
+            try
+            {
+                var databaseFileFolerPath = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + System.IO.Path.DirectorySeparatorChar + _appName;
+                System.IO.Directory.CreateDirectory(databaseFileFolerPath);
+                var dataBaseFilePath = databaseFileFolerPath + System.IO.Path.DirectorySeparatorChar + _appName + ".db";
+
+                ResultWrapper res = dataAccessModule.InitializeDatabase(dataBaseFilePath);
+                if (res.IsError)
+                {
+                    // 
+                    //ErrorOccured?.Invoke(res.Error);
+
+                    return;
+                }
+            }
+            catch(Exception e)
+            {
+                //TODO:
+                Debug.WriteLine("SQLite DB init: " + e.Message);
+            }
+
+            #endregion
+
+            // test
+            IsSaveLog = true;
+
+
             // loads searvice tree
             if (File.Exists(_appDataFolder + System.IO.Path.DirectorySeparatorChar + "Searvies.xml"))
             {
@@ -703,19 +756,19 @@ li {
 
         #region == Startup and Shutdown ==
 
-        // 起動時の処理
+        // OnWindowLoaded
         public void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
-            #region == アプリ設定のロード  ==
+            #region == Load app setting  ==
 
             try
             {
-                // アプリ設定情報の読み込み
+                // Load config file
                 if (File.Exists(_appConfigFilePath))
                 {
                     XDocument xdoc = XDocument.Load(_appConfigFilePath);
 
-                    #region == ウィンドウ関連 ==
+                    #region == App Windows setting ==
 
                     if (sender is Window)
                     {
@@ -770,6 +823,27 @@ li {
 
                     #endregion
 
+                    #region == Options ==
+
+                    var opts = xdoc.Root.Element("Options");
+                    if (opts != null)
+                    {
+                        var hoge = opts.Attribute("SaveLog");
+                        if (hoge != null)
+                        {
+                            if (hoge.Value == "True")
+                            {
+                                IsSaveLog = true;
+
+                            }
+                            else
+                            {
+                                IsSaveLog = false;
+                            }
+                        }
+                    }
+
+                    #endregion
                 }
 
                 IsFullyLoaded = true;
@@ -785,17 +859,30 @@ li {
 
             #endregion
 
+            // error log
+            if (IsSaveLog)
+            {
+                if (App.Current != null)
+                {
+                    App app = App.Current as App;
+                    app.IsSaveErrorLog = true;
+                    app.LogFilePath = System.Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + System.IO.Path.DirectorySeparatorChar + _appName + "_errors.txt";
+                }
+            }
+
+            // TODO: tmp
             IsDebugWindowEnabled = true;
             CloseContentBrowserCommand_Execute();
+
         }
 
-        // 終了時の処理
+        // OnWindowClosing
         public void OnWindowClosing(object sender, CancelEventArgs e)
         {
             if (!IsFullyLoaded)
                 return;
 
-            #region == アプリ設定の保存 ==
+            #region == Save Apps settings ==
 
             // 設定ファイル用のXMLオブジェクト
             XmlDocument doc = new XmlDocument();
@@ -887,9 +974,31 @@ li {
 
             #endregion
 
+
+            #region == Options ==
+
+            XmlElement opts = doc.CreateElement(string.Empty, "Options", string.Empty);
+
+            //
+            attrs = doc.CreateAttribute("SaveLog");
+            if (IsSaveLog)
+            {
+                attrs.Value = "True";
+            }
+            else
+            {
+                attrs.Value = "False";
+            }
+            opts.SetAttributeNode(attrs);
+
+            /// 
+            root.AppendChild(opts);
+
+            #endregion
+
             try
             {
-                // 設定ファイルの保存
+                // Save config file
                 doc.Save(_appConfigFilePath);
             }
             //catch (System.IO.FileNotFoundException) { }
@@ -906,6 +1015,26 @@ li {
             xdoc.Save(_appDataFolder + System.IO.Path.DirectorySeparatorChar + "Searvies.xml");
 
             #endregion
+
+            // Save error logs.
+            if (Application.Current != null)
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    App app = App.Current as App;
+                    app.SaveErrorLog();
+                });
+            }
+            /*
+                if (Application.Current != null)
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        App app = App.Current as App;
+                        app.AppendErrorLog("System.IO.FileNotFoundException@OnWindowLoaded", ex.Message);
+                    });
+                }
+            */
         }
 
         #endregion
@@ -1041,10 +1170,34 @@ li {
                 if (fc == null)
                     return;
 
+                /*
+                // test
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    IsBusy = true;
+
+                    (selectedNode as NodeFeed).List.Clear();
+
+                    ResultWrapper res = dataAccessModule.SelectEntriesByFeedId((selectedNode as NodeFeed).List, (selectedNode as NodeFeed).Id);
+                    if (res.IsError)
+                    {
+                        Debug.WriteLine(res.Error.ErrText);
+                        // 
+                        //ErrorOccured?.Invoke(res.Error);
+
+                        return;
+                    }
+
+                    NotifyPropertyChanged(nameof(Entries));
+
+                    IsBusy = false;
+                });
+                */
+                
                 selectedFeedNode.Status = NodeFeed.DownloadStatus.loading;
 
-                // TODO: need return result object
-                List<EntryItem> entLi = await fc.GetEntries(selectedFeedNode.EndPoint);
+                // TODO: need to return a result object
+                List<EntryItem> entLi = await fc.GetEntries(selectedFeedNode.EndPoint, selectedFeedNode.Id);
 
                 // Minimize the time to block UI thread.
                 Application.Current.Dispatcher.Invoke(() =>
@@ -1070,15 +1223,30 @@ li {
                         selectedFeedNode.Status = NodeFeed.DownloadStatus.error;
                     }
 
-                    (selectedNode as NodeFeed).List.Clear();
-
-                    foreach (EntryItem ent in entLi)
+                    if (entLi.Count > 0)
                     {
-                        //ent.NodeEntry = (selectedNode as NodeEntry);
+                        (selectedNode as NodeFeed).List.Clear();
 
-                        (selectedNode as NodeFeed).List.Add(ent);
+                        foreach (EntryItem ent in entLi)
+                        {
+                            //ent.NodeEntry = (selectedNode as NodeEntry);
+
+                            (selectedNode as NodeFeed).List.Add(ent);
+                        }
+                        /*
+                        // test
+                        ResultWrapper res = dataAccessModule.InsertEntries((selectedNode as NodeFeed).List, (selectedNode as NodeFeed).Id);
+                        if (res.IsError)
+                        {
+                            Debug.WriteLine(res.Error.ErrText);
+                            //ErrorOccured?.Invoke(res.Error);
+
+                            return;
+                        }
+                        */
                     }
                 });
+                
             }
             else if (selectedNode is NodeEntryCollection)
             {
@@ -1086,7 +1254,9 @@ li {
                 if (bc == null)
                     return;
 
-                List<EntryItem> entLi = await bc.GetEntries((selectedNode as NodeEntryCollection).Uri);
+                string serviceId = ((selectedNode as NodeEntryCollection).Parent.Parent as NodeService).Id;
+
+                List<EntryItem> entLi = await bc.GetEntries((selectedNode as NodeEntryCollection).Uri, serviceId);
 
                 if (entLi == null)
                     return;
@@ -1140,7 +1310,7 @@ li {
             if ((selectedEntry as EntryFull).EditUri == null)
                 return false;
 
-            EntryFull bfe = await bc.GetFullEntry((selectedEntry as EntryFull).EditUri, selectedEntry.EntryId);
+            EntryFull bfe = await bc.GetFullEntry((selectedEntry as EntryFull).EditUri, selectedEntry.ServiceId, selectedEntry.EntryId);
 
             if (selectedEntry == null)
                 return false;
@@ -1463,21 +1633,24 @@ li {
             if (!(SelectedNode is NodeEntryCollection))
                 return;
 
+            string serviceId = ((SelectedNode as NodeEntryCollection).Parent.Parent as NodeService).Id;
+
+
             // TODO: Check "accept".
 
             EntryFull newEntry = null;
 
             if (SelectedNode is NodeAtomPubCollection)
             {
-                newEntry = new AtomEntry("", (SelectedNode as NodeEntryCollection).Client);
+                newEntry = new AtomEntry("", serviceId, (SelectedNode as NodeEntryCollection).Client);
             }
             else if (SelectedNode is NodeXmlRpcMTEntryCollection)
             {
-                newEntry = new MTEntry("", (SelectedNode as NodeEntryCollection).Client);
+                newEntry = new MTEntry("", serviceId, (SelectedNode as NodeEntryCollection).Client);
             }
             else if (SelectedNode is NodeXmlRpcWPEntryCollection)
             {
-                newEntry = new WPEntry("", (SelectedNode as NodeEntryCollection).Client);
+                newEntry = new WPEntry("", serviceId, (SelectedNode as NodeEntryCollection).Client);
             }
 
             if (newEntry == null)
@@ -1621,6 +1794,4 @@ li {
         #endregion
 
     }
-
-
 }

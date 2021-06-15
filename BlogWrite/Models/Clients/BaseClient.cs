@@ -11,6 +11,7 @@ using AngleSharp;
 using BlogWrite.Common;
 using System.Windows.Media.Imaging;
 using System.IO;
+using System.Diagnostics;
 
 namespace BlogWrite.Models.Clients
 {
@@ -37,7 +38,7 @@ namespace BlogWrite.Models.Clients
         protected HTTPConnection _HTTPConn;
 
         // TODO: create result class which inclues error info
-        public abstract Task<List<EntryItem>> GetEntries(Uri entriesUrl);
+        public abstract Task<List<EntryItem>> GetEntries(Uri entriesUrl, string feedId);
 
         //
         private string _clientErrorMessage;
@@ -57,7 +58,14 @@ namespace BlogWrite.Models.Clients
         {
             byte[] res = Array.Empty<byte>();
 
-            res = await _HTTPConn.Client.GetByteArrayAsync(imageUri);
+            try
+            {
+                res = await _HTTPConn.Client.GetByteArrayAsync(imageUri);
+            }
+            catch(Exception e)
+            {
+                Debug.WriteLine("Exception@GetImage: " + e.Message);
+            }
 
             return res;
         }
@@ -89,18 +97,27 @@ namespace BlogWrite.Models.Clients
         /// </summary>
         protected async Task<string> StripStyleAttributes(string s)
         {
-            var context = BrowsingContext.New(Configuration.Default);
-            var document = await context.OpenAsync(req => req.Content(s));
-            //var blueListItemsLinq = document.QuerySelectorAll("*")
-            var ItemsLinq = document.All.Where(m => m.HasAttribute("style"));
-            foreach (var item in ItemsLinq)
+            try
             {
-                item.RemoveAttribute("style");
+                var context = BrowsingContext.New(Configuration.Default);
+                var document = await context.OpenAsync(req => req.Content(s));
+                //var blueListItemsLinq = document.QuerySelectorAll("*")
+                var ItemsLinq = document.All.Where(m => m.HasAttribute("style"));
+                foreach (var item in ItemsLinq)
+                {
+                    item.RemoveAttribute("style");
+                }
+
+                // TODO: get "Body" element's chiled.
+                return document.DocumentElement.InnerHtml;
+
             }
+            catch(Exception e)
+            {
+                Debug.WriteLine("Exception@StripStyleAttributes: "+e.Message);
 
-            //return document.DocumentElement.TextContent;
-            return document.DocumentElement.InnerHtml;
-
+                return "";
+            }
         }
 
         /// <summary>
@@ -108,25 +125,24 @@ namespace BlogWrite.Models.Clients
         /// </summary>
         protected async Task<string> StripHtmlTags(string s)
         {
-            var context = BrowsingContext.New(Configuration.Default);
-            var document = await context.OpenAsync(req => req.Content(s));
+            try
+            {
+                var context = BrowsingContext.New(Configuration.Default);
+                var document = await context.OpenAsync(req => req.Content(s));
 
-            return document.DocumentElement.TextContent;
-        }
+                return document.DocumentElement.TextContent;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("Exception@StripHtmlTags: " + e.Message);
 
-        /// <summary>
-        /// Truncates string with maxLength.
-        /// </summary>
-        protected static string Truncate(string value, int maxLength)
-        {
-            if (string.IsNullOrEmpty(value)) return value;
-            return value.Length <= maxLength ? value : value.Substring(0, maxLength) + " ...";
+                return "";
+            }
         }
 
         protected async Task<Uri> GetImageUriFromHtml(string s)
         {
             Uri imageUri = null;
-
             var context = BrowsingContext.New(Configuration.Default);
             var document = await context.OpenAsync(req => req.Content(s));
             var sl = document.DocumentElement.QuerySelector("img");
@@ -149,17 +165,24 @@ namespace BlogWrite.Models.Clients
 
         protected static BitmapImage BitmapImageFromBytes(Byte[] bytes)
         {
-            using (var stream = new MemoryStream(bytes))
+            try
             {
-                BitmapImage bmimage = new BitmapImage();
-                bmimage.BeginInit();
-                bmimage.CacheOption = BitmapCacheOption.OnLoad;
+                using (var stream = new MemoryStream(bytes))
+                {
+                    BitmapImage bmimage = new BitmapImage();
+                    bmimage.BeginInit();
+                    bmimage.CacheOption = BitmapCacheOption.OnLoad;
+                    bmimage.StreamSource = stream;
+                    bmimage.EndInit();
 
-                bmimage.DecodePixelWidth = 220;
+                    return bmimage;
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message + " @BaseClient::BitmapImageFromBytes");
 
-                bmimage.StreamSource = stream;
-                bmimage.EndInit();
-                return bmimage;
+                return null;
             }
         }
 
@@ -178,6 +201,16 @@ namespace BlogWrite.Models.Clients
             return data;
         }
         */
+
+        /// <summary>
+        /// Truncates string with maxLength.
+        /// </summary>
+        protected static string Truncate(string value, int maxLength)
+        {
+            if (string.IsNullOrEmpty(value)) return value;
+            return value.Length <= maxLength ? value : value.Substring(0, maxLength) + " ...";
+        }
+
     }
 }
 

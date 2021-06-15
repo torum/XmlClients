@@ -372,7 +372,7 @@ namespace BlogWrite.Models.Clients
             return cats;
         }
 
-        public override async Task<List<EntryItem>> GetEntries(Uri entriesUrl)
+        public override async Task<List<EntryItem>> GetEntries(Uri entriesUrl, string serviceId)
         {
             List<EntryItem> list = new List<EntryItem>();
 
@@ -483,9 +483,9 @@ namespace BlogWrite.Models.Clients
 
                 foreach (XmlNode l in entryList)
                 {
-                    AtomEntry ent = new AtomEntry("", this);
+                    AtomEntry ent = new AtomEntry("", serviceId, this);
 
-                    FillEntryItemFromXML(ent, l, atomNsMgr);
+                    FillEntryItemFromXML(ent, l, atomNsMgr, serviceId);
 
                     list.Add(ent);
                 }
@@ -509,10 +509,10 @@ namespace BlogWrite.Models.Clients
             return list;
         }
 
-        private void FillEntryItemFromXML(AtomEntry entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr)
+        private void FillEntryItemFromXML(AtomEntry entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr, string serviceId)
         {
 
-            AtomEntry entry = CreateAtomEntryFromXML(entryNode, atomNsMgr);
+            AtomEntry entry = CreateAtomEntryFromXML(entryNode, atomNsMgr, serviceId);
             if (entry == null)
                 return;
 
@@ -526,7 +526,7 @@ namespace BlogWrite.Models.Clients
             entItem.Status = entry.Status;
         }
 
-        public override async Task<EntryFull> GetFullEntry(Uri entryUri, string nil)
+        public override async Task<EntryFull> GetFullEntry(Uri entryUri, string serviceId, string nil)
         {
             // TODO: 
             // HTTP Head, if_modified_since or If-None-Match etag or something... then  Get;
@@ -595,7 +595,7 @@ namespace BlogWrite.Models.Clients
                     return null;
                 }
 
-                AtomEntry entry = CreateAtomEntryFromXML(entryNode, atomNsMgr);
+                AtomEntry entry = CreateAtomEntryFromXML(entryNode, atomNsMgr, serviceId);
 
 
 
@@ -624,7 +624,7 @@ namespace BlogWrite.Models.Clients
             }
         }
 
-        private AtomEntry CreateAtomEntryFromXML(XmlNode entryNode, XmlNamespaceManager atomNsMgr)
+        private AtomEntry CreateAtomEntryFromXML(XmlNode entryNode, XmlNamespaceManager atomNsMgr, string serviceId)
         {
             /*
 			<entry>
@@ -745,7 +745,7 @@ namespace BlogWrite.Models.Clients
             //summary
             //category
 
-            AtomEntry entry = new AtomEntry("", this);
+            AtomEntry entry = new AtomEntry("", serviceId, this);
             // TODO:
             //AtomEntryHatena
             /*

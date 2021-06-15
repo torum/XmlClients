@@ -317,7 +317,7 @@ namespace BlogWrite.Models
 
         public BaseClient Client { get; }
 
-        public string ID { get; }
+        public string Id { get; protected set; }
 
         public NodeService(string name, string username, string password, Uri endPoint, ApiTypes api, ServiceTypes serviceType) : base(name)
         {
@@ -330,7 +330,8 @@ namespace BlogWrite.Models
 
             ServiceType = serviceType;
 
-            ID = Guid.NewGuid().ToString();
+            //Id = Guid.NewGuid().ToString();
+            this.Id = endPoint.AbsoluteUri;
 
             UserName = username;
 
@@ -369,7 +370,8 @@ namespace BlogWrite.Models
 
             ServiceType = serviceType;
 
-            ID = Guid.NewGuid().ToString();
+            //Id = Guid.NewGuid().ToString();
+            this.Id = endPoint.AbsoluteUri;
 
             switch (api)
             {

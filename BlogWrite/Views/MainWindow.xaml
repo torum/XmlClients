@@ -374,6 +374,40 @@
             <!-- Left -->
             <Grid Grid.Row="2" Grid.Column="0" Background="{DynamicResource WindowBackgroundBaseColorBrush}">
                 <TreeView x:Name="TreeViewMenu" Margin="0 1 0 0" Style="{DynamicResource TreeViewMenuStyle}" ItemsSource="{Binding Services}" helpers:TreeViewHelper.SelectedItem="{Binding SelectedNode, Mode=TwoWay}" AllowDrop="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <TreeView.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Add" Command="{Binding ServiceAddCommand}">
+                                <MenuItem.Resources>
+                                    <ControlTemplate x:Key="add">
+                                        <Canvas Background="Transparent">
+                                            <Canvas.RenderTransform>
+                                                <TranslateTransform X="4" Y="0"/>
+                                            </Canvas.RenderTransform>
+                                            <Path Fill="{TemplateBinding Foreground}" Width="14.3775" Height="14" Canvas.Left="0.311264" Canvas.Top="0.500005" Stretch="Uniform" Data="M17,13H13V17H11V13H7V11H11V7H13V11H17M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
+                                        </Canvas>
+                                    </ControlTemplate>
+                                </MenuItem.Resources>
+                                <MenuItem.Icon>
+                                    <ContentControl Template="{StaticResource add}"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="New Folder" Command="{Binding FolderAddCommand}">
+                                <MenuItem.Resources>
+                                    <ControlTemplate x:Key="new-folder">
+                                        <Canvas Background="Transparent">
+                                            <Canvas.RenderTransform>
+                                                <TranslateTransform X="4" Y="0"/>
+                                            </Canvas.RenderTransform>
+                                            <Path Fill="{TemplateBinding Foreground}" Width="14.3775" Height="14" Canvas.Left="0.311264" Canvas.Top="0.500005" Stretch="Uniform" Data="M12 12H14V10H16V12H18V14H16V16H14V14H12V12M22 8V18C22 19.11 21.11 20 20 20H4C2.89 20 2 19.11 2 18V6C2 4.89 2.89 4 4 4H10L12 6H20C21.11 6 22 6.89 22 8M20 8H4V18H20V8Z" />
+                                        </Canvas>
+                                    </ControlTemplate>
+                                </MenuItem.Resources>
+                                <MenuItem.Icon>
+                                    <ContentControl Template="{StaticResource new-folder}"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                        </ContextMenu>
+                    </TreeView.ContextMenu>
                     <TreeView.Resources>
                         <ContextMenu x:Key="TreeviewMenuItemContextMenu">
                             <MenuItem Name="TreeViewMenuItemRename" Header="名前の変更" Click="TreeViewMenuItemRename_Click"></MenuItem>

@@ -583,7 +583,7 @@ namespace BlogWrite.Models.Clients
             return cats;
         }
 
-        public override async Task<List<EntryItem>> GetEntries(Uri entryUri)
+        public override async Task<List<EntryItem>> GetEntries(Uri entryUri, string serviceId)
         {
             List<EntryItem> list = new List<EntryItem>();
 
@@ -702,9 +702,9 @@ namespace BlogWrite.Models.Clients
 
                     foreach (XmlNode l in entryList)
                     {
-                        MTEntry ent = new MTEntry("", this);
+                        MTEntry ent = new MTEntry("", serviceId, this);
 
-                        FillEntryItemFromXML(ent, l, entryUri);
+                        FillEntryItemFromXML(ent, l, entryUri, serviceId);
 
                         list.Add(ent);
                     }
@@ -720,10 +720,10 @@ namespace BlogWrite.Models.Clients
             return list;
         }
 
-        private void FillEntryItemFromXML(MTEntry entItem, XmlNode entryNode, Uri xmlrpcUri)
+        private void FillEntryItemFromXML(MTEntry entItem, XmlNode entryNode, Uri xmlrpcUri, string serviceId)
         {
 
-            MTEntry entry = CreateMTEntryFromXML(entryNode);
+            MTEntry entry = CreateMTEntryFromXML(entryNode, serviceId);
             if (entry == null)
                 return;
 
@@ -743,7 +743,7 @@ namespace BlogWrite.Models.Clients
 
         }
 
-        public override  async Task<EntryFull> GetFullEntry(Uri entryUri, string postid) 
+        public override  async Task<EntryFull> GetFullEntry(Uri entryUri, string serviceId, string postid) 
         {
             if (string.IsNullOrEmpty(postid))
                 throw new InvalidOperationException("XML-RPC requires postid");
@@ -864,12 +864,12 @@ namespace BlogWrite.Models.Clients
             if (entryNode == null)
                 return null;
 
-            MTEntry entry = CreateMTEntryFromXML(entryNode);
+            MTEntry entry = CreateMTEntryFromXML(entryNode, serviceId);
 
             return entry;
         }
 
-        private MTEntry CreateMTEntryFromXML(XmlNode entryNode)
+        private MTEntry CreateMTEntryFromXML(XmlNode entryNode, string serviceId)
         {
 
             XmlNodeList memberList = entryNode.SelectNodes("struct/member");
@@ -985,7 +985,7 @@ name: wp_post_thumbnail - value:
 
             }
 
-            MTEntry entry = new MTEntry(title, this);
+            MTEntry entry = new MTEntry(title, serviceId, this);
             entry.AltHtmlUri = url;
             entry.EntryId = postid;
             //entry.EditUri = _endpoint; No, don't. Multisite has multiple endpoints for each blog.
