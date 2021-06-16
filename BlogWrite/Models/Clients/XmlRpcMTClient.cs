@@ -7,6 +7,7 @@ using System.Xml.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Collections.ObjectModel;
 
 namespace BlogWrite.Models.Clients
 {
@@ -583,9 +584,12 @@ namespace BlogWrite.Models.Clients
             return cats;
         }
 
-        public override async Task<List<EntryItem>> GetEntries(Uri entryUri, string serviceId)
+        public override async Task<HttpClientEntryItemCollectionResultWrapper> GetEntries(Uri entryUri, string serviceId)
         {
-            List<EntryItem> list = new List<EntryItem>();
+            HttpClientEntryItemCollectionResultWrapper res = new HttpClientEntryItemCollectionResultWrapper();
+
+            ObservableCollection<EntryItem> list = new ObservableCollection<EntryItem>();
+            res.Entries = list;
 
             XmlDocument xdoc = new XmlDocument();
             XmlDeclaration xmlDeclaration = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
@@ -639,7 +643,6 @@ namespace BlogWrite.Models.Clients
             //System.Diagnostics.Debug.WriteLine("GET blogs(getUsersBlogs): " + AsXml(xdoc));
 
             ToDebugWindow(">> HTTP Request POST "
-                //+ Environment.NewLine
                 + entryUri.AbsoluteUri
                 + Environment.NewLine
                 + AsUTF16Xml(xdoc)
@@ -662,14 +665,15 @@ namespace BlogWrite.Models.Clients
 
                     if (!contenTypeString.StartsWith("text/xml"))
                     {
-                        System.Diagnostics.Debug.WriteLine("Content-Type is invalid: " + contenTypeString);
-
                         ToDebugWindow("<< HTTP Response Content-Type is invalid: " + contenTypeString
                             + Environment.NewLine
                             + "expecting " + "text/xml"
                             + Environment.NewLine);
 
-                        return list;
+                        InvalidContentType(res.Error, "Content-Type is invalid", "HttpResponse.Content.Headers.GetValues", "XmlRpcMTClient: GetEntries");
+                        res.IsError = true;
+
+                        return res;
                     }
 
                     string s = await response.Content.ReadAsStringAsync();
@@ -685,20 +689,25 @@ namespace BlogWrite.Models.Clients
                     }
                     catch (Exception e)
                     {
-                        System.Diagnostics.Debug.WriteLine("LoadXml failed: " + e.Message);
-
                         ToDebugWindow("<< Invalid XML returned:"
                             + Environment.NewLine
                             + e.Message
                             + Environment.NewLine);
 
-                        return list;
+                        InvalidXml(res.Error, e.Message, "XmlRpcMTClient: GetEntries");
+                        res.IsError = true;
+
+                        return res;
                     }
 
                     XmlNodeList entryList;
                     entryList = xdoc.SelectNodes("//methodResponse/params/param/value/array/data/value");
                     if (entryList == null)
-                        return list;
+                    {
+                        res.Entries = list;
+
+                        return res;
+                    }
 
                     foreach (XmlNode l in entryList)
                     {
@@ -711,13 +720,37 @@ namespace BlogWrite.Models.Clients
                 }
 
             }
+            // Internet connection errors
+            catch (System.Net.Http.HttpRequestException e)
+            {
+                Debug.WriteLine("<< HttpRequestException: " + e.Message);
+
+                ToDebugWindow(" << HttpRequestException: "
+                    + Environment.NewLine
+                    + e.Message
+                    + Environment.NewLine);
+
+                HttpReqException(res.Error, e.Message, "_HTTPConn.Client.SendAsync", "XmlRpcMTClient:GetEntries");
+                res.IsError = true;
+
+                return res;
+            }
             catch (Exception e)
             {
-                // TODO:
-                Debug.WriteLine("Exception@(XmlRpcMTClient)GetEntries : " + e.Message);
+                Debug.WriteLine("HTTP error: " + e.Message);
+
+                ToDebugWindow("<< HTTP error:"
+                    + Environment.NewLine
+                    + e.Message
+                    + Environment.NewLine);
+
+                GenericException(res.Error, "", ErrorObject.ErrTypes.HTTP, "HTTP request error (Exception)", e.Message, "_HTTPConn.Client.SendAsync", "XmlRpcMTClient:GetEntries");
+                res.IsError = true;
+
+                return res;
             }
 
-            return list;
+            return res;
         }
 
         private void FillEntryItemFromXML(MTEntry entItem, XmlNode entryNode, Uri xmlrpcUri, string serviceId)

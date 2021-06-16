@@ -12,6 +12,7 @@ using System.IO;
 
 namespace BlogWrite.Models
 {
+    // SQLite Access module
     public class DataAccess
     {
         private string _dataBaseFilePath;
@@ -22,9 +23,9 @@ namespace BlogWrite.Models
 
         private SqliteConnectionStringBuilder connectionStringBuilder;
 
-        public ResultWrapper InitializeDatabase(string dataBaseFilePath)
+        public SqliteDataAccessResultWrapper InitializeDatabase(string dataBaseFilePath)
         {
-            ResultWrapper res = new ResultWrapper();
+            SqliteDataAccessResultWrapper res = new SqliteDataAccessResultWrapper();
 
             _dataBaseFilePath = dataBaseFilePath;
 
@@ -70,12 +71,14 @@ namespace BlogWrite.Models
 
                             res.IsError = true;
                             res.Error.ErrType = ErrorObject.ErrTypes.DB;
-                            res.Error.ErrCode = 0;
-                            res.Error.ErrText = "「" + e.Message + "」";
-                            res.Error.ErrDescription = "";
+                            res.Error.ErrCode = "";
+                            res.Error.ErrText = "Exception";
+                            res.Error.ErrDescription = e.Message;
                             res.Error.ErrDatetime = DateTime.Now;
-                            res.Error.ErrPlace = "@DataAccess::InitializeDatabase::Transaction.Commit";
+                            res.Error.ErrPlace = "Transaction.Commit";
+                            res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
 
+                            return res;
                         }
                     }
                 }
@@ -83,52 +86,60 @@ namespace BlogWrite.Models
                 {
                     res.IsError = true;
                     res.Error.ErrType = ErrorObject.ErrTypes.DB;
-                    res.Error.ErrCode = 0;
-                    res.Error.ErrText = "「" + ex.Message + "」";
-                    res.Error.ErrDescription = "";
+                    res.Error.ErrCode = "";
+                    res.Error.ErrText = "TargetInvocationException";
+                    res.Error.ErrDescription = ex.Message;
                     res.Error.ErrDatetime = DateTime.Now;
-                    res.Error.ErrPlace = "TargetInvocationException@DataAccess::InitializeDatabase::connection.Open";
+                    res.Error.ErrPlace = "connection.Open";
+                    res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
 
-                    throw ex.InnerException;
+                    return res;
+                    //throw ex.InnerException;
                 }
                 catch (System.InvalidOperationException ex)
                 {
                     res.IsError = true;
                     res.Error.ErrType = ErrorObject.ErrTypes.DB;
-                    res.Error.ErrCode = 0;
-                    res.Error.ErrText = "「" + ex.Message + "」";
-                    res.Error.ErrDescription = "";
+                    res.Error.ErrCode = "";
+                    res.Error.ErrText = "InvalidOperationException";;
+                    res.Error.ErrDescription = ex.Message;
                     res.Error.ErrDatetime = DateTime.Now;
-                    res.Error.ErrPlace = "InvalidOperationException@DataAccess::InitializeDatabase::connection.Open";
+                    res.Error.ErrPlace = "connection.Open";
+                    res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
 
-                    throw ex.InnerException;
+                    return res;
+                    //throw ex.InnerException;
                 }
                 catch (Exception e)
                 {
                     res.IsError = true;
                     res.Error.ErrType = ErrorObject.ErrTypes.DB;
-                    res.Error.ErrCode = 0;
+                    res.Error.ErrCode = "";
 
                     if (e.InnerException != null)
                     {
-                        res.Error.ErrText = "「" + e.InnerException.Message + "」";
+                        res.Error.ErrText = "InnerException";
+                        res.Error.ErrDescription = e.InnerException.Message;
                     }
                     else
                     {
-                        res.Error.ErrText = "「" + e.Message + "」";
+                        res.Error.ErrText = "Exception";
+                        res.Error.ErrDescription = e.Message;
                     }
-                    res.Error.ErrDescription = "";
                     res.Error.ErrDatetime = DateTime.Now;
-                    res.Error.ErrPlace = "Exception@DataAccess::InitializeDatabase::connection.Open";
+                    res.Error.ErrPlace = "connection.Open";
+                    res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
+
+                    return res;
                 }
             }
 
             return res;
         }
 
-        public ResultWrapper SelectEntriesByFeedId(ObservableCollection<EntryItem> entries, string feedId)
+        public SqliteDataAccessResultWrapper SelectEntriesByFeedId(ObservableCollection<EntryItem> entries, string feedId)
         {
-            ResultWrapper res = new ResultWrapper();
+            SqliteDataAccessResultWrapper res = new SqliteDataAccessResultWrapper();
 
             entries.Clear();
 
@@ -190,13 +201,15 @@ namespace BlogWrite.Models
 
                 res.IsError = true;
                 res.Error.ErrType = ErrorObject.ErrTypes.DB;
-                res.Error.ErrCode = 0;
-                res.Error.ErrText = "「" + ex.Message + "」";
-                res.Error.ErrDescription = "";
+                res.Error.ErrCode = "";
+                res.Error.ErrText = "TargetInvocationException";
+                res.Error.ErrDescription = ex.Message;
                 res.Error.ErrDatetime = DateTime.Now;
-                res.Error.ErrPlace = "TargetInvocationException@DataAccess::SelectEntriesByFeedId";
+                res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
+                res.Error.ErrPlaceParent = "DataAccess::SelectEntriesByFeedId";
 
-                throw ex.InnerException;
+                return res;
+                //throw ex.InnerException;
             }
             catch (System.InvalidOperationException ex)
             {
@@ -204,42 +217,47 @@ namespace BlogWrite.Models
 
                 res.IsError = true;
                 res.Error.ErrType = ErrorObject.ErrTypes.DB;
-                res.Error.ErrCode = 0;
-                res.Error.ErrText = "「" + ex.Message + "」";
-                res.Error.ErrDescription = "";
+                res.Error.ErrCode = "";
+                res.Error.ErrText = "InvalidOperationException";
+                res.Error.ErrDescription = ex.Message;
                 res.Error.ErrDatetime = DateTime.Now;
-                res.Error.ErrPlace = "InvalidOperationException@DataAccess::SelectEntriesByFeedId";
+                res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
+                res.Error.ErrPlaceParent = "DataAccess::SelectEntriesByFeedId";
 
-                throw ex.InnerException;
+                return res;
+                //throw ex.InnerException;
             }
             catch (Exception e)
             {
                 res.IsError = true;
                 res.Error.ErrType = ErrorObject.ErrTypes.DB;
-                res.Error.ErrCode = 0;
+                res.Error.ErrCode = "";
 
                 if (e.InnerException != null)
                 {
                     Debug.WriteLine(e.InnerException.Message + " @DataAccess::SelectEntriesByFeedId");
-                    res.Error.ErrText = "「" + e.InnerException.Message + "」";
+                    res.Error.ErrText = "InnerException";
+                    res.Error.ErrDescription = e.InnerException.Message;
                 }
                 else
                 {
                     Debug.WriteLine(e.Message + " @DataAccess::SelectEntriesByFeedId");
-                    res.Error.ErrText = "「" + e.Message + "」";
+                    res.Error.ErrText = "Exception";
+                    res.Error.ErrDescription = e.Message;
                 }
-                res.Error.ErrDescription = "";
                 res.Error.ErrDatetime = DateTime.Now;
-                res.Error.ErrPlace = "Exception@DataAccess::SelectEntriesByFeedId";
+                res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
+                res.Error.ErrPlaceParent = "DataAccess::SelectEntriesByFeedId";
 
+                return res;
             }
 
             return res;
         }
 
-        public ResultWrapper InsertEntries(ObservableCollection<EntryItem> entries, string feedId)
+        public SqliteDataAccessResultWrapper InsertEntries(ObservableCollection<EntryItem> entries, string feedId)
         {
-            ResultWrapper res = new ResultWrapper();
+            SqliteDataAccessResultWrapper res = new SqliteDataAccessResultWrapper();
 
             try
             {
@@ -349,84 +367,84 @@ namespace BlogWrite.Models
                                 var r = cmd.ExecuteNonQuery();
                                 if (r > 0)
                                 {
-                                    Debug.WriteLine("Inserted: " + r.ToString() + " for " + entry.EntryId);
+                                    //Debug.WriteLine("Inserted: " + r.ToString() + " for " + entry.EntryId);
                                 }
                                 else
                                 {
-                                    Debug.WriteLine("Inserted: " + r.ToString() + " for " + entry.EntryId);
+                                    //Debug.WriteLine("Inserted: " + r.ToString() + " for " + entry.EntryId);
                                 }
                             }
 
                             //　コミット
                             cmd.Transaction.Commit();
-
-                            res.IsError = false;
                         }
                         catch (Exception e)
                         {
-                            res.IsError = true;
-
                             cmd.Transaction.Rollback();
 
+                            res.IsError = true;
                             res.Error.ErrType = ErrorObject.ErrTypes.DB;
-                            res.Error.ErrCode = 0;
-                            res.Error.ErrText = "「" + e.Message + "」";
-                            res.Error.ErrDescription = "";
+                            res.Error.ErrCode = "";
+                            res.Error.ErrText = "Exception";
+                            res.Error.ErrDescription = e.Message;
                             res.Error.ErrDatetime = DateTime.Now;
-                            res.Error.ErrPlace = "@DataAccess::InsertEntries::Transaction.Commit";
+                            res.Error.ErrPlace = "connection.Open(),Transaction.Commit";
+                            res.Error.ErrPlaceParent = "DataAccess::InsertEntries";
 
-                            Debug.WriteLine(e.Message + " @DataAccess::InsertEntries::Transaction.Commit");
+                            return res;
                         }
                     }
                 }
             }
             catch (System.Reflection.TargetInvocationException ex)
             {
-                Debug.WriteLine("Opps. TargetInvocationException@DataAccess::InsertEntries");
-
                 res.IsError = true;
                 res.Error.ErrType = ErrorObject.ErrTypes.DB;
-                res.Error.ErrCode = 0;
-                res.Error.ErrText = "「" + ex.Message + "」";
-                res.Error.ErrDescription = "";
+                res.Error.ErrCode = "";
+                res.Error.ErrText = "TargetInvocationException";
+                res.Error.ErrDescription = ex.Message;
                 res.Error.ErrDatetime = DateTime.Now;
-                res.Error.ErrPlace = "TargetInvocationException@DataAccess::InsertEntries::connection.Open";
+                res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
+                res.Error.ErrPlaceParent = "DataAccess::InsertEntries";
 
-                throw ex.InnerException;
+                return res;
+                //throw ex.InnerException;
             }
             catch (System.InvalidOperationException ex)
             {
-                Debug.WriteLine("Opps. InvalidOperationException@DataAccess::InsertEntries");
-
                 res.IsError = true;
                 res.Error.ErrType = ErrorObject.ErrTypes.DB;
-                res.Error.ErrCode = 0;
-                res.Error.ErrText = "「" + ex.Message + "」";
-                res.Error.ErrDescription = "";
+                res.Error.ErrCode = "";
+                res.Error.ErrText = "InvalidOperationException";
+                res.Error.ErrDescription = ex.Message;
                 res.Error.ErrDatetime = DateTime.Now;
-                res.Error.ErrPlace = "InvalidOperationException@DataAccess::InsertEntries::connection.Open";
+                res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
+                res.Error.ErrPlaceParent = "DataAccess::InsertEntries";
 
-                throw ex.InnerException;
+                return res;
+                //throw ex.InnerException;
             }
             catch (Exception e)
             {
                 res.IsError = true;
                 res.Error.ErrType = ErrorObject.ErrTypes.DB;
-                res.Error.ErrCode = 0;
+                res.Error.ErrCode = "";
 
                 if (e.InnerException != null)
                 {
-                    Debug.WriteLine(e.InnerException.Message + " @DataAccess::InsertEntries");
-                    res.Error.ErrText = "「" + e.InnerException.Message + "」";
+                    res.Error.ErrText = "InnerException";
+                    res.Error.ErrDescription = e.InnerException.Message;
                 }
                 else
                 {
-                    Debug.WriteLine(e.Message + " @DataAccess::InsertEntries");
-                    res.Error.ErrText = "「" + e.Message + "」";
+                    res.Error.ErrText = "Exception";
+                    res.Error.ErrDescription = e.Message;
                 }
-                res.Error.ErrDescription = "";
                 res.Error.ErrDatetime = DateTime.Now;
-                res.Error.ErrPlace = "Exception@DataAccess::InsertEntries::connection.Open";
+                res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
+                res.Error.ErrPlaceParent = "DataAccess::InsertEntries";
+
+                return res;
             }
 
             return res;

@@ -410,6 +410,8 @@
                     </TreeView.ContextMenu>
                     <TreeView.Resources>
                         <ContextMenu x:Key="TreeviewMenuItemContextMenu">
+                            <MenuItem Name="TreeViewMenuItemUpdate" Header="Update" Command="{Binding Path=DataContext.ServiceUpdateCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}"></MenuItem>
+                            <Separator/>
                             <MenuItem Name="TreeViewMenuItemRename" Header="名前の変更" Click="TreeViewMenuItemRename_Click"></MenuItem>
                             <Separator/>
                             <MenuItem Name="TreeViewMenuItemDelete" Header="削除" Click="TreeViewMenuItemDelete_Click">
@@ -781,14 +783,15 @@
                                     <Setter Property="Padding" Value="0"/>
                                     <Setter Property="Margin" Value="6"/>
                                     <Setter Property="BorderBrush" Value="#333"/>
-                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                     <Setter Property="ContextMenu" Value="{StaticResource ItemContextMenu}" />
                                     <Setter Property="FocusVisualStyle" Value="{StaticResource ListviewItemFocusVisual}"/>
+                                    <Setter Property="HorizontalContentAlignment" Value="Left" />
+                                    <Setter Property="VerticalContentAlignment" Value="Top" />
                                     <Setter Property="Template">
                                         <Setter.Value>
                                             <ControlTemplate TargetType="{x:Type ContentControl}">
                                                 <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="3">
-                                                    <ContentPresenter />
+                                                    <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"  />
                                                 </Border>
                                             </ControlTemplate>
                                         </Setter.Value>
@@ -1128,6 +1131,8 @@
                                         <Setter Property="Margin" Value="0 0 0 0"/>
                                         <Setter Property="Padding" Value="1"/>
                                         <Setter Property="ContextMenu" Value="{StaticResource ItemContextMenu}" />
+                                        <Setter Property="HorizontalContentAlignment" Value="Left" />
+                                        <Setter Property="VerticalContentAlignment" Value="Top" />
                                         <Setter Property="Template">
                                             <Setter.Value>
                                                 <ControlTemplate TargetType="{x:Type ListViewItem}">
@@ -1135,7 +1140,7 @@
                                                         <Border.InputBindings>
                                                             <MouseBinding Command="{Binding Path=DataContext.ListviewLeftDoubleClickCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" Gesture="LeftDoubleClick" />
                                                         </Border.InputBindings>
-                                                        <GridViewRowPresenter VerticalAlignment="{TemplateBinding VerticalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                                        <GridViewRowPresenter VerticalAlignment="{TemplateBinding VerticalContentAlignment}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                                                     </Border>
                                                 </ControlTemplate>
                                             </Setter.Value>

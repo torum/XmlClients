@@ -10,17 +10,19 @@ using AngleSharp;
 using BlogWrite.Common;
 using System.Windows.Media.Imaging;
 using System.Windows;
+using System.Collections.ObjectModel;
 
 namespace BlogWrite.Models.Clients
 {
+    // RSS Feed Client - Implements RSS 2.0 and 1.0 as well.
     class RssFeedClient : BaseClient
     {
-        public override async Task<List<EntryItem>> GetEntries(Uri entriesUrl, string feedId)
+        public override async Task<HttpClientEntryItemCollectionResultWrapper> GetEntries(Uri entriesUrl, string feedId)
         {
-            // Clear err msg.
-            ClientErrorMessage = "";
-
-            List<EntryItem> list = new List<EntryItem>();
+            HttpClientEntryItemCollectionResultWrapper res = new HttpClientEntryItemCollectionResultWrapper();
+            
+            ObservableCollection<EntryItem> list = new ObservableCollection<EntryItem>();
+            res.Entries = list;
 
             if (!(entriesUrl.Scheme.Equals("http") || entriesUrl.Scheme.Equals("https")))
             {
@@ -29,9 +31,10 @@ namespace BlogWrite.Models.Clients
                     + entriesUrl.Scheme
                     + Environment.NewLine);
 
-                ClientErrorMessage = "Invalid URI scheme (should be http or https): " + entriesUrl.Scheme;
+                InvalidUriScheme(res.Error, entriesUrl.Scheme, "RssFeedClient: GetEntries");
+                res.IsError = true;
 
-                return list;
+                return res;
             }
 
             try
@@ -43,7 +46,6 @@ namespace BlogWrite.Models.Clients
                     string s = await HTTPResponseMessage.Content.ReadAsStringAsync();
 
                     ToDebugWindow(">> HTTP Request GET "
-                        //+ Environment.NewLine
                         + entriesUrl.AbsoluteUri
                         + Environment.NewLine + Environment.NewLine
                         + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
@@ -66,9 +68,10 @@ namespace BlogWrite.Models.Clients
                             + e.Message
                             + Environment.NewLine);
 
-                        ClientErrorMessage = "Invalid XML document returned: " + e.Message;
+                        InvalidXml(res.Error, e.Message, "RssFeedClient: GetEntries");
+                        res.IsError = true;
 
-                        return list;
+                        return res;
                     }
 
                     // RSS 2.0
@@ -77,7 +80,11 @@ namespace BlogWrite.Models.Clients
                         XmlNodeList entryList;
                         entryList = xdoc.SelectNodes("//rss/channel/item");
                         if (entryList == null)
-                            return list;
+                        {
+                            res.Entries = list;
+
+                            return res;
+                        }
 
                         foreach (XmlNode l in entryList)
                         {
@@ -100,7 +107,11 @@ namespace BlogWrite.Models.Clients
 
                         XmlNodeList entryList = xdoc.SelectNodes("//rdf:RDF/rss:item", NsMgr);
                         if (entryList == null)
-                            return list;
+                        {
+                            res.Entries = list;
+
+                            return res;
+                        }
 
                         foreach (XmlNode l in entryList)
                         {
@@ -113,6 +124,13 @@ namespace BlogWrite.Models.Clients
                                 list.Add(ent);
                         }
                     }
+                    else
+                    {
+                        FormatUndetermined(res.Error, "RssFeedClient:GetEntries");
+                        res.IsError = true;
+
+                        return res;
+                    }
                 }
                 // HTTP non 200 status code.
                 else
@@ -122,7 +140,6 @@ namespace BlogWrite.Models.Clients
                     if (contents != null)
                     {
                         ToDebugWindow(">> HTTP Request GET "
-                            //+ Environment.NewLine
                             + entriesUrl.AbsoluteUri
                             + Environment.NewLine + Environment.NewLine
                             + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
@@ -130,7 +147,10 @@ namespace BlogWrite.Models.Clients
                             + contents + Environment.NewLine);
                     }
 
-                    ClientErrorMessage = "HTTP request failed: " + HTTPResponseMessage.StatusCode.ToString();
+                    NonSuccessStatusCode(res.Error, HTTPResponseMessage.StatusCode.ToString(), "_HTTPConn.Client.GetAsync", "RssFeedClient:GetEntries");
+                    res.IsError = true;
+
+                    return res;
                 }
 
             }
@@ -144,7 +164,10 @@ namespace BlogWrite.Models.Clients
                     + e.Message
                     + Environment.NewLine);
 
-                ClientErrorMessage = "HTTP request error: " + e.Message;
+                HttpReqException(res.Error, e.Message, "_HTTPConn.Client.GetAsync", "RssFeedClient:GetEntries");
+                res.IsError = true;
+
+                return res;
             }
             catch (Exception e)
             {
@@ -155,10 +178,13 @@ namespace BlogWrite.Models.Clients
                     + e.Message
                     + Environment.NewLine);
 
-                ClientErrorMessage = "HTTP error: " + e.Message;
+                GenericException(res.Error, "", ErrorObject.ErrTypes.HTTP, "HTTP request error (Exception)", e.Message, "_HTTPConn.Client.GetAsync", "RssFeedClient:GetEntries");
+                res.IsError = true;
+
+                return res;
             }
 
-            return list;
+            return res;
         }
 
         private async void FillEntryItemFromXmlRss(EntryItem entItem, XmlNode entryNode)
@@ -219,22 +245,6 @@ namespace BlogWrite.Models.Clients
 
                 // gets image Uri
                 entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
-
-                // TODO: this is just a test.
-                if (entItem.ImageUri != null)
-                {
-                    Byte[] bytes = await this.GetImage(entItem.ImageUri);
-                    if (bytes != Array.Empty<byte>())
-                    {
-                        entItem.ImageByteArray = bytes;
-
-                        if (Application.Current == null) { return; }
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            entItem.Image = BitmapImageFromBytes(bytes);
-                        });
-                    }
-                }
             }
         }
 
@@ -291,25 +301,7 @@ namespace BlogWrite.Models.Clients
 
                 // gets image Uri
                 entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
-
-                // TODO: this is just a test.
-                if (entItem.ImageUri != null)
-                {
-                    Byte[] bytes = await this.GetImage(entItem.ImageUri);
-                    if (bytes != Array.Empty<byte>())
-                    {
-                        entItem.ImageByteArray = bytes;
-
-                        if (Application.Current == null) { return; }
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            entItem.Image = BitmapImageFromBytes(bytes);
-                        });
-                    }
-                }
             }
         }
-
-
     }
 }

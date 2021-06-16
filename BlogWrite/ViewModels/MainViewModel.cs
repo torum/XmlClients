@@ -25,6 +25,18 @@ namespace BlogWrite.ViewModels
 {
     /// TODO: 
     /// 
+    /// 毎回DBからEntriesを読み込んでいるなら、各NodeにCollectionをため込んでおく意味ない・・・むしろ。
+    /// 
+    /// NodeServiceのErrorとLastUpdateのオブジェクトを終了時にシリアライズして保存、起動時に復帰する。DownloadStatusも？
+    /// 
+    /// 画像のダウンロードとサムネイル化と、読み込みのタイミング。
+    /// 
+    /// Mainでエラーが起きた時にどこに表示するか・・・
+    /// 
+    /// DBエラーとHTTPエラーを分けるか・・・
+    /// 
+    /// WebView2の環境設定で、保存ディレクトリはMyDocumentで良いんじゃないかと・・・
+    /// 
     /// App Icon / App name .... FeedDesk?
     /// 
     /// InfoWindowでService情報も見れるようにする。
@@ -38,13 +50,13 @@ namespace BlogWrite.ViewModels
     /// [Usability] Feed listview item "author" etc.
     /// [Usability] View形式をFeedやサービスごとに覚える。
     /// 
-    /// [Database][TODO]  SQLiteにエントリを保存。
     /// [Database][Usability]  Feed 既読管理。
     /// [Database][TODO] Entry画像のダウンロードは、visibilityChanged か何かで、ListView内で表示されたタイミングで取得するように変更。
     /// [Database][Usability] Feed Folderまとめ表示。
     /// 
 
     /// 更新履歴：
+    /// v0.0.0.25 取得と保存と表示の流れで、ベースの形とエラー取り回し。
     /// v0.0.0.24 とりあえず、SQLiteの初期化からInsertとSelectまで。
     /// v0.0.0.23 とりあえず、古いAtom0.3のFeed読み込みにも対応した。Atom0.3 Apiの方は対応予定無し。
     /// v0.0.0.22 Renameing and Restructure of files and folder names.
@@ -77,7 +89,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.24";
+        const string _appVer = "0.0.0.25";
         public string AppVer
         {
             get
@@ -130,29 +142,22 @@ namespace BlogWrite.ViewModels
 
                 NotifyPropertyChanged(nameof(SelectedNode));
 
-                ClientErrorMessage = "";
-                IsShowClientErrorMessage = false;
-
                 if (_selectedNode == null)
                     return;
 
-                if (_selectedNode is NodeEntryCollection)
+                ClientErrorMessage = "";
+                IsShowClientErrorMessage = false;
+
+                if (_selectedNode is NodeService)
                 {
-                    if ((_selectedNode as NodeEntryCollection).List.Count == 0)
+                    if ((_selectedNode as NodeService).Error != null)
                     {
-                        Task.Run(() => GetEntries((_selectedNode as NodeEntryCollection)));
-                    }
-                }
-                else if (_selectedNode is NodeFeed)
-                {
-                    if ((_selectedNode as NodeFeed).List.Count == 0)
-                    {
-                        Task.Run(() => GetEntries((_selectedNode as NodeFeed)));
+                        ClientErrorMessage = (_selectedNode as NodeService).Error.ErrText + ": " + (_selectedNode as NodeService).Error.ErrDescription + " @" + (_selectedNode as NodeService).Error.ErrPlace + "@" + (_selectedNode as NodeService).Error.ErrPlaceParent;
+                        IsShowClientErrorMessage = true;
                     }
                 }
 
-                // This changes the listview.
-                NotifyPropertyChanged(nameof(Entries));
+                LoadEntries(_selectedNode);
             }
         }
 
@@ -719,16 +724,14 @@ li {
                 System.IO.Directory.CreateDirectory(databaseFileFolerPath);
                 var dataBaseFilePath = databaseFileFolerPath + System.IO.Path.DirectorySeparatorChar + _appName + ".db";
 
-                ResultWrapper res = dataAccessModule.InitializeDatabase(dataBaseFilePath);
+                SqliteDataAccessResultWrapper res = dataAccessModule.InitializeDatabase(dataBaseFilePath);
                 if (res.IsError)
                 {
-                    // 
-                    //ErrorOccured?.Invoke(res.Error);
-
-                    return;
+                    // TODO: !!
+                    Debug.WriteLine("SQLite DB init: " + res.Error.ErrText + ": " + res.Error.ErrDescription + " @" + res.Error.ErrPlace + "@" + res.Error.ErrPlaceParent);
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 //TODO:
                 Debug.WriteLine("SQLite DB init: " + e.Message);
@@ -738,7 +741,6 @@ li {
 
             // test
             IsSaveLog = true;
-
 
             // loads searvice tree
             if (File.Exists(_appDataFolder + System.IO.Path.DirectorySeparatorChar + "Searvies.xml"))
@@ -752,6 +754,9 @@ li {
                 InitClients();
 
             }
+
+            // starts update feeds and collections.
+            //StartUpdate();
         }
 
         #region == Startup and Shutdown ==
@@ -1080,6 +1085,37 @@ li {
             }
         }
 
+        private void StartUpdate()
+        {
+            Task.Run(() => StartUpdateRecursiveLoop(_services.Children));
+        }
+
+        private void StartUpdateRecursiveLoop(ObservableCollection<NodeTree> nt)
+        {
+            foreach (NodeTree c in nt)
+            {
+                if ((c is NodeEntryCollection) || (c is NodeFeed))
+                {
+                    if (c is NodeFeed)
+                    {
+                        DateTime now = DateTime.Now;
+                        DateTime last = (c as NodeFeed).LastUpdate;
+
+                        // check if lastupdate within...
+                        if (last > now.AddHours(-1) && last <= now)
+                        {
+                            (c as NodeFeed).LastUpdate = DateTime.Now;
+
+                            GetEntries(c);
+                        }
+                    }
+                }
+
+                if (c.Children.Count > 0)
+                    StartUpdateRecursiveLoop(c.Children);
+            }
+        }
+
         public void AddFeed(FeedLink fl)
         {
             if (FeedDupeCheck(fl.FeedUri.AbsoluteUri))
@@ -1153,110 +1189,93 @@ li {
             return res;
         }
 
-        private async void GetEntries(NodeTree selectedNode)
+        private async void GetEntries(NodeTree nd)
         {
-            if (selectedNode == null)
+            if (nd == null)
                 return;
 
-            if (selectedNode is NodeFeed)
+            if (nd is NodeFeed)
             {
-                NodeFeed selectedFeedNode = selectedNode as NodeFeed;
+                NodeFeed fnd = nd as NodeFeed;
 
-                if ((selectedFeedNode.Api != ApiTypes.atRssFeed) && selectedFeedNode.Api != ApiTypes.atAtomFeed)
+                if ((fnd.Api != ApiTypes.atRssFeed) && fnd.Api != ApiTypes.atAtomFeed)
                     return;
 
-                var fc = selectedFeedNode.Client;
+                var fc = fnd.Client;
 
                 if (fc == null)
                     return;
 
-                /*
-                // test
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    IsBusy = true;
-
-                    (selectedNode as NodeFeed).List.Clear();
-
-                    ResultWrapper res = dataAccessModule.SelectEntriesByFeedId((selectedNode as NodeFeed).List, (selectedNode as NodeFeed).Id);
-                    if (res.IsError)
-                    {
-                        Debug.WriteLine(res.Error.ErrText);
-                        // 
-                        //ErrorOccured?.Invoke(res.Error);
-
-                        return;
-                    }
-
-                    NotifyPropertyChanged(nameof(Entries));
-
-                    IsBusy = false;
+                    fnd.Status = NodeFeed.DownloadStatus.loading;
                 });
-                */
-                
-                selectedFeedNode.Status = NodeFeed.DownloadStatus.loading;
 
-                // TODO: need to return a result object
-                List<EntryItem> entLi = await fc.GetEntries(selectedFeedNode.EndPoint, selectedFeedNode.Id);
-
-                // Minimize the time to block UI thread.
-                Application.Current.Dispatcher.Invoke(() =>
+                HttpClientEntryItemCollectionResultWrapper resEntries = await fc.GetEntries(fnd.EndPoint, fnd.Id);
+                if (resEntries.IsError)
                 {
-                    if (string.IsNullOrEmpty(fc.ClientErrorMessage))
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
-                        if (selectedFeedNode == SelectedNode)
-                        {
-                            ClientErrorMessage = "";
-                            IsShowClientErrorMessage = false;
-                        }
+                        fnd.Status = NodeFeed.DownloadStatus.error;
+                        fnd.Error = resEntries.Error;
 
-                        selectedFeedNode.Status = NodeFeed.DownloadStatus.normal;
-                    }
-                    else
-                    {
-                        if (selectedFeedNode == SelectedNode)
+                        if (fnd == SelectedNode)
                         {
-                            ClientErrorMessage = fc.ClientErrorMessage;
+                            ClientErrorMessage = fnd.Error.ErrText + ": " + fnd.Error.ErrDescription + " @" + fnd.Error.ErrPlace + "@" + fnd.Error.ErrPlaceParent;
                             IsShowClientErrorMessage = true;
                         }
-
-                        selectedFeedNode.Status = NodeFeed.DownloadStatus.error;
-                    }
-
-                    if (entLi.Count > 0)
+                    });
+                }
+                else
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
-                        (selectedNode as NodeFeed).List.Clear();
+                        fnd.Status = NodeFeed.DownloadStatus.normal;
 
-                        foreach (EntryItem ent in entLi)
+                        if (resEntries.Entries.Count > 0)
                         {
-                            //ent.NodeEntry = (selectedNode as NodeEntry);
+                            SqliteDataAccessResultWrapper resInsert = dataAccessModule.InsertEntries(resEntries.Entries, (nd as NodeFeed).Id);
+                            if (resInsert.IsError)
+                            {
+                                Debug.WriteLine(resInsert.Error.ErrText);
 
-                            (selectedNode as NodeFeed).List.Add(ent);
-                        }
-                        /*
-                        // test
-                        ResultWrapper res = dataAccessModule.InsertEntries((selectedNode as NodeFeed).List, (selectedNode as NodeFeed).Id);
-                        if (res.IsError)
-                        {
-                            Debug.WriteLine(res.Error.ErrText);
-                            //ErrorOccured?.Invoke(res.Error);
+                                fnd.Error = resInsert.Error;
 
-                            return;
+                                // TODO: DB Status 
+
+                                if (fnd == SelectedNode)
+                                {
+                                    ClientErrorMessage = fnd.Error.ErrText + ": " + fnd.Error.ErrDescription + " @" + fnd.Error.ErrPlace + "@" + fnd.Error.ErrPlaceParent;
+                                    IsShowClientErrorMessage = true;
+                                }
+
+                                return;
+                            }
+                            else
+                            {
+                                // Clear error.
+                                fnd.Error = null;
+
+                                if (fnd == SelectedNode)
+                                {
+                                    LoadEntries(nd);
+                                }
+                            }
                         }
-                        */
-                    }
-                });
-                
+                    });
+                }
             }
-            else if (selectedNode is NodeEntryCollection)
+            else if (nd is NodeEntryCollection)
             {
-                var bc = (selectedNode as NodeEntryCollection).Client;
+                var bc = (nd as NodeEntryCollection).Client;
                 if (bc == null)
                     return;
 
-                string serviceId = ((selectedNode as NodeEntryCollection).Parent.Parent as NodeService).Id;
+                // TODO:
+                /*
+                string serviceId = ((nd as NodeEntryCollection).Parent.Parent as NodeService).Id;
 
-                List<EntryItem> entLi = await bc.GetEntries((selectedNode as NodeEntryCollection).Uri, serviceId);
+                ObservableCollection<EntryItem> entLi = await bc.GetEntries((nd as NodeEntryCollection).Uri, serviceId);
 
                 if (entLi == null)
                     return;
@@ -1275,20 +1294,74 @@ li {
                 // Minimize the time to block UI thread.
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    (selectedNode as NodeEntryCollection).List.Clear();
+                    (nd as NodeEntryCollection).List.Clear();
 
                     foreach (EntryItem ent in entLi)
                     {
-                        ent.NodeEntry = (selectedNode as NodeEntryCollection);
+                        ent.NodeEntry = (nd as NodeEntryCollection);
 
-                        (selectedNode as NodeEntryCollection).List.Add(ent);
+                        (nd as NodeEntryCollection).List.Add(ent);
                     }
                 });
+                */
             }
+        }
 
-            // TODO: dupe. (This updates listview)
-            NotifyPropertyChanged(nameof(Entries));
+        private void LoadEntries(NodeTree nd)
+        {
+            if (nd is NodeFeed)
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    IsBusy = true;
 
+                    (nd as NodeFeed).List.Clear();
+
+                    SqliteDataAccessResultWrapper res = dataAccessModule.SelectEntriesByFeedId((nd as NodeFeed).List, (nd as NodeFeed).Id);
+                    if (res.IsError)
+                    {
+                        //Debug.WriteLine("SelectEntriesByFeedId returned an error: " + res.Error.ErrText);
+
+                        (nd as NodeFeed).Error = res.Error;
+
+                        if (nd == SelectedNode)
+                        {
+                            if (nd is NodeFeed)
+                            {
+                                ClientErrorMessage = (nd as NodeFeed).Error.ErrText + ": " + (nd as NodeFeed).Error.ErrDescription + " @" + (nd as NodeFeed).Error.ErrPlace + "@" + (nd as NodeFeed).Error.ErrPlaceParent;
+                                IsShowClientErrorMessage = true;
+                            }
+                        }
+
+                        return;
+                    }
+                    else
+                    {
+                        // TODO: Wait.. this also clears http errors...
+                        // Clear error
+                        //(nd as NodeFeed).Error = null;
+
+                        if (nd == SelectedNode)
+                        {
+                            // This changes the listview.
+                            NotifyPropertyChanged(nameof(Entries));
+                        }
+                    }
+
+                    //test
+                    if ((nd as NodeFeed).List.Count > 0)
+                    {
+                        //Debug.WriteLine("SelectEntriesByFeedId returned " + (_selectedNode as NodeFeed).List.Count.ToString());
+                    }
+                    else
+                    {
+                        //Debug.WriteLine("SelectEntriesByFeedId returned 0 ");
+                    }
+
+                    IsBusy = false;
+                });
+
+            }
         }
 
         private async Task<bool> GetEntry(EntryItem selectedEntry)
@@ -1411,17 +1484,16 @@ li {
                 Task.Run(() => GetEntries((_selectedNode as NodeEntryCollection)));
 
                 // This changes the listview.
-                NotifyPropertyChanged(nameof(Entries));
+               // NotifyPropertyChanged(nameof(Entries));
             }
             else if (_selectedNode is NodeFeed)
             {
                 if ((_selectedNode as NodeFeed).List.Count > 0)
                     (_selectedNode as NodeFeed).List.Clear();
 
-                Task.Run(() => GetEntries((_selectedNode as NodeFeed)));
+                (_selectedNode as NodeFeed).LastUpdate = DateTime.Now;
 
-                // This changes the listview.
-                NotifyPropertyChanged(nameof(Entries));
+                Task.Run(() => GetEntries((_selectedNode as NodeFeed)));
             }
             else if (_selectedNode is NodeService)
             {

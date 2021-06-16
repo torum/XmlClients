@@ -8,13 +8,11 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using BlogWrite.Models;
 using BlogWrite.Models.Clients;
+using System.Collections.ObjectModel;
 
 namespace BlogWrite.Models.Clients
-{
-    /// <summary>
-    /// AtomPubClient 
-    /// Implements Atom Publishing protocol
-    /// </summary>
+{ 
+    // AtomPubClient - Implements Atom Publishing protocol 
     class AtomPubClient : BlogClient
     {
         public AtomPubClient(string userName, string userPassword, Uri endpoint) : base(userName, userPassword, endpoint)
@@ -372,9 +370,12 @@ namespace BlogWrite.Models.Clients
             return cats;
         }
 
-        public override async Task<List<EntryItem>> GetEntries(Uri entriesUrl, string serviceId)
+        public override async Task<HttpClientEntryItemCollectionResultWrapper> GetEntries(Uri entriesUrl, string serviceId)
         {
-            List<EntryItem> list = new List<EntryItem>();
+            HttpClientEntryItemCollectionResultWrapper res = new HttpClientEntryItemCollectionResultWrapper();
+
+            ObservableCollection<EntryItem> list = new ObservableCollection<EntryItem>();
+            res.Entries = list;
 
             //System.Diagnostics.Debug.WriteLine("GetEntries Uri: " + entriesUrl.AbsoluteUri);
             var HTTPResponseMessage = await _HTTPConn.Client.GetAsync(entriesUrl);
@@ -451,9 +452,11 @@ namespace BlogWrite.Models.Clients
                         + "expecting " + "application/atom+xml"
                         + Environment.NewLine);
 
-                    return list;
-                }
+                    InvalidContentType(res.Error, "Content-Type is invalid", "HttpResponse.Content.Headers.GetValues", "AtomPubClient: GetEntries");
+                    res.IsError = true;
 
+                    return res;
+                }
 
                 XmlDocument xdoc = new XmlDocument();
                 try
@@ -469,7 +472,10 @@ namespace BlogWrite.Models.Clients
                         + e.Message
                         + Environment.NewLine);
 
-                    return list;
+                    InvalidXml(res.Error, e.Message, "AtomPubClient: GetEntries");
+                    res.IsError = true;
+
+                    return res;
                 }
 
                 XmlNamespaceManager atomNsMgr = new XmlNamespaceManager(xdoc.NameTable);
@@ -479,7 +485,12 @@ namespace BlogWrite.Models.Clients
                 XmlNodeList entryList;
                 entryList = xdoc.SelectNodes("//atom:feed/atom:entry", atomNsMgr);
                 if (entryList == null)
-                    return list;
+                    if (entryList == null)
+                    {
+                        res.Entries = list;
+
+                        return res;
+                    }
 
                 foreach (XmlNode l in entryList)
                 {
@@ -506,13 +517,13 @@ namespace BlogWrite.Models.Clients
                 }
             }
 
-            return list;
+            return res;
         }
 
         private void FillEntryItemFromXML(AtomEntry entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr, string serviceId)
         {
-
             AtomEntry entry = CreateAtomEntryFromXML(entryNode, atomNsMgr, serviceId);
+
             if (entry == null)
                 return;
 

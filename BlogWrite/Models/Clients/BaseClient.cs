@@ -12,13 +12,12 @@ using BlogWrite.Common;
 using System.Windows.Media.Imaging;
 using System.IO;
 using System.Diagnostics;
+using System.Windows;
+using System.Collections.ObjectModel;
 
 namespace BlogWrite.Models.Clients
 {
-    /// <summary>
-    /// Plain HTTP client wrapped.
-    /// </summary>
-    /// 
+    // Plain HTTP client wrapped as HTTP Connection.
     public class HTTPConnection
     {
         public HttpClient Client { get; }
@@ -29,32 +28,37 @@ namespace BlogWrite.Models.Clients
         }
     }
 
-    /// <summary>
-    /// Base HTTP client.
-    /// </summary>
+    // Base HTTP client.
     public abstract class BaseClient
     {
-        // HTTP client
         protected HTTPConnection _HTTPConn;
 
-        // TODO: create result class which inclues error info
-        public abstract Task<List<EntryItem>> GetEntries(Uri entriesUrl, string feedId);
+        public abstract Task<HttpClientEntryItemCollectionResultWrapper> GetEntries(Uri entriesUrl, string feedId);
 
-        //
-        private string _clientErrorMessage;
-        public string ClientErrorMessage
+        public async Task<ObservableCollection<EntryItem>> GetImages(ObservableCollection<EntryItem> entryItems)
         {
-            get
+            foreach (var entItem in entryItems)
             {
-                return _clientErrorMessage;
+                if (entItem.ImageUri != null)
+                {
+                    Byte[] bytes = await this.GetImage(entItem.ImageUri);
+                    if (bytes != Array.Empty<byte>())
+                    {
+                        if (Application.Current != null)
+                        {
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                entItem.Image = BitmapImageFromBytes(bytes);
+                            });
+                        }
+                    }
+                }
             }
-            protected set
-            {
-                _clientErrorMessage = value;
-            }
+
+            return entryItems;
         }
 
-        public async Task<byte[]> GetImage(Uri imageUri)
+        private async Task<byte[]> GetImage(Uri imageUri)
         {
             byte[] res = Array.Empty<byte>();
 
@@ -62,9 +66,18 @@ namespace BlogWrite.Models.Clients
             {
                 res = await _HTTPConn.Client.GetByteArrayAsync(imageUri);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                Debug.WriteLine("Exception@GetImage: " + e.Message);
+                if (e.InnerException != null)
+                {
+                    Debug.WriteLine(e.InnerException.Message + " @BaseClient::GetImage:GetByteArrayAsync");
+                    //res.Error.ErrText = "「" + e.InnerException.Message + "」";
+                }
+                else
+                {
+                    Debug.WriteLine(e.Message + " @BaseClient::GetImage:GetByteArrayAsync");
+                    //res.Error.ErrText = "「" + e.Message + "」";
+                }
             }
 
             return res;
@@ -84,17 +97,109 @@ namespace BlogWrite.Models.Clients
             _HTTPConn = new HTTPConnection();
         }
 
-        /// <summary>
-        /// Writes to Debug (raises event)
-        /// </summary>
+        // Writes to Debug (raises event)
         protected void ToDebugWindow(string data)
         {
             Task nowait = Task.Run(() => { DebugOutput?.Invoke(this, data); });
         }
 
-        /// <summary>
-        /// Strips style attributes from HTML string.
-        /// </summary>
+        #region == Fill ErrorObject ==
+
+        protected ErrorObject InvalidUriScheme(ErrorObject err, string scheme, string errPlaceParent)
+        {
+            err.ErrCode = "";
+            err.ErrType = ErrorObject.ErrTypes.HTTP;
+            err.ErrText = "Invalid URI scheme";
+            err.ErrDescription = "URI scheme should be http or https : " + scheme;
+            err.ErrPlace = "";
+            err.ErrPlaceParent = errPlaceParent;
+            err.ErrDatetime = DateTime.Now;
+            return err;
+        }
+
+        protected ErrorObject InvalidContentType(ErrorObject err, string errText, string errPlace, string errPlaceParent)
+        {
+            err.ErrCode = "";
+            err.ErrType = ErrorObject.ErrTypes.API;
+            err.ErrText = "Invalid Content-Type returned";
+            err.ErrDescription = errText;
+            err.ErrPlace = errPlace;
+            err.ErrPlaceParent = errPlaceParent;
+            err.ErrDatetime = DateTime.Now;
+
+            return err;
+        }
+
+        protected ErrorObject InvalidXml(ErrorObject err, string eMessage, string errPlaceParent)
+        {
+            err.ErrCode = "";
+            err.ErrType = ErrorObject.ErrTypes.API;
+            err.ErrText = "Invalid XML document returned";
+            err.ErrDescription = eMessage;
+            err.ErrPlace = "xdoc.Load()";
+            err.ErrPlaceParent = errPlaceParent;
+            err.ErrDatetime = DateTime.Now;
+
+            return err;
+        }
+
+        protected ErrorObject FormatUndetermined(ErrorObject err, string errPlaceParent)
+        {
+            err.ErrCode = "";
+            err.ErrType = ErrorObject.ErrTypes.API;
+            err.ErrText = "Document parse failed";
+            err.ErrDescription = "Unknown format";
+            err.ErrPlace = "xdoc.DocumentElement.LocalName/NamespaceURI";
+            err.ErrPlaceParent = errPlaceParent;
+            err.ErrDatetime = DateTime.Now;
+
+            return err;
+        }
+
+        protected ErrorObject NonSuccessStatusCode(ErrorObject err, string statusCode, string errPlace, string errPlaceParent)
+        {
+            err.ErrCode = "";
+            err.ErrType = ErrorObject.ErrTypes.HTTP;
+            err.ErrText = "HTTP request failed";
+            err.ErrDescription = statusCode;
+            err.ErrPlace = errPlace;
+            err.ErrPlaceParent = errPlaceParent;
+            err.ErrDatetime = DateTime.Now;
+
+            return err;
+        }
+
+        protected ErrorObject HttpReqException(ErrorObject err, string eMessage, string errPlace, string errPlaceParent)
+        {
+            err.ErrCode = "";
+            err.ErrType = ErrorObject.ErrTypes.HTTP;
+            err.ErrText = "HTTP request error (HttpRequestException)";
+            err.ErrDescription = eMessage;
+            err.ErrPlace = errPlace;
+            err.ErrPlaceParent = errPlaceParent;
+            err.ErrDatetime = DateTime.Now;
+
+            return err;
+        }
+
+        protected ErrorObject GenericException(ErrorObject err, string errCode, ErrorObject.ErrTypes errType, string errText, string errDescription, string errPlace, string errPlaceParent)
+        {
+            err.ErrCode = errCode;
+            err.ErrType = errType;
+            err.ErrText = errText;
+            err.ErrDescription = errDescription;
+            err.ErrPlace = errPlace;
+            err.ErrPlaceParent = errPlaceParent;
+            err.ErrDatetime = DateTime.Now;
+
+            return err;
+        }
+
+        #endregion
+
+        #region == Util methods ==
+
+        // <summary>Strips style attributes from HTML string. </summary>
         protected async Task<string> StripStyleAttributes(string s)
         {
             try
@@ -120,9 +225,7 @@ namespace BlogWrite.Models.Clients
             }
         }
 
-        /// <summary>
-        /// Strips HTML tags from HTML string.
-        /// </summary>
+        // <summary>Strips HTML tags from HTML string. </summary>
         protected async Task<string> StripHtmlTags(string s)
         {
             try
@@ -140,6 +243,7 @@ namespace BlogWrite.Models.Clients
             }
         }
 
+        // <summary>GetImageUriFromHtml. </summary>
         protected async Task<Uri> GetImageUriFromHtml(string s)
         {
             Uri imageUri = null;
@@ -163,6 +267,7 @@ namespace BlogWrite.Models.Clients
             return imageUri;
         }
 
+        // <summary>BitmapImageFromBytes. </summary>
         protected static BitmapImage BitmapImageFromBytes(Byte[] bytes)
         {
             try
@@ -186,39 +291,21 @@ namespace BlogWrite.Models.Clients
             }
         }
 
-        /*
-        public static Byte[] BitmapImageToByteArray(BitmapImage bitmapImage)
-        {
-            byte[] data;
-            JpegBitmapEncoder encoder = new JpegBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create(bitmapImage));
-            using (MemoryStream ms = new MemoryStream())
-            {
-                encoder.Save(ms);
-                data = ms.ToArray();
-            }
-
-            return data;
-        }
-        */
-
-        /// <summary>
-        /// Truncates string with maxLength.
-        /// </summary>
+        // <summary> Truncates string with maxLength. </summary>
         protected static string Truncate(string value, int maxLength)
         {
             if (string.IsNullOrEmpty(value)) return value;
             return value.Length <= maxLength ? value : value.Substring(0, maxLength) + " ...";
         }
 
+        #endregion
     }
 }
 
     /*
-    /// <summary>
-    /// Holds HTTP connection. Singleton.
-    /// https://qiita.com/laughter/items/e6be52db15d7326b46b9
-    /// </summary>
+    // Singleton.
+    // https://qiita.com/laughter/items/e6be52db15d7326b46b9
+
     public class HTTPConnection
     {
         public HttpClient Client { get; }

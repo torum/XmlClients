@@ -10,10 +10,7 @@ using BlogWrite.Models;
 
 namespace BlogWrite.Models.Clients
 {
-    /// <summary>
-    /// BlogClient 
-    /// Base HTTP Blog client
-    /// </summary>
+    // Base HTTP Blog client 
     public abstract class BlogClient : BaseClient
     {
         protected string _userName = "";
@@ -30,9 +27,6 @@ namespace BlogWrite.Models.Clients
         public abstract Task<NodeService> GetAccount(string accountName);
 
         public abstract Task<NodeWorkspaces> GetBlogs();
-
-        // This has been moved to BaseClient.
-        //public abstract Task<List<EntryItem>> GetEntries(Uri entriesUrl);
 
         public abstract Task<EntryFull> GetFullEntry(Uri entryUri, string serviceId, string postid = "");
 
@@ -64,7 +58,5 @@ namespace BlogWrite.Models.Clients
                 return stringWriter.GetStringBuilder().ToString();
             }
         }
-
     }
-
 }

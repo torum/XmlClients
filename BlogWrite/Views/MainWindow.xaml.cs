@@ -106,7 +106,6 @@ namespace BlogWrite.Views
                     }
                 }
             }
-
         }
 
         private async void InitializeWebView2Async()
@@ -114,6 +113,7 @@ namespace BlogWrite.Views
             // I really do hate smooth-scrolling.
             var op = new CoreWebView2EnvironmentOptions("--disable-smooth-scrolling");
 
+            // TODO: GetTempPath or MyDocument??
             _env = await CoreWebView2Environment.CreateAsync(userDataFolder: System.IO.Path.Combine(System.IO.Path.GetTempPath(), "BlogWrite"), options:op);
 
             Task nowait = ListViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
@@ -121,7 +121,6 @@ namespace BlogWrite.Views
 
             nowait = CardViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
             CardViewContentPreviewWebBrowser.CoreWebView2InitializationCompleted += CardViewContentPreviewWebBrowser_InitializationCompleted;
-
         }
 
         private void ListViewContentPreviewWebBrowser_InitializationCompleted(object sender, EventArgs e)

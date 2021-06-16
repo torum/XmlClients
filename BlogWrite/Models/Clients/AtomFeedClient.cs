@@ -7,21 +7,19 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Windows;
+using System.Collections.ObjectModel;
 
 namespace BlogWrite.Models.Clients
 {
-    /// <summary>
-    /// AtomFeedClient 
-    /// Implements Atom Syndication Format
-    /// </summary>
+    // Atom Feed Client - Implements Atom Syndication Format (reads Atom0.3 as well)
     class AtomFeedClient : BaseClient
     {
-        public override async Task<List<EntryItem>> GetEntries(Uri entriesUrl, string feedId)
-        {            
-            // Clear err msg.
-            ClientErrorMessage = "";
+        public override async Task<HttpClientEntryItemCollectionResultWrapper> GetEntries(Uri entriesUrl, string feedId)
+        {
+            HttpClientEntryItemCollectionResultWrapper res = new HttpClientEntryItemCollectionResultWrapper();
 
-            List<EntryItem> list = new List<EntryItem>();
+            ObservableCollection<EntryItem> list = new ObservableCollection<EntryItem>();
+            res.Entries = list;
 
             if (!(entriesUrl.Scheme.Equals("http") || entriesUrl.Scheme.Equals("https")))
             {
@@ -30,9 +28,10 @@ namespace BlogWrite.Models.Clients
                     + entriesUrl.Scheme
                     + Environment.NewLine);
 
-                ClientErrorMessage = "Invalid URI scheme (should be http or https): " + entriesUrl.Scheme;
-
-                return list;
+                InvalidUriScheme(res.Error, entriesUrl.Scheme, "AtomFeedClient: GetEntries");
+                res.IsError = true;
+                
+                return res;
             }
 
             try
@@ -44,14 +43,11 @@ namespace BlogWrite.Models.Clients
                     string s = await HTTPResponseMessage.Content.ReadAsStringAsync();
 
                     ToDebugWindow(">> HTTP Request GET "
-                        //+ Environment.NewLine
                         + entriesUrl.AbsoluteUri
                         + Environment.NewLine + Environment.NewLine
                         + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
                         + Environment.NewLine
                         + s + Environment.NewLine);
-
-                    // Debug.WriteLine("GET entries: " + s);
 
                     var source = await HTTPResponseMessage.Content.ReadAsStreamAsync();
 
@@ -72,9 +68,10 @@ namespace BlogWrite.Models.Clients
                             + e.Message
                             + Environment.NewLine);
 
-                        ClientErrorMessage = "Invalid XML returned: " + e.Message;
+                        InvalidXml(res.Error, e.Message, "AtomFeedClient: GetEntries");
+                        res.IsError = true;
 
-                        return list;
+                        return res;
                     }
 
                     // Atom Format
@@ -87,7 +84,11 @@ namespace BlogWrite.Models.Clients
                         XmlNodeList entryList;
                         entryList = xdoc.SelectNodes("//atom:feed/atom:entry", atomNsMgr);
                         if (entryList == null)
-                            return list;
+                        {
+                            res.Entries = list;
+
+                            return res;
+                        }
 
                         foreach (XmlNode l in entryList)
                         {
@@ -110,7 +111,11 @@ namespace BlogWrite.Models.Clients
                         XmlNodeList entryList;
                         entryList = xdoc.SelectNodes("//atom:feed/atom:entry", atomNsMgr);
                         if (entryList == null)
-                            return list;
+                        {
+                            res.Entries = list;
+
+                            return res;
+                        }
 
                         foreach (XmlNode l in entryList)
                         {
@@ -125,7 +130,10 @@ namespace BlogWrite.Models.Clients
                     }
                     else
                     {
-                        ClientErrorMessage = "Atom format parse failed: No Atom document found.";
+                        FormatUndetermined(res.Error, "AtomFeedClient:GetEntries");
+                        res.IsError = true;
+
+                        return res;
                     }
                 }
                 // HTTP non 200 status code
@@ -144,7 +152,10 @@ namespace BlogWrite.Models.Clients
                             + contents + Environment.NewLine);
                     }
 
-                    ClientErrorMessage = "HTTP request failed: " + HTTPResponseMessage.StatusCode.ToString();
+                    NonSuccessStatusCode(res.Error, HTTPResponseMessage.StatusCode.ToString(), "_HTTPConn.Client.GetAsync", "AtomFeedClient:GetEntries");
+                    res.IsError = true;
+
+                    return res;
                 }
 
             }
@@ -158,7 +169,10 @@ namespace BlogWrite.Models.Clients
                     + e.Message
                     + Environment.NewLine);
 
-                ClientErrorMessage = "HTTP request error: " + e.Message;
+                HttpReqException(res.Error, e.Message, "_HTTPConn.Client.GetAsync", "AtomFeedClient:GetEntries");
+                res.IsError = true;
+
+                return res;
             }
             catch (Exception e)
             {
@@ -169,10 +183,13 @@ namespace BlogWrite.Models.Clients
                     + e.Message
                     + Environment.NewLine);
 
-                ClientErrorMessage = "HTTP error: " + e.Message;
+                GenericException(res.Error, "", ErrorObject.ErrTypes.HTTP, "HTTP request error (Exception)", e.Message, "_HTTPConn.Client.GetAsync", "AtomFeedClient:GetEntries");
+                res.IsError = true;
+
+                return res;
             }
 
-            return list;
+            return res;
         }
 
         private async void FillEntryItemFromXmlAtom03(AtomEntry entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr)
@@ -352,6 +369,7 @@ namespace BlogWrite.Models.Clients
                 entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
 
                 // TODO: this is just a test.
+                /*
                 if (entItem.ImageUri != null)
                 {
                     Byte[] bytes = await this.GetImage(entItem.ImageUri);
@@ -364,8 +382,8 @@ namespace BlogWrite.Models.Clients
                         });
                     }
                 }
+                */
             }
-
         }
 
         private async void FillEntryItemFromXmlAtom(AtomEntry entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr, string feedId)
@@ -393,6 +411,7 @@ namespace BlogWrite.Models.Clients
                 entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
 
                 // TODO: this is just a test.
+                /*
                 if (entItem.ImageUri != null)
                 {
                     Byte[] bytes = await this.GetImage(entItem.ImageUri);
@@ -407,6 +426,7 @@ namespace BlogWrite.Models.Clients
                         });
                     }
                 }
+                */
             }
 
         }
