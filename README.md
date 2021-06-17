@@ -4,6 +4,8 @@
   
 A full featured Feed reader and a WYSIWYG Blog editing (web publishing) client.  - a C#/WPF port of "BlogWrite" originaly developed with Delphi.
 
+![BlogWrite4](https://github.com/torum/BlogWrite/blob/master/docs/images/BlogWrite4.png?raw=true) 
+
 #### Implements following Feed formats, REST protocols & API specifications:  
 
 The Atom Syndication Format (Atom 1.0)  
