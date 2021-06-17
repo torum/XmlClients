@@ -88,8 +88,7 @@ namespace BlogWrite.Models.Clients
 
                         foreach (XmlNode l in entryList)
                         {
-                            EntryItem ent = new EntryItem("", feedId, this);
-                            ent.Status = EntryItem.EntryStatus.esNormal;
+                            FeedEntryItem ent = new FeedEntryItem("", feedId, this);
 
                             FillEntryItemFromXmlRss(ent, l);
 
@@ -115,8 +114,7 @@ namespace BlogWrite.Models.Clients
 
                         foreach (XmlNode l in entryList)
                         {
-                            EntryItem ent = new EntryItem("", feedId, this);
-                            ent.Status = EntryItem.EntryStatus.esNormal;
+                            FeedEntryItem ent = new FeedEntryItem("", feedId, this);
 
                             FillEntryItemFromXmlRdf(ent, l, NsMgr);
 
@@ -187,7 +185,7 @@ namespace BlogWrite.Models.Clients
             return res;
         }
 
-        private async void FillEntryItemFromXmlRss(EntryItem entItem, XmlNode entryNode)
+        private async void FillEntryItemFromXmlRss(FeedEntryItem entItem, XmlNode entryNode)
         {
             XmlNode entryTitle = entryNode.SelectSingleNode("title");
             entItem.Name = (entryTitle != null) ? entryTitle.InnerText : "";
@@ -246,9 +244,11 @@ namespace BlogWrite.Models.Clients
                 // gets image Uri
                 entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
             }
+
+            entItem.Status = FeedEntryItem.ReadStatus.rsNew;
         }
 
-        private async void FillEntryItemFromXmlRdf(EntryItem entItem, XmlNode entryNode, XmlNamespaceManager NsMgr)
+        private async void FillEntryItemFromXmlRdf(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager NsMgr)
         {
             XmlNode entryTitle = entryNode.SelectSingleNode("rss:title", NsMgr);
             entItem.Name = (entryTitle != null) ? entryTitle.InnerText : "";
@@ -302,6 +302,8 @@ namespace BlogWrite.Models.Clients
                 // gets image Uri
                 entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
             }
+
+            entItem.Status = FeedEntryItem.ReadStatus.rsNew;
         }
     }
 }

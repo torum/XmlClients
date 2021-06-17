@@ -455,7 +455,7 @@ namespace BlogWrite.Models.Clients
                     InvalidContentType(res.Error, "Content-Type is invalid", "HttpResponse.Content.Headers.GetValues", "AtomPubClient: GetEntries");
                     res.IsError = true;
 
-                    return res;
+                    return (res as HttpClientEntryItemCollectionResultWrapper);
                 }
 
                 XmlDocument xdoc = new XmlDocument();
@@ -827,7 +827,7 @@ namespace BlogWrite.Models.Clients
             string draft = entryDraft?.InnerText;
             entry.IsDraft = (String.Compare(draft, "yes", true) == 0) ? true : false;
 
-            entry.Status = entry.IsDraft ? EntryItem.EntryStatus.esDraft : EntryItem.EntryStatus.esNormal;
+            entry.Status = entry.IsDraft ? EditEntryItem.EditStatus.esDraft : EditEntryItem.EditStatus.esNormal;
 
 
             return entry;

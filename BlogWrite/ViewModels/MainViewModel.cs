@@ -27,15 +27,12 @@ namespace BlogWrite.ViewModels
     /// 
     /// 毎回DBからEntriesを読み込んでいるなら、各NodeにCollectionをため込んでおく意味ない・・・むしろ。
     /// 
-    /// NodeServiceのErrorとLastUpdateのオブジェクトを終了時にシリアライズして保存、起動時に復帰する。DownloadStatusも？
-    /// 
     /// 画像のダウンロードとサムネイル化と、読み込みのタイミング。
+    /// Entry画像のダウンロードは、visibilityChanged か何かで、ListView内で表示されたタイミングで取得するように変更。
     /// 
-    /// Mainでエラーが起きた時にどこに表示するか・・・
+    /// Feed Folderまとめ表示。
     /// 
-    /// DBエラーとHTTPエラーを分けるか・・・
-    /// 
-    /// WebView2の環境設定で、保存ディレクトリはMyDocumentで良いんじゃないかと・・・
+    /// Feedの自動更新Timer
     /// 
     /// App Icon / App name .... FeedDesk?
     /// 
@@ -43,19 +40,18 @@ namespace BlogWrite.ViewModels
     /// 
     /// [Bug] Feed取得中はDrag and Dropできないようにする。
     /// 
-    /// [Usability] ServiceDiscoveryのFeed追加で、もう一画面かましてサイト名を表示して、Feedの名前を変更できるようにする?
     /// 
     /// [Editer][TODO]  AtomPub and XML-RPC ..
     /// 
     /// [Usability] Feed listview item "author" etc.
     /// [Usability] View形式をFeedやサービスごとに覚える。
     /// 
-    /// [Database][Usability]  Feed 既読管理。
-    /// [Database][TODO] Entry画像のダウンロードは、visibilityChanged か何かで、ListView内で表示されたタイミングで取得するように変更。
-    /// [Database][Usability] Feed Folderまとめ表示。
+    /// WebView2の環境設定で、保存ディレクトリはMyDocumentで良いんじゃないかと・・・
+    /// ServiceDiscoveryのFeed追加で、もう一画面かましてサイト名を表示して、Feedの名前を変更できるようにする?
     /// 
 
     /// 更新履歴：
+    /// v0.0.0.26 DBエラーとHTTPエラーを分けた。とりあえず、Feed 既読管理。
     /// v0.0.0.25 取得と保存と表示の流れで、ベースの形とエラー取り回し。
     /// v0.0.0.24 とりあえず、SQLiteの初期化からInsertとSelectまで。
     /// v0.0.0.23 とりあえず、古いAtom0.3のFeed読み込みにも対応した。Atom0.3 Apiの方は対応予定無し。
@@ -89,7 +85,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.25";
+        const string _appVer = "0.0.0.26";
         public string AppVer
         {
             get
@@ -145,19 +141,45 @@ namespace BlogWrite.ViewModels
                 if (_selectedNode == null)
                     return;
 
-                ClientErrorMessage = "";
-                IsShowClientErrorMessage = false;
-
                 if (_selectedNode is NodeService)
                 {
-                    if ((_selectedNode as NodeService).Error != null)
+                    if ((_selectedNode as NodeService).ErrorHttp != null)
                     {
-                        ClientErrorMessage = (_selectedNode as NodeService).Error.ErrText + ": " + (_selectedNode as NodeService).Error.ErrDescription + " @" + (_selectedNode as NodeService).Error.ErrPlace + "@" + (_selectedNode as NodeService).Error.ErrPlaceParent;
-                        IsShowClientErrorMessage = true;
+                        HttpError = (_selectedNode as NodeService).ErrorHttp;
+                        IsShowHttpClientErrorMessage = true;
+                    }
+                    else
+                    {
+                        HttpError = null;
+                        IsShowHttpClientErrorMessage = false;
+                    }
+
+                    if ((_selectedNode as NodeService).ErrorDatabase != null)
+                    {
+                        DatabaseError = (_selectedNode as NodeService).ErrorDatabase;
+                        IsShowDatabaseErrorMessage = true;
+                    }
+                    else
+                    {
+                        DatabaseError = null;
+                        IsShowDatabaseErrorMessage = false;
+                    }
+
+                    if (_selectedNode is NodeFeed)
+                    {
+                        if ((SelectedNode as NodeFeed).IsDisplayUnreadOnly)
+                            _selectedComboBoxItemIndex = 0;
+                        else
+                            _selectedComboBoxItemIndex = 1;
+
+                        // "Silent" update
+                        NotifyPropertyChanged(nameof(SelectedComboBoxItemIndex));
                     }
                 }
 
                 LoadEntries(_selectedNode);
+
+                ResetListviewPosition?.Invoke(this,0);
             }
         }
 
@@ -280,6 +302,33 @@ namespace BlogWrite.ViewModels
 
                 _isContentBrowserVisible = value;
                 NotifyPropertyChanged(nameof(IsContentBrowserVisible));
+            }
+        }
+
+        private int _selectedComboBoxItemIndex;
+        public int SelectedComboBoxItemIndex
+        {
+            get { return _selectedComboBoxItemIndex; }
+            set
+            {
+                if (_selectedComboBoxItemIndex == value)
+                    return;
+
+                _selectedComboBoxItemIndex = value;
+                NotifyPropertyChanged(nameof(SelectedComboBoxItemIndex));
+
+                if (SelectedNode == null)
+                    return;
+
+                if (SelectedNode is NodeFeed)
+                {
+                    if (_selectedComboBoxItemIndex == 0)
+                        (SelectedNode as NodeFeed).IsDisplayUnreadOnly = true;
+                    else
+                        (SelectedNode as NodeFeed).IsDisplayUnreadOnly = false;
+
+                    LoadEntries(SelectedNode as NodeFeed);
+                }
             }
         }
 
@@ -566,33 +615,93 @@ li {
 
         #region == Error messages == 
 
-        private bool _isShowClientErrorMessage;
-        public bool IsShowClientErrorMessage
+        private bool _isShowMainErrorMessage = false;
+        public bool IsShowMainErrorMessage
         {
-            get { return _isShowClientErrorMessage; }
+            get { return _isShowMainErrorMessage; }
             set
             {
-                if (_isShowClientErrorMessage == value)
+                if (_isShowMainErrorMessage == value)
                     return;
 
-                _isShowClientErrorMessage = value;
+                _isShowMainErrorMessage = value;
 
-                NotifyPropertyChanged(nameof(IsShowClientErrorMessage));
+                NotifyPropertyChanged(nameof(IsShowMainErrorMessage));
             }
         }
 
-        private string _clientErrorMessage;
-        public string ClientErrorMessage
+        private ErrorObject _mainError;
+        public ErrorObject MainError
         {
-            get { return _clientErrorMessage; }
+            get { return _mainError; }
             set
             {
-                if (_clientErrorMessage == value)
+                if (_mainError == value)
                     return;
 
-                _clientErrorMessage = value;
+                _mainError = value;
 
-                NotifyPropertyChanged(nameof(ClientErrorMessage));
+                NotifyPropertyChanged(nameof(MainError));
+            }
+        }
+
+        private bool _isShowHttpClientErrorMessage;
+        public bool IsShowHttpClientErrorMessage
+        {
+            get { return _isShowHttpClientErrorMessage; }
+            set
+            {
+                if (_isShowHttpClientErrorMessage == value)
+                    return;
+
+                _isShowHttpClientErrorMessage = value;
+
+                NotifyPropertyChanged(nameof(IsShowHttpClientErrorMessage));
+            }
+        }
+
+        private bool _isShowDatabaseErrorMessage;
+        public bool IsShowDatabaseErrorMessage
+        {
+            get { return _isShowDatabaseErrorMessage; }
+            set
+            {
+                if (_isShowDatabaseErrorMessage == value)
+                    return;
+
+                _isShowDatabaseErrorMessage = value;
+
+                NotifyPropertyChanged(nameof(IsShowDatabaseErrorMessage));
+            }
+        }
+
+        private ErrorObject _httpError;
+        public ErrorObject HttpError
+        {
+            get { return _httpError; }
+            set
+            {
+                if (_httpError == value)
+                    return;
+
+                _httpError = value;
+
+                NotifyPropertyChanged(nameof(HttpError));
+            }
+        }
+
+        private ErrorObject _databaseError;
+        public ErrorObject DatabaseError
+        {
+            get { return _databaseError; }
+            set
+            {
+                if (_databaseError == value)
+                    return;
+
+                _databaseError = value;
+
+                NotifyPropertyChanged(nameof(DatabaseError));
             }
         }
 
@@ -616,8 +725,6 @@ li {
         #region == SQLite Database ==
 
         private readonly DataAccess dataAccessModule = new DataAccess();
-
-        public SqliteConnectionStringBuilder connectionStringBuilder;
 
         #endregion
 
@@ -650,17 +757,18 @@ li {
 
         public event EventHandler<bool> ContentsBrowserWindowShowHide2;
 
+        public event EventHandler<int> ResetListviewPosition;
+
         #endregion
 
         public MainViewModel()
         {
+            IsShowMainErrorMessage = false;
+
             #region == Config folder ==
 
-            // データ保存フォルダの取得
             _appDataFolder = _envDataFolder + System.IO.Path.DirectorySeparatorChar + _appDeveloper + System.IO.Path.DirectorySeparatorChar + _appName;
-            // 設定ファイルのパス
             _appConfigFilePath = _appDataFolder + System.IO.Path.DirectorySeparatorChar + _appName + ".config";
-            // 存在していなかったら作成
             System.IO.Directory.CreateDirectory(_appDataFolder);
 
             #endregion
@@ -713,9 +821,11 @@ li {
 
             ShowBrowserWindowCommand = new RelayCommand(ShowBrowserWindowCommand_Execute, ShowBrowserWindowCommand_CanExecute);
 
+            //
+            MarkAsReadCommand = new RelayCommand(MarkAsReadCommand_Execute, MarkAsReadCommand_CanExecute);
+
             #endregion
 
-            // TODO:
             #region == SQLite DB init ==
 
             try
@@ -727,12 +837,24 @@ li {
                 SqliteDataAccessResultWrapper res = dataAccessModule.InitializeDatabase(dataBaseFilePath);
                 if (res.IsError)
                 {
-                    // TODO: !!
+                    MainError = res.Error;
+                    IsShowMainErrorMessage = true;
+
                     Debug.WriteLine("SQLite DB init: " + res.Error.ErrText + ": " + res.Error.ErrDescription + " @" + res.Error.ErrPlace + "@" + res.Error.ErrPlaceParent);
                 }
             }
             catch (Exception e)
             {
+                MainError = new ErrorObject();
+                MainError.ErrType = ErrorObject.ErrTypes.DB;
+                MainError.ErrCode = "";
+                MainError.ErrText = "Exception";
+                MainError.ErrDescription = e.Message;
+                MainError.ErrDatetime = DateTime.Now;
+                MainError.ErrPlace = "dataAccessModule.InitializeDatabase";
+                MainError.ErrPlaceParent = "MainViewModel()";
+                IsShowMainErrorMessage = true;
+
                 //TODO:
                 Debug.WriteLine("SQLite DB init: " + e.Message);
             }
@@ -747,6 +869,8 @@ li {
             {
                 XmlDocument doc = new XmlDocument();
                 
+                // TODO: try catch?
+
                 doc.Load(_appDataFolder + System.IO.Path.DirectorySeparatorChar + "Searvies.xml");
 
                 _services.LoadXmlDoc(doc);
@@ -1217,12 +1341,12 @@ li {
                     Application.Current.Dispatcher.Invoke(() =>
                     {
                         fnd.Status = NodeFeed.DownloadStatus.error;
-                        fnd.Error = resEntries.Error;
+                        fnd.ErrorHttp = resEntries.Error;
 
                         if (fnd == SelectedNode)
                         {
-                            ClientErrorMessage = fnd.Error.ErrText + ": " + fnd.Error.ErrDescription + " @" + fnd.Error.ErrPlace + "@" + fnd.Error.ErrPlaceParent;
-                            IsShowClientErrorMessage = true;
+                            HttpError = fnd.ErrorHttp;//fnd.ErrorHttp.ErrText + ": " + fnd.ErrorHttp.ErrDescription + " @" + fnd.ErrorHttp.ErrPlace + "@" + fnd.ErrorHttp.ErrPlaceParent;
+                            IsShowHttpClientErrorMessage = true;
                         }
                     });
                 }
@@ -1231,30 +1355,45 @@ li {
                     Application.Current.Dispatcher.Invoke(() =>
                     {
                         fnd.Status = NodeFeed.DownloadStatus.normal;
+                        
+                        // Clear ErrorHttp
+                        fnd.ErrorHttp = null;
+                        if (fnd == SelectedNode)
+                        {
+                            HttpError = null;
+                            IsShowHttpClientErrorMessage = false;
+                        }
 
                         if (resEntries.Entries.Count > 0)
                         {
-                            SqliteDataAccessResultWrapper resInsert = dataAccessModule.InsertEntries(resEntries.Entries, (nd as NodeFeed).Id);
+                            SqliteDataAccessInsertResultWrapper resInsert = dataAccessModule.InsertEntries(resEntries.Entries, (nd as NodeFeed).Id);
                             if (resInsert.IsError)
                             {
-                                Debug.WriteLine(resInsert.Error.ErrText);
-
-                                fnd.Error = resInsert.Error;
+                                fnd.ErrorDatabase = resInsert.Error;
 
                                 // TODO: DB Status 
 
                                 if (fnd == SelectedNode)
                                 {
-                                    ClientErrorMessage = fnd.Error.ErrText + ": " + fnd.Error.ErrDescription + " @" + fnd.Error.ErrPlace + "@" + fnd.Error.ErrPlaceParent;
-                                    IsShowClientErrorMessage = true;
+                                    DatabaseError = fnd.ErrorDatabase;
+                                    //ClientErrorMessage = fnd.ErrorDatabase.ErrText + ": " + fnd.ErrorDatabase.ErrDescription + " @" + fnd.ErrorDatabase.ErrPlace + "@" + fnd.ErrorDatabase.ErrPlaceParent;
+                                    IsShowDatabaseErrorMessage = true;
                                 }
 
+                                // IsBusy = false;
                                 return;
                             }
                             else
                             {
+                                fnd.UnreadCount += resInsert.InsertedCount;
+
                                 // Clear error.
-                                fnd.Error = null;
+                                fnd.ErrorDatabase = null;
+                                if (fnd == SelectedNode)
+                                {
+                                    DatabaseError = null;
+                                    IsShowDatabaseErrorMessage = false;
+                                }
 
                                 if (fnd == SelectedNode)
                                 {
@@ -1314,35 +1453,36 @@ li {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     IsBusy = true;
-
-                    (nd as NodeFeed).List.Clear();
-
-                    SqliteDataAccessResultWrapper res = dataAccessModule.SelectEntriesByFeedId((nd as NodeFeed).List, (nd as NodeFeed).Id);
+                    
+                    SqliteDataAccessSelectResultWrapper res = dataAccessModule.SelectEntriesByFeedId((nd as NodeFeed).List, (nd as NodeFeed).Id, (nd as NodeFeed).IsDisplayUnreadOnly);
                     if (res.IsError)
                     {
-                        //Debug.WriteLine("SelectEntriesByFeedId returned an error: " + res.Error.ErrText);
-
-                        (nd as NodeFeed).Error = res.Error;
+                        (nd as NodeFeed).ErrorDatabase = res.Error;
 
                         if (nd == SelectedNode)
                         {
                             if (nd is NodeFeed)
                             {
-                                ClientErrorMessage = (nd as NodeFeed).Error.ErrText + ": " + (nd as NodeFeed).Error.ErrDescription + " @" + (nd as NodeFeed).Error.ErrPlace + "@" + (nd as NodeFeed).Error.ErrPlaceParent;
-                                IsShowClientErrorMessage = true;
+                                DatabaseError = (nd as NodeFeed).ErrorDatabase;
+                                IsShowDatabaseErrorMessage = true;
                             }
                         }
 
+                        IsBusy = false;
                         return;
                     }
                     else
                     {
-                        // TODO: Wait.. this also clears http errors...
                         // Clear error
-                        //(nd as NodeFeed).Error = null;
+                        (nd as NodeFeed).ErrorDatabase = null;
+
+                        (nd as NodeFeed).UnreadCount = res.UnreadCount;
 
                         if (nd == SelectedNode)
                         {
+                            DatabaseError = null;
+                            IsShowDatabaseErrorMessage = false;
+
                             // This changes the listview.
                             NotifyPropertyChanged(nameof(Entries));
                         }
@@ -1360,8 +1500,59 @@ li {
 
                     IsBusy = false;
                 });
-
             }
+        }
+
+        private void MarkAsRead(NodeFeed nd)
+        {
+            if (nd == null)
+                return;
+
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                IsBusy = true;
+
+                SqliteDataAccessResultWrapper res = dataAccessModule.UpdateEntriesAsRead(nd.List, nd.Id);
+                if (res.IsError)
+                {
+                    nd.ErrorDatabase = res.Error;
+
+                    if (nd == SelectedNode)
+                    {
+                        DatabaseError = nd.ErrorDatabase;
+                        IsShowDatabaseErrorMessage = true;
+                    }
+
+                    IsBusy = false;
+                    return;
+                }
+                else
+                {
+                    // Clear error
+                    nd.ErrorDatabase = null;
+
+                    if (nd == SelectedNode)
+                    {
+                        DatabaseError = null;
+                        IsShowDatabaseErrorMessage = false;
+
+                        // 
+                        LoadEntries(nd);
+                    }
+                }
+
+                //test
+                if ((nd as NodeFeed).List.Count > 0)
+                {
+                    //Debug.WriteLine("SelectEntriesByFeedId returned " + (_selectedNode as NodeFeed).List.Count.ToString());
+                }
+                else
+                {
+                    //Debug.WriteLine("SelectEntriesByFeedId returned 0 ");
+                }
+
+                IsBusy = false;
+            });
         }
 
         private async Task<bool> GetEntry(EntryItem selectedEntry)
@@ -1473,8 +1664,8 @@ li {
             if (_selectedNode == null)
                 return;
 
-            ClientErrorMessage = "";
-            IsShowClientErrorMessage = false;
+            //ClientErrorMessage = "";
+            //IsShowClientErrorMessage = false;
 
             if (_selectedNode is NodeEntryCollection)
             {
@@ -1483,8 +1674,6 @@ li {
 
                 Task.Run(() => GetEntries((_selectedNode as NodeEntryCollection)));
 
-                // This changes the listview.
-               // NotifyPropertyChanged(nameof(Entries));
             }
             else if (_selectedNode is NodeFeed)
             {
@@ -1493,13 +1682,12 @@ li {
 
                 (_selectedNode as NodeFeed).LastUpdate = DateTime.Now;
 
-                Task.Run(() => GetEntries((_selectedNode as NodeFeed)));
+                Task.Run(() => GetEntries(_selectedNode));
             }
             else if (_selectedNode is NodeService)
             {
                 // TODO:
             }
-
         }
 
         public ICommand TreeviewLeftDoubleClickCommand { get; }
@@ -1783,6 +1971,25 @@ li {
 
                 NavigateUrlToContentPreviewBrowser?.Invoke(this, selectedEntry.AltHtmlUri);
             }
+        }
+
+        public ICommand MarkAsReadCommand { get; }
+
+        public bool MarkAsReadCommand_CanExecute()
+        {
+            if (SelectedNode == null) return false;
+            return (SelectedNode is NodeFeed) ? true : false;
+        }
+
+        public void MarkAsReadCommand_Execute()
+        {
+            if (SelectedNode == null)
+                return;
+
+            if (!(SelectedNode is NodeFeed))
+                return;
+
+            MarkAsRead(SelectedNode as NodeFeed);
         }
 
         #endregion

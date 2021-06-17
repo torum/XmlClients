@@ -280,7 +280,6 @@ namespace BlogWrite.Models
                             this.Children.Add(folder);
                         }
                     }
-
                 }
 
                 break;
@@ -291,9 +290,6 @@ namespace BlogWrite.Models
         {
             var feedName = node.Attributes["Name"].Value;
 
-            if (!string.IsNullOrEmpty(feedName))
-            { }
-
             var selecteds = string.IsNullOrEmpty(node.Attributes["Selected"].Value) ? "" : node.Attributes["Selected"].Value;
             var expandeds = string.IsNullOrEmpty(node.Attributes["Expanded"].Value) ? "" : node.Attributes["Expanded"].Value;
             bool isSelectedf = (selecteds == "true") ? true : false;
@@ -301,6 +297,20 @@ namespace BlogWrite.Models
 
             var endpoint = node.Attributes["EndPoint"].Value;
             string api = (node.Attributes["Api"] != null) ? node.Attributes["Api"].Value : "Unknown";
+
+            ApiTypes at;
+            switch (api)
+            {
+                case "AtomFeed":
+                    at = ApiTypes.atAtomFeed;
+                    break;
+                case "RssFeed":
+                    at = ApiTypes.atRssFeed;
+                    break;
+                default:
+                    at = ApiTypes.atUnknown;
+                    break;
+            }
 
             string siteTitle = "";
             var attr = node.Attributes["SiteTitle"];
@@ -325,19 +335,22 @@ namespace BlogWrite.Models
                 }
             }
 
-            ApiTypes at;
-            switch (api)
+            int unreadCount = 0;
+            attr = node.Attributes["UnreadCount"];
+            if (attr != null)
             {
-                case "AtomFeed":
-                    at = ApiTypes.atAtomFeed;
-                    break;
-                case "RssFeed":
-                    at = ApiTypes.atRssFeed;
-                    break;
-                default:
-                    at = ApiTypes.atUnknown;
-                    break;
+                if (!string.IsNullOrEmpty(node.Attributes["UnreadCount"].Value))
+                    unreadCount = int.Parse(node.Attributes["UnreadCount"].Value);
             }
+
+            DateTime lastUpdate = default;
+            attr = node.Attributes["LastUpdate"];
+            if (attr != null)
+            {
+                if (!string.IsNullOrEmpty(node.Attributes["LastUpdate"].Value))
+                    lastUpdate = DateTime.Parse(node.Attributes["LastUpdate"].Value);
+            }
+
 
             if (!string.IsNullOrEmpty(endpoint))
             {
@@ -355,7 +368,9 @@ namespace BlogWrite.Models
                     feed.SiteTitle = siteTitle;
                     feed.SiteUri = siteUri;
 
-                    //this.Children.Add(feed);
+                    feed.UnreadCount = unreadCount;
+                    feed.LastUpdate = lastUpdate;
+
                     return feed;
                 }
                 else if (at == ApiTypes.atRssFeed)
@@ -371,7 +386,9 @@ namespace BlogWrite.Models
                     feed.SiteTitle = siteTitle;
                     feed.SiteUri = siteUri;
 
-                    //this.Children.Add(feed);
+                    feed.UnreadCount = unreadCount;
+                    feed.LastUpdate = lastUpdate;
+
                     return feed;
                 }
             }
@@ -381,8 +398,8 @@ namespace BlogWrite.Models
 
         public XmlDocument AsXmlDoc()
         {
-            XmlDocument doc = new XmlDocument();
-            XmlDeclaration xmlDeclaration = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
+            XmlDocument doc = new();
+            doc.CreateXmlDeclaration("1.0", "UTF-8", null);
 
             XmlElement root = doc.CreateElement(string.Empty, "Accounts", string.Empty);
             doc.AppendChild(root);
@@ -402,15 +419,15 @@ namespace BlogWrite.Models
                         XmlElement service = doc.CreateElement(string.Empty, "Service", string.Empty);
 
                         XmlAttribute attrs = doc.CreateAttribute("Name");
-                        attrs.Value = (s).Name;
+                        attrs.Value = s.Name;
                         service.SetAttributeNode(attrs);
 
                         XmlAttribute attrsd = doc.CreateAttribute("Expanded");
-                        attrsd.Value = (s).IsExpanded ? "true" : "false";
+                        attrsd.Value = s.IsExpanded ? "true" : "false";
                         service.SetAttributeNode(attrsd);
 
                         XmlAttribute attrss = doc.CreateAttribute("Selected");
-                        attrss.Value = (s).IsSelected ? "true" : "false";
+                        attrss.Value = s.IsSelected ? "true" : "false";
                         service.SetAttributeNode(attrss);
 
                         XmlAttribute attrsn = doc.CreateAttribute("UserName");
@@ -424,6 +441,9 @@ namespace BlogWrite.Models
                         XmlAttribute attrse = doc.CreateAttribute("EndPoint");
                         attrse.Value = ((NodeService)s).EndPoint.AbsoluteUri;
                         service.SetAttributeNode(attrse);
+
+
+
 
                         XmlAttribute atstp = doc.CreateAttribute("Type");
                         switch (((NodeService)s).ServiceType)
@@ -642,19 +662,19 @@ namespace BlogWrite.Models
             XmlElement feed = doc.CreateElement(string.Empty, "Feed", string.Empty);
 
             XmlAttribute attrf = doc.CreateAttribute("Name");
-            attrf.Value = (fd).Name;
+            attrf.Value = fd.Name;
             feed.SetAttributeNode(attrf);
 
             attrf = doc.CreateAttribute("Expanded");
-            attrf.Value = (fd).IsExpanded ? "true" : "false";
+            attrf.Value = fd.IsExpanded ? "true" : "false";
             feed.SetAttributeNode(attrf);
 
             attrf = doc.CreateAttribute("Selected");
-            attrf.Value = (fd).IsSelected ? "true" : "false";
+            attrf.Value = fd.IsSelected ? "true" : "false";
             feed.SetAttributeNode(attrf);
 
             attrf = doc.CreateAttribute("EndPoint");
-            attrf.Value = (fd as NodeFeed).EndPoint.AbsoluteUri;
+            attrf.Value = fd.EndPoint.AbsoluteUri;
             feed.SetAttributeNode(attrf);
 
             attrf = doc.CreateAttribute("Type");
@@ -662,7 +682,7 @@ namespace BlogWrite.Models
             feed.SetAttributeNode(attrf);
 
             attrf = doc.CreateAttribute("Api");
-            switch ((fd as NodeFeed).Api)
+            switch (fd.Api)
             {
                 case ApiTypes.atAtomFeed:
                     attrf.Value = "AtomFeed";
@@ -679,12 +699,20 @@ namespace BlogWrite.Models
             }
 
             attrf = doc.CreateAttribute("SiteTitle");
-            attrf.Value = (fd as NodeFeed).SiteTitle;
+            attrf.Value = fd.SiteTitle;
             feed.SetAttributeNode(attrf);
 
             attrf = doc.CreateAttribute("SiteUri");
-            if ((fd as NodeFeed).SiteUri != null)
-                attrf.Value = (fd as NodeFeed).SiteUri.AbsoluteUri;
+            if (fd.SiteUri != null)
+                attrf.Value = fd.SiteUri.AbsoluteUri;
+            feed.SetAttributeNode(attrf);
+
+            attrf = doc.CreateAttribute("UnreadCount");
+            attrf.Value = fd.UnreadCount.ToString();
+            feed.SetAttributeNode(attrf);
+
+            attrf = doc.CreateAttribute("LastUpdate");
+            attrf.Value = fd.LastUpdate.ToString("yyyy-MM-dd HH:mm:ss");
             feed.SetAttributeNode(attrf);
 
             return feed;

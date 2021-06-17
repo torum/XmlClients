@@ -91,7 +91,7 @@ namespace BlogWrite.ViewModels
         {
             get
             {
-                return (_ent.Status == EntryFull.EntryStatus.esNew) ? true : false;
+                return (_ent.Status == EntryFull.EditStatus.esNew) ? true : false;
             }
         }
 
@@ -100,8 +100,8 @@ namespace BlogWrite.ViewModels
             get
             {
                 bool n, d;
-                n = (_ent.Status == EntryItem.EntryStatus.esNormal) ? true : false;
-                d = (_ent.Status == EntryItem.EntryStatus.esDraft) ? true : false;
+                n = (_ent.Status == EntryFull.EditStatus.esNormal) ? true : false;
+                d = (_ent.Status == EntryFull.EditStatus.esDraft) ? true : false;
 
                 return (n || d) ? true : false;
             }
@@ -111,7 +111,7 @@ namespace BlogWrite.ViewModels
         {
             get
             {
-                return (_ent.Status == EntryItem.EntryStatus.esNormal) ? true : false;
+                return (_ent.Status == EntryFull.EditStatus.esNormal) ? true : false;
             }
         }
 
@@ -165,13 +165,13 @@ namespace BlogWrite.ViewModels
 
             switch (_ent.Status)
             {
-                case EntryItem.EntryStatus.esNew:
+                case EntryFull.EditStatus.esNew:
                     PublishStatusIndex = 0;
                     break;
-                case EntryItem.EntryStatus.esNormal:
+                case EntryFull.EditStatus.esNormal:
                     PublishStatusIndex = 0;
                     break;
-                case EntryItem.EntryStatus.esDraft:
+                case EntryFull.EditStatus.esDraft:
                     PublishStatusIndex = 1;
                     break;
                 default:
@@ -230,23 +230,23 @@ namespace BlogWrite.ViewModels
 
                 if (_ent.IsDraft)
                 {
-                    _ent.Status = EntryItem.EntryStatus.esDraft;
+                    _ent.Status = EntryFull.EditStatus.esDraft;
                 }
                 else
                 {
-                    _ent.Status = EntryItem.EntryStatus.esNormal;
+                    _ent.Status = EntryFull.EditStatus.esNormal;
 
                 }
 
                 switch (_ent.Status)
                 {
-                    case EntryItem.EntryStatus.esNew:
+                    case EntryFull.EditStatus.esNew:
                         PublishStatusIndex = 0;
                         break;
-                    case EntryItem.EntryStatus.esNormal:
+                    case EntryFull.EditStatus.esNormal:
                         PublishStatusIndex = 0;
                         break;
-                    case EntryItem.EntryStatus.esDraft:
+                    case EntryFull.EditStatus.esDraft:
                         PublishStatusIndex = 1;
                         break;
                     default:
@@ -285,23 +285,23 @@ namespace BlogWrite.ViewModels
 
                 if (_ent.IsDraft)
                 {
-                    _ent.Status = EntryItem.EntryStatus.esDraft;
+                    _ent.Status = EntryFull.EditStatus.esDraft;
                 }
                 else
                 {
-                    _ent.Status = EntryItem.EntryStatus.esNormal;
+                    _ent.Status = EntryFull.EditStatus.esNormal;
 
                 }
 
                 switch (_ent.Status)
                 {
-                    case EntryItem.EntryStatus.esNew:
+                    case EntryFull.EditStatus.esNew:
                         PublishStatusIndex = 0;
                         break;
-                    case EntryItem.EntryStatus.esNormal:
+                    case EntryFull.EditStatus.esNormal:
                         PublishStatusIndex = 0;
                         break;
-                    case EntryItem.EntryStatus.esDraft:
+                    case EntryFull.EditStatus.esDraft:
                         PublishStatusIndex = 1;
                         break;
                     default:

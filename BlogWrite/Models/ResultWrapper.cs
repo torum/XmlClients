@@ -27,37 +27,27 @@ namespace BlogWrite.Models
     // Result Wrapper Class
     public abstract class ResultWrapper
     {
-        public ErrorObject Error;
+        public ErrorObject Error = new ErrorObject();
         public bool IsError = false;
-        //public Object Data;
-
-        public ResultWrapper()
-        {
-            Error = new ErrorObject();
-        }
     }
 
-    public class SqliteDataAccessResultWrapper
-    {
-        public ErrorObject Error;
-        public bool IsError = false;
+    public class SqliteDataAccessResultWrapper: ResultWrapper
+    { }
 
-        public SqliteDataAccessResultWrapper()
-        {
-            Error = new ErrorObject();
-        }
+    public class SqliteDataAccessInsertResultWrapper: SqliteDataAccessResultWrapper
+    {
+        public int InsertedCount;
+    }
+
+    public class SqliteDataAccessSelectResultWrapper: SqliteDataAccessResultWrapper
+    {
+        public int UnreadCount;
     }
 
     public class HttpClientEntryItemCollectionResultWrapper
     {
-        public ErrorObject Error;
+        public ErrorObject Error = new ErrorObject();
         public bool IsError = false;
         public ObservableCollection<EntryItem> Entries;
-
-        public HttpClientEntryItemCollectionResultWrapper()
-        {
-            Error = new ErrorObject();
-        }
     }
-
 }

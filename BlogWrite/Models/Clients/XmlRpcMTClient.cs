@@ -592,7 +592,7 @@ namespace BlogWrite.Models.Clients
             res.Entries = list;
 
             XmlDocument xdoc = new XmlDocument();
-            XmlDeclaration xmlDeclaration = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
+            xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
 
             XmlElement objRootNode, objMethodNode, objParamsNode, objParamNode, objValueNode, objTypeNode;
             XmlText xt;
@@ -1027,7 +1027,7 @@ name: wp_post_thumbnail - value:
 
             //TODO: MT doesn't have this flag? need to check.
             entry.IsDraft =  false;
-            entry.Status = EntryItem.EntryStatus.esNormal;
+            entry.Status = EditEntryItem.EditStatus.esNormal;
 
             return entry;
         }

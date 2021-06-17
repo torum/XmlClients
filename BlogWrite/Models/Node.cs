@@ -91,8 +91,7 @@ namespace BlogWrite.Models
         #endregion
     }
 
-    // Base class for Treeview Node.
-    // (BasedOn Node)
+    // Base class for Treeview Node. (Node)
     public abstract class NodeTree : Node
     {
         private string _pathData = "M20,18H4V8H20M20,6H12L10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6Z";
@@ -146,6 +145,23 @@ namespace BlogWrite.Models
                 _isExpanded = value;
 
                 NotifyPropertyChanged("IsExpanded");
+            }
+        }
+
+        private string _subNodeText;
+        public string SubNodeText
+        {
+            get
+            {
+                return _subNodeText;
+            }
+            set
+            {
+                if (_subNodeText == value)
+                    return;
+
+                _subNodeText = value;
+                NotifyPropertyChanged("SubNodeText");
             }
         }
 
@@ -274,8 +290,7 @@ namespace BlogWrite.Models
 
     }
 
-    // Folder
-    // (BasedOn NodeTree)
+    // NodeFolder for NodeFeeds (Node/NodeTree)
     public class NodeFolder : NodeTree
     {
         public ObservableCollection<EntryItem> ListAll { get; set; } = new ObservableCollection<EntryItem>();
@@ -286,10 +301,12 @@ namespace BlogWrite.Models
         }
     }
 
-    // Web Searvices Root Node (AtomPub, XML-RPC, etc)
-    // (BasedOn NodeTree)
+    // Web Searvices (for Feeds, AtomPub, XML-RPC) (Node/NodeTree)
     public class NodeService : NodeTree
     {
+        // Id = endPoint.AbsoluteUri 
+        public string Id { get; protected set; }
+
         // Service provider logos icon (svg based path data)
 
         // WordPress
@@ -317,9 +334,10 @@ namespace BlogWrite.Models
 
         public BaseClient Client { get; }
 
-        public string Id { get; protected set; }
 
-        public ErrorObject Error { get; set; }
+        public ErrorObject ErrorHttp { get; set; }
+
+        public ErrorObject ErrorDatabase { get; set; }
 
         // The DateTime of the last time checking new feed.
         public DateTime LastUpdate { get; set; }
@@ -336,7 +354,7 @@ namespace BlogWrite.Models
             ServiceType = serviceType;
 
             //Id = Guid.NewGuid().ToString();
-            this.Id = endPoint.AbsoluteUri;
+            Id = endPoint.AbsoluteUri;
 
             UserName = username;
 
@@ -401,20 +419,68 @@ namespace BlogWrite.Models
         }
     }
 
-    // Base NodeFeed class for Atom Feed and Rss Feed
-    // (BasedOn NodeService)
+    // Base NodeFeed class for Feed (Node/NodeTree/NodeService)
     abstract public class NodeFeed : NodeService
     {
+        private static string _defaultPathIcon = "M6.18,15.64A2.18,2.18 0 0,1 8.36,17.82C8.36,19 7.38,20 6.18,20C5,20 4,19 4,17.82A2.18,2.18 0 0,1 6.18,15.64M4,4.44A15.56,15.56 0 0,1 19.56,20H16.73A12.73,12.73 0 0,0 4,7.27V4.44M4,10.1A9.9,9.9 0 0,1 13.9,20H11.07A7.07,7.07 0 0,0 4,12.93V10.1Z";
+        private static string _loadingPathIcon = "M2 12C2 16.97 6.03 21 11 21C13.39 21 15.68 20.06 17.4 18.4L15.9 16.9C14.63 18.25 12.86 19 11 19C4.76 19 1.64 11.46 6.05 7.05C10.46 2.64 18 5.77 18 12H15L19 16H19.1L23 12H20C20 7.03 15.97 3 11 3C6.03 3 2 7.03 2 12Z";
+        private static string _loadErrorPathIcon = "M2 12C2 17 6 21 11 21C13.4 21 15.7 20.1 17.4 18.4L15.9 16.9C14.6 18.3 12.9 19 11 19C4.8 19 1.6 11.5 6.1 7.1S18 5.8 18 12H15L19 16H19.1L23 12H20C20 7 16 3 11 3S2 7 2 12M10 15H12V17H10V15M10 7H12V13H10V7";
+
         public string SiteTitle { get; set; }
 
         public Uri SiteUri { get; set; }
 
+        private int _unredCount;
+        public int UnreadCount
+        {
+            get
+            {
+                return _unredCount;
+            }
+            set
+            {
+                if (_unredCount == value)
+                    return;
 
-        
+                _unredCount = value;
 
-        private static string _defaultPathIcon = "M6.18,15.64A2.18,2.18 0 0,1 8.36,17.82C8.36,19 7.38,20 6.18,20C5,20 4,19 4,17.82A2.18,2.18 0 0,1 6.18,15.64M4,4.44A15.56,15.56 0 0,1 19.56,20H16.73A12.73,12.73 0 0,0 4,7.27V4.44M4,10.1A9.9,9.9 0 0,1 13.9,20H11.07A7.07,7.07 0 0,0 4,12.93V10.1Z";
-        private static string _loadingPathIcon = "M2 12C2 16.97 6.03 21 11 21C13.39 21 15.68 20.06 17.4 18.4L15.9 16.9C14.63 18.25 12.86 19 11 19C4.76 19 1.64 11.46 6.05 7.05C10.46 2.64 18 5.77 18 12H15L19 16H19.1L23 12H20C20 7.03 15.97 3 11 3C6.03 3 2 7.03 2 12Z";
-        private static string _loadErrorPathIcon = "M2 12C2 17 6 21 11 21C13.4 21 15.7 20.1 17.4 18.4L15.9 16.9C14.6 18.3 12.9 19 11 19C4.8 19 1.6 11.5 6.1 7.1S18 5.8 18 12H15L19 16H19.1L23 12H20C20 7 16 3 11 3S2 7 2 12M10 15H12V17H10V15M10 7H12V13H10V7";
+                NotifyPropertyChanged("UnreadCount");
+
+                if (_unredCount > 0)
+                {
+                    if (_unredCount > 99)
+                    {
+                        SubNodeText = "99+";
+                    }
+                    else
+                    {
+                        SubNodeText = _unredCount.ToString();
+                    }
+                }
+                else
+                {
+                    SubNodeText = "";
+                }
+            }
+        }
+
+        private bool _sDisplayUnreadOnly = true;
+        public bool IsDisplayUnreadOnly
+        {
+            get
+            {
+                return _sDisplayUnreadOnly;
+            }
+            set
+            {
+                if (_sDisplayUnreadOnly == value)
+                    return;
+
+                _sDisplayUnreadOnly = value;
+
+                NotifyPropertyChanged("IsDisplayUnreadOnly");
+            }
+        }
 
         public enum DownloadStatus
         {
@@ -463,10 +529,11 @@ namespace BlogWrite.Models
         }
     }
 
-    // Atom Feed
-    // (BasedOn NodeFeed)
+    // Atom Feed (Node/NodeTree/NodeService/NodeFeed)
     public class NodeAtomFeed : NodeFeed
     {
+        //public new ObservableCollection<FeedEntryItem> List { get; } = new ObservableCollection<FeedEntryItem>();
+
         public NodeAtomFeed(string name, Uri feedUrl) : base(name, feedUrl, ApiTypes.atAtomFeed)
         {
             Api = ApiTypes.atAtomFeed;
@@ -474,10 +541,11 @@ namespace BlogWrite.Models
         }
     }
 
-    // RSS Feed
-    // (BasedOn NodeFeed)
+    // RSS Feed  (Node/NodeTree/NodeService/NodeFeed)
     public class NodeRssFeed : NodeFeed
     {
+        //public new ObservableCollection<FeedEntryItem> List { get; } = new ObservableCollection<FeedEntryItem>();
+
         public NodeRssFeed(string name, Uri feedUrl) : base(name, feedUrl, ApiTypes.atRssFeed)
         {
             Api = ApiTypes.atRssFeed;
@@ -485,15 +553,13 @@ namespace BlogWrite.Models
         }
     }
 
-    // Web Searvices Workspaces Node
-    // (BasedOn NodeTree)
+    // Workspaces Node (Node/NodeTree)
     public class NodeWorkspaces : NodeTree
     {
         public NodeWorkspaces() { }
     }
 
-    // Web Searvices Workspace Node
-    // (BasedOn NodeTree)
+    // Workspace Node (Node/NodeTree)
     public class NodeWorkspace : NodeTree
     {
 
@@ -507,13 +573,13 @@ namespace BlogWrite.Models
 
     }
 
-    // class for EntryNode child (for treeview).
+    // Base EntryNode (for treeview). (Node/NodeTree)
     public class NodeEntries : NodeTree
     {
         public NodeEntries() { }
     }
 
-    // class for EntryNode (for treeview).
+    // 
     public class NodeEntryCollection : NodeTree
     {
         /// <summary>

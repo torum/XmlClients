@@ -6,9 +6,9 @@
         xmlns:local="clr-namespace:BlogWrite.Views"
         mc:Ignorable="d"
         Background="{DynamicResource WindowBackgroundBaseColorBrush}"
-        WindowStartupLocation="CenterScreen"
+        WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
-        Title="Info Window" Height="450" Width="600">
+        Title="Info Window" Height="500" Width="600">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="32" ResizeBorderThickness="{x:Static SystemParameters.WindowResizeBorderThickness}"/>
     </WindowChrome.WindowChrome>
@@ -21,17 +21,11 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <TabControl Grid.Row="0" Grid.Column="0" x:Name="InfoTabControl" Style="{DynamicResource HiddlenTabControl}" SelectedIndex="0">
+        <TabControl x:Name="InfoTabControl" Grid.Row="0" Grid.Column="0" Style="{DynamicResource HiddlenTabControl}" SelectedIndex="0">
             <TabItem Header="Feed" Style="{DynamicResource HiddlenTabHeaderCollapsed}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
+                    <GroupBox Header="Feed" Margin="12" Padding="6 6 6 24" Foreground="{DynamicResource ControlLightColorBrush}" BorderThickness="0.2">
+                        
                         <StackPanel Grid.Row="0" Grid.Column="0" Margin="12 0 12 0">
                             <StackPanel Margin="6">
                                 <Label Content="Name:" Style="{DynamicResource DefaultLabelStyle}" Margin="6 6 6 0"></Label>
@@ -81,7 +75,8 @@
                                 </StackPanel>
                             </GroupBox>
                         </StackPanel>
-                    </Grid>
+                        
+                    </GroupBox>
                 </ScrollViewer>
             </TabItem>
             <TabItem Header="Service" Style="{DynamicResource HiddlenTabHeaderCollapsed}">

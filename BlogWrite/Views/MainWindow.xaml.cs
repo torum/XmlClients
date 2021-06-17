@@ -74,7 +74,9 @@ namespace BlogWrite.Views
             RestoreButton.Visibility = Visibility.Collapsed;
             MaxButton.Visibility = Visibility.Visible;
 
-            if (this.DataContext is MainViewModel vm)
+            #region == Subscribing to a VM events ==
+
+            if (DataContext is MainViewModel vm)
             {
                 if (vm != null)
                 {
@@ -86,7 +88,7 @@ namespace BlogWrite.Views
                     vm.DebugClear += () => this.OnDebugClear();
 
                     vm.WriteHtmlToContentPreviewBrowser += (sender, arg) => { this.OnWriteHtmlToContentPreviewBrowser(arg); };
-                    
+
                     vm.NavigateUrlToContentPreviewBrowser += (sender, arg) => { this.OnNavigateUrlToContentPreviewBrowser(arg); };
 
                     vm.OpenServiceDiscoveryView += (sender, arg) => { this.OnCreateServiceDiscoveryWindow(this); };
@@ -95,18 +97,31 @@ namespace BlogWrite.Views
 
                     vm.ContentsBrowserWindowShowHide2 += (sender, arg) => this.OnContentsBrowserWindowShowHide2(arg);
 
+                    //
+                    vm.ResetListviewPosition += (sender, arg) => this.OnResetListviewPosition();
+
                     App app = App.Current as App;
                     if (app != null)
                     {
-
                         vm.OpenEditorView += (sender, arg) => { app.CreateOrBringToFrontEditorWindow(arg); };
 
                         vm.OpenEditorNewView += (sender, arg) => { app.CreateNewEditorWindow(arg); };
-
                     }
                 }
             }
+
+            #endregion
+
+            #if DEBUG
+            
+            // https://weblogs.asp.net/akjoshi/resolving-un-harmful-binding-errors-in-wpf
+            
+            PresentationTraceSources.DataBindingSource.Switch.Level = System.Diagnostics.SourceLevels.Critical;
+            
+            #endif
         }
+
+        #region == WebView2 ==
 
         private async void InitializeWebView2Async()
         {
@@ -114,7 +129,7 @@ namespace BlogWrite.Views
             var op = new CoreWebView2EnvironmentOptions("--disable-smooth-scrolling");
 
             // TODO: GetTempPath or MyDocument??
-            _env = await CoreWebView2Environment.CreateAsync(userDataFolder: System.IO.Path.Combine(System.IO.Path.GetTempPath(), "BlogWrite"), options:op);
+            _env = await CoreWebView2Environment.CreateAsync(userDataFolder: System.IO.Path.Combine(System.IO.Path.GetTempPath(), "BlogWrite"), options: op);
 
             Task nowait = ListViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
             ListViewContentPreviewWebBrowser.CoreWebView2InitializationCompleted += ListViewContentPreviewWebBrowser_InitializationCompleted;
@@ -125,6 +140,7 @@ namespace BlogWrite.Views
 
         private void ListViewContentPreviewWebBrowser_InitializationCompleted(object sender, EventArgs e)
         {
+            // Not yet supported in WebView2
             //ListViewContentPreviewWebBrowser.CoreWebView2.Settings.UserAgent = "";
 
             ListViewContentPreviewWebBrowser.NavigateToString(html);
@@ -132,10 +148,15 @@ namespace BlogWrite.Views
 
         private void CardViewContentPreviewWebBrowser_InitializationCompleted(object sender, EventArgs e)
         {
+            // Not yet supported in WebView2
             //CardViewContentPreviewWebBrowser.CoreWebView2.Settings.UserAgent = "";
 
             CardViewContentPreviewWebBrowser.NavigateToString(html);
         }
+
+        #endregion
+
+        #region == Window and menu ==
 
         public void BringToForeground()
         {
@@ -148,7 +169,7 @@ namespace BlogWrite.Views
             this.Activate();
             this.Focus();
         }
-        
+
         private void MainWindow_Closing(object sender, CancelEventArgs e)
         {
             // TODO: When MainWindow try to close itself, confirm to close all the child windows. 
@@ -192,7 +213,7 @@ namespace BlogWrite.Views
         {
             this.Close();
         }
-        
+
         private void MaxButton_Click(object sender, RoutedEventArgs e)
         {
             this.WindowState = WindowState.Maximized;
@@ -207,14 +228,10 @@ namespace BlogWrite.Views
         {
             this.WindowState = WindowState.Minimized;
         }
-        
-        private void EntryListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (!(sender is ListView))
-                return;
 
-            (sender as ListView).ScrollIntoView((sender as ListView).SelectedItem);
-        }
+        #endregion
+
+        #region == Events ==
 
         public void OnCreateServiceDiscoveryWindow(Window owner)
         {
@@ -417,42 +434,38 @@ namespace BlogWrite.Views
             }
         }
 
-        private void TreeViewMenuItemShowInfo_Click(object sender, RoutedEventArgs e)
+        public void OnResetListviewPosition()
         {
-            NodeTree targetItem = TreeViewMenu.SelectedItem as NodeTree;
+            if (CardViewListview.Items.Count > 0)
+            {
+                CardViewListview.ScrollIntoView(CardViewListview.Items[0]);
+            }
 
-            if (targetItem == null)
+            if (ListViewListView.Items.Count > 0)
+            {
+                ListViewListView.ScrollIntoView(ListViewListView.Items[0]);
+            }
+        }
+
+        #endregion
+
+        #region == ListView ==
+
+        private void EntryListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!(sender is ListView))
                 return;
 
-            if ((targetItem is NodeFeed) || (targetItem is NodeService))
-            {
-                if (targetItem is NodeFeed)
-                {
-                    var dialog = new InfoWindow()
-                    {
-                        Owner = this,
-                        Width = 600,
-                        Height = 450,
-                        Title = "Info Window",
-                        WindowStartupLocation = WindowStartupLocation.CenterOwner
-                    };
-
-                    dialog.InfoFeedTitleTextBox.Text = (targetItem as NodeFeed).Name;
-                    dialog.InfoFeedUrlTextBox.Text = (targetItem as NodeFeed).EndPoint.AbsoluteUri;
-                    dialog.InfoSiteTitleTextBox.Text = (targetItem as NodeFeed).SiteTitle;
-                    if ((targetItem as NodeFeed).SiteUri != null)
-                        dialog.InfoSiteUrlTextBox.Text = (targetItem as NodeFeed).SiteUri.AbsoluteUri;
-
-                    dialog.ShowDialog();
-                }
-            }
+            // not good at all
+            //(sender as ListView).ScrollIntoView((sender as ListView).SelectedItem);
         }
 
         private void CardViewListview_TargetUpdated(object sender, DataTransferEventArgs e)
         {
             if (CardViewListview.Items.Count > 0)
             {
-                CardViewListview.ScrollIntoView(CardViewListview.Items[0]);
+                // not good at all
+                //CardViewListview.ScrollIntoView(CardViewListview.Items[0]);
             }
         }
 
@@ -460,9 +473,61 @@ namespace BlogWrite.Views
         {
             if (ListViewListView.Items.Count > 0)
             {
-                ListViewListView.ScrollIntoView(ListViewListView.Items[0]);
+                // not good at all
+                //ListViewListView.ScrollIntoView(ListViewListView.Items[0]);
             }
         }
+
+        #endregion
+
+        #region == TreeviewItem InfoWindow ==
+
+        private void TreeViewMenuItemShowInfo_Click(object sender, RoutedEventArgs e)
+        {
+            NodeTree targetItem = TreeViewMenu.SelectedItem as NodeTree;
+
+            if (targetItem == null)
+                return;
+
+            if (targetItem is NodeFeed)
+            {
+                var dialog = new InfoWindow()
+                {
+                    Owner = this
+                };
+
+                // Feed Tab
+                dialog.InfoTabControl.SelectedIndex = 0;
+
+                dialog.InfoFeedTitleTextBox.Text = (targetItem as NodeFeed).Name;
+                dialog.InfoFeedUrlTextBox.Text = (targetItem as NodeFeed).EndPoint.AbsoluteUri;
+                dialog.InfoSiteTitleTextBox.Text = (targetItem as NodeFeed).SiteTitle;
+                if ((targetItem as NodeFeed).SiteUri != null)
+                    dialog.InfoSiteUrlTextBox.Text = (targetItem as NodeFeed).SiteUri.AbsoluteUri;
+
+                dialog.ShowDialog();
+            }
+            else if (targetItem is NodeService)
+            {
+                var dialog = new InfoWindow()
+                {
+                    Owner = this
+                };
+
+                // Service Tab
+                dialog.InfoTabControl.SelectedIndex = 1;
+
+
+
+                dialog.ShowDialog();
+            }
+            else
+            {
+                // TODO:
+            }
+        }
+
+        #endregion
 
         #region == TreeviewItem Delete ==
 
@@ -963,7 +1028,7 @@ namespace BlogWrite.Views
 
         #endregion
 
-        #region == MAXIMIZE時のタスクバー被りのFix ==
+        #region == Custom Window with Title Bar size fix ==
 
         // https://engy.us/blog/2020/01/01/implementing-a-custom-window-title-bar-in-wpf/
 

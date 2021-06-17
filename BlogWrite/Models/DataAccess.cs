@@ -32,7 +32,8 @@ namespace BlogWrite.Models
             // Create a table if not exists.
             connectionStringBuilder = new SqliteConnectionStringBuilder
             {
-                DataSource = dataBaseFilePath
+                DataSource = dataBaseFilePath,
+               
             };
 
             using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
@@ -61,6 +62,7 @@ namespace BlogWrite.Models
                                 "Image BLOB," +
                                 "Status TEXT," +
                                 "Flag INTEGER)";
+
                             tableCmd.ExecuteNonQuery();
 
                             tableCmd.Transaction.Commit();
@@ -137,11 +139,16 @@ namespace BlogWrite.Models
             return res;
         }
 
-        public SqliteDataAccessResultWrapper SelectEntriesByFeedId(ObservableCollection<EntryItem> entries, string feedId)
+        public SqliteDataAccessSelectResultWrapper SelectEntriesByFeedId(ObservableCollection<EntryItem> entries, string feedId, bool IsUnreadOnly)
         {
-            SqliteDataAccessResultWrapper res = new SqliteDataAccessResultWrapper();
+            SqliteDataAccessSelectResultWrapper res = new SqliteDataAccessSelectResultWrapper();
+
+            if (string.IsNullOrEmpty(feedId))
+                return res;
 
             entries.Clear();
+
+            int c = 0;
 
             try
             {
@@ -151,13 +158,20 @@ namespace BlogWrite.Models
 
                     using (var cmd = connection.CreateCommand())
                     {
-                        cmd.CommandText = String.Format("SELECT * FROM Entry WHERE Feed_ID = '{0}'", feedId);
+                        if (IsUnreadOnly)
+                        {
+                            cmd.CommandText = String.Format("SELECT * FROM Entry WHERE Feed_ID = '{0}' AND Flag = 0 ORDER BY Published DESC", feedId);
+                        }
+                        else
+                        {
+                            cmd.CommandText = String.Format("SELECT * FROM Entry WHERE Feed_ID = '{0}' ORDER BY Published DESC", feedId);
+                        }
 
                         using (var reader = cmd.ExecuteReader())
                         {
                             while (reader.Read())
                             {
-                                EntryItem entry = new EntryItem(Convert.ToString(reader["Title"]), feedId, null);
+                                FeedEntryItem entry = new FeedEntryItem(Convert.ToString(reader["Title"]), feedId, null);
 
                                 entry.EntryId = Convert.ToString(reader["Entry_ID"]);
 
@@ -185,8 +199,22 @@ namespace BlogWrite.Models
                                 }
 
                                 //entry.Status = Convert.ToString(reader["Status"]);
-                                
-                                //Convert.ToInt32(reader["Flag"]);
+
+                                int flag;
+                                try
+                                {
+                                    flag = Convert.ToInt32(reader["Flag"]);//Int32.Parse((string)reader["Flag"], System.Globalization.NumberStyles.Integer);
+                                }
+                                catch (Exception e)
+                                {
+                                    flag = 0;
+                                    Debug.WriteLine(e.Message + ": " + (string)reader["Flag"]);
+                                }
+
+                                if (flag == 0)
+                                {
+                                    c++;
+                                }
 
                                 entries.Add(entry);
 
@@ -232,17 +260,15 @@ namespace BlogWrite.Models
                 res.IsError = true;
                 res.Error.ErrType = ErrorObject.ErrTypes.DB;
                 res.Error.ErrCode = "";
-
+                res.Error.ErrText = e.ToString();
                 if (e.InnerException != null)
                 {
                     Debug.WriteLine(e.InnerException.Message + " @DataAccess::SelectEntriesByFeedId");
-                    res.Error.ErrText = "InnerException";
                     res.Error.ErrDescription = e.InnerException.Message;
                 }
                 else
                 {
                     Debug.WriteLine(e.Message + " @DataAccess::SelectEntriesByFeedId");
-                    res.Error.ErrText = "Exception";
                     res.Error.ErrDescription = e.Message;
                 }
                 res.Error.ErrDatetime = DateTime.Now;
@@ -252,12 +278,21 @@ namespace BlogWrite.Models
                 return res;
             }
 
+            Debug.WriteLine(string.Format("{0} Entries Selected ByFeedId {1} from DB", entries.Count.ToString(), feedId));
+
+            res.UnreadCount = c;
+
             return res;
         }
 
-        public SqliteDataAccessResultWrapper InsertEntries(ObservableCollection<EntryItem> entries, string feedId)
+        public SqliteDataAccessInsertResultWrapper InsertEntries(ObservableCollection<EntryItem> entries, string feedId)
         {
-            SqliteDataAccessResultWrapper res = new SqliteDataAccessResultWrapper();
+            SqliteDataAccessInsertResultWrapper res = new SqliteDataAccessInsertResultWrapper();
+
+            if (string.IsNullOrEmpty(feedId))
+                return res;
+
+            int c = 0;
 
             try
             {
@@ -272,6 +307,9 @@ namespace BlogWrite.Models
                         {
                             foreach (var entry in entries)
                             {
+                                if ((entry.EntryId == null) || (entry.AltHtmlUri == null))
+                                    continue;
+
                                 /*
                                 EntryItem entry = new("asdf", null);
                                 entry.AltHtmlUri = new("http://localhost/");
@@ -294,11 +332,7 @@ namespace BlogWrite.Models
 
                                 cmd.Parameters.AddWithValue("@Id", entry.Id);
                                 cmd.Parameters.AddWithValue("@feedId", feedId);
-                                if (entry.EntryId == null)
-                                    Debug.WriteLine("entry.EntryId is null");
                                 cmd.Parameters.AddWithValue("@EntryId", entry.EntryId);
-                                if (entry.AltHtmlUri == null)
-                                    Debug.WriteLine("entry.AltHtmlUri is null");
                                 cmd.Parameters.AddWithValue("@AltHtmlUri", entry.AltHtmlUri.AbsoluteUri);
                                 if (entry.Title != null)
                                     cmd.Parameters.AddWithValue("@Title", entry.Title);
@@ -335,43 +369,27 @@ namespace BlogWrite.Models
                                 }
                                 else
                                 {
-                                    SqliteParameter parameter1 = new SqliteParameter("@Image", System.Data.DbType.Binary);
+                                    SqliteParameter parameter1 = new("@Image", System.Data.DbType.Binary);
                                     parameter1.Value = entry.ImageByteArray;
                                     cmd.Parameters.Add(parameter1);
                                 }
-                                //cmd.Parameters.AddWithValue("@Image", DBNull.Value);
-                                /*
-                                if (entry.Image != null)
-                                {
-                                    byte[] data = BitmapImageToByteArray(entry.Image);
-                                    if (data != Array.Empty<byte>())
-                                    {
-                                        SqliteParameter parameter1 = new SqliteParameter("@Image", System.Data.DbType.Binary);
-                                        parameter1.Value = BitmapImageToByteArray(entry.Image);
-                                        cmd.Parameters.Add(parameter1);
-                                    }
-                                    else
-                                    {
-                                        cmd.Parameters.AddWithValue("@Image", DBNull.Value);
-                                    }
-                                }
-                                else
-                                {
-                                    cmd.Parameters.AddWithValue("@Image", DBNull.Value);
-                                }
-                                */
 
-                                cmd.Parameters.AddWithValue("@Status", entry.Status.ToString());
+                                if (entry is FeedEntryItem)
+                                {
+                                    cmd.Parameters.AddWithValue("@Status", (entry as FeedEntryItem).Status.ToString());
+                                }
+                                else if (entry is EditEntryItem)
+                                {
+                                    cmd.Parameters.AddWithValue("@Status", (entry as EditEntryItem).Status.ToString());
+                                }
+
                                 cmd.Parameters.AddWithValue("@Flag", 0);
 
                                 var r = cmd.ExecuteNonQuery();
+
                                 if (r > 0)
                                 {
-                                    //Debug.WriteLine("Inserted: " + r.ToString() + " for " + entry.EntryId);
-                                }
-                                else
-                                {
-                                    //Debug.WriteLine("Inserted: " + r.ToString() + " for " + entry.EntryId);
+                                    c++;
                                 }
                             }
 
@@ -447,9 +465,130 @@ namespace BlogWrite.Models
                 return res;
             }
 
+            Debug.WriteLine(string.Format("{0} Entries from {1} Inserted to DB", c.ToString(), feedId));
+
+            res.InsertedCount = c;
+
             return res;
         }
-       
+
+        public SqliteDataAccessResultWrapper UpdateEntriesAsRead(ObservableCollection<EntryItem> entries, string feedId)
+        {
+            SqliteDataAccessResultWrapper res = new SqliteDataAccessResultWrapper();
+
+            if (string.IsNullOrEmpty(feedId))
+                return res;
+
+            int c = 0;
+
+            try
+            {
+                using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
+                {
+                    connection.Open();
+
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        cmd.Transaction = connection.BeginTransaction();
+                        try
+                        {
+                            foreach (var entry in entries)
+                            {
+                                string sqlUpdateAsRead = String.Format("UPDATE Entry SET Flag = {1} WHERE ID = {0}", "@EntryId", "@Flag");
+
+                                cmd.CommandText = sqlUpdateAsRead;
+                                cmd.CommandType = CommandType.Text;
+
+                                cmd.Parameters.Clear();
+
+                                cmd.Parameters.AddWithValue("@EntryId", entry.Id);
+                                cmd.Parameters.AddWithValue("@Flag", 1);
+
+                                var r = cmd.ExecuteNonQuery();
+
+                                if (r > 0)
+                                {
+                                    c++;
+                                }
+                            }
+
+                            //　コミット
+                            cmd.Transaction.Commit();
+                        }
+                        catch (Exception e)
+                        {
+                            cmd.Transaction.Rollback();
+
+                            res.IsError = true;
+                            res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                            res.Error.ErrCode = "";
+                            res.Error.ErrText = "Exception";
+                            res.Error.ErrDescription = e.Message;
+                            res.Error.ErrDatetime = DateTime.Now;
+                            res.Error.ErrPlace = "connection.Open(),Transaction.Commit";
+                            res.Error.ErrPlaceParent = "DataAccess::UpdateEntriesAsRead";
+
+                            return res;
+                        }
+                    }
+                }
+            }
+            catch (System.Reflection.TargetInvocationException ex)
+            {
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+                res.Error.ErrText = "TargetInvocationException";
+                res.Error.ErrDescription = ex.Message;
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
+                res.Error.ErrPlaceParent = "DataAccess::UpdateEntriesAsRead";
+
+                return res;
+                //throw ex.InnerException;
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+                res.Error.ErrText = "InvalidOperationException";
+                res.Error.ErrDescription = ex.Message;
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
+                res.Error.ErrPlaceParent = "DataAccess::UpdateEntriesAsRead";
+
+                return res;
+                //throw ex.InnerException;
+            }
+            catch (Exception e)
+            {
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+
+                if (e.InnerException != null)
+                {
+                    res.Error.ErrText = "InnerException";
+                    res.Error.ErrDescription = e.InnerException.Message;
+                }
+                else
+                {
+                    res.Error.ErrText = "Exception";
+                    res.Error.ErrDescription = e.Message;
+                }
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
+                res.Error.ErrPlaceParent = "DataAccess::UpdateEntriesAsRead";
+
+                return res;
+            }
+
+            Debug.WriteLine(string.Format("{0} Entries from {1} Updated as read in the DB", (c + 1).ToString(), feedId));
+
+            return res;
+        }
+
         public static Byte[] BitmapImageToByteArray(BitmapImage bitmapImage)
         {
             try

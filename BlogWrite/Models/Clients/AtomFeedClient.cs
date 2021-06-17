@@ -92,8 +92,8 @@ namespace BlogWrite.Models.Clients
 
                         foreach (XmlNode l in entryList)
                         {
-                            AtomEntry ent = new AtomEntry("", feedId, this);
-                            ent.Status = EntryItem.EntryStatus.esNormal;
+                            FeedEntryItem ent = new FeedEntryItem("", feedId, this);
+                            //ent.Status = EditEntryItem.EditStatus.esNormal;
 
                             FillEntryItemFromXmlAtom(ent, l, atomNsMgr, feedId);
 
@@ -119,8 +119,8 @@ namespace BlogWrite.Models.Clients
 
                         foreach (XmlNode l in entryList)
                         {
-                            AtomEntry ent = new AtomEntry("", feedId, this);
-                            ent.Status = EntryItem.EntryStatus.esNormal;
+                            FeedEntryItem ent = new FeedEntryItem("", feedId, this);
+                            //ent.Status = EditEntryItem.EditStatus.esNormal;
 
                             FillEntryItemFromXmlAtom03(ent, l, atomNsMgr);
 
@@ -192,10 +192,8 @@ namespace BlogWrite.Models.Clients
             return res;
         }
 
-        private async void FillEntryItemFromXmlAtom03(AtomEntry entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr)
+        private async void FillEntryItemFromXmlAtom03(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr)
         {
-            //AtomEntry entry = await CreateAtomEntryFromXML(entryNode, atomNsMgr);
-
             XmlNode entryTitle = entryNode.SelectSingleNode("atom:title", atomNsMgr);
             if (entryTitle != null)
             {
@@ -212,7 +210,7 @@ namespace BlogWrite.Models.Clients
             string relAttr;
             string hrefAttr;
             string typeAttr;
-            Uri editUri = null;
+           
             Uri altUri = null;
 
             if (entryLinkUris != null)
@@ -225,13 +223,12 @@ namespace BlogWrite.Models.Clients
 
                     if (!string.IsNullOrEmpty(hrefAttr))
                     {
-
                         switch (relAttr)
                         {
                             case "service.post":
                                 try
                                 {
-                                    editUri = new Uri(hrefAttr);
+                                    //editUri = new Uri(hrefAttr);
                                     break;
                                 }
                                 catch
@@ -280,7 +277,7 @@ namespace BlogWrite.Models.Clients
                 }
             }
 
-            entItem.EditUri = editUri;
+            //entItem.EditUri = editUri;
             entItem.AltHtmlUri = altUri;
 
             XmlNode entryPublished = entryNode.SelectSingleNode("atom:issued", atomNsMgr);
@@ -298,7 +295,7 @@ namespace BlogWrite.Models.Clients
                 string contype = cont.Attributes["type"].Value;
                 if (!string.IsNullOrEmpty(contype))
                 {
-                    entItem.ContentTypeString = contype;
+                    //entItem.ContentTypeString = contype;
 
                     switch (contype)
                     {
@@ -363,38 +360,24 @@ namespace BlogWrite.Models.Clients
                 }
             }
 
+            entItem.Status = FeedEntryItem.ReadStatus.rsNew;
+
             if (entItem.ContentType == EntryItem.ContentTypes.textHtml)
             {
                 // gets image Uri
                 entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
-
-                // TODO: this is just a test.
-                /*
-                if (entItem.ImageUri != null)
-                {
-                    Byte[] bytes = await this.GetImage(entItem.ImageUri);
-                    if (bytes != Array.Empty<byte>())
-                    {
-                        if (Application.Current == null) { return; }
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            entItem.Image = BitmapImageFromBytes(bytes);
-                        });
-                    }
-                }
-                */
             }
         }
 
-        private async void FillEntryItemFromXmlAtom(AtomEntry entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr, string feedId)
+        private async void FillEntryItemFromXmlAtom(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr, string feedId)
         {
-
+            // TODO:
             AtomEntry entry = await CreateAtomEntryFromXmlAtom(entryNode, atomNsMgr, feedId);
 
             entItem.Name = entry.Name;
             //entItem.ID = entry.ID;
             entItem.EntryId = entry.EntryId;
-            entItem.EditUri = entry.EditUri;
+            //entItem.EditUri = entry.EditUri;
             entItem.AltHtmlUri = entry.AltHtmlUri;
             entItem.Published = entry.Published;
             entItem.Summary = entry.Summary;
@@ -403,32 +386,13 @@ namespace BlogWrite.Models.Clients
             entItem.ContentType = entry.ContentType;
             // entItem.EntryBody = entry;
 
-            entItem.Status = entry.Status;
+            entItem.Status = FeedEntryItem.ReadStatus.rsNew;
 
             if (entItem.ContentType == EntryItem.ContentTypes.textHtml)
             {
                 // gets image Uri
                 entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
-
-                // TODO: this is just a test.
-                /*
-                if (entItem.ImageUri != null)
-                {
-                    Byte[] bytes = await this.GetImage(entItem.ImageUri);
-                    if (bytes != Array.Empty<byte>())
-                    {
-                        entItem.ImageByteArray = bytes;
-
-                        if (Application.Current == null) { return; }
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            entItem.Image = BitmapImageFromBytes(bytes);
-                        });
-                    }
-                }
-                */
             }
-
         }
 
         private async Task<AtomEntry> CreateAtomEntryFromXmlAtom(XmlNode entryNode, XmlNamespaceManager atomNsMgr, string feedId)
@@ -671,7 +635,7 @@ namespace BlogWrite.Models.Clients
                 }
             }
 
-            entry.Status = EntryItem.EntryStatus.esNormal;
+            entry.Status = AtomEntry.EditStatus.esNormal;
 
             return entry;
         }
