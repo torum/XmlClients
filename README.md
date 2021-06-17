@@ -2,7 +2,7 @@
 
 ### Under developement
   
-C#/WPF port of "BlogWrite" originaly developed with Delphi.
+A full featured Feed reader and a WYSIWYG Blog editing (web publishing) client.  - a C#/WPF port of "BlogWrite" originaly developed with Delphi.
 
 #### Implements following Feed formats, REST protocols & API specifications:  
 
