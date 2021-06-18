@@ -676,10 +676,10 @@
                 </Border>
                 
                 <!-- Entries cardview/listview -->
-                <TabControl x:Name="ViewTab" Grid.Row="3" Grid.Column="0" Style="{DynamicResource TabControlBottomStyle}" TabStripPlacement="Bottom">
+                <TabControl x:Name="ViewTab" Grid.Row="3" Grid.Column="0" Style="{DynamicResource TabControlBottomStyle}" TabStripPlacement="Bottom" Margin="0" Padding="0">
 
                     <!-- CardsView -->
-                    <TabItem Header="Cards" Style="{DynamicResource TabItemBottomStyle}" Height="28" Width="84">
+                    <TabItem Header="Cards" Style="{DynamicResource TabItemBottomStyle}">
 
                         <ListView x:Name="CardViewListview" Background="Transparent" Foreground="LightGray" BorderThickness="0" Padding="0" ItemsSource="{Binding Entries, NotifyOnTargetUpdated=True}" TargetUpdated="CardViewListview_TargetUpdated" SelectedItem="{Binding Mode=TwoWay,Path=SelectedItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListView.InputBindings>
@@ -951,7 +951,7 @@
                     </TabItem>
 
                     <!-- ListView -->
-                    <TabItem Header="List" Style="{DynamicResource TabItemBottomStyle}" Height="28" Width="84">
+                    <TabItem Header="List" Style="{DynamicResource TabItemBottomStyle}">
                         
                         <Grid x:Name="GridListView" Background="{DynamicResource BoardBackgroundColorBrush}">
                             <Grid.RowDefinitions>
@@ -1240,7 +1240,7 @@
                             <GridSplitter x:Name="SplitterListViewContentPreviewWebBrowser" Grid.Row="2" Grid.Column="0" ResizeDirection="Rows" Style="{StaticResource GridSplitterStyle}"></GridSplitter>
 
                             <!-- ListView Bottom -->
-                            <Border x:Name="GridListViewContentPreviewWebBrowser" Grid.Row="3" Grid.Column="0" BorderBrush="#151515" BorderThickness="0,1,0,0" Margin="1">
+                            <Border x:Name="GridListViewContentPreviewWebBrowser" Grid.Row="3" Grid.Column="0" BorderBrush="#151515" BorderThickness="0,1,0,0" Margin="0">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -1523,15 +1523,15 @@
                     </StackPanel>
                 </StatusBarItem>
 
-                <Separator Grid.Column="5" Background="#202020" Margin="1"/>
+                <Separator Grid.Column="5" Background="Transparent" Margin="1"/>
                 
                 <!-- Debug Window Icon 
                  Visibility="{Binding IsDebugWindowEnabled, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}"
                 -->
-                <StatusBarItem Grid.Column="6" HorizontalContentAlignment="Center" Padding="0" Margin="0" Background="{DynamicResource BoardBackgroundColorBrush}">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="6 0 6 0" Width="24">
+                <StatusBarItem Grid.Column="6" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Padding="0" Margin="0" Background="{DynamicResource BoardBackgroundColorBrush}">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0" Width="24">
 
-                        <Button Width="24" Height="24" Margin="0" Padding="0" Command="{Binding ShowDebugWindowCommand}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" ToolTip="Debug Window Show/Hide">
+                        <Button Width="24" Height="24" Margin="0" Padding="0" Command="{Binding ShowDebugWindowCommand}" VerticalAlignment="Center" HorizontalAlignment="Center" ToolTip="Debug Window Show/Hide">
                             <Button.Style>
                                 <Style TargetType="{x:Type Button}">
                                     <Setter Property="OverridesDefaultStyle" Value="true" />
@@ -1543,7 +1543,7 @@
                                     <Setter Property="Template">
                                         <Setter.Value>
                                             <ControlTemplate TargetType="Button">
-                                                <Border x:Name="Border" Background="{TemplateBinding Background}" CornerRadius="0" BorderThickness="0">
+                                                <Border x:Name="Border" Background="{TemplateBinding Background}" VerticalAlignment="Center" CornerRadius="0" BorderThickness="0">
                                                     <Viewbox Width="16" Height="16">
                                                         <Canvas Width="24" Height="24">
                                                             <Canvas.RenderTransform>

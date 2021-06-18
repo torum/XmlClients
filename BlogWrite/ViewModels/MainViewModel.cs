@@ -59,6 +59,7 @@ namespace BlogWrite.ViewModels
     /// AtomPub and XML-RPC ..
 
     /// 更新履歴：
+    /// v0.0.0.30 TabBottomのスタイル作り直し。
     /// v0.0.0.29 全更新の時刻判定が逆だった。datetime pase no exception handling.
     /// v0.0.0.28 Author情報の取得。DBのFlagをIsReadに変更し、AuthorとStatusの保存と表示。Statusの更新はまだ。
     /// v0.0.0.27 FeedDupeCheck fixed. SiteUrl再チェック。
@@ -96,7 +97,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.29";
+        const string _appVer = "0.0.0.30";
         public string AppVer
         {
             get
@@ -1255,13 +1256,13 @@ li {
                         // check if lastupdate within...
                         if (last > now.AddHours(-1) && last <= now)
                         {
-                            Debug.WriteLine("Skippig: " + last.ToString());
+                            //Debug.WriteLine("Skippig: " + last.ToString());
                         }
                         else
                         {
                             (c as NodeFeed).LastUpdate = now;
 
-                            Debug.WriteLine("GETting: " + last.ToString());
+                            //Debug.WriteLine("GETting: " + last.ToString());
 
                             GetEntries(c);
 
