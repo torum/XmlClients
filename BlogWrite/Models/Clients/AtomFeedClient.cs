@@ -95,7 +95,7 @@ namespace BlogWrite.Models.Clients
                             FeedEntryItem ent = new FeedEntryItem("", feedId, this);
                             //ent.Status = EditEntryItem.EditStatus.esNormal;
 
-                            FillEntryItemFromXmlAtom(ent, l, atomNsMgr, feedId);
+                            FillEntryItemFromXmlAtom10(ent, l, atomNsMgr, feedId);
 
                             if (!string.IsNullOrEmpty(ent.EntryId))
                                 list.Add(ent);
@@ -242,7 +242,14 @@ namespace BlogWrite.Models.Clients
                                     {
                                         if (typeAttr == "text/html")
                                         {
-                                            altUri = new Uri(hrefAttr);
+                                            try
+                                            {
+                                                altUri = new Uri(hrefAttr);
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                Debug.WriteLine("Exception @new Uri(altUri) @ AtomFeedClient Atom0.3" + "(" + entItem.Name + ")" + " : " + e.Message);
+                                            }
                                         }
                                     }
                                     break;
@@ -258,13 +265,27 @@ namespace BlogWrite.Models.Clients
                                     {
                                         if (typeAttr == "text/html")
                                         {
-                                            altUri = new Uri(hrefAttr);
+                                            try
+                                            {
+                                                altUri = new Uri(hrefAttr);
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                Debug.WriteLine("Exception @new Uri(altUri) @ AtomFeedClient Atom0.3" + "(" + entItem.Name + ")" + " : " + e.Message);
+                                            }
                                         }
                                     }
                                     else
                                     {
-                                        // I am not happy but let's assume it is html.
-                                        altUri = new Uri(hrefAttr);
+                                        try
+                                        {
+                                            // I am not happy but let's assume it is html.
+                                            altUri = new Uri(hrefAttr);
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Debug.WriteLine("Exception @new Uri(altUri) @ AtomFeedClient Atom0.3" + "(" + entItem.Name + ")" + " : " + e.Message);
+                                        }
                                     }
                                     break;
                                 }
@@ -285,9 +306,41 @@ namespace BlogWrite.Models.Clients
             {
                 if (!string.IsNullOrEmpty(entryPublished.InnerText))
                 {
-                    entItem.Published = XmlConvert.ToDateTime(entryPublished.InnerText, XmlDateTimeSerializationMode.Local);
+                    try
+                    {
+                        entItem.Published = XmlConvert.ToDateTime(entryPublished.InnerText, XmlDateTimeSerializationMode.Local);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine("Exception @XmlConvert.ToDateTime in the Atom 0.3 feed " + "(" + entItem.Name + ")" + " : " + e.Message);
+                    }
                 }
             }
+
+            string entryAuthor = "";
+            XmlNodeList entryAuthors = entryNode.SelectNodes("atom:author", atomNsMgr);
+            if (entryAuthors != null)
+            {
+                foreach (XmlNode auth in entryAuthors)
+                {
+                    XmlNode authName = auth.SelectSingleNode("atom:name", atomNsMgr);
+                    if (authName != null)
+                    {
+                        if (string.IsNullOrEmpty(entryAuthor))
+                            entryAuthor = authName.InnerText;
+                        else
+                            entryAuthor += "/" + authName.InnerText;
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(entryAuthor))
+            {
+                if (altUri != null)
+                    entryAuthor = altUri.Host;
+            }
+
+            entItem.Author = entryAuthor;
 
             XmlNode cont = entryNode.SelectSingleNode("atom:content", atomNsMgr);
             if (cont == null)
@@ -369,7 +422,7 @@ namespace BlogWrite.Models.Clients
             }
         }
 
-        private async void FillEntryItemFromXmlAtom(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr, string feedId)
+        private async void FillEntryItemFromXmlAtom10(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr, string feedId)
         {
             // TODO:
             AtomEntry entry = await CreateAtomEntryFromXmlAtom(entryNode, atomNsMgr, feedId);
@@ -380,6 +433,7 @@ namespace BlogWrite.Models.Clients
             //entItem.EditUri = entry.EditUri;
             entItem.AltHtmlUri = entry.AltHtmlUri;
             entItem.Published = entry.Published;
+            entItem.Author = entry.Author;
             entItem.Summary = entry.Summary;
             entItem.SummaryPlainText = entry.SummaryPlainText;
             entItem.Content = entry.Content;
@@ -395,6 +449,7 @@ namespace BlogWrite.Models.Clients
             }
         }
 
+        // TODO:
         private async Task<AtomEntry> CreateAtomEntryFromXmlAtom(XmlNode entryNode, XmlNamespaceManager atomNsMgr, string feedId)
         {
             AtomEntry entry = new AtomEntry("", feedId, this);
@@ -435,8 +490,11 @@ namespace BlogWrite.Models.Clients
                                     editUri = new Uri(hrefAttr);
                                     break;
                                 }
-                                catch
+
+                                catch (Exception e)
                                 {
+                                    Debug.WriteLine("Exception @new Uri(editUri) @ AtomFeedClient Atom1.0" + "(" + entry.Name + ")" + " : " + e.Message);
+
                                     break;
                                 }
                             case "alternate":
@@ -446,7 +504,14 @@ namespace BlogWrite.Models.Clients
                                     {
                                         if (typeAttr == "text/html")
                                         {
-                                            altUri = new Uri(hrefAttr);
+                                            try
+                                            {
+                                                altUri = new Uri(hrefAttr);
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                Debug.WriteLine("Exception @new Uri(altUri) @ AtomFeedClient Atom1.0" + "(" + entry.Name + ")" + " : " + e.Message);
+                                            }
                                         }
                                     }
                                     break;
@@ -462,13 +527,27 @@ namespace BlogWrite.Models.Clients
                                     {
                                         if (typeAttr == "text/html")
                                         {
-                                            altUri = new Uri(hrefAttr);
+                                            try
+                                            {
+                                                altUri = new Uri(hrefAttr);
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                Debug.WriteLine("Exception @new Uri(altUri) @ AtomFeedClient Atom1.0" + "(" + entry.Name + ")" + " : " + e.Message);
+                                            }
                                         }
                                     }
                                     else
                                     {
-                                        // I am not happy but let's assume it is html.
-                                        altUri = new Uri(hrefAttr);
+                                        try
+                                        {
+                                            // I am not happy but let's assume it is html.
+                                            altUri = new Uri(hrefAttr);
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Debug.WriteLine("Exception @new Uri(altUri) @ AtomFeedClient Atom1.0" + "(" + entry.Name + ")" + " : " + e.Message);
+                                        }
                                     }
                                     break;
                                 }
@@ -489,9 +568,41 @@ namespace BlogWrite.Models.Clients
             {
                 if (!string.IsNullOrEmpty(entryPublished.InnerText))
                 {
-                    entry.Published = XmlConvert.ToDateTime(entryPublished.InnerText, XmlDateTimeSerializationMode.Utc);
+                    try
+                    {
+                        entry.Published = XmlConvert.ToDateTime(entryPublished.InnerText, XmlDateTimeSerializationMode.Utc);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine("Exception @XmlConvert.ToDateTime in the Atom 1.0 feed " + "(" + entry.Name + ")" + " : " + e.Message);
+                    }
                 }
             }
+
+            string entryAuthor = "";
+            XmlNodeList entryAuthors = entryNode.SelectNodes("atom:author", atomNsMgr);
+            if (entryAuthors != null)
+            {
+                foreach (XmlNode auth in entryAuthors)
+                {
+                    XmlNode authName = auth.SelectSingleNode("atom:name", atomNsMgr);
+                    if (authName != null)
+                    {
+                        if (string.IsNullOrEmpty(entryAuthor))
+                            entryAuthor = authName.InnerText;
+                        else
+                            entryAuthor += "/" + authName.InnerText;
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(entryAuthor))
+            {
+                if (altUri != null)
+                    entryAuthor = altUri.Host;
+            }
+
+            entry.Author = entryAuthor;
 
             /*
 <?xml version="1.0" encoding="utf-8"?>

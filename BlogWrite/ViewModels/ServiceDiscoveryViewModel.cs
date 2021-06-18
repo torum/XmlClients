@@ -440,14 +440,14 @@ namespace BlogWrite.ViewModels
                     return;
                 }
 
-                if (sr is ServiceHtmlResult)
+                if (sr is ServiceResultMultiple)
                 {
-                    if (((sr as ServiceHtmlResult).Feeds.Count > 0) || ((sr as ServiceHtmlResult).Services.Count > 0))
+                    if (((sr as ServiceResultMultiple).Feeds.Count > 0) || ((sr as ServiceResultMultiple).Services.Count > 0))
                     {
                         // Feeds
-                        if ((sr as ServiceHtmlResult).Feeds.Count > 0)
+                        if ((sr as ServiceResultMultiple).Feeds.Count > 0)
                         {
-                            foreach (var f in (sr as ServiceHtmlResult).Feeds)
+                            foreach (var f in (sr as ServiceResultMultiple).Feeds)
                             {
                                 FeedLinkItem li = new(f);
                                 li.Title = f.Title;
@@ -469,9 +469,9 @@ namespace BlogWrite.ViewModels
                         }
 
                         // TODO: Services
-                        if ((sr as ServiceHtmlResult).Services.Count > 0)
+                        if ((sr as ServiceResultMultiple).Services.Count > 0)
                         {
-                            foreach (var s in (sr as ServiceHtmlResult).Services)
+                            foreach (var s in (sr as ServiceResultMultiple).Services)
                             {
                                 //ServiceLinkItem li = new(s);
                                 //li.Title = 

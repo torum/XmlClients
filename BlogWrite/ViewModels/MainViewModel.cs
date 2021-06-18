@@ -25,6 +25,14 @@ namespace BlogWrite.ViewModels
 {
     /// TODO: 
     /// 
+    /// Feedを追加したり、削除したりしたタイミングでService.xmlを保存しておく。
+    /// 
+    /// NodeFeedをDeleteした時に、DBから記事を削除。
+    /// 
+    /// 個別のFeedEntryItemのStatusをDB更新する。
+    /// 
+    /// DBのSelectのAsync化。
+    /// 
     /// 毎回DBからEntriesを読み込んでいるなら、各NodeにCollectionをため込んでおく意味ない・・・むしろ。
     /// 
     /// 画像のダウンロードとサムネイル化と、読み込みのタイミング。
@@ -40,18 +48,18 @@ namespace BlogWrite.ViewModels
     /// 
     /// [Bug] Feed取得中はDrag and Dropできないようにする。
     /// 
-    /// 
-    /// [Editer][TODO]  AtomPub and XML-RPC ..
-    /// 
-    /// [Usability] Feed listview item "author" etc.
-    /// [Usability] View形式をFeedやサービスごとに覚える。
+    /// View形式をFeedやサービスごとに覚える。
     /// 
     /// WebView2の環境設定で、保存ディレクトリはMyDocumentで良いんじゃないかと・・・
     /// ServiceDiscoveryのFeed追加で、もう一画面かましてサイト名を表示して、Feedの名前を変更できるようにする?
     /// 
+    /// AtomPub and XML-RPC ..
 
     /// 更新履歴：
-    /// v0.0.0.26 DBエラーとHTTPエラーを分けた。とりあえず、Feed 既読管理。
+    /// v0.0.0.29 全更新の時刻判定が逆だった。datetime pase no exception handling.
+    /// v0.0.0.28 Author情報の取得。DBのFlagをIsReadに変更し、AuthorとStatusの保存と表示。Statusの更新はまだ。
+    /// v0.0.0.27 FeedDupeCheck fixed. SiteUrl再チェック。
+    /// v0.0.0.26 DBエラーとHTTPエラーを分けた。とりあえず、Feed 既読管理（既読・未読Flag設定、未読のみ切り替え表示、未読件数表示）。
     /// v0.0.0.25 取得と保存と表示の流れで、ベースの形とエラー取り回し。
     /// v0.0.0.24 とりあえず、SQLiteの初期化からInsertとSelectまで。
     /// v0.0.0.23 とりあえず、古いAtom0.3のFeed読み込みにも対応した。Atom0.3 Apiの方は対応予定無し。
@@ -85,7 +93,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.26";
+        const string _appVer = "0.0.0.29";
         public string AppVer
         {
             get
@@ -141,6 +149,8 @@ namespace BlogWrite.ViewModels
                 if (_selectedNode == null)
                     return;
 
+                SelectedServiceName = _selectedNode.Name;
+
                 if (_selectedNode is NodeService)
                 {
                     if ((_selectedNode as NodeService).ErrorHttp != null)
@@ -180,6 +190,21 @@ namespace BlogWrite.ViewModels
                 LoadEntries(_selectedNode);
 
                 ResetListviewPosition?.Invoke(this,0);
+            }
+        }
+
+        private string _selectedServiceName;
+        public string SelectedServiceName
+        {
+            get { return _selectedServiceName; }
+            set
+            {
+                if (_selectedServiceName == value)
+                    return;
+
+                _selectedServiceName = value;
+
+                NotifyPropertyChanged(nameof(SelectedServiceName));
             }
         }
 
@@ -854,9 +879,6 @@ li {
                 MainError.ErrPlace = "dataAccessModule.InitializeDatabase";
                 MainError.ErrPlaceParent = "MainViewModel()";
                 IsShowMainErrorMessage = true;
-
-                //TODO:
-                Debug.WriteLine("SQLite DB init: " + e.Message);
             }
 
             #endregion
@@ -879,8 +901,6 @@ li {
 
             }
 
-            // starts update feeds and collections.
-            //StartUpdate();
         }
 
         #region == Startup and Shutdown ==
@@ -1003,6 +1023,10 @@ li {
             IsDebugWindowEnabled = true;
             CloseContentBrowserCommand_Execute();
 
+
+
+            // starts update feeds and collections.
+            StartUpdate();
         }
 
         // OnWindowClosing
@@ -1214,7 +1238,7 @@ li {
             Task.Run(() => StartUpdateRecursiveLoop(_services.Children));
         }
 
-        private void StartUpdateRecursiveLoop(ObservableCollection<NodeTree> nt)
+        private async void StartUpdateRecursiveLoop(ObservableCollection<NodeTree> nt)
         {
             foreach (NodeTree c in nt)
             {
@@ -1228,9 +1252,17 @@ li {
                         // check if lastupdate within...
                         if (last > now.AddHours(-1) && last <= now)
                         {
-                            (c as NodeFeed).LastUpdate = DateTime.Now;
+                            Debug.WriteLine("Skippig: " + last.ToString());
+                        }
+                        else
+                        {
+                            (c as NodeFeed).LastUpdate = now;
+
+                            Debug.WriteLine("GETting: " + last.ToString());
 
                             GetEntries(c);
+
+                            await Task.Delay(1000);
                         }
                     }
                 }
@@ -1244,15 +1276,16 @@ li {
         {
             if (FeedDupeCheck(fl.FeedUri.AbsoluteUri))
                 return;
-            
+
             if (fl.FeedKind == FeedLink.FeedKinds.Atom)
             {
                 NodeAtomFeed a = new(fl.Title, fl.FeedUri);
                 a.Api = ApiTypes.atAtomFeed;
                 a.ServiceType = ServiceTypes.Feed;
                 a.Parent = _services;
+                a.IsSelected = true;
 
-                a.SiteTitle = fl.Title;
+                a.SiteTitle = fl.SiteTitle;
                 a.SiteUri = fl.SiteUri;
 
                 a.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
@@ -1266,8 +1299,9 @@ li {
                 a.Api = ApiTypes.atRssFeed;
                 a.ServiceType = ServiceTypes.Feed;
                 a.Parent = _services;
+                a.IsSelected = true;
 
-                a.SiteTitle = fl.Title;
+                a.SiteTitle = fl.SiteTitle;
                 a.SiteUri = fl.SiteUri;
 
                 a.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
@@ -1288,7 +1322,6 @@ li {
             Application.Current.Dispatcher.Invoke(() => Services.Add(nodeService));
         }
 
-        // TODO: not working?
         private bool FeedDupeCheck(string feedUri)
         {
             return FeedDupeCheckRecursiveLoop(Services, feedUri);
@@ -1296,21 +1329,22 @@ li {
 
         private bool FeedDupeCheckRecursiveLoop(ObservableCollection<NodeTree> nt, string feedUri)
         {
-            bool res = false;
-
             foreach (NodeTree c in nt)
             {
                 if (c is NodeFeed)
                 {
                     if ((c as NodeFeed).EndPoint.AbsoluteUri.Equals(feedUri))
+                    {
                         return true;
+                    }
                 }
 
                 if (c.Children.Count > 0)
-                    res =FeedDupeCheckRecursiveLoop(c.Children, feedUri);
+                    if (FeedDupeCheckRecursiveLoop(c.Children, feedUri))
+                        return true;
             }
 
-            return res;
+            return false;
         }
 
         private async void GetEntries(NodeTree nd)
@@ -1940,12 +1974,19 @@ li {
 
             if (selectedEntry.AltHtmlUri != null)
             {
-                SelectedItem = selectedEntry;
+                //SelectedItem = selectedEntry;
 
                 //System.Diagnostics.Process.Start(selectedEntry.AltHTMLUri.AbsoluteUri);
                 ProcessStartInfo psi = new ProcessStartInfo(selectedEntry.AltHtmlUri.AbsoluteUri);
                 psi.UseShellExecute = true;
                 Process.Start(psi);
+
+                if (selectedEntry is FeedEntryItem)
+                {
+                    (selectedEntry as FeedEntryItem).Status = FeedEntryItem.ReadStatus.rsVisited;
+
+                    // TODO: UPDATE DB
+                }
             }
         }
 
@@ -1970,6 +2011,13 @@ li {
                 IsContentBrowserVisible = true;
 
                 NavigateUrlToContentPreviewBrowser?.Invoke(this, selectedEntry.AltHtmlUri);
+
+                if (selectedEntry is FeedEntryItem)
+                {
+                    (selectedEntry as FeedEntryItem).Status = FeedEntryItem.ReadStatus.rsVisited;
+
+                    // TODO: UPDATE DB
+                }
             }
         }
 

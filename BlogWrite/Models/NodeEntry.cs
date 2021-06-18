@@ -33,6 +33,23 @@ namespace BlogWrite.Models
         // A link to Entry's HTML webpage.
         public Uri AltHtmlUri { get; set; }
 
+        private string _pathIcon;
+        public string PathIcon
+        {
+            get
+            {
+                return _pathIcon;// "M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z";
+            }
+            set
+            {
+                if (_pathIcon == value)
+                    return;
+
+                _pathIcon = value;
+                NotifyPropertyChanged(nameof(PathIcon));
+            }
+        }
+
         public string Title
         {
             get
@@ -116,7 +133,7 @@ namespace BlogWrite.Models
         }
 
         // in UTC
-        private DateTime _published;
+        private DateTime _published = default;
         public DateTime Published
         {
             get
@@ -142,9 +159,22 @@ namespace BlogWrite.Models
             }
         }
 
-        // TODO:
-        // author, etc
+        private string _author;
+        public string Author
+        {
+            get
+            {
+                return _author;
+            }
+            set
+            {
+                if (_author == value)
+                    return;
 
+                _author = value;
+                NotifyPropertyChanged(nameof(Author));
+            }
+        }
 
         private Uri _imageUri;
         public Uri ImageUri
@@ -199,7 +229,6 @@ namespace BlogWrite.Models
 
         public BaseClient Client { get; } = null;
 
-        // Constructor.
         public EntryItem(string title, string serviceId, BaseClient bc) : base(title)
         {
             Client = bc;
@@ -217,30 +246,6 @@ namespace BlogWrite.Models
         private static string _esUpdating = "M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M12,18C9.95,18 8.19,16.76 7.42,15H9.13C9.76,15.9 10.81,16.5 12,16.5A3.5,3.5 0 0,0 15.5,13A3.5,3.5 0 0,0 12,9.5C10.65,9.5 9.5,10.28 8.9,11.4L10.5,13H6.5V9L7.8,10.3C8.69,8.92 10.23,8 12,8A5,5 0 0,1 17,13A5,5 0 0,1 12,18Z";
         private static string _esQueueUpdate = "M14,2H6C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M12.54,19.37V17.37H8.54V15.38H12.54V13.38L15.54,16.38L12.54,19.37M13,9V3.5L18.5,9H13Z";
         private static string _esQueuePost = "M13,9H18.5L13,3.5V9M6,2H14L20,8V20A2,2 0 0,1 18,22H6C4.89,22 4,21.1 4,20V4C4,2.89 4.89,2 6,2M11,15V12H9V15H6V17H9V20H11V17H14V15H11Z";
-
-        // Icons
-        public string PathIcon
-        {
-            get
-            {
-                switch (Status)
-                {
-                    case EditStatus.esNew:
-                        return _esNew;
-                    case EditStatus.esDraft:
-                        return _esDraft;
-                    case EditStatus.esNormal:
-                        return _esNormal;
-                    case EditStatus.esUpdating:
-                        return _esUpdating;
-                    case EditStatus.esQueueUpdate:
-                        return _esQueueUpdate;
-                    case EditStatus.esQueuePost:
-                        return _esQueuePost;
-                    default: return _esNew;
-                }
-            }
-        }
 
         // IsDraft flag. AtomPub and XML-PRC WP. MP doesn't have this?
         public bool IsDraft { get; set; }
@@ -271,7 +276,31 @@ namespace BlogWrite.Models
 
                 // Update icon.
                 NotifyPropertyChanged(nameof(Status));
-                NotifyPropertyChanged(nameof(PathIcon));
+
+                switch (_es)
+                {
+                    case EditStatus.esNew:
+                        PathIcon = _esNew;
+                        break;
+                    case EditStatus.esDraft:
+                        PathIcon = _esDraft;
+                        break;
+                    case EditStatus.esNormal:
+                        PathIcon = _esNormal;
+                        break;
+                    case EditStatus.esUpdating:
+                        PathIcon = _esUpdating;
+                        break;
+                    case EditStatus.esQueueUpdate:
+                        PathIcon = _esQueueUpdate;
+                        break;
+                    case EditStatus.esQueuePost:
+                        PathIcon = _esQueuePost;
+                        break;
+                    default:
+                        PathIcon = _esNew;
+                        break;
+                }
             }
         }
 
@@ -284,11 +313,16 @@ namespace BlogWrite.Models
     // Feed Entry Item
     public class FeedEntryItem : EntryItem
     {
+        // Icon Path
+        private static string _rsNew = "M12 5C15.87 5 19 8.13 19 12C19 15.87 15.87 19 12 19C8.13 19 5 15.87 5 12C5 8.13 8.13 5 12 5M12 2C17.5 2 22 6.5 22 12C22 17.5 17.5 22 12 22C6.5 22 2 17.5 2 12C2 6.5 6.5 2 12 2M12 4C7.58 4 4 7.58 4 12C4 16.42 7.58 20 12 20C16.42 20 20 16.42 20 12C20 7.58 16.42 4 12 4Z";
+        private static string _rsNormal = "M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z";
+        private static string _rsVisited = "M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M12 20C7.59 20 4 16.41 4 12S7.59 4 12 4 20 7.59 20 12 16.41 20 12 20M16.59 7.58L10 14.17L7.41 11.59L6 13L10 17L18 9L16.59 7.58Z";
+
         public enum ReadStatus
         {
             rsNew,
-            rsUnread,
-            rsRead
+            rsNormal,
+            rsVisited
         }
 
         private ReadStatus _rs;
@@ -303,15 +337,60 @@ namespace BlogWrite.Models
                 if (_rs == value)
                     return;
                 _rs = value;
-
-                // Update icon.
                 NotifyPropertyChanged(nameof(Status));
+
+                PathIcon = _rs switch
+                {
+                    ReadStatus.rsNew => _rsNew,
+                    ReadStatus.rsNormal => _rsNormal,
+                    ReadStatus.rsVisited => _rsVisited,
+                    _ => _rsNew,
+                };
+            }
+        }
+
+        private bool _isRead = false;
+        public bool IsRead
+        {
+            get
+            {
+                return _isRead;
+            }
+            set
+            {
+                if (_isRead == value)
+                    return;
+                _isRead = value;
+                NotifyPropertyChanged(nameof(IsRead));
             }
         }
 
         public FeedEntryItem(string title, string serviceId, BaseClient bc) : base(title, serviceId, bc)
         {
+            PathIcon = _rsNew;
+
             Status = ReadStatus.rsNew;
+
+        }
+
+        public ReadStatus StatusTextToType(string status)
+        {
+            if (status == ReadStatus.rsNew.ToString())
+            {
+                return ReadStatus.rsNew;
+            }
+            else if (status == ReadStatus.rsNormal.ToString())
+            {
+                return ReadStatus.rsNormal;
+            }
+            else if (status == ReadStatus.rsVisited.ToString())
+            {
+                return ReadStatus.rsVisited;
+            }
+            else
+            {
+                return ReadStatus.rsNew;
+            }
         }
     }
 

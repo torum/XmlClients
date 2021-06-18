@@ -77,6 +77,9 @@ namespace BlogWrite.Models.Clients
                     // RSS 2.0
                     if (xdoc.DocumentElement.LocalName.Equals("rss"))
                     {
+                        XmlNamespaceManager NsMgr = new XmlNamespaceManager(xdoc.NameTable);
+                        NsMgr.AddNamespace("dc", "http://purl.org/dc/elements/1.1/");
+
                         XmlNodeList entryList;
                         entryList = xdoc.SelectNodes("//rss/channel/item");
                         if (entryList == null)
@@ -90,7 +93,7 @@ namespace BlogWrite.Models.Clients
                         {
                             FeedEntryItem ent = new FeedEntryItem("", feedId, this);
 
-                            FillEntryItemFromXmlRss(ent, l);
+                            FillEntryItemFromXmlRss(ent, l, NsMgr);
 
                             if (!string.IsNullOrEmpty(ent.EntryId))
                                 list.Add(ent);
@@ -185,7 +188,7 @@ namespace BlogWrite.Models.Clients
             return res;
         }
 
-        private async void FillEntryItemFromXmlRss(FeedEntryItem entItem, XmlNode entryNode)
+        private async void FillEntryItemFromXmlRss(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager NsMgr)
         {
             XmlNode entryTitle = entryNode.SelectSingleNode("title");
             entItem.Name = (entryTitle != null) ? entryTitle.InnerText : "";
@@ -200,7 +203,10 @@ namespace BlogWrite.Models.Clients
                     if (!string.IsNullOrEmpty(entryLinkUri.InnerText))
                         entItem.AltHtmlUri = new Uri(entryLinkUri.InnerText);
             }
-            catch { }
+            catch (Exception e)
+            {
+                Debug.WriteLine("Exception @new Uri(entryLinkUri.InnerText)" + "(" + entItem.Name + ")" + " : " + e.Message);
+            }
 
             if (string.IsNullOrEmpty(entItem.EntryId))
                 if (entItem.AltHtmlUri != null)
@@ -218,9 +224,33 @@ namespace BlogWrite.Models.Clients
 
                         entItem.Published = dtf.ToUniversalTime().DateTime;
                     }
-                    catch {}
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine("Exception @ParseDateTimeRFC822 in the RSS 2.0 feed " + "("+ entItem.Name  + ")" + " : " + e.Message);
+                    }
                 }
             }
+
+            string entryAuthor = "";
+            XmlNodeList entryAuthors = entryNode.SelectNodes("dc:creator", NsMgr);
+            if (entryAuthors != null)
+            {
+                foreach (XmlNode auth in entryAuthors)
+                {
+                    if (string.IsNullOrEmpty(entryAuthor))
+                        entryAuthor = auth.InnerText;
+                    else
+                        entryAuthor += "/" + auth.InnerText;
+                }
+            }
+
+            if (string.IsNullOrEmpty(entryAuthor))
+            {
+                if (entItem.AltHtmlUri != null)
+                    entryAuthor = entItem.AltHtmlUri.Host;
+            }
+
+            entItem.Author = entryAuthor;
 
             // Force textHtml for RSS feed. Even though description was missing. (needs this for browser)
             entItem.ContentType = EntryItem.ContentTypes.textHtml;
@@ -260,7 +290,10 @@ namespace BlogWrite.Models.Clients
                     if (!string.IsNullOrEmpty(entryLinkUri.InnerText))
                         entItem.AltHtmlUri = new Uri(entryLinkUri.InnerText);
             }
-            catch { }
+            catch (Exception e)
+            {
+                Debug.WriteLine("Exception @new Uri(entryLinkUri.InnerText)" + "(" + entItem.Name + ")" + " : " + e.Message);
+            }
 
             if (string.IsNullOrEmpty(entItem.EntryId))
                 if (entItem.AltHtmlUri != null)
@@ -276,9 +309,33 @@ namespace BlogWrite.Models.Clients
                     {
                         entItem.Published = DateTime.Parse(s, null, System.Globalization.DateTimeStyles.RoundtripKind);
                     }
-                    catch { }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine("Exception @DateTime.Parse in the RSS 1.0 feed " + "(" + entItem.Name + ")" + " : " + e.Message);
+                    }
                 }
             }
+
+            string entryAuthor = "";
+              XmlNodeList entryAuthors = entryNode.SelectNodes("dc:creator", NsMgr);
+            if (entryAuthors != null)
+            {
+                foreach (XmlNode auth in entryAuthors)
+                {
+                    if (string.IsNullOrEmpty(entryAuthor))
+                        entryAuthor = auth.InnerText;
+                    else
+                        entryAuthor += "/" + auth.InnerText;
+                }
+            }
+
+            if (string.IsNullOrEmpty(entryAuthor))
+            {
+                if (entItem.AltHtmlUri != null)
+                    entryAuthor = entItem.AltHtmlUri.Host;
+            }
+
+            entItem.Author = entryAuthor;
 
             // Force textHtml for RSS feed. Even though description was missing. (needs this for browser)
             entItem.ContentType = EntryItem.ContentTypes.textHtml;

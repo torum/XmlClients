@@ -15,13 +15,13 @@ namespace BlogWrite.Models
             DB, API, HTTP, Other
         };
 
-        public ErrTypes ErrType { get; set; } // eg "API, DB, other"
-        public string ErrCode { get; set; } // HTTP ERROR CODE?
-        public string ErrText { get; set; } // eg API error code translated via dictionaly.
-        public string ErrPlace { get; set; } // eg PATH info for REST or method 
-        public string ErrPlaceParent { get; set; } // ? site or class name
+        public ErrTypes ErrType { get; set; } 
+        public string ErrCode { get; set; } // HTTP error code?
+        public string ErrText { get; set; } // eg Error title, or type of Exception, API error code translated via dictionaly.
+        public string ErrPlace { get; set; } // eg method name, or PATH info for REST
+        public string ErrPlaceParent { get; set; } // class name or site address  
         public DateTime ErrDatetime { get; set; }
-        public string ErrDescription { get; set; } // 自前の補足説明。
+        public string ErrDescription { get; set; } // error message.
     }
 
     // Result Wrapper Class

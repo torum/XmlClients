@@ -704,6 +704,9 @@ namespace BlogWrite.Views
 
         public TreeViewItem GetParentObjectEx<TreeViewItem>(DependencyObject obj) where TreeViewItem : FrameworkElement
         {
+            if (obj == null)
+                return null;
+
             DependencyObject parent = VisualTreeHelper.GetParent(obj);
             while (parent != null)
             {

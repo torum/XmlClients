@@ -52,49 +52,13 @@
                     <RowDefinition Height="32"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="232"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="232"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- App icon -->
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Collapsed">
-                    <Button ToolTip="{Binding AppTitle}" Width="32" Height="32" IsHitTestVisible="True" WindowChrome.IsHitTestVisibleInChrome="True">
-                        <Button.Style>
-                            <Style TargetType="{x:Type Button}">
-                                <Setter Property="OverridesDefaultStyle" Value="true" />
-                                <Setter Property="Background" Value="{DynamicResource BoardBackgroundColorBrush}" />
-                                <Setter Property="Foreground" Value="{DynamicResource ControlForegroundColorBrush}"/>
-                                <!--
-                                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-                                -->
-                                <Setter Property="Focusable" Value="False" />
-                                <Setter Property="BorderThickness" Value="0" />
-                                <Setter Property="Margin" Value="0" />
-                                <Setter Property="Padding" Value="0" />
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border x:Name="Border" CornerRadius="0" BorderThickness="0" Background="{TemplateBinding Background}">
-                                                <Viewbox Width="16" Height="16" Margin="6 0 6 0">
-                                                    <Canvas Width="24" Height="24">
-                                                        <Canvas.RenderTransform>
-                                                            <TranslateTransform X="0" Y="0"/>
-                                                        </Canvas.RenderTransform>
-                                                        
-                                                    </Canvas>
-                                                </Viewbox>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                </StackPanel>
-
                 <!-- Main Menu -->
-                <Menu Style="{DynamicResource MainMenuStyle}" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="0 0 0 0" IsHitTestVisible="True" WindowChrome.IsHitTestVisibleInChrome="True">
+                <Menu Style="{DynamicResource MainMenuStyle}" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="0 0 0 0" IsHitTestVisible="True" WindowChrome.IsHitTestVisibleInChrome="True">
                     <MenuItem x:Name="MainMenuMainItem" Header="_Files" Style="{DynamicResource MainMenuItemStyle}">
                         <MenuItem.Resources>
                             <ControlTemplate x:Key="hamburger-menu">
@@ -152,6 +116,22 @@
                     </MenuItem>
                 </Menu>
 
+                
+                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6 0 6 0" >
+                    <TextBlock Text="{Binding SelectedServiceName, NotifyOnTargetUpdated=True, Mode=OneWay}" Foreground="{DynamicResource ControlLightColorBrush}">
+                        <TextBlock.Triggers>
+                            <EventTrigger RoutedEvent="Binding.TargetUpdated">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1.0" Duration="0:0:2">
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </TextBlock.Triggers>
+                    </TextBlock>
+                </StackPanel>
+                
                 <!-- System icons -->
                 <StackPanel Orientation="Horizontal" Grid.Column="2" HorizontalAlignment="Right" Margin="0">
 
@@ -314,12 +294,12 @@
                                         </Grid.ColumnDefinitions>
                                         
                                         <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                            <Viewbox Width="12" Height="12" Margin="0 0 4 2">
+                                            <Viewbox Width="12" Height="12" Margin="0 0 4 2" IsHitTestVisible="False">
                                                 <Canvas Width="18" Height="18">
                                                     <Path Data="{Binding PathIcon}" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}" />
                                                 </Canvas>
                                             </Viewbox>
-                                            <TextBlock x:Name="NodeTextBlock" Text="{Binding Path=Name}" Padding="4"/>
+                                            <TextBlock x:Name="NodeTextBlock" Text="{Binding Path=Name}" Padding="4" IsHitTestVisible="False"/>
                                         </StackPanel>
 
                                         <TextBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" x:Name="RenameTextBox" Text="{Binding Name, Mode=TwoWay}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="-5 0 3 0" Width="Auto" Visibility="Collapsed" LostFocus="RenameTextBox_LostFocus" KeyUp="RenameTextBox_KeyUp">
@@ -496,7 +476,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="24"/>
+                    <RowDefinition Height="28"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
@@ -584,22 +564,23 @@
                 </Border>
 
                 <!-- Menu panel -->
-                <Border Grid.Row="2" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal">
+                <Border Grid.Row="2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" BorderThickness="0 0.5 0 0" BorderBrush="{DynamicResource WindowBackgroundBaseColorBrush}">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Stretch">
 
-                        <Button Content="Mark as all read" Height="24" Margin="12 0 12 0" Command="{Binding MarkAsReadCommand}" VerticalAlignment="Center" ToolTip="In-App Browser Window Show/Hide">
+                        <Button Content="Mark as all read" Height="24" Command="{Binding MarkAsReadCommand}" VerticalAlignment="Center">
                             <Button.Style>
                                 <Style TargetType="{x:Type Button}">
                                     <Setter Property="OverridesDefaultStyle" Value="true" />
                                     <Setter Property="Background" Value="{DynamicResource BoardBackgroundColorBrush}" />
-                                    <Setter Property="Foreground" Value="{DynamicResource NormalTextColorBrush}"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource ControlForegroundColorBrush}"/>
                                     <Setter Property="BorderThickness" Value="0" />
-                                    <Setter Property="Margin" Value="0 0 0 0" />
+                                    <Setter Property="BorderBrush" Value="#ccc" />
+                                    <Setter Property="Margin" Value="12 0 12 0" />
                                     <Setter Property="Padding" Value="0" />
                                     <Setter Property="Template">
                                         <Setter.Value>
                                             <ControlTemplate TargetType="Button">
-                                                <Border x:Name="Border" Background="{TemplateBinding Background}" CornerRadius="0" BorderThickness="0">
+                                                <Border x:Name="Border" Background="{TemplateBinding Background}">
                                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                         <Viewbox Width="12" Height="12" Margin="0">
                                                             <Canvas Width="24" Height="24">
@@ -644,7 +625,7 @@
                             </Button.Style>
                         </Button>
 
-                        <ComboBox Margin="0 0 12 0" VerticalAlignment="Center" SelectedIndex="{Binding SelectedComboBoxItemIndex}" Style="{DynamicResource ComboBoxFlatStyle}" IsReadOnly="True">
+                        <ComboBox Margin="0 0 12 0" VerticalAlignment="Center" SelectedIndex="{Binding SelectedComboBoxItemIndex}" Style="{DynamicResource ComboBoxFlatStyle}" IsReadOnly="True" BorderThickness="0 0 1 0" BorderBrush="#ccc">
                             <ComboBoxItem Margin="0 0 0 3">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <Viewbox Width="12" Height="12" Margin="0 0 6 0" VerticalAlignment="Center">
@@ -664,7 +645,7 @@
                                             </Path>
                                         </Canvas>
                                     </Viewbox>
-                                    <TextBlock VerticalAlignment="Center" Text="Only unread"></TextBlock>
+                                    <TextBlock VerticalAlignment="Center" Text="Show unread"></TextBlock>
                                 </StackPanel>
                             </ComboBoxItem>
                             <ComboBoxItem Margin="0 0 0 3">
@@ -686,10 +667,11 @@
                                             </Path>
                                         </Canvas>
                                     </Viewbox>
-                                    <TextBlock VerticalAlignment="Center" Text="Display all"></TextBlock>
+                                    <TextBlock VerticalAlignment="Center" Text="Show all"></TextBlock>
                                 </StackPanel>
                             </ComboBoxItem>
                         </ComboBox>
+                    
                     </StackPanel>
                 </Border>
                 
@@ -858,42 +840,78 @@
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="24"/>
-                                                <RowDefinition Height="132"/>
-                                                <RowDefinition Height="24"/>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
 
-                                            <StackPanel x:Name="TopBar" Orientation="Horizontal" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right">
+                                            <Grid Grid.Row="0" Grid.Column="0">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*"/>
+                                                </Grid.RowDefinitions>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left">
+                                                    <Border Width="24" Height="24" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                                        <Viewbox Width="12" Height="12" Margin="0">
+                                                            <Canvas Width="24" Height="24">
+                                                                <Canvas.RenderTransform>
+                                                                    <TranslateTransform X="1" Y="0"/>
+                                                                </Canvas.RenderTransform>
+                                                                <Path x:Name="EntryStatusIcon" Fill="#888" Data="{Binding PathIcon}" Stretch="Uniform">
+                                                                    <Path.RenderTransform>
+                                                                        <TransformGroup>
+                                                                            <TransformGroup.Children>
+                                                                                <RotateTransform Angle="0" />
+                                                                                <ScaleTransform ScaleX="1.18" ScaleY="1.18" />
+                                                                            </TransformGroup.Children>
+                                                                        </TransformGroup>
+                                                                    </Path.RenderTransform>
+                                                                </Path>
+                                                            </Canvas>
+                                                        </Viewbox>
+                                                    </Border>
+                                                </StackPanel>
+                                                
+                                                <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
 
-                                                <Button Width="24" Height="24" Style="{DynamicResource PathButton}" Content="M12,10L8,14H11V20H13V14H16M19,4H5C3.89,4 3,4.9 3,6V18A2,2 0 0,0 5,20H9V18H5V8H19V18H15V20H19A2,2 0 0,0 21,18V6A2,2 0 0,0 19,4Z" HorizontalAlignment="Right" Command="{Binding Path=DataContext.OpenInAppBrowserCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding}"></Button>
-                                                <Button Width="24" Height="24" Style="{DynamicResource PathButton}" Content="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z" HorizontalAlignment="Right" Command="{Binding Path=DataContext.OpenInExternalBrowserCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding}"></Button>
-                                            
-                                            </StackPanel>
+                                                    <Button Width="24" Height="24" Style="{DynamicResource PathButton}" Content="M12,10L8,14H11V20H13V14H16M19,4H5C3.89,4 3,4.9 3,6V18A2,2 0 0,0 5,20H9V18H5V8H19V18H15V20H19A2,2 0 0,0 21,18V6A2,2 0 0,0 19,4Z" HorizontalAlignment="Right" Command="{Binding Path=DataContext.OpenInAppBrowserCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding}"></Button>
+                                                    <Button Width="24" Height="24" Style="{DynamicResource PathButton}" Content="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z" HorizontalAlignment="Right" Command="{Binding Path=DataContext.OpenInExternalBrowserCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding}"></Button>
+
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <Border Grid.Row="1" Grid.RowSpan="3" Grid.Column="0" Background="#1E1E1E" CornerRadius="3" VerticalAlignment="Top" Margin="0 0 0 0">
+                                                <Grid>
+                                                    <!--  Adding rounded corners here  -->
+                                                    <Border Name="EntryImageMask" Margin="0" Background="#1E1E1E" CornerRadius="3"/>
+                                                    <!--  Image  -->
+                                                    <Grid>
+                                                        <Grid.OpacityMask>
+                                                            <VisualBrush Visual="{Binding ElementName=EntryImageMask}" />
+                                                        </Grid.OpacityMask>
+                                                        <Image x:Name="EntryImage" Stretch="Uniform" Width="220" Height="127" Margin="0" Source="{Binding Image}" Opacity="0.1"></Image>
+                                                    </Grid>
+                                                </Grid>
+                                            </Border>
 
                                             <Grid Grid.Row="1" Grid.Column="0">
-
-                                                <Border Background="#1E1E1E" CornerRadius="3" VerticalAlignment="Top" Margin="0 5 0 0">
-                                                    <Grid>
-                                                        <!--  Adding rounded corners here  -->
-                                                        <Border Name="EntryImageMask" Margin="0" Background="#1E1E1E" CornerRadius="3"/>
-                                                        <!--  Image  -->
-                                                        <Grid>
-                                                            <Grid.OpacityMask>
-                                                                <VisualBrush Visual="{Binding ElementName=EntryImageMask}" />
-                                                            </Grid.OpacityMask>
-                                                            <Image x:Name="EntryImage" Stretch="Uniform" Width="220" Height="127" Margin="0" Source="{Binding Image}" Opacity="0.1"></Image>
-                                                        </Grid>
-                                                    </Grid>
-                                                </Border>
-                                                
                                                 <StackPanel>
                                                     <TextBlock x:Name="EntryTitle" Text="{Binding Name}" FontSize="13.5" TextWrapping="Wrap" Padding="6 0 3 0" Foreground="{DynamicResource NormalTextColorBrush}"></TextBlock>
                                                     <TextBlock x:Name="EntrySummary" Text="{Binding SummaryPlainText}" TextWrapping="Wrap" Padding="9 9 3 6" Foreground="#555"></TextBlock>
                                                 </StackPanel>
                                             </Grid>
-                                            <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="{Binding PublishedDateTimeFormated}" Foreground="#444" HorizontalAlignment="Right" VerticalAlignment="Bottom"></TextBlock>
+
+                                            <TextBlock x:Name="EntryAuthor" Grid.Row="2" Grid.Column="0" Margin="3 3 6 1" Text="{Binding Author}" Foreground="#444" HorizontalAlignment="Right" VerticalAlignment="Bottom"></TextBlock>
+
+                                            <TextBlock x:Name="EntryPublished" Grid.Row="3" Grid.Column="0" Margin="3 1 6 3" Text="{Binding PublishedDateTimeFormated}" Foreground="#444" HorizontalAlignment="Right" VerticalAlignment="Bottom"></TextBlock>
 
                                         </Grid>
                                     </Border>
@@ -901,20 +919,30 @@
                                         <DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListViewItem}}, Path=IsSelected}" Value="True">
                                             <Setter TargetName="EntryTitle" Property="Foreground" Value="White"/>
                                             <Setter TargetName="EntrySummary" Property="Foreground" Value="#888"/>
+                                            <Setter TargetName="EntryAuthor" Property="Foreground" Value="#888"/>
+                                            <Setter TargetName="EntryPublished" Property="Foreground" Value="#888"/>
+                                            <Setter TargetName="EntryStatusIcon" Property="Fill" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}" Value="True">
                                             <Setter TargetName="EntryTitle" Property="Foreground" Value="White"/>
                                             <Setter TargetName="EntrySummary" Property="Foreground" Value="#888"/>
+                                            <Setter TargetName="EntryAuthor" Property="Foreground" Value="#888"/>
+                                            <Setter TargetName="EntryPublished" Property="Foreground" Value="#888"/>
                                             <Setter TargetName="EntryImage" Property="Opacity" Value="0.4"/>
+                                            <Setter TargetName="EntryStatusIcon" Property="Fill" Value="#888"/>
                                         </DataTrigger>
-                                        <!--
-                                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListViewItem}}, Path=IsSelected}" Value="True">
-                                            <Setter TargetName="Border" Property="BorderThickness" Value="3"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}" Value="True">
-                                            <Setter TargetName="Border" Property="BorderThickness" Value="0" />
-                                        </DataTrigger>
-                                        -->
+
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListViewItem}}, Path=IsSelected}" Value="true"/>
+                                                <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}" Value="true"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter TargetName="EntryTitle" Property="Foreground" Value="White"/>
+                                            <Setter TargetName="EntrySummary" Property="Foreground" Value="#888"/>
+                                            <Setter TargetName="EntryAuthor" Property="Foreground" Value="#888"/>
+                                            <Setter TargetName="EntryPublished" Property="Foreground" Value="#888"/>
+                                            <Setter TargetName="EntryStatusIcon" Property="Fill" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                                        </MultiDataTrigger>
                                     </DataTemplate.Triggers>
                                 </DataTemplate>
                             </ListView.ItemTemplate>
@@ -938,14 +966,16 @@
                             
                             <Grid Grid.Row="0" Grid.Column="0" Margin="0 0 23 0" HorizontalAlignment="Stretch" Visibility="Hidden">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="0" MinWidth="0"  MaxWidth="1" />
+                                    <ColumnDefinition Width="32" MinWidth="24"  MaxWidth="32" />
                                     <ColumnDefinition Width="*" MinWidth="180"/>
+                                    <ColumnDefinition Width="160" MinWidth="110" MaxWidth="200"/>
                                     <ColumnDefinition Width="160" MinWidth="110" MaxWidth="200"/>
                                 </Grid.ColumnDefinitions>
 
                                 <Grid x:Name="hwidth0" Grid.Column="0" />
                                 <Grid x:Name="hwidth1" Grid.Column="1" />
                                 <Grid x:Name="hwidth2" Grid.Column="2" />
+                                <Grid x:Name="hwidth3" Grid.Column="3" />
                             </Grid>
 
                             <!-- Entries listview -->
@@ -1135,24 +1165,44 @@
                                         </GridView.ColumnHeaderContainerStyle>
 
                                         <GridViewColumn Header="" Width="{Binding ElementName=hwidth0, Path=ActualWidth}">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Border VerticalAlignment="Center" HorizontalAlignment="Center" Height="22">
+                                                        <Viewbox Width="12" Height="12" Margin="0">
+                                                            <Canvas Width="24" Height="24">
+                                                                <Path x:Name="Icon" Data="{Binding PathIcon}" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}}" />
+                                                            </Canvas>
+                                                        </Viewbox>
+                                                    </Border>
+                                                    <DataTemplate.Triggers>
+                                                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ListViewItem}}, Path=IsSelected}" Value="True">
+                                                            <Setter TargetName="Icon" Property="Fill" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                                                        </DataTrigger>
+                                                    </DataTemplate.Triggers>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
                                         </GridViewColumn>
                                         <GridViewColumn Header="Title" Width="{Binding ElementName=hwidth1, Path=ActualWidth}" helpers:GridViewSort.PropertyName="Name">
                                             <GridViewColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0">
 
-                                                        <Viewbox Width="12" Height="12" Margin="0 0 4 2">
-                                                            <Canvas Width="18" Height="18">
-                                                                <Path Data="{Binding PathIcon}" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}}" />
-                                                            </Canvas>
-                                                        </Viewbox>
                                                         <TextBlock Text="{Binding Path=Name}" Padding="3" />
 
                                                     </StackPanel>
                                                 </DataTemplate>
                                             </GridViewColumn.CellTemplate>
                                         </GridViewColumn>
-                                        <GridViewColumn Header="Published" Width="{Binding ElementName=hwidth2, Path=ActualWidth}" helpers:GridViewSort.PropertyName="Published">
+                                        <GridViewColumn Header="Author" Width="{Binding ElementName=hwidth2, Path=ActualWidth}" helpers:GridViewSort.PropertyName="Author">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel>
+                                                        <TextBlock Text="{Binding Path=Author}" Padding="3" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                        <GridViewColumn Header="Published" Width="{Binding ElementName=hwidth3, Path=ActualWidth}" helpers:GridViewSort.PropertyName="Published">
                                             <GridViewColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <StackPanel>
@@ -1377,7 +1427,7 @@
                 </StatusBar.ItemsPanel>
 
                 <StatusBarItem Grid.Column="0">
-
+                    <TextBlock Text="{Binding AppTitle}" Style="{DynamicResource DefaultTextBlockStyle}" Foreground="{DynamicResource ControlDarkColorBrush}" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="6 0 6 0" Padding="0" TextWrapping="NoWrap"></TextBlock>
                 </StatusBarItem>
 
                 <Separator Grid.Column="1" Background="#202020" Margin="1"/>
@@ -1547,7 +1597,7 @@
                                 </Style>
                             </Button.Style>
                             <Button.Content>
-                                M15,4V6H18V18H15V20H20V4M4,4V20H9V18H6V6H9V4H4Z
+                                M20,8H17.19C16.74,7.2 16.12,6.5 15.37,6L17,4.41L15.59,3L13.42,5.17C12.96,5.06 12.5,5 12,5C11.5,5 11.05,5.06 10.59,5.17L8.41,3L7,4.41L8.62,6C7.87,6.5 7.26,7.21 6.81,8H4V10H6.09C6.03,10.33 6,10.66 6,11V12H4V14H6V15C6,15.34 6.03,15.67 6.09,16H4V18H6.81C8.47,20.87 12.14,21.84 15,20.18C15.91,19.66 16.67,18.9 17.19,18H20V16H17.91C17.97,15.67 18,15.34 18,15V14H20V12H18V11C18,10.66 17.97,10.33 17.91,10H20V8M16,15A4,4 0 0,1 12,19A4,4 0 0,1 8,15V11A4,4 0 0,1 12,7A4,4 0 0,1 16,11V15M14,10V12H10V10H14M10,14H14V16H10V14Z
                             </Button.Content>
                             <!-- チェック付きバグマーク 
                             M18,7H15.19C14.74,6.2 14.12,5.5 13.37,5L15,3.41L13.59,2L11.42,4.17C10.96,4.06 10.5,4 10,4C9.5,4 9.05,4.06 8.59,4.17L6.41,2L5,3.41L6.62,5C5.87,5.5 5.26,6.21 4.81,7H2V9H4.09C4.03,9.33 4,9.66 4,10V11H2V13H4V14C4,14.34 4.03,14.67 4.09,15H2V17H4.81C6.26,19.5 9.28,20.61 12,19.65C12,19.43 12,19.22 12,19C12,16.46 13.61,14.2 16,13.35V13H18V11H16V10C16,9.66 15.97,9.33 15.91,9H18V7M12,15H8V13H12V15M12,11H8V9H12V11M17.75,22.16L15,19.16L16.16,18L17.75,19.59L21.34,16L22.5,17.41L17.75,22.16Z

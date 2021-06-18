@@ -54,14 +54,15 @@ namespace BlogWrite.Models
                                 "Url TEXT NOT NULL," +
                                 "Title TEXT," +
                                 "Published TEXT NOT NULL," +
+                                "Author TEXT," +
                                 "Summary TEXT," +
                                 "SummaryPlainText TEXT," +
                                 "Content TEXT," +
-                                "ContentType TEXT," +
+                                "ContentType TEXT," + // TODO
                                 "ImageUrl TEXT," +
                                 "Image BLOB," +
                                 "Status TEXT," +
-                                "Flag INTEGER)";
+                                "IsRead TEXT)";
 
                             tableCmd.ExecuteNonQuery();
 
@@ -96,7 +97,6 @@ namespace BlogWrite.Models
                     res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
 
                     return res;
-                    //throw ex.InnerException;
                 }
                 catch (System.InvalidOperationException ex)
                 {
@@ -110,7 +110,6 @@ namespace BlogWrite.Models
                     res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
 
                     return res;
-                    //throw ex.InnerException;
                 }
                 catch (Exception e)
                 {
@@ -160,7 +159,7 @@ namespace BlogWrite.Models
                     {
                         if (IsUnreadOnly)
                         {
-                            cmd.CommandText = String.Format("SELECT * FROM Entry WHERE Feed_ID = '{0}' AND Flag = 0 ORDER BY Published DESC", feedId);
+                            cmd.CommandText = String.Format("SELECT * FROM Entry WHERE Feed_ID = '{0}' AND IsRead = '{1}' ORDER BY Published DESC", feedId, bool.FalseString);
                         }
                         else
                         {
@@ -186,7 +185,7 @@ namespace BlogWrite.Models
                                 
                                 entry.Content = Convert.ToString(reader["Content"]);
 
-                                //string ct = Convert.ToString(reader["ContentType"]);
+                                // TODO
                                 entry.ContentType = EntryItem.ContentTypes.textHtml;
 
                                 if (!string.IsNullOrEmpty(Convert.ToString(reader["ImageUrl"])))
@@ -198,26 +197,31 @@ namespace BlogWrite.Models
                                     entry.Image = BitmapImageFromBytes(imageBytes);
                                 }
 
-                                //entry.Status = Convert.ToString(reader["Status"]);
+                                string status = Convert.ToString(reader["Status"]);
+                                if (!string.IsNullOrEmpty(status))
+                                    entry.Status = entry.StatusTextToType(status);
 
-                                int flag;
-                                try
+                                entry.Author = Convert.ToString(reader["Author"]);
+
+                                string blnstr = Convert.ToString(reader["IsRead"]);
+                                if (!string.IsNullOrEmpty(blnstr))
                                 {
-                                    flag = Convert.ToInt32(reader["Flag"]);//Int32.Parse((string)reader["Flag"], System.Globalization.NumberStyles.Integer);
-                                }
-                                catch (Exception e)
-                                {
-                                    flag = 0;
-                                    Debug.WriteLine(e.Message + ": " + (string)reader["Flag"]);
+                                    if (blnstr == bool.TrueString)
+                                        entry.IsRead = true;
+                                    else
+                                        entry.IsRead = false;
                                 }
 
-                                if (flag == 0)
+                                if (entry.IsRead)
+                                    if (entry.Status == FeedEntryItem.ReadStatus.rsNew)
+                                        entry.Status = FeedEntryItem.ReadStatus.rsNormal;
+
+                                if (!entry.IsRead)
                                 {
                                     c++;
                                 }
 
                                 entries.Add(entry);
-
                             }
                         }
                     }
@@ -225,8 +229,6 @@ namespace BlogWrite.Models
             }
             catch (System.Reflection.TargetInvocationException ex)
             {
-                Debug.WriteLine("Opps. TargetInvocationException@DataAccess::SelectEntriesByFeedId");
-
                 res.IsError = true;
                 res.Error.ErrType = ErrorObject.ErrTypes.DB;
                 res.Error.ErrCode = "";
@@ -237,7 +239,6 @@ namespace BlogWrite.Models
                 res.Error.ErrPlaceParent = "DataAccess::SelectEntriesByFeedId";
 
                 return res;
-                //throw ex.InnerException;
             }
             catch (System.InvalidOperationException ex)
             {
@@ -253,7 +254,6 @@ namespace BlogWrite.Models
                 res.Error.ErrPlaceParent = "DataAccess::SelectEntriesByFeedId";
 
                 return res;
-                //throw ex.InnerException;
             }
             catch (Exception e)
             {
@@ -278,7 +278,7 @@ namespace BlogWrite.Models
                 return res;
             }
 
-            Debug.WriteLine(string.Format("{0} Entries Selected ByFeedId {1} from DB", entries.Count.ToString(), feedId));
+            //Debug.WriteLine(string.Format("{0} Entries Selected ByFeedId {1} from DB", entries.Count.ToString(), feedId));
 
             res.UnreadCount = c;
 
@@ -307,6 +307,8 @@ namespace BlogWrite.Models
                         {
                             foreach (var entry in entries)
                             {
+                                if (entry is not FeedEntryItem)
+                                    continue;
                                 if ((entry.EntryId == null) || (entry.AltHtmlUri == null))
                                     continue;
 
@@ -323,24 +325,34 @@ namespace BlogWrite.Models
                                 entry.Image = null;
                                 entry.Status = EntryItem.EntryStatus.esNew;
                                 */
-                                string sqlInsert = "INSERT OR IGNORE INTO Entry (ID, Feed_ID, Entry_ID, Url, Title, Published, Summary, SummaryPlainText, Content, ContentType, ImageUrl, Image, Status, Flag) VALUES (@Id, @feedId, @EntryId, @AltHtmlUri, @Title, @Published, @Summary, @SummaryPlainText, @Content, @ContentType, @ImageUri, @Image, @Status, @Flag)";
+                                string sqlInsert = "INSERT OR IGNORE INTO Entry (ID, Feed_ID, Entry_ID, Url, Title, Published, Author, Summary, SummaryPlainText, Content, ContentType, ImageUrl, Image, Status, IsRead) VALUES (@Id, @feedId, @EntryId, @AltHtmlUri, @Title, @Published, @Author, @Summary, @SummaryPlainText, @Content, @ContentType, @ImageUri, @Image, @Status, @IsRead)";
                                     
                                 cmd.CommandText = sqlInsert;
+
                                 cmd.CommandType = CommandType.Text;
 
                                 cmd.Parameters.Clear();
 
                                 cmd.Parameters.AddWithValue("@Id", entry.Id);
+                                
                                 cmd.Parameters.AddWithValue("@feedId", feedId);
+                                
                                 cmd.Parameters.AddWithValue("@EntryId", entry.EntryId);
+                                
                                 cmd.Parameters.AddWithValue("@AltHtmlUri", entry.AltHtmlUri.AbsoluteUri);
+
                                 if (entry.Title != null)
                                     cmd.Parameters.AddWithValue("@Title", entry.Title);
                                 else
                                     cmd.Parameters.AddWithValue("@Title", string.Empty);
 
                                 cmd.Parameters.AddWithValue("@Published", entry.Published.ToString("yyyy-MM-dd HH:mm:ss"));
-                                
+
+                                if (entry.Author != null)
+                                    cmd.Parameters.AddWithValue("@Author", entry.Author);
+                                else
+                                    cmd.Parameters.AddWithValue("@Author", string.Empty);
+
                                 if (entry.Summary != null)
                                     cmd.Parameters.AddWithValue("@Summary", entry.Summary);
                                 else
@@ -356,6 +368,7 @@ namespace BlogWrite.Models
                                 else
                                     cmd.Parameters.AddWithValue("@Content", string.Empty);
 
+                                // TODO
                                 cmd.Parameters.AddWithValue("@ContentType", entry.ContentType.ToString());
 
                                 if (entry.ImageUri != null)
@@ -377,13 +390,8 @@ namespace BlogWrite.Models
                                 if (entry is FeedEntryItem)
                                 {
                                     cmd.Parameters.AddWithValue("@Status", (entry as FeedEntryItem).Status.ToString());
+                                    cmd.Parameters.AddWithValue("@IsRead", bool.FalseString);//(entry as FeedEntryItem).IsRead.ToString()
                                 }
-                                else if (entry is EditEntryItem)
-                                {
-                                    cmd.Parameters.AddWithValue("@Status", (entry as EditEntryItem).Status.ToString());
-                                }
-
-                                cmd.Parameters.AddWithValue("@Flag", 0);
 
                                 var r = cmd.ExecuteNonQuery();
 
@@ -426,7 +434,6 @@ namespace BlogWrite.Models
                 res.Error.ErrPlaceParent = "DataAccess::InsertEntries";
 
                 return res;
-                //throw ex.InnerException;
             }
             catch (System.InvalidOperationException ex)
             {
@@ -440,7 +447,6 @@ namespace BlogWrite.Models
                 res.Error.ErrPlaceParent = "DataAccess::InsertEntries";
 
                 return res;
-                //throw ex.InnerException;
             }
             catch (Exception e)
             {
@@ -494,7 +500,10 @@ namespace BlogWrite.Models
                         {
                             foreach (var entry in entries)
                             {
-                                string sqlUpdateAsRead = String.Format("UPDATE Entry SET Flag = {1} WHERE ID = {0}", "@EntryId", "@Flag");
+                                if (entry is not FeedEntryItem)
+                                    continue;
+
+                                string sqlUpdateAsRead = String.Format("UPDATE Entry SET IsRead = {1} WHERE ID = {0}", "@EntryId", "@IsRead");
 
                                 cmd.CommandText = sqlUpdateAsRead;
                                 cmd.CommandType = CommandType.Text;
@@ -502,7 +511,12 @@ namespace BlogWrite.Models
                                 cmd.Parameters.Clear();
 
                                 cmd.Parameters.AddWithValue("@EntryId", entry.Id);
-                                cmd.Parameters.AddWithValue("@Flag", 1);
+
+                                if (entry is FeedEntryItem)
+                                {
+                                    (entry as FeedEntryItem).IsRead = true;
+                                    cmd.Parameters.AddWithValue("@IsRead", bool.TrueString);// (entry as FeedEntryItem).IsRead.ToString()
+                                }
 
                                 var r = cmd.ExecuteNonQuery();
 
@@ -545,7 +559,6 @@ namespace BlogWrite.Models
                 res.Error.ErrPlaceParent = "DataAccess::UpdateEntriesAsRead";
 
                 return res;
-                //throw ex.InnerException;
             }
             catch (System.InvalidOperationException ex)
             {
@@ -559,7 +572,6 @@ namespace BlogWrite.Models
                 res.Error.ErrPlaceParent = "DataAccess::UpdateEntriesAsRead";
 
                 return res;
-                //throw ex.InnerException;
             }
             catch (Exception e)
             {
@@ -584,7 +596,7 @@ namespace BlogWrite.Models
                 return res;
             }
 
-            Debug.WriteLine(string.Format("{0} Entries from {1} Updated as read in the DB", (c + 1).ToString(), feedId));
+            Debug.WriteLine(string.Format("{0} Entries from {1} Updated as read in the DB", c.ToString(), feedId));
 
             return res;
         }
