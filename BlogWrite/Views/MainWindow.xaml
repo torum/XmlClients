@@ -116,7 +116,7 @@
                     </MenuItem>
                 </Menu>
 
-                
+                <!-- Current Selected Node Name -->
                 <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6 0 6 0" >
                     <TextBlock Text="{Binding SelectedServiceName, NotifyOnTargetUpdated=True, Mode=OneWay}" Foreground="{DynamicResource ControlLightColorBrush}">
                         <TextBlock.Triggers>
@@ -213,7 +213,7 @@
 
             <!-- Left TreeView Pane -->
             <Grid Grid.Row="2" Grid.Column="0" Background="{DynamicResource WindowBackgroundBaseColorBrush}">
-                <TreeView x:Name="TreeViewMenu" Margin="0 1 0 0" Style="{DynamicResource TreeViewMenuStyle}" ItemsSource="{Binding Services}" helpers:TreeViewHelper.SelectedItem="{Binding SelectedNode, Mode=TwoWay}" AllowDrop="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <TreeView x:Name="TreeViewMenu" Style="{DynamicResource TreeViewMenuStyle}" ItemsSource="{Binding Services}" helpers:TreeViewHelper.SelectedItem="{Binding SelectedNode, Mode=TwoWay}" AllowDrop="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto">
                     <TreeView.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="Add" Command="{Binding ServiceAddCommand}">
@@ -564,10 +564,10 @@
                 </Border>
 
                 <!-- Menu panel -->
-                <Border Grid.Row="2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" BorderThickness="0 0.5 0 0" BorderBrush="{DynamicResource WindowBackgroundBaseColorBrush}">
+                <Border Grid.Row="2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" BorderThickness="0 0.5 0 0.5" BorderBrush="#121212">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Stretch">
 
-                        <Button Content="Mark as all read" Height="24" Command="{Binding MarkAsReadCommand}" VerticalAlignment="Center">
+                        <Button Content="Archive" ToolTip="Mark as all read" Height="24" Command="{Binding MarkAsReadCommand}" VerticalAlignment="Center">
                             <Button.Style>
                                 <Style TargetType="{x:Type Button}">
                                     <Setter Property="OverridesDefaultStyle" Value="true" />
@@ -587,7 +587,7 @@
                                                                 <Canvas.RenderTransform>
                                                                     <TranslateTransform X="1" Y="3"/>
                                                                 </Canvas.RenderTransform>
-                                                                <Path x:Name="PathIcon" Data="M21.59,11.59L23,13L13.5,22.5L8.42,17.41L9.83,16L13.5,19.68L21.59,11.59M4,16V3H6L9,3A4,4 0 0,1 13,7C13,8.54 12.13,9.88 10.85,10.55L14,16H12L9.11,11H6V16H4M6,9H9A2,2 0 0,0 11,7A2,2 0 0,0 9,5H6V9Z" Stretch="Uniform">
+                                                                <Path x:Name="PathIcon" Data="M5.12,5L5.93,4H17.93L18.87,5M12,17.5L6.5,12H10V10H14V12H17.5L12,17.5M20.54,5.23L19.15,3.55C18.88,3.21 18.47,3 18,3H6C5.53,3 5.12,3.21 4.84,3.55L3.46,5.23C3.17,5.57 3,6 3,6.5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V6.5C21,6 20.83,5.57 20.54,5.23Z" Stretch="Uniform">
                                                                     <Path.Fill>
                                                                         <SolidColorBrush x:Name="PathIconColor" Color="{DynamicResource ControlForegroundColor}"/>
                                                                     </Path.Fill>
@@ -625,32 +625,10 @@
                             </Button.Style>
                         </Button>
 
-                        <ComboBox Margin="0 0 12 0" VerticalAlignment="Center" SelectedIndex="{Binding SelectedComboBoxItemIndex}" Style="{DynamicResource ComboBoxFlatStyle}" IsReadOnly="True" BorderThickness="0 0 1 0" BorderBrush="#ccc">
+                        <ComboBox ToolTip="Filter entries" Margin="0 0 12 0" VerticalAlignment="Center" SelectedIndex="{Binding SelectedComboBoxItemIndex}" Style="{DynamicResource ComboBoxFlatStyle}" IsReadOnly="True" BorderThickness="0 0 1 0" BorderBrush="#ccc">
                             <ComboBoxItem Margin="0 0 0 3">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Viewbox Width="12" Height="12" Margin="0 0 6 0" VerticalAlignment="Center">
-                                        <Canvas Width="24" Height="24">
-                                            <Canvas.RenderTransform>
-                                                <TranslateTransform X="1" Y="4"/>
-                                            </Canvas.RenderTransform>
-                                            <Path x:Name="EyeOutlineIcon" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ComboBox}}" Data="M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9M12,4.5C17,4.5 21.27,7.61 23,12C21.27,16.39 17,19.5 12,19.5C7,19.5 2.73,16.39 1,12C2.73,7.61 7,4.5 12,4.5M3.18,12C4.83,15.36 8.24,17.5 12,17.5C15.76,17.5 19.17,15.36 20.82,12C19.17,8.64 15.76,6.5 12,6.5C8.24,6.5 4.83,8.64 3.18,12Z" Stretch="Uniform">
-                                                <Path.RenderTransform>
-                                                    <TransformGroup>
-                                                        <TransformGroup.Children>
-                                                            <RotateTransform Angle="0" />
-                                                            <ScaleTransform ScaleX="1.18" ScaleY="1.18" />
-                                                        </TransformGroup.Children>
-                                                    </TransformGroup>
-                                                </Path.RenderTransform>
-                                            </Path>
-                                        </Canvas>
-                                    </Viewbox>
-                                    <TextBlock VerticalAlignment="Center" Text="Show unread"></TextBlock>
-                                </StackPanel>
-                            </ComboBoxItem>
-                            <ComboBoxItem Margin="0 0 0 3">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Viewbox Width="12" Height="12" Margin="0 0 6 0" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                    <Viewbox Width="12" Height="12" Margin="0 0 6 0" VerticalAlignment="Center" HorizontalAlignment="Left">
                                         <Canvas Width="24" Height="24">
                                             <Canvas.RenderTransform>
                                                 <TranslateTransform X="1" Y="4"/>
@@ -667,7 +645,29 @@
                                             </Path>
                                         </Canvas>
                                     </Viewbox>
-                                    <TextBlock VerticalAlignment="Center" Text="Show all"></TextBlock>
+                                    <TextBlock VerticalAlignment="Center" Text="Unread" ToolTip="Show only unread/unarchived entries"></TextBlock>
+                                </StackPanel>
+                            </ComboBoxItem>
+                            <ComboBoxItem Margin="0 0 0 0">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                    <Viewbox Width="12" Height="12" Margin="0 0 6 0" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                        <Canvas Width="24" Height="24">
+                                            <Canvas.RenderTransform>
+                                                <TranslateTransform X="1" Y="4"/>
+                                            </Canvas.RenderTransform>
+                                            <Path x:Name="EyeOutlineIcon" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ComboBox}}" Data="M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9M12,4.5C17,4.5 21.27,7.61 23,12C21.27,16.39 17,19.5 12,19.5C7,19.5 2.73,16.39 1,12C2.73,7.61 7,4.5 12,4.5M3.18,12C4.83,15.36 8.24,17.5 12,17.5C15.76,17.5 19.17,15.36 20.82,12C19.17,8.64 15.76,6.5 12,6.5C8.24,6.5 4.83,8.64 3.18,12Z" Stretch="Uniform">
+                                                <Path.RenderTransform>
+                                                    <TransformGroup>
+                                                        <TransformGroup.Children>
+                                                            <RotateTransform Angle="0" />
+                                                            <ScaleTransform ScaleX="1.18" ScaleY="1.18" />
+                                                        </TransformGroup.Children>
+                                                    </TransformGroup>
+                                                </Path.RenderTransform>
+                                            </Path>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock VerticalAlignment="Center" Text="Everything" ToolTip="Show both read and unread entries"></TextBlock>
                                 </StackPanel>
                             </ComboBoxItem>
                         </ComboBox>
@@ -679,7 +679,7 @@
                 <TabControl x:Name="ViewTab" Grid.Row="3" Grid.Column="0" Style="{DynamicResource TabControlBottomStyle}" TabStripPlacement="Bottom">
 
                     <!-- CardsView -->
-                    <TabItem Header="Cards" Style="{DynamicResource TabItemBottomStyle}" Height="32">
+                    <TabItem Header="Cards" Style="{DynamicResource TabItemBottomStyle}" Height="28" Width="84">
 
                         <ListView x:Name="CardViewListview" Background="Transparent" Foreground="LightGray" BorderThickness="0" Padding="0" ItemsSource="{Binding Entries, NotifyOnTargetUpdated=True}" TargetUpdated="CardViewListview_TargetUpdated" SelectedItem="{Binding Mode=TwoWay,Path=SelectedItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListView.InputBindings>
@@ -951,7 +951,7 @@
                     </TabItem>
 
                     <!-- ListView -->
-                    <TabItem Header="List" Style="{DynamicResource TabItemBottomStyle}" Height="32">
+                    <TabItem Header="List" Style="{DynamicResource TabItemBottomStyle}" Height="28" Width="84">
                         
                         <Grid x:Name="GridListView" Background="{DynamicResource BoardBackgroundColorBrush}">
                             <Grid.RowDefinitions>
@@ -1240,93 +1240,94 @@
                             <GridSplitter x:Name="SplitterListViewContentPreviewWebBrowser" Grid.Row="2" Grid.Column="0" ResizeDirection="Rows" Style="{StaticResource GridSplitterStyle}"></GridSplitter>
 
                             <!-- ListView Bottom -->
-                            <Grid x:Name="GridListViewContentPreviewWebBrowser" Grid.Row="3" Grid.Column="0">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-
-                                <Grid Grid.Row="0" Grid.Column="0">
+                            <Border x:Name="GridListViewContentPreviewWebBrowser" Grid.Row="3" Grid.Column="0" BorderBrush="#151515" BorderThickness="0,1,0,0" Margin="1">
+                                <Grid>
                                     <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <Button Grid.Row="0" Grid.Column="0" Width="24" Height="24" Style="{DynamicResource PathButton}" Content="M12,10L8,14H11V20H13V14H16M19,4H5C3.89,4 3,4.9 3,6V18A2,2 0 0,0 5,20H9V18H5V8H19V18H15V20H19A2,2 0 0,0 21,18V6A2,2 0 0,0 19,4Z" HorizontalAlignment="Center" Command="{Binding Path=OpenInAppBrowserCommand}" CommandParameter="{Binding SelectedItem}"></Button>
+                                    <Grid Grid.Row="0" Grid.Column="0">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
 
-                                    <Button Grid.Row="0" Grid.Column="1" Width="24" Height="24" Style="{DynamicResource PathButton}" Content="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z" HorizontalAlignment="Center" Command="{Binding Path=OpenInExternalBrowserCommand}" CommandParameter="{Binding SelectedItem}"></Button>
+                                        <Button Grid.Row="0" Grid.Column="0" Width="24" Height="24" Style="{DynamicResource PathButton}" Content="M12,10L8,14H11V20H13V14H16M19,4H5C3.89,4 3,4.9 3,6V18A2,2 0 0,0 5,20H9V18H5V8H19V18H15V20H19A2,2 0 0,0 21,18V6A2,2 0 0,0 19,4Z" HorizontalAlignment="Center" Command="{Binding Path=OpenInAppBrowserCommand}" CommandParameter="{Binding SelectedItem}"></Button>
 
-                                    <!-- Browser close button -->
-                                    <Button Grid.Row="0" Grid.Column="3" Command="{Binding CloseContentBrowserCommand}" Style="{StaticResource PathButton}" Width="24" Height="24" Margin="0" HorizontalAlignment="Right" VerticalAlignment="Center" Content="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19M17,8.4L13.4,12L17,15.6L15.6,17L12,13.4L8.4,17L7,15.6L10.6,12L7,8.4L8.4,7L12,10.6L15.6,7L17,8.4Z"></Button>
+                                        <Button Grid.Row="0" Grid.Column="1" Width="24" Height="24" Style="{DynamicResource PathButton}" Content="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z" HorizontalAlignment="Center" Command="{Binding Path=OpenInExternalBrowserCommand}" CommandParameter="{Binding SelectedItem}"></Button>
 
-                                </Grid>
+                                        <!-- Browser close button -->
+                                        <Button Grid.Row="0" Grid.Column="3" Command="{Binding CloseContentBrowserCommand}" Style="{StaticResource PathButton}" Width="24" Height="24" Margin="0" HorizontalAlignment="Right" VerticalAlignment="Center" Content="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19M17,8.4L13.4,12L17,15.6L15.6,17L12,13.4L8.4,17L7,15.6L10.6,12L7,8.4L8.4,7L12,10.6L15.6,7L17,8.4Z"></Button>
 
-                                <!-- Contents viewer -->
-                                <Grid Grid.Row="1" Grid.Column="0">
+                                    </Grid>
 
-                                    <!-- Text contents viewer -->
-                                    <TextBox x:Name="ListViewContentPreviewTextBox" Text="{Binding EntryContentText, Mode=OneWay}" Background="{DynamicResource WindowBackgroundBaseColorBrush}" TextWrapping="Wrap" IsReadOnly="True" IsTabStop="False" MinHeight="24" Style="{StaticResource FlatTextBoxStyle}">
-                                        <TextBox.Resources>
-                                            <Style TargetType="{x:Type ScrollBar}">
-                                                <Setter Property="SnapsToDevicePixels" Value="True" />
-                                                <Setter Property="OverridesDefaultStyle" Value="true" />
-                                                <Setter Property="Margin" Value="0,0,0,0" />
-                                                <Setter Property="BorderThickness" Value="0" />
-                                                <Style.Triggers>
-                                                    <Trigger Property="Orientation" Value="Vertical">
-                                                        <Setter Property="Width" Value="18"/>
-                                                        <Setter Property="Height" Value="Auto" />
-                                                        <Setter Property="Template" Value="{StaticResource VerticalScrollBar}" />
-                                                    </Trigger>
-                                                    <Trigger Property="Orientation" Value="Horizontal">
-                                                        <Setter Property="Width" Value="Auto"/>
-                                                        <Setter Property="Height" Value="18" />
-                                                        <Setter Property="Template" Value="{StaticResource HorizontalScrollBar}" />
-                                                    </Trigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                            <Style TargetType="{x:Type ScrollViewer}">
-                                                <Setter Property="OverridesDefaultStyle" Value="True" />
-                                                <Setter Property="Template">
-                                                    <Setter.Value>
-                                                        <ControlTemplate TargetType="{x:Type ScrollViewer}">
-                                                            <Grid x:Name="Grid" Background="{TemplateBinding Background}">
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="*" />
-                                                                    <ColumnDefinition Width="Auto" />
-                                                                </Grid.ColumnDefinitions>
-                                                                <Grid.RowDefinitions>
-                                                                    <RowDefinition Height="*" />
-                                                                    <RowDefinition Height="Auto" />
-                                                                </Grid.RowDefinitions>
-                                                                <!--
+                                    <!-- Contents viewer -->
+                                    <Grid Grid.Row="1" Grid.Column="0">
+
+                                        <!-- Text contents viewer -->
+                                        <TextBox x:Name="ListViewContentPreviewTextBox" Text="{Binding EntryContentText, Mode=OneWay}" Background="{DynamicResource WindowBackgroundBaseColorBrush}" TextWrapping="Wrap" IsReadOnly="True" IsTabStop="False" MinHeight="24" Style="{StaticResource FlatTextBoxStyle}">
+                                            <TextBox.Resources>
+                                                <Style TargetType="{x:Type ScrollBar}">
+                                                    <Setter Property="SnapsToDevicePixels" Value="True" />
+                                                    <Setter Property="OverridesDefaultStyle" Value="true" />
+                                                    <Setter Property="Margin" Value="0,0,0,0" />
+                                                    <Setter Property="BorderThickness" Value="0" />
+                                                    <Style.Triggers>
+                                                        <Trigger Property="Orientation" Value="Vertical">
+                                                            <Setter Property="Width" Value="18"/>
+                                                            <Setter Property="Height" Value="Auto" />
+                                                            <Setter Property="Template" Value="{StaticResource VerticalScrollBar}" />
+                                                        </Trigger>
+                                                        <Trigger Property="Orientation" Value="Horizontal">
+                                                            <Setter Property="Width" Value="Auto"/>
+                                                            <Setter Property="Height" Value="18" />
+                                                            <Setter Property="Template" Value="{StaticResource HorizontalScrollBar}" />
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                                <Style TargetType="{x:Type ScrollViewer}">
+                                                    <Setter Property="OverridesDefaultStyle" Value="True" />
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="{x:Type ScrollViewer}">
+                                                                <Grid x:Name="Grid" Background="{TemplateBinding Background}">
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*" />
+                                                                        <ColumnDefinition Width="Auto" />
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <Grid.RowDefinitions>
+                                                                        <RowDefinition Height="*" />
+                                                                        <RowDefinition Height="Auto" />
+                                                                    </Grid.RowDefinitions>
+                                                                    <!--
                                                     <Rectangle x:Name="Corner" Grid.Row="1" Grid.Column="1" Fill="Transparent" />
                                                     -->
-                                                                <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" Grid.Row="0" Grid.Column="0" Margin="{TemplateBinding Padding}" CanContentScroll="{TemplateBinding CanContentScroll}" CanHorizontallyScroll="False" CanVerticallyScroll="False" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
-                                                                <ScrollBar x:Name="PART_VerticalScrollBar" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" AutomationProperties.AutomationId="VerticalScrollBar" Cursor="Arrow" Maximum="{TemplateBinding ScrollableHeight}" Minimum="0" ViewportSize="{TemplateBinding ViewportHeight}" Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" Value="{Binding VerticalOffset, Mode=OneWay,RelativeSource={RelativeSource TemplatedParent}}" />
-                                                                <ScrollBar x:Name="PART_HorizontalScrollBar" Grid.Row="1" Grid.Column="0" AutomationProperties.AutomationId="HorizontalScrollBar" Cursor="Arrow" Maximum="{TemplateBinding ScrollableWidth}" Minimum="0" Orientation="Horizontal" ViewportSize="{TemplateBinding ViewportWidth}" Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}" Value="{Binding HorizontalOffset,Mode=OneWay,RelativeSource={RelativeSource TemplatedParent}}" />
-                                                            </Grid>
-                                                        </ControlTemplate>
-                                                    </Setter.Value>
-                                                </Setter>
-                                            </Style>
-                                        </TextBox.Resources>
-                                    </TextBox>
+                                                                    <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" Grid.Row="0" Grid.Column="0" Margin="{TemplateBinding Padding}" CanContentScroll="{TemplateBinding CanContentScroll}" CanHorizontallyScroll="False" CanVerticallyScroll="False" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                                                                    <ScrollBar x:Name="PART_VerticalScrollBar" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" AutomationProperties.AutomationId="VerticalScrollBar" Cursor="Arrow" Maximum="{TemplateBinding ScrollableHeight}" Minimum="0" ViewportSize="{TemplateBinding ViewportHeight}" Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" Value="{Binding VerticalOffset, Mode=OneWay,RelativeSource={RelativeSource TemplatedParent}}" />
+                                                                    <ScrollBar x:Name="PART_HorizontalScrollBar" Grid.Row="1" Grid.Column="0" AutomationProperties.AutomationId="HorizontalScrollBar" Cursor="Arrow" Maximum="{TemplateBinding ScrollableWidth}" Minimum="0" Orientation="Horizontal" ViewportSize="{TemplateBinding ViewportWidth}" Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}" Value="{Binding HorizontalOffset,Mode=OneWay,RelativeSource={RelativeSource TemplatedParent}}" />
+                                                                </Grid>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </TextBox.Resources>
+                                        </TextBox>
 
-                                    <wv2:WebView2 Name="ListViewContentPreviewWebBrowser" Margin="3" Visibility="{Binding IsContentBrowserVisible, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}"/>
+                                        <wv2:WebView2 Name="ListViewContentPreviewWebBrowser" Margin="3" Visibility="{Binding IsContentBrowserVisible, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}"/>
+
+                                    </Grid>
 
                                 </Grid>
-
-                            </Grid>
-
+                            </Border>
                         </Grid>
                         
                     </TabItem>
@@ -1409,7 +1410,7 @@
             </Grid>
 
             <!-- StatusBar -->
-            <StatusBar Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3" Background="{DynamicResource BoardBackgroundColorBrush}" Padding="0 1 0 0" Height="28">
+            <StatusBar Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3" Background="{DynamicResource BoardBackgroundColorBrush}" Padding="0 0 0 0" Height="28" Margin="0 1 0 0" BorderBrush="#151515" BorderThickness="0 0.5 0 0">
                 <StatusBar.ItemsPanel>
                     <ItemsPanelTemplate>
                         <Grid>

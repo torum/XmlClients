@@ -116,7 +116,7 @@ namespace BlogWrite.Views
             
             // https://weblogs.asp.net/akjoshi/resolving-un-harmful-binding-errors-in-wpf
             
-            PresentationTraceSources.DataBindingSource.Switch.Level = System.Diagnostics.SourceLevels.Critical;
+            //PresentationTraceSources.DataBindingSource.Switch.Level = System.Diagnostics.SourceLevels.Critical;
             
             #endif
         }

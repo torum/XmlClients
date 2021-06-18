@@ -25,6 +25,8 @@ namespace BlogWrite.ViewModels
 {
     /// TODO: 
     /// 
+    /// 
+    /// 
     /// Feedを追加したり、削除したりしたタイミングでService.xmlを保存しておく。
     /// 
     /// NodeFeedをDeleteした時に、DBから記事を削除。
@@ -45,6 +47,7 @@ namespace BlogWrite.ViewModels
     /// App Icon / App name .... FeedDesk?
     /// 
     /// InfoWindowでService情報も見れるようにする。
+    /// InfoWindowで、Feedの更新頻度を設定できるようにする。
     /// 
     /// [Bug] Feed取得中はDrag and Dropできないようにする。
     /// 
@@ -1531,6 +1534,30 @@ li {
                     {
                         //Debug.WriteLine("SelectEntriesByFeedId returned 0 ");
                     }
+
+                    IsBusy = false;
+                });
+            }
+            else if (nd is NodeFolder)
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    IsBusy = true;
+
+                    // This changes the listview.
+                    NotifyPropertyChanged(nameof(Entries));
+
+                    IsBusy = false;
+                });
+            }
+            else if (nd is NodeEntryCollection)
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    IsBusy = true;
+
+                    // This changes the listview.
+                    NotifyPropertyChanged(nameof(Entries));
 
                     IsBusy = false;
                 });
