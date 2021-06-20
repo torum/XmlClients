@@ -561,7 +561,8 @@
                 <Border Grid.Row="2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" BorderThickness="0 0.5 0 0.5" BorderBrush="#121212">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Stretch">
 
-                        <Button Content="Archive all" ToolTip="Mark as all read" Height="24" Command="{Binding ArchiveAllCommand}" VerticalAlignment="Center">
+                        <Border BorderThickness="0.5 0 0 0" BorderBrush="#121212" Visibility="{Binding IsShowInFeedAndFolder, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}"></Border>
+                        <Button Content="Archive all" ToolTip="Mark all entries as read" Height="24" Command="{Binding ArchiveAllCommand}" VerticalAlignment="Center" Visibility="{Binding IsShowInFeedAndFolder, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
                             <Button.Style>
                                 <Style TargetType="{x:Type Button}">
                                     <Setter Property="OverridesDefaultStyle" Value="true" />
@@ -619,7 +620,8 @@
                             </Button.Style>
                         </Button>
 
-                        <ComboBox ToolTip="Filter entries" Margin="0 0 12 0" VerticalAlignment="Center" SelectedIndex="{Binding SelectedComboBoxItemIndex}" Style="{DynamicResource ComboBoxFlatStyle}" IsReadOnly="True" BorderThickness="0 0 1 0" BorderBrush="#ccc">
+                        <Border BorderThickness="0.5 0 0 0" BorderBrush="#121212" Visibility="{Binding IsShowInFeed, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}"></Border>
+                        <ComboBox ToolTip="Select a type of entries to show" Margin="12 0 12 0" VerticalAlignment="Center" SelectedIndex="{Binding SelectedComboBoxItemIndex}" Style="{DynamicResource ComboBoxFlatStyle}" IsReadOnly="True" BorderThickness="0 0 1 0" BorderBrush="#ccc" Visibility="{Binding IsShowInFeed, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
                             <ComboBoxItem Margin="0 0 0 3">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
                                     <Viewbox Width="12" Height="12" Margin="0 0 6 0" VerticalAlignment="Center" HorizontalAlignment="Left">
@@ -639,7 +641,7 @@
                                             </Path>
                                         </Canvas>
                                     </Viewbox>
-                                    <TextBlock VerticalAlignment="Center" Text="Unread" ToolTip="Show only unread/unarchived entries"></TextBlock>
+                                    <TextBlock VerticalAlignment="Center" Text="Inbox" ToolTip="Show only unread (unarchived) entries"></TextBlock>
                                 </StackPanel>
                             </ComboBoxItem>
                             <ComboBoxItem Margin="0 0 0 0">
@@ -661,11 +663,13 @@
                                             </Path>
                                         </Canvas>
                                     </Viewbox>
-                                    <TextBlock VerticalAlignment="Center" Text="No filter" ToolTip="Show both read and unread entries"></TextBlock>
+                                    <TextBlock VerticalAlignment="Center" Text="All entries" ToolTip="Show all entries"></TextBlock>
                                 </StackPanel>
                             </ComboBoxItem>
                         </ComboBox>
-                    
+
+                        <Border BorderThickness="0.5 0 0 0" BorderBrush="#121212" Visibility="Collapsed"></Border>
+                        
                     </StackPanel>
                 </Border>
                 

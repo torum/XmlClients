@@ -25,19 +25,15 @@ namespace BlogWrite.ViewModels
 {
     /// TODO: 
     /// 
+    /// View形式をFeedやサービスごとに覚える。
     /// 
-    /// debug windowに書き出されたらバグアイコンを黄色にする。
-    /// 
-    /// DBのサイズを最適化する。項目も見直す。
-    /// 
-    /// Feed Folderまとめ表示。
+    /// Magazine View styleの追加。
     /// 
     /// 画像のダウンロードとサムネイル化と、読み込みのタイミング。
     /// Entry画像のダウンロードは、visibilityChanged か何かで、ListView内で表示されたタイミングで取得するように変更。
     /// 
-    /// Magazine View styleの追加。
     /// 
-    /// View形式をFeedやサービスごとに覚える。
+    /// DBのサイズを最適化する。項目も見直す。
     /// 
     /// Feedの自動更新Timer
     /// 
@@ -47,15 +43,17 @@ namespace BlogWrite.ViewModels
     /// InfoWindowで、Feedの更新頻度を設定できるようにする。
     /// 
     /// [Bug] Feed取得中はDrag and DropやDeleteできないようにする。
-    /// 現状毎回DBからEntriesを読み込んでいるなら、各NodeにCollectionをため込んでおく意味ないなぁ・・・むしろ。
+    /// 現状毎回DBからEntriesを読み込んでいるなら、各NodeにCollectionをため込んでおく意味ないなぁ・・・Feed Folderまとめ表示で使ってるけど・・・。
     /// 
     /// ServiceDiscoveryのFeed追加で、もう一画面かましてサイト名を表示して、Feedの名前を変更できるようにする?
+    /// debug windowに書き出されたらバグアイコンを黄色にする?
     /// 
     /// "あとで読む"
     /// 
     /// AtomPub and XML-RPC ..
 
     /// 更新履歴：
+    /// v0.0.0.34 Feed Folderまとめ表示。
     /// v0.0.0.33 OPML import and export.
     /// v0.0.0.32 NodeFeedをDeleteした時に、DBから記事を削除。AtomFeedNode/RssFeedNode, AtomFeedClient/RssFeedClientをまとめて一つにした。
     /// v0.0.0.31 DebugWrindowに書き出す内容をスリムにして、必要な通知はちゃんと出すようにした。古いAtomとかUriやDatetimeのFormatErrorとか。TreeViewのNodeFeedからArchive。
@@ -97,7 +95,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.33";
+        const string _appVer = "0.0.0.34";
         public string AppVer
         {
             get
@@ -118,11 +116,62 @@ namespace BlogWrite.ViewModels
             }
         }
 
-        private string _envDataFolder = System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        private string _appDataFolder;
-        private string _appConfigFilePath;
-
         #region == Properties ==
+
+        #region == App Options ==
+
+        private bool _isSaveLog;
+        public bool IsSaveLog
+        {
+            get { return _isSaveLog; }
+            set
+            {
+                if (_isSaveLog == value)
+                    return;
+
+                _isSaveLog = value;
+
+                NotifyPropertyChanged(nameof(IsSaveLog));
+            }
+        }
+
+        private bool _isDebugWindowEnabled;
+        public bool IsDebugWindowEnabled
+
+        {
+            get { return _isDebugWindowEnabled; }
+            set
+            {
+                if (_isDebugWindowEnabled == value)
+                    return;
+
+                _isDebugWindowEnabled = value;
+
+                NotifyPropertyChanged(nameof(IsDebugWindowEnabled));
+                /*
+                if (_isDebugWindowEnabled)
+                {
+                    if (Application.Current == null) { return; }
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        //DebugWindowShowHide?.Invoke
+                        DebugWindowShowHide2?.Invoke(this, true);
+                    });
+                }
+                else
+                {
+                    if (Application.Current == null) { return; }
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        //DebugWindowShowHide?.Invoke();
+                        DebugWindowShowHide2?.Invoke(this, false);
+                    });
+                }
+                */
+            }
+        }
+
+        #endregion
 
         #region == Treeview ==
 
@@ -157,6 +206,9 @@ namespace BlogWrite.ViewModels
 
                 SelectedServiceName = _selectedNode.Name;
 
+                IsShowInFeedAndFolder = false;
+                IsShowInFeed = false;
+
                 if (_selectedNode is NodeService)
                 {
                     if ((_selectedNode as NodeService).ErrorHttp != null)
@@ -183,6 +235,9 @@ namespace BlogWrite.ViewModels
 
                     if (_selectedNode is NodeFeed)
                     {
+                        // Reset view...
+                        (SelectedNode as NodeFeed).IsDisplayUnreadOnly = true;
+
                         if ((SelectedNode as NodeFeed).IsDisplayUnreadOnly)
                             _selectedComboBoxItemIndex = 0;
                         else
@@ -190,7 +245,15 @@ namespace BlogWrite.ViewModels
 
                         // "Silent" update
                         NotifyPropertyChanged(nameof(SelectedComboBoxItemIndex));
+
+                        IsShowInFeedAndFolder = true;
+                        IsShowInFeed = true;
                     }
+                }
+                else if (_selectedNode is NodeFolder)
+                {
+                    IsShowInFeedAndFolder = true;
+                    IsShowInFeed = false;
                 }
 
                 LoadEntries(_selectedNode);
@@ -567,42 +630,6 @@ li {
 
         #region == Visivility flags == 
 
-        private bool _isDebugWindowEnabled;
-        public bool IsDebugWindowEnabled
-
-        {
-            get { return _isDebugWindowEnabled; }
-            set
-            {
-                if (_isDebugWindowEnabled == value)
-                    return;
-
-                _isDebugWindowEnabled = value;
-
-                NotifyPropertyChanged(nameof(IsDebugWindowEnabled));
-                /*
-                if (_isDebugWindowEnabled)
-                {
-                    if (Application.Current == null) { return; }
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        //DebugWindowShowHide?.Invoke
-                        DebugWindowShowHide2?.Invoke(this, true);
-                    });
-                }
-                else
-                {
-                    if (Application.Current == null) { return; }
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        //DebugWindowShowHide?.Invoke();
-                        DebugWindowShowHide2?.Invoke(this, false);
-                    });
-                }
-                */
-            }
-        }
-
         private bool _isShowContentBrowserWindow;
         public bool IsShowContentBrowserWindow
 
@@ -616,10 +643,40 @@ li {
                 _isShowContentBrowserWindow = value;
 
                 NotifyPropertyChanged(nameof(IsShowContentBrowserWindow));
-
             }
         }
 
+        private bool _isShowInFeedAndFolder;
+        public bool IsShowInFeedAndFolder
+
+        {
+            get { return _isShowInFeedAndFolder; }
+            set
+            {
+                if (_isShowInFeedAndFolder == value)
+                    return;
+
+                _isShowInFeedAndFolder = value;
+
+                NotifyPropertyChanged(nameof(IsShowInFeedAndFolder));
+            }
+        }
+
+        private bool _isShowInFeed;
+        public bool IsShowInFeed
+
+        {
+            get { return _isShowInFeed; }
+            set
+            {
+                if (_isShowInFeed == value)
+                    return;
+
+                _isShowInFeed = value;
+
+                NotifyPropertyChanged(nameof(IsShowInFeed));
+            }
+        }
 
         #endregion
 
@@ -736,21 +793,6 @@ li {
 
         #endregion
 
-        private bool _isSaveLog;
-        public bool IsSaveLog
-        {
-            get { return _isSaveLog; }
-            set
-            {
-                if (_isSaveLog == value)
-                    return;
-
-                _isSaveLog = value;
-
-                NotifyPropertyChanged(nameof(IsSaveLog));
-            }
-        }
-
         #region == SQLite Database ==
 
         private readonly DataAccess dataAccessModule = new DataAccess();
@@ -789,6 +831,10 @@ li {
         public event EventHandler<int> ResetListviewPosition;
 
         #endregion
+
+        private string _envDataFolder = System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        private string _appDataFolder;
+        private string _appConfigFilePath;
 
         private OpenDialogService _openDialogService = new OpenDialogService();
 
@@ -1296,6 +1342,8 @@ li {
             }
 
             SaveServiceXml();
+
+            GetEntries(a);
         }
 
         public void AddService(NodeService nodeService)
@@ -1573,7 +1621,7 @@ li {
             }
         }
 
-        private async void LoadEntries(NodeTree nd)
+        private void LoadEntries(NodeTree nd)
         {
             if (nd is NodeFeed)
             {
@@ -1588,7 +1636,7 @@ li {
                     NotifyPropertyChanged(nameof(Entries));
                 }
 
-                await Task.Delay(100);
+                //await Task.Delay(100);
 
                 if (Application.Current == null) { return; }
                 Application.Current.Dispatcher.Invoke(() =>
@@ -1642,8 +1690,36 @@ li {
                 {
                     IsBusy = true;
 
-                    // This changes the listview.
-                    NotifyPropertyChanged(nameof(Entries));
+                    (nd as NodeFolder).ListAll.Clear();
+
+                    if ((nd as NodeFolder).Children.Count > 0)
+                    {
+                        foreach (NodeTree nt in (nd as NodeFolder).Children)
+                        {
+                            if (nt is NodeFeed)
+                            {
+                                LoadEntries((nt as NodeFeed));
+                            }
+                        }
+
+                        ObservableCollection<EntryItem> tmpList = new();
+                        foreach (NodeTree nt in (nd as NodeFolder).Children)
+                        {
+                            if (nt is NodeFeed)
+                            {
+                                foreach (FeedEntryItem hoge in (nt as NodeFeed).List)
+                                {
+                                    tmpList.Add(hoge);
+                                }
+                            }
+                        }
+
+                        // Sort
+                        (nd as NodeFolder).ListAll = new ObservableCollection<EntryItem>(tmpList.OrderByDescending(n => n.Published));
+
+                        // This changes the listview.
+                        NotifyPropertyChanged(nameof(Entries));
+                    }
 
                     IsBusy = false;
                 });
@@ -1663,47 +1739,68 @@ li {
             }
         }
 
-        private void ArchiveAll(NodeFeed nd)
+        private void ArchiveAll(NodeTree nd)
         {
             if (nd == null)
                 return;
 
-            if (Application.Current == null) { return; }
-            Application.Current.Dispatcher.Invoke(() =>
+            if (nd is NodeFeed)
             {
-                IsWorking = true;
-
-                SqliteDataAccessResultWrapper res = dataAccessModule.UpdateEntriesAsRead(nd.List, nd.Id);
-                if (res.IsError)
+                if (Application.Current == null) { return; }
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    nd.ErrorDatabase = res.Error;
+                    IsWorking = true;
 
-                    if (nd == SelectedNode)
+                    SqliteDataAccessResultWrapper res = dataAccessModule.UpdateEntriesAsRead((nd as NodeFeed).List, (nd as NodeFeed).Id);
+                    if (res.IsError)
                     {
-                        DatabaseError = nd.ErrorDatabase;
-                        IsShowDatabaseErrorMessage = true;
+                        (nd as NodeFeed).ErrorDatabase = res.Error;
+
+                        if (nd == SelectedNode)
+                        {
+                            DatabaseError = (nd as NodeFeed).ErrorDatabase;
+                            IsShowDatabaseErrorMessage = true;
+                        }
+
+                        IsBusy = false;
+                        return;
+                    }
+                    else
+                    {
+                        // Clear error
+                        (nd as NodeFeed).ErrorDatabase = null;
+
+                        // reset unread count.
+                        (nd as NodeFeed).UnreadCount = 0;
+
+                        if (nd == SelectedNode)
+                        {
+                            DatabaseError = null;
+                            IsShowDatabaseErrorMessage = false;
+
+                            // 
+                            LoadEntries(nd);
+                        }
                     }
 
-                    IsBusy = false;
-                    return;
-                }
-                else
+                    IsWorking = false;
+                });
+            }
+            else if (nd is NodeFolder)
+            {
+                if ((nd as NodeFolder).Children.Count > 0)
                 {
-                    // Clear error
-                    nd.ErrorDatabase = null;
-
-                    if (nd == SelectedNode)
+                    foreach (NodeTree hoge in (nd as NodeFolder).Children)
                     {
-                        DatabaseError = null;
-                        IsShowDatabaseErrorMessage = false;
-
-                        // 
-                        LoadEntries(nd);
+                        if (hoge is NodeFeed)
+                        {
+                            ArchiveAll(hoge);
+                        }
                     }
                 }
 
-                IsWorking = false;
-            });
+                (nd as NodeFolder).ListAll.Clear();
+            }
         }
 
         private void ArchiveThis(NodeFeed nd, FeedEntryItem entry)
@@ -2243,8 +2340,14 @@ li {
 
         public bool ArchiveAllCommand_CanExecute()
         {
-            if (SelectedNode == null) return false;
-            return (SelectedNode is NodeFeed) ? true : false;
+            if (SelectedNode == null) 
+                return false;
+
+            //return (SelectedNode is NodeFeed) ? true : false;
+            if (!((SelectedNode is NodeFeed) || (SelectedNode is NodeFolder)))
+                return false;
+
+            return true;
         }
 
         public void ArchiveAllCommand_Execute()
@@ -2252,10 +2355,10 @@ li {
             if (SelectedNode == null)
                 return;
 
-            if (!(SelectedNode is NodeFeed))
+            if (!((SelectedNode is NodeFeed) || (SelectedNode is NodeFolder)))
                 return;
 
-            ArchiveAll(SelectedNode as NodeFeed);
+            ArchiveAll(SelectedNode);
         }
 
         public ICommand ArchiveThisCommand { get; }
@@ -2361,6 +2464,8 @@ li {
 
         #endregion
 
+        #region == OPML ==
+
         public ICommand OpmlImportCommand { get; }
 
         public bool OpmlImportCommand_CanExecute()
@@ -2414,6 +2519,8 @@ li {
                     }
 
                     SaveServiceXml();
+
+                    StartUpdate();
                 }
             }
         }
@@ -2440,6 +2547,8 @@ li {
                 }
             }
         }
+
+        #endregion
 
         #endregion
 
