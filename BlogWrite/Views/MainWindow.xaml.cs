@@ -125,11 +125,15 @@ namespace BlogWrite.Views
 
         private async void InitializeWebView2Async()
         {
+            // Gets or creates MyDoc\BlogWrite\ (same as database file)
+            var myDocFolerPath = System.IO.Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "BlogWrite");
+            System.IO.Directory.CreateDirectory(myDocFolerPath);
+
             // I really do hate smooth-scrolling.
             var op = new CoreWebView2EnvironmentOptions("--disable-smooth-scrolling");
 
-            // TODO: GetTempPath or MyDocument??
-            _env = await CoreWebView2Environment.CreateAsync(userDataFolder: System.IO.Path.Combine(System.IO.Path.GetTempPath(), "BlogWrite"), options: op);
+            _env = await CoreWebView2Environment.CreateAsync(userDataFolder: myDocFolerPath, options: op);
+            //_env = await CoreWebView2Environment.CreateAsync(userDataFolder: System.IO.Path.Combine(System.IO.Path.GetTempPath(), "BlogWrite"), options: op);
 
             Task nowait = ListViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
             ListViewContentPreviewWebBrowser.CoreWebView2InitializationCompleted += ListViewContentPreviewWebBrowser_InitializationCompleted;
@@ -266,7 +270,7 @@ namespace BlogWrite.Views
             if (this.DataContext is not MainViewModel)
                 return;
 
-            (this.DataContext as MainViewModel).AddService(arg.nodeService);
+            (this.DataContext as MainViewModel).AddService(arg.NodeService);
         }
 
         public async void OnWriteHtmlToContentPreviewBrowser(string arg)
@@ -395,7 +399,7 @@ namespace BlogWrite.Views
             */
         }
 
-        public void OnContentsBrowserWindowShowHide2(bool on)
+        public async void OnContentsBrowserWindowShowHide2(bool on)
         {
             if (on)
             {
@@ -415,6 +419,11 @@ namespace BlogWrite.Views
                     if (GridCardViewContentPreviewWebBrowser.Visibility == Visibility.Visible)
                     {
                         GridCardViewContentPreviewWebBrowser.Visibility = Visibility.Collapsed;
+
+                        // Browser
+                        await CardViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
+                        // "Close browser window."
+                        CardViewContentPreviewWebBrowser.Source = new System.Uri("about:blank", System.UriKind.Absolute);
                     }
 
                 }
@@ -429,6 +438,11 @@ namespace BlogWrite.Views
                         GridListView.RowDefinitions[1].Height = new GridLength(1, GridUnitType.Star);
                         GridListView.RowDefinitions[2].Height = new GridLength(0);
                         GridListView.RowDefinitions[3].Height = new GridLength(0);
+
+                        // Browser
+                        await ListViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
+                        // "Close browser window."
+                        ListViewContentPreviewWebBrowser.Source = new System.Uri("about:blank", System.UriKind.Absolute);
                     }
                 }
             }
@@ -540,8 +554,22 @@ namespace BlogWrite.Views
 
             if ((targetItem is NodeFolder) || (targetItem is NodeFeed) || (targetItem is NodeService))
             {
+                if (targetItem is NodeFeed)
+                {
+                    if ((targetItem as NodeFeed).Status == NodeFeed.DownloadStatus.loading)
+                        return;
+                }
+
                 if (MessageBox.Show(string.Format("Are you sure you want delete {0}?", targetItem.Name), "Comfirmation", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
+                    if (DataContext is MainViewModel vm)
+                    {
+                        if (vm != null)
+                        {
+                            vm.DeleteNodeTree(targetItem);
+                        }
+                    }
+                    /*
                     try
                     {
                         if (targetItem.Parent.Children.Remove(targetItem))
@@ -550,6 +578,7 @@ namespace BlogWrite.Views
                         }
                     }
                     catch (Exception) { }
+                    */
                 }
             }
         }

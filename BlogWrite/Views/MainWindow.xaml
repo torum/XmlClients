@@ -105,11 +105,11 @@
                         </MenuItem>
                         <Separator/>
                         <MenuItem Header="Import">
-                            <MenuItem Header="OPML"/>
+                            <MenuItem Header="Feeds from OPML" Command="{Binding OpmlImportCommand}"/>
                         </MenuItem>
                         <MenuItem Header="Export">
-                            <MenuItem Header="OPML"/>
-                            <MenuItem Header="Entries as Feed"/>
+                            <MenuItem Header="Feeds as OPML" Command="{Binding OpmlExportCommand}"/>
+                            <MenuItem Header="Entries as Atom Feed" Visibility="Collapsed"/>
                         </MenuItem>
                         <Separator/>
                         <MenuItem Header="E_xit" Click="CloseButton_Click"/>
@@ -118,17 +118,7 @@
 
                 <!-- Current Selected Node Name -->
                 <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6 0 6 0" >
-                    <TextBlock Text="{Binding SelectedServiceName, NotifyOnTargetUpdated=True, Mode=OneWay}" Foreground="{DynamicResource ControlLightColorBrush}">
-                        <TextBlock.Triggers>
-                            <EventTrigger RoutedEvent="Binding.TargetUpdated">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1.0" Duration="0:0:2">
-                                        </DoubleAnimation>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                        </TextBlock.Triggers>
+                    <TextBlock Text="{Binding SelectedServiceName, Mode=OneWay}" Foreground="{DynamicResource ControlLightColorBrush}">
                     </TextBlock>
                 </StackPanel>
                 
@@ -250,11 +240,15 @@
                     </TreeView.ContextMenu>
                     <TreeView.Resources>
                         <ContextMenu x:Key="TreeviewMenuItemContextMenu">
-                            <MenuItem Name="TreeViewMenuItemUpdate" Header="Update" Command="{Binding Path=DataContext.ServiceUpdateCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}"></MenuItem>
+                            <MenuItem Header="Feed">
+                                <MenuItem Name="TreeViewMenuItemUpdate" Header="Update" Command="{Binding Path=DataContext.ServiceUpdateCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}"></MenuItem>
+                                <Separator/>
+                                <MenuItem Name="TreeViewMenuItemArchive" Header="Archive all" Command="{Binding Path=DataContext.ArchiveAllCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}"></MenuItem>
+                            </MenuItem>
                             <Separator/>
-                            <MenuItem Name="TreeViewMenuItemRename" Header="名前の変更" Click="TreeViewMenuItemRename_Click"></MenuItem>
+                            <MenuItem Name="TreeViewMenuItemRename" Header="Rename" Click="TreeViewMenuItemRename_Click"></MenuItem>
                             <Separator/>
-                            <MenuItem Name="TreeViewMenuItemDelete" Header="削除" Click="TreeViewMenuItemDelete_Click">
+                            <MenuItem Name="TreeViewMenuItemDelete" Header="Delete" Click="TreeViewMenuItemDelete_Click">
                                 <MenuItem.Resources>
                                     <ControlTemplate x:Key="TreeViewItemRemoveIcon">
                                         <Canvas Background="Transparent" >
@@ -267,7 +261,7 @@
                                 </MenuItem.Icon>
                             </MenuItem>
                             <Separator/>
-                            <MenuItem Name="TreeViewMenuItemShowInfo" Header="情報の表示" Click="TreeViewMenuItemShowInfo_Click"></MenuItem>
+                            <MenuItem Name="TreeViewMenuItemShowInfo" Header="View Info" Click="TreeViewMenuItemShowInfo_Click"></MenuItem>
                         </ContextMenu>
                         <Style TargetType="{x:Type ScrollBar}">
                             <Setter Property="Margin" Value="0,0,0,0" />
@@ -567,7 +561,7 @@
                 <Border Grid.Row="2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" BorderThickness="0 0.5 0 0.5" BorderBrush="#121212">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Stretch">
 
-                        <Button Content="Archive" ToolTip="Mark as all read" Height="24" Command="{Binding MarkAsReadCommand}" VerticalAlignment="Center">
+                        <Button Content="Archive all" ToolTip="Mark as all read" Height="24" Command="{Binding ArchiveAllCommand}" VerticalAlignment="Center">
                             <Button.Style>
                                 <Style TargetType="{x:Type Button}">
                                     <Setter Property="OverridesDefaultStyle" Value="true" />
@@ -667,7 +661,7 @@
                                             </Path>
                                         </Canvas>
                                     </Viewbox>
-                                    <TextBlock VerticalAlignment="Center" Text="Everything" ToolTip="Show both read and unread entries"></TextBlock>
+                                    <TextBlock VerticalAlignment="Center" Text="No filter" ToolTip="Show both read and unread entries"></TextBlock>
                                 </StackPanel>
                             </ComboBoxItem>
                         </ComboBox>
@@ -681,7 +675,7 @@
                     <!-- CardsView -->
                     <TabItem Header="Cards" Style="{DynamicResource TabItemBottomStyle}">
 
-                        <ListView x:Name="CardViewListview" Background="Transparent" Foreground="LightGray" BorderThickness="0" Padding="0" ItemsSource="{Binding Entries, NotifyOnTargetUpdated=True}" TargetUpdated="CardViewListview_TargetUpdated" SelectedItem="{Binding Mode=TwoWay,Path=SelectedItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListView x:Name="CardViewListview" Background="Transparent" Foreground="LightGray" BorderThickness="0" Padding="0" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" ItemsSource="{Binding Entries, NotifyOnTargetUpdated=True}" TargetUpdated="CardViewListview_TargetUpdated" SelectedItem="{Binding Mode=TwoWay,Path=SelectedItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListView.InputBindings>
                                 <KeyBinding Key="Return" Command="{Binding Path=DataContext.ListviewEnterKeyCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" />
                             </ListView.InputBindings>
@@ -731,6 +725,19 @@
                                         </MenuItem.Resources>
                                         <MenuItem.Icon>
                                             <ContentControl Template="{StaticResource OpenInBrowser}" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator/>
+                                    <MenuItem Header="Archive" Command="{Binding Path=DataContext.ArchiveThisCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}">
+                                        <MenuItem.Resources>
+                                            <ControlTemplate x:Key="ArchiveThis">
+                                                <Canvas Background="Transparent" >
+                                                    <Path Fill="#373737" Width="14.3775" Height="14" Canvas.Left="0.311264" Canvas.Top="0.500005" Stretch="Uniform" Data="M5.12,5L5.93,4H17.93L18.87,5M12,17.5L6.5,12H10V10H14V12H17.5L12,17.5M20.54,5.23L19.15,3.55C18.88,3.21 18.47,3 18,3H6C5.53,3 5.12,3.21 4.84,3.55L3.46,5.23C3.17,5.57 3,6 3,6.5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V6.5C21,6 20.83,5.57 20.54,5.23Z" />
+                                                </Canvas>
+                                            </ControlTemplate>
+                                        </MenuItem.Resources>
+                                        <MenuItem.Icon>
+                                            <ContentControl Template="{StaticResource ArchiveThis}" />
                                         </MenuItem.Icon>
                                     </MenuItem>
                                     <Separator/>
@@ -979,7 +986,7 @@
                             </Grid>
 
                             <!-- Entries listview -->
-                            <ListView x:Name="ListViewListView" Grid.Row="1" Grid.Column="0" MinHeight="80" BorderThickness="0" Padding="0" Foreground="LightGray" helpers:GridViewSort.AutoSort="True" helpers:GridViewSort.ShowSortGlyph="True" IsSynchronizedWithCurrentItem="True" Background="{DynamicResource WindowBackgroundBaseColorBrush}" Margin="0" ItemsSource="{Binding Entries, NotifyOnTargetUpdated=True}" TargetUpdated="ListViewListView_TargetUpdated" SelectedItem="{Binding Mode=TwoWay,Path=SelectedItem}" SelectionMode="Extended" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" AlternationCount="2">
+                            <ListView x:Name="ListViewListView" Grid.Row="1" Grid.Column="0" MinHeight="80" BorderThickness="0" Padding="0" Foreground="LightGray" helpers:GridViewSort.AutoSort="True" helpers:GridViewSort.ShowSortGlyph="True" IsSynchronizedWithCurrentItem="True" Background="{DynamicResource WindowBackgroundBaseColorBrush}" Margin="0" ItemsSource="{Binding Entries, NotifyOnTargetUpdated=True}" TargetUpdated="ListViewListView_TargetUpdated" SelectedItem="{Binding Mode=TwoWay,Path=SelectedItem}" SelectionMode="Extended" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" AlternationCount="2" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
                                 <ListView.InputBindings>
                                     <KeyBinding Key="Enter"
                                 Command="{Binding Path=DataContext.ListviewEnterKeyCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}"
@@ -1009,6 +1016,19 @@
                                             </MenuItem.Resources>
                                             <MenuItem.Icon>
                                                 <ContentControl Template="{StaticResource OpenInExtBrowser}" />
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <Separator/>
+                                        <MenuItem Header="Archive" Command="{Binding Path=DataContext.ArchiveThisCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}">
+                                            <MenuItem.Resources>
+                                                <ControlTemplate x:Key="ArchiveThis">
+                                                    <Canvas Background="Transparent" >
+                                                        <Path Fill="#373737" Width="14.3775" Height="14" Canvas.Left="0.311264" Canvas.Top="0.500005" Stretch="Uniform" Data="M5.12,5L5.93,4H17.93L18.87,5M12,17.5L6.5,12H10V10H14V12H17.5L12,17.5M20.54,5.23L19.15,3.55C18.88,3.21 18.47,3 18,3H6C5.53,3 5.12,3.21 4.84,3.55L3.46,5.23C3.17,5.57 3,6 3,6.5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V6.5C21,6 20.83,5.57 20.54,5.23Z" />
+                                                    </Canvas>
+                                                </ControlTemplate>
+                                            </MenuItem.Resources>
+                                            <MenuItem.Icon>
+                                                <ContentControl Template="{StaticResource ArchiveThis}" />
                                             </MenuItem.Icon>
                                         </MenuItem>
                                         <Separator/>
@@ -1147,7 +1167,7 @@
                                             <Setter.Value>
                                                 <ControlTemplate TargetType="ListView">
                                                     <Border Name="Border" BorderThickness="0" Background="{TemplateBinding Background}">
-                                                        <ScrollViewer Style="{DynamicResource ListViewScrollViewerStyle}">
+                                                        <ScrollViewer Style="{DynamicResource ListViewScrollViewerStyle}" CanContentScroll="True">
                                                             <ItemsPresenter />
                                                         </ScrollViewer>
                                                     </Border>
@@ -1234,6 +1254,11 @@
                                         </Setter>
                                     </Style>
                                 </ListView.ItemContainerStyle>
+                                <ListView.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <VirtualizingStackPanel Orientation="Vertical" CanVerticallyScroll="True"/>
+                                    </ItemsPanelTemplate>
+                                </ListView.ItemsPanel>
                             </ListView>
 
                             <!-- ListView middle splitter -->

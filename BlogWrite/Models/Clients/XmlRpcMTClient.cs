@@ -61,7 +61,8 @@ namespace BlogWrite.Models.Clients
             NodeWorkspaces blogs = new NodeWorkspaces();
 
             XmlDocument xdoc = new XmlDocument();
-            XmlDeclaration xmlDeclaration = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
+            XmlDeclaration xdec = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
+            xdoc.AppendChild(xdec);
 
             XmlElement objRootNode, objMethodNode, objParamsNode, objParamNode, objValueNode, objTypeNode;
             XmlText xt;
@@ -215,8 +216,8 @@ namespace BlogWrite.Models.Clients
                         continue;
 
                     NodeEntries entries = new NodeEntries();
-                    bool isAdmin = false;
-                    bool isPrimary = false;
+                    //bool isAdmin = false;
+                    //bool isPrimary = false;
                     Uri url = null;
                     string blogid = "";
                     string blogName = "";
@@ -244,7 +245,7 @@ namespace BlogWrite.Models.Clients
                         {
                             if (value != "0")
                             {
-                                isAdmin = true;
+                                //isAdmin = true;
                             }
                         }
 
@@ -252,7 +253,7 @@ namespace BlogWrite.Models.Clients
                         {
                             if (value != "0")
                             {
-                                isPrimary = true;
+                                //isPrimary = true;
                             }
                         }
 
@@ -354,7 +355,8 @@ namespace BlogWrite.Models.Clients
             List<NodeCategory> cats = new List<NodeCategory>();
 
             XmlDocument xdoc = new XmlDocument();
-            XmlDeclaration xmlDeclaration = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
+            XmlDeclaration xdec = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
+            xdoc.AppendChild(xdec);
 
             XmlElement objRootNode, objMethodNode, objParamsNode, objParamNode, objValueNode, objTypeNode;
             XmlText xt;
@@ -592,7 +594,8 @@ namespace BlogWrite.Models.Clients
             res.Entries = list;
 
             XmlDocument xdoc = new XmlDocument();
-            xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
+            XmlDeclaration xdec = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
+            xdoc.AppendChild(xdec);
 
             XmlElement objRootNode, objMethodNode, objParamsNode, objParamNode, objValueNode, objTypeNode;
             XmlText xt;
@@ -782,7 +785,8 @@ namespace BlogWrite.Models.Clients
                 throw new InvalidOperationException("XML-RPC requires postid");
 
             XmlDocument xdoc = new XmlDocument();
-            XmlDeclaration xmlDeclaration = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
+            XmlDeclaration xdec = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
+            xdoc.AppendChild(xdec);
 
             XmlElement objRootNode, objMethodNode, objParamsNode, objParamNode, objValueNode, objTypeNode;
             XmlText xt;
@@ -1035,7 +1039,8 @@ name: wp_post_thumbnail - value:
         public override async Task<bool> UpdateEntry(EntryFull entry)
         {
             XmlDocument xdoc = new XmlDocument();
-            XmlDeclaration xmlDeclaration = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
+            XmlDeclaration xdec = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
+            xdoc.AppendChild(xdec);
 
             XmlElement objRootNode, objMethodNode, objParamsNode, objParamNode, objValueNode, objTypeNode;
             XmlText xt;
@@ -1120,7 +1125,7 @@ name: wp_post_thumbnail - value:
                 + AsUTF16Xml(xdoc)
                 + Environment.NewLine);
 
-            return true;
+            //return true;
 
             var request = new HttpRequestMessage
             {
@@ -1182,8 +1187,9 @@ name: wp_post_thumbnail - value:
 
         public override async Task<bool> PostEntry(EntryFull entry)
         {
-            //metaWeblog.newPost
+            await Task.Delay(1);
 
+            //metaWeblog.newPost
 
             return true;
 
@@ -1191,17 +1197,14 @@ name: wp_post_thumbnail - value:
 
         public override async Task<bool> DeleteEntry(Uri editUri)
         {
-            //metaWeblog.deletePost
+            await Task.Delay(1);
 
+            //metaWeblog.deletePost
 
             return true;
 
         }
-
-
-
     }
-
 }
 
 

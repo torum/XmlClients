@@ -26,21 +26,18 @@ namespace BlogWrite.ViewModels
     /// TODO: 
     /// 
     /// 
+    /// debug windowに書き出されたらバグアイコンを黄色にする。
     /// 
-    /// Feedを追加したり、削除したりしたタイミングでService.xmlを保存しておく。
+    /// DBのサイズを最適化する。項目も見直す。
     /// 
-    /// NodeFeedをDeleteした時に、DBから記事を削除。
-    /// 
-    /// 個別のFeedEntryItemのStatusをDB更新する。
-    /// 
-    /// DBのSelectのAsync化。
-    /// 
-    /// 毎回DBからEntriesを読み込んでいるなら、各NodeにCollectionをため込んでおく意味ない・・・むしろ。
+    /// Feed Folderまとめ表示。
     /// 
     /// 画像のダウンロードとサムネイル化と、読み込みのタイミング。
     /// Entry画像のダウンロードは、visibilityChanged か何かで、ListView内で表示されたタイミングで取得するように変更。
     /// 
-    /// Feed Folderまとめ表示。
+    /// Magazine View styleの追加。
+    /// 
+    /// View形式をFeedやサービスごとに覚える。
     /// 
     /// Feedの自動更新Timer
     /// 
@@ -49,16 +46,19 @@ namespace BlogWrite.ViewModels
     /// InfoWindowでService情報も見れるようにする。
     /// InfoWindowで、Feedの更新頻度を設定できるようにする。
     /// 
-    /// [Bug] Feed取得中はDrag and Dropできないようにする。
+    /// [Bug] Feed取得中はDrag and DropやDeleteできないようにする。
+    /// 現状毎回DBからEntriesを読み込んでいるなら、各NodeにCollectionをため込んでおく意味ないなぁ・・・むしろ。
     /// 
-    /// View形式をFeedやサービスごとに覚える。
-    /// 
-    /// WebView2の環境設定で、保存ディレクトリはMyDocumentで良いんじゃないかと・・・
     /// ServiceDiscoveryのFeed追加で、もう一画面かましてサイト名を表示して、Feedの名前を変更できるようにする?
+    /// 
+    /// "あとで読む"
     /// 
     /// AtomPub and XML-RPC ..
 
     /// 更新履歴：
+    /// v0.0.0.33 OPML import and export.
+    /// v0.0.0.32 NodeFeedをDeleteした時に、DBから記事を削除。AtomFeedNode/RssFeedNode, AtomFeedClient/RssFeedClientをまとめて一つにした。
+    /// v0.0.0.31 DebugWrindowに書き出す内容をスリムにして、必要な通知はちゃんと出すようにした。古いAtomとかUriやDatetimeのFormatErrorとか。TreeViewのNodeFeedからArchive。
     /// v0.0.0.30 TabBottomのスタイル作り直し。
     /// v0.0.0.29 全更新の時刻判定が逆だった。datetime pase no exception handling.
     /// v0.0.0.28 Author情報の取得。DBのFlagをIsReadに変更し、AuthorとStatusの保存と表示。Statusの更新はまだ。
@@ -97,7 +97,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.30";
+        const string _appVer = "0.0.0.33";
         public string AppVer
         {
             get
@@ -150,6 +150,8 @@ namespace BlogWrite.ViewModels
 
                 NotifyPropertyChanged(nameof(SelectedNode));
 
+                SelectedItem = null;
+
                 if (_selectedNode == null)
                     return;
 
@@ -192,8 +194,6 @@ namespace BlogWrite.ViewModels
                 }
 
                 LoadEntries(_selectedNode);
-
-                ResetListviewPosition?.Invoke(this,0);
             }
         }
 
@@ -519,7 +519,7 @@ li {
                     return;
 
                 _isFullyLoaded = value;
-                this.NotifyPropertyChanged("IsFullyLoaded");
+                this.NotifyPropertyChanged(nameof(IsFullyLoaded));
             }
         }
         
@@ -536,7 +536,7 @@ li {
                     return;
 
                 _isBusy = value;
-                NotifyPropertyChanged("IsBusy");
+                NotifyPropertyChanged(nameof(IsBusy));
 
                 if (Application.Current == null) { return; }
                 Application.Current.Dispatcher.Invoke(() => CommandManager.InvalidateRequerySuggested());
@@ -556,7 +556,7 @@ li {
                     return;
 
                 _isWorking = value;
-                NotifyPropertyChanged("IsWorking");
+                NotifyPropertyChanged(nameof(IsWorking));
 
                 if (Application.Current == null) { return; }
                 Application.Current.Dispatcher.Invoke(() => CommandManager.InvalidateRequerySuggested());
@@ -579,7 +579,7 @@ li {
 
                 _isDebugWindowEnabled = value;
 
-                NotifyPropertyChanged("IsDebugWindowEnabled");
+                NotifyPropertyChanged(nameof(IsDebugWindowEnabled));
                 /*
                 if (_isDebugWindowEnabled)
                 {
@@ -615,7 +615,7 @@ li {
 
                 _isShowContentBrowserWindow = value;
 
-                NotifyPropertyChanged("IsShowContentBrowserWindow");
+                NotifyPropertyChanged(nameof(IsShowContentBrowserWindow));
 
             }
         }
@@ -790,6 +790,8 @@ li {
 
         #endregion
 
+        private OpenDialogService _openDialogService = new OpenDialogService();
+
         public MainViewModel()
         {
             IsShowMainErrorMessage = false;
@@ -840,6 +842,10 @@ li {
                 param => ListviewEnterKeyCommand_Execute(param),
                 param => ListviewEnterKeyCommand_CanExecute());
 
+            ArchiveThisCommand = new GenericRelayCommand<EntryItem>(
+                param => ArchiveThisCommand_Execute(param),
+                param => ArchiveThisCommand_CanExecute());
+
             OpenEditorAsNewCommand = new RelayCommand(OpenEditorAsNewCommand_Execute, OpenEditorAsNewCommand_CanExecute);
             ShowSettingsCommand = new RelayCommand(ShowSettingsCommand_Execute, ShowSettingsCommand_CanExecute);
             ShowDebugWindowCommand = new RelayCommand(ShowDebugWindowCommand_Execute, ShowDebugWindowCommand_CanExecute);
@@ -850,8 +856,10 @@ li {
 
             ShowBrowserWindowCommand = new RelayCommand(ShowBrowserWindowCommand_Execute, ShowBrowserWindowCommand_CanExecute);
 
-            //
-            MarkAsReadCommand = new RelayCommand(MarkAsReadCommand_Execute, MarkAsReadCommand_CanExecute);
+            ArchiveAllCommand = new RelayCommand(ArchiveAllCommand_Execute, ArchiveAllCommand_CanExecute);
+
+            OpmlImportCommand = new RelayCommand(OpmlImportCommand_Execute, OpmlImportCommand_CanExecute);
+            OpmlExportCommand = new RelayCommand(OpmlExportCommand_Execute, OpmlExportCommand_CanExecute);
 
             #endregion
 
@@ -877,7 +885,7 @@ li {
                 MainError = new ErrorObject();
                 MainError.ErrType = ErrorObject.ErrTypes.DB;
                 MainError.ErrCode = "";
-                MainError.ErrText = "Exception";
+                MainError.ErrText = e.ToString();
                 MainError.ErrDescription = e.Message;
                 MainError.ErrDatetime = DateTime.Now;
                 MainError.ErrPlace = "dataAccessModule.InitializeDatabase";
@@ -902,9 +910,7 @@ li {
                 _services.LoadXmlDoc(doc);
 
                 InitClients();
-
             }
-
         }
 
         #region == Startup and Shutdown ==
@@ -1025,9 +1031,7 @@ li {
 
             // TODO: tmp
             IsDebugWindowEnabled = true;
-            CloseContentBrowserCommand_Execute();
-
-
+            //CloseContentBrowserCommand_Execute();
 
             // starts update feeds and collections.
             StartUpdate();
@@ -1041,10 +1045,9 @@ li {
 
             #region == Save Apps settings ==
 
-            // 設定ファイル用のXMLオブジェクト
             XmlDocument doc = new XmlDocument();
-            XmlDeclaration xmlDeclaration = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
-            doc.InsertBefore(xmlDeclaration, doc.DocumentElement);
+            XmlDeclaration xdec = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
+            doc.AppendChild(xdec);
 
             // Root Document Element
             XmlElement root = doc.CreateElement(string.Empty, "App", string.Empty);
@@ -1054,7 +1057,7 @@ li {
             attrs.Value = _appVer;
             root.SetAttributeNode(attrs);
 
-            #region == ウィンドウ関連 ==
+            #region == Windows ==
 
             if (sender is Window)
             {
@@ -1131,7 +1134,6 @@ li {
 
             #endregion
 
-
             #region == Options ==
 
             XmlElement opts = doc.CreateElement(string.Empty, "Options", string.Empty);
@@ -1167,6 +1169,7 @@ li {
             #endregion
 
             #region == Services ==
+            // Save Services.xml.
 
             XmlDocument xdoc = _services.AsXmlDoc();
             xdoc.Save(_appDataFolder + System.IO.Path.DirectorySeparatorChar + "Searvies.xml");
@@ -1182,16 +1185,6 @@ li {
                     app.SaveErrorLog();
                 });
             }
-            /*
-                if (Application.Current != null)
-                {
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        App app = App.Current as App;
-                        app.AppendErrorLog("System.IO.FileNotFoundException@OnWindowLoaded", ex.Message);
-                    });
-                }
-            */
         }
 
         #endregion
@@ -1281,38 +1274,28 @@ li {
             if (FeedDupeCheck(fl.FeedUri.AbsoluteUri))
                 return;
 
-            if (fl.FeedKind == FeedLink.FeedKinds.Atom)
+            NodeFeed a = new(fl.Title, fl.FeedUri);
+            a.IsSelected = true;
+
+            a.SiteTitle = fl.SiteTitle;
+            a.SiteUri = fl.SiteUri;
+
+            a.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
+
+            // Add Node to internal (virtual) Treeview.
+            if (Application.Current == null) { return; }
+            if (SelectedNode is NodeFolder)
             {
-                NodeAtomFeed a = new(fl.Title, fl.FeedUri);
-                a.Api = ApiTypes.atAtomFeed;
-                a.ServiceType = ServiceTypes.Feed;
+                a.Parent = SelectedNode;
+                Application.Current.Dispatcher.Invoke(() => SelectedNode.Children.Add(a));
+            }
+            else
+            {
                 a.Parent = _services;
-                a.IsSelected = true;
-
-                a.SiteTitle = fl.SiteTitle;
-                a.SiteUri = fl.SiteUri;
-
-                a.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
-
-                // Add Node to internal (virtual) Treeview.
                 Application.Current.Dispatcher.Invoke(() => Services.Add(a));
             }
-            else if (fl.FeedKind == FeedLink.FeedKinds.Rss)
-            {
-                NodeRssFeed a = new(fl.Title, fl.FeedUri);
-                a.Api = ApiTypes.atRssFeed;
-                a.ServiceType = ServiceTypes.Feed;
-                a.Parent = _services;
-                a.IsSelected = true;
 
-                a.SiteTitle = fl.SiteTitle;
-                a.SiteUri = fl.SiteUri;
-
-                a.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
-
-                // Add Node to internal (virtual) Treeview.
-                Application.Current.Dispatcher.Invoke(() => Services.Add(a));
-            }
+            SaveServiceXml();
         }
 
         public void AddService(NodeService nodeService)
@@ -1323,7 +1306,10 @@ li {
             nodeService.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
 
             // Add Node to internal (virtual) Treeview.
+            if (Application.Current == null) { return; }
             Application.Current.Dispatcher.Invoke(() => Services.Add(nodeService));
+
+            SaveServiceXml();
         }
 
         private bool FeedDupeCheck(string feedUri)
@@ -1351,6 +1337,123 @@ li {
             return false;
         }
 
+        public void DeleteNodeTree(NodeTree nt)
+        {
+            if ((nt is NodeFolder) || (nt is NodeFeed) || (nt is NodeService))
+            {
+                if (nt is NodeFeed)
+                {
+                    var fnd = (nt as NodeFeed);
+
+                    if (Application.Current == null) { return; }
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        // check status
+                        if (fnd.Status == NodeFeed.DownloadStatus.loading)
+                        {
+                            return;
+                        }
+
+                        IsBusy = true;
+
+                        SqliteDataAccessResultWrapper resDelete = dataAccessModule.DeleteEntriesByFeedId(fnd.Id);
+                        if (resDelete.IsError)
+                        {
+                            fnd.ErrorDatabase = resDelete.Error;
+
+                            if (fnd == SelectedNode)
+                            {
+                                DatabaseError = fnd.ErrorDatabase;
+                                IsShowDatabaseErrorMessage = true;
+                            }
+
+                            IsBusy = false;
+                            return;
+                        }
+                        else
+                        {
+                            nt.Parent.Children.Remove(nt);
+
+                            IsBusy = false;
+                        }
+                    });
+                }
+                else if (nt is NodeFolder)
+                {
+                    if ((nt as NodeFolder).Children.Count> 0)
+                    {
+                        if (Application.Current == null) { return; }
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            IsBusy = true;
+
+                            List<NodeTree> tmpDeletes = new();
+
+                            foreach (var del in (nt as NodeFolder).Children)
+                            {
+                                if (del is not NodeFeed)
+                                    continue;
+
+                                // check status
+                                if ((del as NodeFeed).Status == NodeFeed.DownloadStatus.loading)
+                                {
+                                    continue;
+                                }
+
+                                SqliteDataAccessResultWrapper resDelete = dataAccessModule.DeleteEntriesByFeedId((del as NodeFeed).Id);
+                                if (resDelete.IsError)
+                                {
+                                    (del as NodeFeed).ErrorDatabase = resDelete.Error;
+
+                                    if (del == SelectedNode)
+                                    {
+                                        DatabaseError = (del as NodeFeed).ErrorDatabase;
+                                        IsShowDatabaseErrorMessage = true;
+                                    }
+                                }
+                                else
+                                {
+                                    tmpDeletes.Add(del);
+                                }
+                            }
+
+                            if (tmpDeletes.Count > 0)
+                            {
+                                foreach (var tmp in tmpDeletes)
+                                {
+                                    (nt as NodeFolder).Children.Remove(tmp);
+                                }
+                            }
+
+                            // make sure folder is empty.
+                            if ((nt as NodeFolder).Children.Count == 0)
+                            {
+                                (nt as NodeFolder).Parent.Children.Remove(nt);
+                            }
+
+                            IsBusy = false;
+                        });
+                    }
+
+                }
+                else if (nt is NodeService)
+                {
+                    // TODO:
+                }
+                else
+                {
+                    // TODO:
+                }
+            }
+        }
+
+        private void SaveServiceXml()
+        {
+            XmlDocument xdoc = _services.AsXmlDoc();
+            
+            xdoc.Save(System.IO.Path.Combine(_appDataFolder, "Searvies.xml"));
+        }
+
         private async void GetEntries(NodeTree nd)
         {
             if (nd == null)
@@ -1360,7 +1463,7 @@ li {
             {
                 NodeFeed fnd = nd as NodeFeed;
 
-                if ((fnd.Api != ApiTypes.atRssFeed) && fnd.Api != ApiTypes.atAtomFeed)
+                if (fnd.Api != ApiTypes.atFeed)
                     return;
 
                 var fc = fnd.Client;
@@ -1368,36 +1471,45 @@ li {
                 if (fc == null)
                     return;
 
+                if (Application.Current == null) { return; }
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     fnd.Status = NodeFeed.DownloadStatus.loading;
                 });
 
                 HttpClientEntryItemCollectionResultWrapper resEntries = await fc.GetEntries(fnd.EndPoint, fnd.Id);
+
+                if (fnd == null)
+                    return; // could have been deleted.
+
                 if (resEntries.IsError)
                 {
+                    if (Application.Current == null) { return; }
                     Application.Current.Dispatcher.Invoke(() =>
                     {
-                        fnd.Status = NodeFeed.DownloadStatus.error;
                         fnd.ErrorHttp = resEntries.Error;
 
                         if (fnd == SelectedNode)
                         {
-                            HttpError = fnd.ErrorHttp;//fnd.ErrorHttp.ErrText + ": " + fnd.ErrorHttp.ErrDescription + " @" + fnd.ErrorHttp.ErrPlace + "@" + fnd.ErrorHttp.ErrPlaceParent;
+                            HttpError = fnd.ErrorHttp;
                             IsShowHttpClientErrorMessage = true;
                         }
+
+                        fnd.Status = NodeFeed.DownloadStatus.error;
                     });
+
+                    return;
                 }
                 else
                 {
+                    if (Application.Current == null) { return; }
                     Application.Current.Dispatcher.Invoke(() =>
                     {
-                        fnd.Status = NodeFeed.DownloadStatus.normal;
-                        
-                        // Clear ErrorHttp
+                        // Clear Error
                         fnd.ErrorHttp = null;
                         if (fnd == SelectedNode)
                         {
+                            // hide error
                             HttpError = null;
                             IsShowHttpClientErrorMessage = false;
                         }
@@ -1414,7 +1526,6 @@ li {
                                 if (fnd == SelectedNode)
                                 {
                                     DatabaseError = fnd.ErrorDatabase;
-                                    //ClientErrorMessage = fnd.ErrorDatabase.ErrText + ": " + fnd.ErrorDatabase.ErrDescription + " @" + fnd.ErrorDatabase.ErrPlace + "@" + fnd.ErrorDatabase.ErrPlaceParent;
                                     IsShowDatabaseErrorMessage = true;
                                 }
 
@@ -1427,6 +1538,7 @@ li {
 
                                 // Clear error.
                                 fnd.ErrorDatabase = null;
+
                                 if (fnd == SelectedNode)
                                 {
                                     DatabaseError = null;
@@ -1435,10 +1547,18 @@ li {
 
                                 if (fnd == SelectedNode)
                                 {
-                                    LoadEntries(nd);
+                                    if (resInsert.InsertedCount > 0)
+                                        LoadEntries(nd);
                                 }
                             }
                         }
+                        else
+                        {
+                            //Debug.WriteLine("0 entries. ");
+                        }
+
+
+                        fnd.Status = NodeFeed.DownloadStatus.normal;
                     });
                 }
             }
@@ -1449,98 +1569,75 @@ li {
                     return;
 
                 // TODO:
-                /*
-                string serviceId = ((nd as NodeEntryCollection).Parent.Parent as NodeService).Id;
-
-                ObservableCollection<EntryItem> entLi = await bc.GetEntries((nd as NodeEntryCollection).Uri, serviceId);
-
-                if (entLi == null)
-                    return;
-
-                if (string.IsNullOrEmpty(bc.ClientErrorMessage))
-                {
-                    ClientErrorMessage = "";
-                    IsShowClientErrorMessage = false;
-                }
-                else
-                {
-                    ClientErrorMessage = bc.ClientErrorMessage;
-                    IsShowClientErrorMessage = true;
-                }
-
-                // Minimize the time to block UI thread.
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    (nd as NodeEntryCollection).List.Clear();
-
-                    foreach (EntryItem ent in entLi)
-                    {
-                        ent.NodeEntry = (nd as NodeEntryCollection);
-
-                        (nd as NodeEntryCollection).List.Add(ent);
-                    }
-                });
-                */
+                
             }
         }
 
-        private void LoadEntries(NodeTree nd)
+        private async void LoadEntries(NodeTree nd)
         {
             if (nd is NodeFeed)
             {
+                if (nd == SelectedNode)
+                {
+                    if (Application.Current == null) { return; }
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        (nd as NodeFeed).List.Clear();
+                    });
+                    // This changes the listview.
+                    NotifyPropertyChanged(nameof(Entries));
+                }
+
+                await Task.Delay(100);
+
+                if (Application.Current == null) { return; }
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    IsBusy = true;
-                    
+                    if (nd == null)
+                        return;
+
+                    IsWorking = true;
+
                     SqliteDataAccessSelectResultWrapper res = dataAccessModule.SelectEntriesByFeedId((nd as NodeFeed).List, (nd as NodeFeed).Id, (nd as NodeFeed).IsDisplayUnreadOnly);
                     if (res.IsError)
                     {
+                        // set's error
                         (nd as NodeFeed).ErrorDatabase = res.Error;
 
                         if (nd == SelectedNode)
                         {
-                            if (nd is NodeFeed)
-                            {
-                                DatabaseError = (nd as NodeFeed).ErrorDatabase;
-                                IsShowDatabaseErrorMessage = true;
-                            }
+                            // show error
+                            DatabaseError = (nd as NodeFeed).ErrorDatabase;
+                            IsShowDatabaseErrorMessage = true;
                         }
 
-                        IsBusy = false;
+                        IsWorking = false;
                         return;
                     }
                     else
                     {
                         // Clear error
                         (nd as NodeFeed).ErrorDatabase = null;
-
+                        // update the count
                         (nd as NodeFeed).UnreadCount = res.UnreadCount;
 
                         if (nd == SelectedNode)
                         {
+                            // hide error
                             DatabaseError = null;
                             IsShowDatabaseErrorMessage = false;
 
-                            // This changes the listview.
-                            NotifyPropertyChanged(nameof(Entries));
+                            if ((nd as NodeFeed).List.Count > 0)
+                                ResetListviewPosition?.Invoke(this, 0);
                         }
                     }
 
-                    //test
-                    if ((nd as NodeFeed).List.Count > 0)
-                    {
-                        //Debug.WriteLine("SelectEntriesByFeedId returned " + (_selectedNode as NodeFeed).List.Count.ToString());
-                    }
-                    else
-                    {
-                        //Debug.WriteLine("SelectEntriesByFeedId returned 0 ");
-                    }
-
-                    IsBusy = false;
+                    IsWorking = false;
                 });
             }
             else if (nd is NodeFolder)
             {
+                if (Application.Current == null) { return; }
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     IsBusy = true;
@@ -1553,6 +1650,7 @@ li {
             }
             else if (nd is NodeEntryCollection)
             {
+                if (Application.Current == null) { return; }
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     IsBusy = true;
@@ -1565,14 +1663,15 @@ li {
             }
         }
 
-        private void MarkAsRead(NodeFeed nd)
+        private void ArchiveAll(NodeFeed nd)
         {
             if (nd == null)
                 return;
 
+            if (Application.Current == null) { return; }
             Application.Current.Dispatcher.Invoke(() =>
             {
-                IsBusy = true;
+                IsWorking = true;
 
                 SqliteDataAccessResultWrapper res = dataAccessModule.UpdateEntriesAsRead(nd.List, nd.Id);
                 if (res.IsError)
@@ -1603,14 +1702,92 @@ li {
                     }
                 }
 
-                //test
-                if ((nd as NodeFeed).List.Count > 0)
+                IsWorking = false;
+            });
+        }
+
+        private void ArchiveThis(NodeFeed nd, FeedEntryItem entry)
+        {
+            if (nd == null)
+                return;
+
+            if (Application.Current == null) { return; }
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                IsBusy = true;
+
+                ObservableCollection<EntryItem> list = new();
+                list.Add(entry);
+
+                SqliteDataAccessResultWrapper res = dataAccessModule.UpdateEntriesAsRead(list, nd.Id);
+                if (res.IsError)
                 {
-                    //Debug.WriteLine("SelectEntriesByFeedId returned " + (_selectedNode as NodeFeed).List.Count.ToString());
+                    nd.ErrorDatabase = res.Error;
+
+                    if (nd == SelectedNode)
+                    {
+                        DatabaseError = nd.ErrorDatabase;
+                        IsShowDatabaseErrorMessage = true;
+                    }
+
+                    IsBusy = false;
+                    return;
                 }
                 else
                 {
-                    //Debug.WriteLine("SelectEntriesByFeedId returned 0 ");
+                    // Clear error
+                    nd.ErrorDatabase = null;
+
+                    // remove entry from list
+                    nd.List.Remove(entry);
+                    // minus the count.
+                    nd.UnreadCount--;
+                }
+
+                IsBusy = false;
+            });
+        }
+
+        private void UpdateEntryStatus(NodeFeed nd, FeedEntryItem entry)
+        {
+            if (nd == null)
+                return;
+
+            if (Application.Current == null) { return; }
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                IsBusy = true;
+
+                SqliteDataAccessResultWrapper res = dataAccessModule.UpdateEntryStatus(entry, nd.Id);
+                if (res.IsError)
+                {
+                    nd.ErrorDatabase = res.Error;
+
+                    if (nd == SelectedNode)
+                    {
+                        DatabaseError = nd.ErrorDatabase;
+                        IsShowDatabaseErrorMessage = true;
+                    }
+
+                    IsBusy = false;
+                    return;
+                }
+                else
+                {
+                    // Clear error
+                    nd.ErrorDatabase = null;
+
+                    // minus the unread count.
+                    //nd.UnreadCount--;
+
+                    if (nd == SelectedNode)
+                    {
+                        DatabaseError = null;
+                        IsShowDatabaseErrorMessage = false;
+
+                        // 
+                        //LoadEntries(nd);
+                    }
                 }
 
                 IsBusy = false;
@@ -1705,6 +1882,7 @@ li {
             folder.IsSelected = true;
 
             // Add NodeFolder to internal (virtual) Treeview.
+            if (Application.Current == null) { return; }
             Application.Current.Dispatcher.Invoke(() => Services.Add(folder));
         }
 
@@ -1726,21 +1904,18 @@ li {
             if (_selectedNode == null)
                 return;
 
-            //ClientErrorMessage = "";
-            //IsShowClientErrorMessage = false;
-
             if (_selectedNode is NodeEntryCollection)
             {
-                if ((_selectedNode as NodeEntryCollection).List.Count > 0)
-                    (_selectedNode as NodeEntryCollection).List.Clear();
+                //if ((_selectedNode as NodeEntryCollection).List.Count > 0)
+                //    (_selectedNode as NodeEntryCollection).List.Clear();
 
                 Task.Run(() => GetEntries((_selectedNode as NodeEntryCollection)));
 
             }
             else if (_selectedNode is NodeFeed)
             {
-                if ((_selectedNode as NodeFeed).List.Count > 0)
-                    (_selectedNode as NodeFeed).List.Clear();
+                // don't clear here.
+                //if ((_selectedNode as NodeFeed).List.Count > 0) (_selectedNode as NodeFeed).List.Clear();
 
                 (_selectedNode as NodeFeed).LastUpdate = DateTime.Now;
 
@@ -1883,6 +2058,7 @@ li {
                             // remove item from the list.
                             try
                             {
+                                if (Application.Current == null) { return; }
                                 Application.Current.Dispatcher.Invoke(() => selectedEntry.NodeEntry.List.Remove(selectedEntry));
                             }
                             catch (Exception e)
@@ -2013,7 +2189,14 @@ li {
                 {
                     (selectedEntry as FeedEntryItem).Status = FeedEntryItem.ReadStatus.rsVisited;
 
-                    // TODO: UPDATE DB
+                    if (SelectedNode != null)
+                    {
+                        if (SelectedNode is NodeFeed)
+                        {
+                            // UPDATE DB
+                            UpdateEntryStatus((SelectedNode as NodeFeed), (selectedEntry as FeedEntryItem));
+                        }
+                    }
                 }
             }
         }
@@ -2044,20 +2227,27 @@ li {
                 {
                     (selectedEntry as FeedEntryItem).Status = FeedEntryItem.ReadStatus.rsVisited;
 
-                    // TODO: UPDATE DB
+                    if (SelectedNode != null)
+                    {
+                        if (SelectedNode is NodeFeed)
+                        {
+                            // UPDATE DB
+                            UpdateEntryStatus((SelectedNode as NodeFeed), (selectedEntry as FeedEntryItem));
+                        }
+                    }
                 }
             }
         }
 
-        public ICommand MarkAsReadCommand { get; }
+        public ICommand ArchiveAllCommand { get; }
 
-        public bool MarkAsReadCommand_CanExecute()
+        public bool ArchiveAllCommand_CanExecute()
         {
             if (SelectedNode == null) return false;
             return (SelectedNode is NodeFeed) ? true : false;
         }
 
-        public void MarkAsReadCommand_Execute()
+        public void ArchiveAllCommand_Execute()
         {
             if (SelectedNode == null)
                 return;
@@ -2065,7 +2255,32 @@ li {
             if (!(SelectedNode is NodeFeed))
                 return;
 
-            MarkAsRead(SelectedNode as NodeFeed);
+            ArchiveAll(SelectedNode as NodeFeed);
+        }
+
+        public ICommand ArchiveThisCommand { get; }
+
+        public bool ArchiveThisCommand_CanExecute()
+        {
+            if (SelectedNode == null) return false;
+            return (SelectedNode is NodeFeed) ? true : false;
+        }
+
+        public void ArchiveThisCommand_Execute(EntryItem selectedEntry)
+        {
+            if (SelectedNode == null)
+                return;
+
+            if (!(SelectedNode is NodeFeed))
+                return;
+
+            if (selectedEntry == null)
+                return;
+
+            if (!(selectedEntry is FeedEntryItem))
+                return;
+
+            ArchiveThis(SelectedNode as NodeFeed, selectedEntry as FeedEntryItem);
         }
 
         #endregion
@@ -2145,6 +2360,86 @@ li {
         }
 
         #endregion
+
+        public ICommand OpmlImportCommand { get; }
+
+        public bool OpmlImportCommand_CanExecute()
+        {
+            return true;
+        }
+
+        public void OpmlImportCommand_Execute()
+        {
+            var filepath = _openDialogService.GetOpenOpmlFileDialog("Import OPML");
+            if (!string.IsNullOrEmpty(filepath.Trim()))
+            {
+                if (File.Exists(filepath.Trim()))
+                {
+                    XmlDocument doc = new XmlDocument();
+                    try
+                    {
+                        doc.Load(filepath.Trim());
+
+                        MainError = null;
+                    }
+                    catch (Exception e)
+                    {
+                        MainError = new ErrorObject();
+                        MainError.ErrType = ErrorObject.ErrTypes.Other;
+                        MainError.ErrCode = "";
+                        MainError.ErrText = e.ToString();
+                        MainError.ErrDescription = e.Message;
+                        MainError.ErrDatetime = DateTime.Now;
+                        MainError.ErrPlace = "OpmlImportCommand_Execute.LoadXmlDoc";
+                        MainError.ErrPlaceParent = "MainViewModel()";
+
+                        IsShowMainErrorMessage = true;
+
+                        return;
+                    }
+
+                    Opml opmlLoader = new();
+
+                    NodeFolder dummyFolder = opmlLoader.LoadOpml(doc);
+                    if (dummyFolder is not null)
+                    {
+                        if (dummyFolder.Children.Count > 0)
+                        {
+                            foreach (var feed in dummyFolder.Children)
+                            {
+                                feed.Parent = _services;
+                                Services.Add(feed);
+                            }
+                        }
+                    }
+
+                    SaveServiceXml();
+                }
+            }
+        }
+
+        public ICommand OpmlExportCommand { get; }
+
+        public bool OpmlExportCommand_CanExecute()
+        {
+            return true;
+        }
+
+        public void OpmlExportCommand_Execute()
+        {
+            Opml opmlWriter = new();
+
+            XmlDocument xdoc = opmlWriter.WriteOpml(_services);
+            if (xdoc is not null)
+            {
+                var filepath = _openDialogService.GetSaveOpmlFileDialog("Export OPML");
+
+                if (!string.IsNullOrEmpty(filepath))
+                {
+                    xdoc.Save(filepath.Trim());
+                }
+            }
+        }
 
         #endregion
 

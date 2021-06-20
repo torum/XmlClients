@@ -29,6 +29,6 @@ namespace BlogWrite.ViewModels
     // For registering Service from ServiceDiscoveryViewModel.
     public class RegisterServiceEventArgs : EventArgs
     {
-        public NodeService nodeService { get; set; }
+        public NodeService NodeService { get; set; }
     }
 }

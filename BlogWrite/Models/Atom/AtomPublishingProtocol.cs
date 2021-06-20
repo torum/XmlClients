@@ -1,18 +1,4 @@
-﻿/// 
-/// 
-/// BlogWrite 
-///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
-/// https://github.com/torum/BlogWrite
-/// 
-/// 
-/// Atom Syndication Format:
-///  https://tools.ietf.org/html/rfc4287
-/// Atom Publishing protocol:
-///  https://tools.ietf.org/html/rfc5023
-///  
-/// 
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,6 +7,7 @@ using System.Xml;
 
 namespace XML.Atom
 {
+    /*
     class AtomPublishingProtocol
     {
         //TODO
@@ -28,17 +15,17 @@ namespace XML.Atom
 
     class AtomPubCntrol
     {
-        public bool Draft;
+        //public bool Draft;
     }
 
     class AtomPubEntry : AtomEntry
     {
-        public DateTime DateTimeEdited;
+        //public DateTime DateTimeEdited;
 
-        public AtomPubCntrol PubControl;
+        //public AtomPubCntrol PubControl;
 
     }
-
+    */
 }
 
 /*

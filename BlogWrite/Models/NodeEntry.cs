@@ -425,7 +425,8 @@ namespace BlogWrite.Models
         public XmlDocument AsXmlDoc()
         {
             XmlDocument xdoc = new XmlDocument();
-            XmlDeclaration xmlDeclaration = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
+            XmlDeclaration xdec = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
+            xdoc.AppendChild(xdec);
             /*
 			<entry xmlns="http://www.w3.org/2005/Atom" xmlns:app="http://www.w3.org/2007/app">
 				<id>hoge</id>

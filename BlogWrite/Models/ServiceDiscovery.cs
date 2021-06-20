@@ -1086,7 +1086,7 @@ namespace BlogWrite.Models
                                                 {
                                                     catHrefUri = new Uri(cathref);
 
-                                                    categories.href = catHrefUri;
+                                                    categories.Href = catHrefUri;
                                                 }
                                                 catch { }
                                             }
@@ -1163,6 +1163,8 @@ namespace BlogWrite.Models
 
         private async Task<bool> GetRsd()
         {
+            await Task.Delay(1);
+
             UpdateStatus(">> Trying to access the RSD document...");
             /*
             var HTTPResponse = await _httpClient.GetAsync(_serviceDocUrl);

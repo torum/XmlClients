@@ -80,10 +80,13 @@ namespace BlogWrite.Models
                                 at = ApiTypes.atAtomPub;
                                 break;
                             case "AtomFeed":
-                                at = ApiTypes.atAtomFeed;
+                                at = ApiTypes.atFeed;
                                 break;
                             case "RssFeed":
-                                at = ApiTypes.atRssFeed;
+                                at = ApiTypes.atFeed;
+                                break;
+                            case "Feed":
+                                at = ApiTypes.atFeed;
                                 break;
                             //case "XML-RPC":
                             //    at = ApiTypes.atXMLRPC_MovableType;
@@ -301,11 +304,8 @@ namespace BlogWrite.Models
             ApiTypes at;
             switch (api)
             {
-                case "AtomFeed":
-                    at = ApiTypes.atAtomFeed;
-                    break;
-                case "RssFeed":
-                    at = ApiTypes.atRssFeed;
+                case "Feed":
+                    at = ApiTypes.atFeed;
                     break;
                 default:
                     at = ApiTypes.atUnknown;
@@ -354,43 +354,20 @@ namespace BlogWrite.Models
 
             if (!string.IsNullOrEmpty(endpoint))
             {
-                if (at == ApiTypes.atAtomFeed)
-                {
-                    NodeAtomFeed feed = new NodeAtomFeed(feedName, new Uri(endpoint));
+                NodeFeed feed = new NodeFeed(feedName, new Uri(endpoint));
+                feed.IsSelected = isSelectedf;
+                feed.IsExpanded = isExpandedf;
+                feed.Parent = this;
 
-                    feed.IsSelected = isSelectedf;
-                    feed.IsExpanded = isExpandedf;
-                    feed.Parent = this;
+                feed.SiteTitle = siteTitle;
+                feed.SiteUri = siteUri;
 
-                    feed.ServiceType = ServiceTypes.Feed;
-                    feed.Api = at;
+                feed.UnreadCount = unreadCount;
+                feed.LastUpdate = lastUpdate;
 
-                    feed.SiteTitle = siteTitle;
-                    feed.SiteUri = siteUri;
+                feed.Api = at;
 
-                    feed.UnreadCount = unreadCount;
-                    feed.LastUpdate = lastUpdate;
-
-                    return feed;
-                }
-                else if (at == ApiTypes.atRssFeed)
-                {
-                    NodeRssFeed feed = new NodeRssFeed(feedName, new Uri(endpoint));
-                    feed.IsSelected = isSelectedf;
-                    feed.IsExpanded = isExpandedf;
-                    feed.Parent = this;
-
-                    feed.ServiceType = ServiceTypes.Feed;
-                    feed.Api = at;
-
-                    feed.SiteTitle = siteTitle;
-                    feed.SiteUri = siteUri;
-
-                    feed.UnreadCount = unreadCount;
-                    feed.LastUpdate = lastUpdate;
-
-                    return feed;
-                }
+                return feed;
             }
 
             return null;
@@ -399,7 +376,8 @@ namespace BlogWrite.Models
         public XmlDocument AsXmlDoc()
         {
             XmlDocument doc = new();
-            doc.CreateXmlDeclaration("1.0", "UTF-8", null);
+            XmlDeclaration xdec = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
+            doc.AppendChild(xdec);
 
             XmlElement root = doc.CreateElement(string.Empty, "Accounts", string.Empty);
             doc.AppendChild(root);
@@ -487,12 +465,8 @@ namespace BlogWrite.Models
                                 atapi.Value = "AtomPub";
                                 service.SetAttributeNode(atapi);
                                 break;
-                            case ApiTypes.atAtomFeed:
-                                atapi.Value = "AtomFeed";
-                                service.SetAttributeNode(atapi);
-                                break;
-                            case ApiTypes.atRssFeed:
-                                atapi.Value = "RssFeed";
+                            case ApiTypes.atFeed:
+                                atapi.Value = "Feed";
                                 service.SetAttributeNode(atapi);
                                 break;
                             //case ApiTypes.atXMLRPC:
@@ -684,12 +658,8 @@ namespace BlogWrite.Models
             attrf = doc.CreateAttribute("Api");
             switch (fd.Api)
             {
-                case ApiTypes.atAtomFeed:
-                    attrf.Value = "AtomFeed";
-                    feed.SetAttributeNode(attrf);
-                    break;
-                case ApiTypes.atRssFeed:
-                    attrf.Value = "RssFeed";
+                case ApiTypes.atFeed:
+                    attrf.Value = "Feed";
                     feed.SetAttributeNode(attrf);
                     break;
                 case ApiTypes.atUnknown:

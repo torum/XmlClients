@@ -24,9 +24,7 @@ namespace BlogWrite.Models
     // TODO:
     public enum ApiTypes
     {
-
-        atAtomFeed,
-        atRssFeed,
+        atFeed,
         atAtomPub,
         //atXMLRPC,
         atXMLRPC_MovableType,
@@ -63,7 +61,7 @@ namespace BlogWrite.Models
 
                 _name = value;
 
-                NotifyPropertyChanged("Name");
+                NotifyPropertyChanged(nameof(Name));
             }
         }
 
@@ -81,7 +79,7 @@ namespace BlogWrite.Models
         protected void NotifyPropertyChanged(string propertyName)
         {
             //this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
+            if (Application.Current == null) { return; }
             Application.Current.Dispatcher.Invoke(() =>
             {
                 this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -108,7 +106,7 @@ namespace BlogWrite.Models
 
                 _pathData = value;
 
-                NotifyPropertyChanged("PathIcon");
+                NotifyPropertyChanged(nameof(PathIcon));
             }
         }
 
@@ -126,7 +124,7 @@ namespace BlogWrite.Models
 
                 _isSelected = value;
 
-                NotifyPropertyChanged("IsSelected");
+                NotifyPropertyChanged(nameof(IsSelected));
             }
         }
 
@@ -144,7 +142,7 @@ namespace BlogWrite.Models
 
                 _isExpanded = value;
 
-                NotifyPropertyChanged("IsExpanded");
+                NotifyPropertyChanged(nameof(IsExpanded));
             }
         }
 
@@ -161,7 +159,7 @@ namespace BlogWrite.Models
                     return;
 
                 _subNodeText = value;
-                NotifyPropertyChanged("SubNodeText");
+                NotifyPropertyChanged(nameof(SubNodeText));
             }
         }
 
@@ -179,7 +177,7 @@ namespace BlogWrite.Models
 
                 _isDragOver = value;
 
-                NotifyPropertyChanged("IsDragOver");
+                NotifyPropertyChanged(nameof(IsDragOver));
             }
         }
 
@@ -197,7 +195,7 @@ namespace BlogWrite.Models
 
                 _isBeforeDragSeparator = value;
 
-                NotifyPropertyChanged("IsBeforeDragSeparator");
+                NotifyPropertyChanged(nameof(IsBeforeDragSeparator));
             }
         }
 
@@ -215,7 +213,7 @@ namespace BlogWrite.Models
 
                 _isAfterDragSeparator = value;
 
-                NotifyPropertyChanged("IsAfterDragSeparator");
+                NotifyPropertyChanged(nameof(IsAfterDragSeparator));
             }
         }
 
@@ -233,7 +231,7 @@ namespace BlogWrite.Models
 
                 _parent = value;
 
-                NotifyPropertyChanged("Parent");
+                NotifyPropertyChanged(nameof(Parent));
             }
         }
 
@@ -248,7 +246,7 @@ namespace BlogWrite.Models
             {
                 _children = value;
 
-                NotifyPropertyChanged("Children");
+                NotifyPropertyChanged(nameof(Children));
             }
         }
 
@@ -371,12 +369,6 @@ namespace BlogWrite.Models
                 //case ApiTypes.atXMLRPC_WordPress:
                 //    Client = new XmlRpcWPClient(UserName, UserPassword, EndPoint);
                 //    break;
-                case ApiTypes.atAtomFeed:
-                    Client = new AtomFeedClient();
-                    break;
-                case ApiTypes.atRssFeed:
-                    Client = new RssFeedClient();
-                    break;
                     //TODO: WP, AtomAPI
             }
 
@@ -394,7 +386,7 @@ namespace BlogWrite.Models
             ServiceType = serviceType;
 
             //Id = Guid.NewGuid().ToString();
-            this.Id = endPoint.AbsoluteUri;
+            Id = endPoint.AbsoluteUri;
 
             switch (api)
             {
@@ -407,11 +399,8 @@ namespace BlogWrite.Models
                 //case ApiTypes.atXMLRPC_WordPress:
                 //    Client = new XmlRpcWPClient(UserName, UserPassword, EndPoint);
                 //    break;
-                case ApiTypes.atAtomFeed:
-                    Client = new AtomFeedClient();
-                    break;
-                case ApiTypes.atRssFeed:
-                    Client = new RssFeedClient();
+                case ApiTypes.atFeed:
+                    Client = new FeedClient();
                     break;
 
                     //TODO: WP, AtomAPI
@@ -420,7 +409,7 @@ namespace BlogWrite.Models
     }
 
     // Base NodeFeed class for Feed (Node/NodeTree/NodeService)
-    abstract public class NodeFeed : NodeService
+    public class NodeFeed : NodeService
     {
         private static string _defaultPathIcon = "M6.18,15.64A2.18,2.18 0 0,1 8.36,17.82C8.36,19 7.38,20 6.18,20C5,20 4,19 4,17.82A2.18,2.18 0 0,1 6.18,15.64M4,4.44A15.56,15.56 0 0,1 19.56,20H16.73A12.73,12.73 0 0,0 4,7.27V4.44M4,10.1A9.9,9.9 0 0,1 13.9,20H11.07A7.07,7.07 0 0,0 4,12.93V10.1Z";
         private static string _loadingPathIcon = "M2 12C2 16.97 6.03 21 11 21C13.39 21 15.68 20.06 17.4 18.4L15.9 16.9C14.63 18.25 12.86 19 11 19C4.76 19 1.64 11.46 6.05 7.05C10.46 2.64 18 5.77 18 12H15L19 16H19.1L23 12H20C20 7.03 15.97 3 11 3C6.03 3 2 7.03 2 12Z";
@@ -444,7 +433,7 @@ namespace BlogWrite.Models
 
                 _unredCount = value;
 
-                NotifyPropertyChanged("UnreadCount");
+                NotifyPropertyChanged(nameof(UnreadCount));
 
                 if (_unredCount > 0)
                 {
@@ -478,7 +467,7 @@ namespace BlogWrite.Models
 
                 _sDisplayUnreadOnly = value;
 
-                NotifyPropertyChanged("IsDisplayUnreadOnly");
+                NotifyPropertyChanged(nameof(IsDisplayUnreadOnly));
             }
         }
 
@@ -515,20 +504,20 @@ namespace BlogWrite.Models
                 {
                     PathIcon = _loadErrorPathIcon;
                 }
-                NotifyPropertyChanged("PathIcon");
+                NotifyPropertyChanged(nameof(PathIcon));
 
-                NotifyPropertyChanged("Status");
+                NotifyPropertyChanged(nameof(Status));
             }
         }
 
         public ObservableCollection<EntryItem> List { get; } = new ObservableCollection<EntryItem>();
 
-        public NodeFeed(string name, Uri feedUrl, ApiTypes api) : base(name, feedUrl, api, ServiceTypes.Feed)
+        public NodeFeed(string name, Uri feedUrl) : base(name, feedUrl, ApiTypes.atFeed, ServiceTypes.Feed)
         {
             PathIcon = "M6.18,15.64A2.18,2.18 0 0,1 8.36,17.82C8.36,19 7.38,20 6.18,20C5,20 4,19 4,17.82A2.18,2.18 0 0,1 6.18,15.64M4,4.44A15.56,15.56 0 0,1 19.56,20H16.73A12.73,12.73 0 0,0 4,7.27V4.44M4,10.1A9.9,9.9 0 0,1 13.9,20H11.07A7.07,7.07 0 0,0 4,12.93V10.1Z";
         }
     }
-
+    /*
     // Atom Feed (Node/NodeTree/NodeService/NodeFeed)
     public class NodeAtomFeed : NodeFeed
     {
@@ -552,6 +541,8 @@ namespace BlogWrite.Models
             ServiceType = ServiceTypes.Feed;
         }
     }
+
+    */
 
     // Workspaces Node (Node/NodeTree)
     public class NodeWorkspaces : NodeTree
@@ -667,7 +658,7 @@ namespace BlogWrite.Models
 
     public class NodeAtomPubCatetories : NodeTree
     {
-        public Uri href { get; set; }
+        public Uri Href { get; set; }
 
         public bool IsCategoryFixed { get; set; }
 

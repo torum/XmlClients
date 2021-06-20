@@ -137,7 +137,7 @@ namespace BlogWrite.ViewModels
                 if (_websiteOrEndpointUrl == value)
                     return;
 
-                _websiteOrEndpointUrl = value;
+                _websiteOrEndpointUrl = value.Trim();
 
                 NotifyPropertyChanged(nameof(WebsiteOrEndpointUrl));
             }
@@ -595,7 +595,7 @@ namespace BlogWrite.ViewModels
                     //GoToServiceFoundPage();
 
                     RegisterServiceEventArgs arg = new();
-                    arg.nodeService = (sr as ServiceResultAtomPub).AtomService;
+                    arg.NodeService = (sr as ServiceResultAtomPub).AtomService;
 
                     RegisterService?.Invoke(this, arg);
 

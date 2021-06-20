@@ -12,7 +12,7 @@ using System.IO;
 
 namespace BlogWrite.Models
 {
-    // SQLite Access module
+    // SQLite Database Access module
     public class DataAccess
     {
         private string _dataBaseFilePath;
@@ -212,6 +212,7 @@ namespace BlogWrite.Models
                                         entry.IsRead = false;
                                 }
 
+                                //
                                 if (entry.IsRead)
                                     if (entry.Status == FeedEntryItem.ReadStatus.rsNew)
                                         entry.Status = FeedEntryItem.ReadStatus.rsNormal;
@@ -307,6 +308,15 @@ namespace BlogWrite.Models
                         {
                             foreach (var entry in entries)
                             {
+                                if (entry is not FeedEntryItem)
+                                    Debug.WriteLine("not FeedEntryItem");
+
+                                if ( (entry.AltHtmlUri == null))
+                                    Debug.WriteLine("(entry.AltHtmlUri == null)");
+
+                                if ((entry.EntryId == null) || (entry.AltHtmlUri == null))
+                                    Debug.WriteLine("(entry.EntryId == null) || (entry.AltHtmlUri == null)");
+
                                 if (entry is not FeedEntryItem)
                                     continue;
                                 if ((entry.EntryId == null) || (entry.AltHtmlUri == null))
@@ -596,7 +606,180 @@ namespace BlogWrite.Models
                 return res;
             }
 
-            Debug.WriteLine(string.Format("{0} Entries from {1} Updated as read in the DB", c.ToString(), feedId));
+            //Debug.WriteLine(string.Format("{0} Entries from {1} Updated as read in the DB", c.ToString(), feedId));
+
+            return res;
+        }
+
+        public SqliteDataAccessResultWrapper UpdateEntryStatus(EntryItem entry, string feedId)
+        {
+            SqliteDataAccessResultWrapper res = new SqliteDataAccessResultWrapper();
+
+            if (string.IsNullOrEmpty(feedId))
+                return res;
+
+            if (entry is not FeedEntryItem)
+                return res;
+
+            int c = 0;
+
+            try
+            {
+                using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
+                {
+                    connection.Open();
+
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        cmd.Transaction = connection.BeginTransaction();
+                        try
+                        {
+                            string sqlUpdateAsRead = String.Format("UPDATE Entry SET Status = {1}, IsRead = {2} WHERE ID = {0}", "@EntryId", "@Status", "@IsRead");
+
+                            cmd.CommandText = sqlUpdateAsRead;
+                            cmd.CommandType = CommandType.Text;
+
+                            cmd.Parameters.Clear();
+
+                            cmd.Parameters.AddWithValue("@EntryId", entry.Id);
+
+                            if (entry is FeedEntryItem)
+                            {
+                                //if ((entry as FeedEntryItem).Status == FeedEntryItem.ReadStatus.rsVisited)
+                                //    (entry as FeedEntryItem).IsRead = true;
+
+                                cmd.Parameters.AddWithValue("@Status", (entry as FeedEntryItem).Status.ToString());
+                                cmd.Parameters.AddWithValue("@IsRead", (entry as FeedEntryItem).IsRead.ToString());
+                            }
+
+                            var r = cmd.ExecuteNonQuery();
+
+                            if (r > 0)
+                            {
+                                c++;
+                            }
+
+                            cmd.Transaction.Commit();
+                        }
+                        catch (Exception e)
+                        {
+                            cmd.Transaction.Rollback();
+
+                            res.IsError = true;
+                            res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                            res.Error.ErrCode = "";
+                            res.Error.ErrText = "Exception";
+                            res.Error.ErrDescription = e.Message;
+                            res.Error.ErrDatetime = DateTime.Now;
+                            res.Error.ErrPlace = "connection.Open(),Transaction.Commit";
+                            res.Error.ErrPlaceParent = "DataAccess::UpdateEntryStatus";
+
+                            return res;
+                        }
+                    }
+                }
+            }
+            catch (System.Reflection.TargetInvocationException ex)
+            {
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+                res.Error.ErrText = "TargetInvocationException";
+                res.Error.ErrDescription = ex.Message;
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
+                res.Error.ErrPlaceParent = "DataAccess::UpdateEntryStatus";
+
+                return res;
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+                res.Error.ErrText = "InvalidOperationException";
+                res.Error.ErrDescription = ex.Message;
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
+                res.Error.ErrPlaceParent = "DataAccess::UpdateEntryStatus";
+
+                return res;
+            }
+            catch (Exception e)
+            {
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+
+                if (e.InnerException != null)
+                {
+                    res.Error.ErrText = "InnerException";
+                    res.Error.ErrDescription = e.InnerException.Message;
+                }
+                else
+                {
+                    res.Error.ErrText = "Exception";
+                    res.Error.ErrDescription = e.Message;
+                }
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
+                res.Error.ErrPlaceParent = "DataAccess::UpdateEntryStatus";
+
+                return res;
+            }
+
+            //Debug.WriteLine(string.Format("{0} Entries from {1} Status Updated in the DB", c.ToString(), feedId));
+
+            return res;
+        }
+
+        public SqliteDataAccessResultWrapper DeleteEntriesByFeedId(string feedId)
+        {
+            SqliteDataAccessResultWrapper res = new SqliteDataAccessResultWrapper();
+
+            if (string.IsNullOrEmpty(feedId))
+                return res;
+
+            int c = 0;
+
+            try
+            {
+                using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
+                {
+                    connection.Open();
+
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        cmd.CommandText = String.Format("DELETE FROM Entry WHERE Feed_ID = '{0}'", feedId);
+
+                        c = cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+                res.Error.ErrText = e.ToString();
+                if (e.InnerException != null)
+                {
+                    Debug.WriteLine(e.InnerException.Message + " @DataAccess::DeleteEntriesByFeedId");
+                    res.Error.ErrDescription = e.InnerException.Message;
+                }
+                else
+                {
+                    Debug.WriteLine(e.Message + " @DataAccess::DeleteEntriesByFeedId");
+                    res.Error.ErrDescription = e.Message;
+                }
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
+                res.Error.ErrPlaceParent = "DataAccess::DeleteEntriesByFeedId";
+
+                return res;
+            }
+
+            Debug.WriteLine(string.Format("{0} Entries Deleted ByFeedId {1} from DB", c, feedId));
 
             return res;
         }

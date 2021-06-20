@@ -1,18 +1,4 @@
-﻿/// 
-/// 
-/// BlogWrite 
-///  - C#/WPF port of the original "BlogWrite" developed with Delphi.
-/// https://github.com/torum/BlogWrite
-/// 
-/// 
-/// Atom Syndication Format:
-///  https://tools.ietf.org/html/rfc4287
-/// Atom Publishing protocol:
-///  https://tools.ietf.org/html/rfc5023
-///  
-/// 
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -22,6 +8,7 @@ using System.Xml;
 
 namespace XML.Atom
 {
+    /*
     class AtomSyndicationFormat
     {
         //TODO
@@ -163,7 +150,7 @@ namespace XML.Atom
         //property SelfUri : string read getSelfUri;
     }
 
-
+    */
 }
 
 
