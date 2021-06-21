@@ -131,7 +131,7 @@ namespace BlogWrite.Models
             return res;
         }
 
-        public SqliteDataAccessSelectResultWrapper SelectEntriesByFeedId(NodeFeed ndf)//(string feedId, bool IsUnreadOnly)
+        public SqliteDataAccessSelectResultWrapper SelectEntriesByFeedId(NodeFeed ndf)
         {
             SqliteDataAccessSelectResultWrapper res = new SqliteDataAccessSelectResultWrapper();
 
@@ -140,8 +140,6 @@ namespace BlogWrite.Models
 
             bool IsUnreadOnly = ndf.IsDisplayUnreadOnly;
             string feedId = ndf.Id;
-
-            int c = 0;
 
             try
             {
@@ -153,11 +151,11 @@ namespace BlogWrite.Models
                     {
                         if (IsUnreadOnly)
                         {
-                            cmd.CommandText = String.Format("SELECT * FROM Entry WHERE Feed_ID = '{0}' AND IsRead = '{1}' ORDER BY Published DESC", feedId, bool.FalseString);
+                            cmd.CommandText = String.Format("SELECT * FROM Entry WHERE Feed_ID = '{0}' AND IsRead = '{1}' ORDER BY Published DESC LIMIT 100", feedId, bool.FalseString);
                         }
                         else
                         {
-                            cmd.CommandText = String.Format("SELECT * FROM Entry WHERE Feed_ID = '{0}' ORDER BY Published DESC", feedId);
+                            cmd.CommandText = String.Format("SELECT * FROM Entry WHERE Feed_ID = '{0}' ORDER BY Published DESC LIMIT 100", feedId);
                         }
 
                         using (var reader = cmd.ExecuteReader())
@@ -166,7 +164,7 @@ namespace BlogWrite.Models
                             {
                                 FeedEntryItem entry = new FeedEntryItem(Convert.ToString(reader["Title"]), feedId, null);
 
-                                entry.MyNodeFeed = ndf;
+                                //entry.MyNodeFeed = ndf;
 
                                 entry.EntryId = Convert.ToString(reader["Entry_ID"]);
 
@@ -221,7 +219,7 @@ namespace BlogWrite.Models
 
                                 if (!entry.IsRead)
                                 {
-                                    c++;
+                                    res.UnreadCount++;
                                 }
 
                                 res.AffectedCount++;
@@ -283,9 +281,139 @@ namespace BlogWrite.Models
                 return res;
             }
 
-            //Debug.WriteLine(string.Format("{0} Entries Selected ByFeedId {1} from DB", entries.Count.ToString(), feedId));
+            return res;
+        }
 
-            res.UnreadCount = c;
+        public SqliteDataAccessSelectResultWrapper SelectEntriesByMultipleFeedIds(List<string> feedIds)
+        {
+            SqliteDataAccessSelectResultWrapper res = new SqliteDataAccessSelectResultWrapper();
+
+            if (feedIds is null)
+                return res;
+
+            if (feedIds.Count == 0)
+                return res;
+
+            string before = "SELECT * FROM Entry WHERE ";
+
+            string middle = "(";
+
+            foreach (var asdf in feedIds)
+            {
+                if (middle != "(")
+                    middle = middle + "OR ";
+
+                middle = middle + String.Format("Feed_ID = '{0}' ", asdf);
+            }
+
+            string after = string.Format(") AND IsRead = '{0}' ORDER BY Published DESC LIMIT 100", bool.FalseString);
+
+            //Debug.WriteLine(before + middle + after);
+
+            try
+            {
+                using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
+                {
+                    connection.Open();
+
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        cmd.CommandText = before + middle + after;
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                FeedEntryItem entry = new FeedEntryItem(Convert.ToString(reader["Title"]), Convert.ToString(reader["Feed_ID"]), null);
+
+                                //entry.MyNodeFeed = ndf;
+
+                                entry.EntryId = Convert.ToString(reader["Entry_ID"]);
+
+                                if (!string.IsNullOrEmpty(Convert.ToString(reader["Url"])))
+                                    entry.AltHtmlUri = new Uri(Convert.ToString(reader["Url"]));
+
+                                entry.Published = DateTime.Parse(Convert.ToString(reader["Published"]));
+
+                                entry.Summary = Convert.ToString(reader["Summary"]);
+
+                                // TODO
+                                //entry.SummaryPlainText = Convert.ToString(reader["SummaryPlainText"]);
+
+                                entry.Content = Convert.ToString(reader["Content"]);
+
+                                entry.ContentType = EntryItem.ContentTypes.textHtml;
+
+                                if (!string.IsNullOrEmpty(Convert.ToString(reader["ImageUrl"])))
+                                    entry.ImageUri = new Uri(Convert.ToString(reader["ImageUrl"]));
+
+                                if (reader["Image"] != DBNull.Value)
+                                {
+                                    byte[] imageBytes = (byte[])reader["Image"];
+                                    if (Application.Current != null)
+                                    {
+                                        Application.Current.Dispatcher.Invoke(() =>
+                                        {
+                                            entry.Image = BitmapImageFromBytes(imageBytes);
+                                        });
+                                    }
+                                }
+
+                                string status = Convert.ToString(reader["Status"]);
+                                if (!string.IsNullOrEmpty(status))
+                                    entry.Status = entry.StatusTextToType(status);
+
+                                entry.Author = Convert.ToString(reader["Author"]);
+
+                                string blnstr = Convert.ToString(reader["IsRead"]);
+                                if (!string.IsNullOrEmpty(blnstr))
+                                {
+                                    if (blnstr == bool.TrueString)
+                                        entry.IsRead = true;
+                                    else
+                                        entry.IsRead = false;
+                                }
+
+                                //
+                                if (entry.IsRead)
+                                    if (entry.Status == FeedEntryItem.ReadStatus.rsNew)
+                                        entry.Status = FeedEntryItem.ReadStatus.rsNormal;
+
+                                if (!entry.IsRead)
+                                {
+                                    res.UnreadCount++;
+                                }
+
+                                res.AffectedCount++;
+
+                                res.SelectedEntries.Add(entry);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+                res.Error.ErrText = e.ToString();
+                if (e.InnerException != null)
+                {
+                    Debug.WriteLine(e.InnerException.Message + " @DataAccess::SelectEntriesByFeedId");
+                    res.Error.ErrDescription = e.InnerException.Message;
+                }
+                else
+                {
+                    Debug.WriteLine(e.Message + " @DataAccess::SelectEntriesByFeedId");
+                    res.Error.ErrDescription = e.Message;
+                }
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
+                res.Error.ErrPlaceParent = "DataAccess::SelectEntriesByFeedId";
+
+                return res;
+            }
 
             return res;
         }
@@ -449,8 +577,6 @@ namespace BlogWrite.Models
         {
             SqliteDataAccessResultWrapper res = new SqliteDataAccessResultWrapper();
 
-            //int c = 0;
-
             try
             {
                 using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
@@ -482,12 +608,7 @@ namespace BlogWrite.Models
                                     cmd.Parameters.AddWithValue("@IsRead", bool.TrueString);// (entry as FeedEntryItem).IsRead.ToString()
                                 }
 
-                                var r = cmd.ExecuteNonQuery();
-
-                                if (r > 0)
-                                {
-                                    res.AffectedCount++;
-                                }
+                                res.AffectedCount = cmd.ExecuteNonQuery();
                             }
 
                             //　コミット

@@ -86,11 +86,13 @@ namespace BlogWrite.Models
         protected void NotifyPropertyChanged(string propertyName)
         {
             //this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            if (Application.Current == null) { return; }
-            Application.Current.Dispatcher.Invoke(() =>
+            if (Application.Current != null)
             {
-                this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            });
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+                });
+            }
         }
 
         #endregion
@@ -350,7 +352,7 @@ namespace BlogWrite.Models
     // NodeFolder for NodeFeeds (Node/NodeTree)
     public class NodeFolder : NodeTree
     {
-        public ObservableCollection<EntryItem> ListAll { get; set; } = new ObservableCollection<EntryItem>();
+        //public ObservableCollection<EntryItem> ListAll { get; set; } = new ObservableCollection<EntryItem>();
 
         public NodeFolder(string name) : base(name)
         {

@@ -29,12 +29,13 @@ namespace BlogWrite.ViewModels
     /// 
     /// DBで、画像の保存は別テーブルに分ける。
     /// 画像のダウンロードとサムネイル化と表示は、visibilityChanged か何かで、ListView内で表示されたタイミングで取得するように変更したい。
-    /// 画像の取得はまず、Entryの拡張を確認して、なければDescriptionのHTMLを見て、無ければ本文を取りに行く？
     /// 
     /// DBのサイズを最適化する。項目も見直す。
     /// 一定数以上でなおかつ一定期間（１ヵ月）過ぎた古いFeedEntryはSelectの段階で無視し、自動でIsReadにする。App終了時かイニシャライズ時に削除する。
     /// 
     /// InfoWindowで、Feedの更新頻度を設定できるようにする。
+    /// 
+    /// Database access を Asyncで・・・
     /// 
     /// 設定画面
     /// 
@@ -44,6 +45,8 @@ namespace BlogWrite.ViewModels
     /// InfoWindowでService情報も見れるようにする。
 
     /// 更新履歴：
+    /// v0.0.0.38 Folderまとめ読みは、SQL一発で。 LIMIT 100
+    /// v0.0.0.37 3paneのcontentpreviewbrowserの初期化が出来て無かった。
     /// v0.0.0.36 Magazine View styleの追加。View形式をFeedやサービスごとに覚えた。
     /// v0.0.0.35 Feed Folderまとめ表示を改善し、DebugTextがある場合はアイコンを黄色にするようにした。
     /// v0.0.0.34 Feed Folderまとめ表示。
@@ -88,7 +91,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.36";
+        const string _appVer = "0.0.0.38";
         public string AppVer
         {
             get
@@ -315,26 +318,34 @@ namespace BlogWrite.ViewModels
                 _selectedItem = value;
                 NotifyPropertyChanged(nameof(SelectedItem));
 
-                // This updates the view contents.
-                NotifyPropertyChanged(nameof(EntryContentText));
-                NotifyPropertyChanged(nameof(EntryContentHTML));
-                NotifyPropertyChanged(nameof(IsContentText));
-                //NotifyPropertyChanged(nameof(IsContentHTML));
+                if (_selectedItem == null)
+                {
+                    WriteHtmlToContentPreviewBrowser?.Invoke(this, "");
+
+                    NotifyPropertyChanged(nameof(EntryContentText));
+
+                    return;
+                }
+
                 if (IsContentHTML)
                 {
+                    // This updates the view contents.
+                    NotifyPropertyChanged(nameof(EntryContentHTML));
+
                     // Bring the browser to front.
                     IsContentBrowserVisible = true;
 
                     string s = EntryContentHTML;
                     WriteHtmlToContentPreviewBrowser?.Invoke(this, s);
                 }
-                else
+                else// if (IsContentText)
                 {
+                    NotifyPropertyChanged(nameof(EntryContentText));
+
                     IsContentBrowserVisible = false;
                 }
 
-                NotifyPropertyChanged(nameof(Entries));
-
+                //NotifyPropertyChanged(nameof(Entries));
             }
         }
 
@@ -1331,9 +1342,11 @@ li {
             StartUpdate();
         }
 
-        private void StartUpdate()
+        private async void StartUpdate()
         {
-            Task.Run(() => StartUpdateRecursiveLoop(_services.Children));
+            await Task.Run(() => StartUpdateRecursiveLoop(_services.Children));
+
+            //
         }
 
         private async void StartUpdateRecursiveLoop(ObservableCollection<NodeTree> nt)
@@ -1676,7 +1689,6 @@ li {
                                 {
                                     if (resInsert.InsertedEntries.Count > 0)
                                         LoadEntries(nd);
-                                    //
                                 }
                                 else if ((nd.Parent == SelectedNode) && (nd.Parent is NodeFolder))
                                 {
@@ -1714,10 +1726,12 @@ li {
         }
 
         // Select Entries from DB and Loads Entry collection.
-        private void LoadEntries(NodeTree nd)
+        private void LoadEntries(NodeTree nd, bool forceUnread = false)
         {
             if (nd == null)
                 return;
+
+            // don't clear Entries here.
 
             if (nd is NodeFeed)
             {
@@ -1729,6 +1743,9 @@ li {
                     IsWorking = true;
 
                     fnd.List.Clear();
+
+                    if (forceUnread)
+                        fnd.IsDisplayUnreadOnly = true;
 
                     SqliteDataAccessSelectResultWrapper res = dataAccessModule.SelectEntriesByFeedId(fnd);
                     if (res.IsError)
@@ -1750,12 +1767,16 @@ li {
                     {
                         // Clear error
                         fnd.ErrorDatabase = null;
-                        // update the count
+                        
+                        // Update the count
                         fnd.EntryCount = res.UnreadCount;
+
+                        // For Folder view and ArchiveAll
+                        fnd.List = new ObservableCollection<EntryItem>(res.SelectedEntries);
 
                         if (nd == SelectedNode)
                         {
-                            // hide error
+                            // Hide error
                             DatabaseError = null;
                             IsShowDatabaseErrorMessage = false;
 
@@ -1764,11 +1785,6 @@ li {
 
                             if (Entries.Count > 0)
                                 ResetListviewPosition?.Invoke(this, 0);
-                        }
-                        else
-                        {
-                            // for folder view..
-                            fnd.List = new ObservableCollection<EntryItem>(res.SelectedEntries);
                         }
                     }
 
@@ -1784,39 +1800,25 @@ li {
 
                     IsWorking = true;
 
-                    ndf.ListAll.Clear();
-
                     if (ndf.Children.Count > 0)
                     {
+                        List<string> tmpList = new();
+
                         foreach (NodeTree nt in ndf.Children)
                         {
                             if (nt is NodeFeed)
                             {
-                                LoadEntries(nt);
+                                tmpList.Add((nt as NodeFeed).Id);
                             }
                         }
 
-                        ObservableCollection<EntryItem> tmpList = new();
-                        foreach (NodeTree nt in ndf.Children)
-                        {
-                            if (nt is NodeFeed)
-                            {
-                                foreach (FeedEntryItem hoge in (nt as NodeFeed).List)
-                                {
-                                    tmpList.Add(hoge);
-                                }
-                            }
-                        }
+                        SqliteDataAccessSelectResultWrapper res = dataAccessModule.SelectEntriesByMultipleFeedIds(tmpList);
 
-                        // Sort
-                        //ndf.ListAll = new ObservableCollection<EntryItem>(tmpList.OrderByDescending(n => n.Published));
-
-                        // 
-                        ndf.EntryCount = tmpList.Count;
+                        ndf.EntryCount = res.SelectedEntries.Count;
 
                         if (nd == SelectedNode)
                         {
-                            Entries = new ObservableCollection<EntryItem>(tmpList.OrderByDescending(n => n.Published));
+                            Entries = res.SelectedEntries;
 
                             if (Entries.Count > 0)
                                 ResetListviewPosition?.Invoke(this, 0);
@@ -1873,22 +1875,27 @@ li {
                         // Clear error
                         (nd as NodeFeed).ErrorDatabase = null;
 
-                        // minus the parent folder's unread count.
-                        if (nd.Parent is NodeFolder)
+                        if (res.AffectedCount > 0)
                         {
-                            (nd.Parent as NodeFolder).EntryCount = (nd.Parent as NodeFolder).EntryCount - (nd as NodeFeed).EntryCount;
-                        }
+                            // minus the parent folder's unread count.
+                            if (nd.Parent is NodeFolder)
+                            {
+                                (nd.Parent as NodeFolder).EntryCount = (nd.Parent as NodeFolder).EntryCount - (nd as NodeFeed).EntryCount;
+                            }
 
-                        // reset unread count.
-                        (nd as NodeFeed).EntryCount = 0;
+                            // reset unread count.
+                            (nd as NodeFeed).EntryCount = 0;
 
-                        if (nd == SelectedNode)
-                        {
-                            DatabaseError = null;
-                            IsShowDatabaseErrorMessage = false;
+                            if (nd == SelectedNode)
+                            {
+                                DatabaseError = null;
+                                IsShowDatabaseErrorMessage = false;
 
-                            // 
-                            LoadEntries(nd);
+                                // clear here.
+                                Entries.Clear();
+                                // 
+                                LoadEntries(nd);
+                            }
                         }
                     }
 
@@ -1958,8 +1965,6 @@ li {
                         // remove entry from list
                         if (nd is NodeFeed)
                         {
-                            //(nd as NodeFeed).List.Remove(entry);
-
                             if (nd.Parent is NodeFolder)
                             {
                                 (nd.Parent as NodeFolder).EntryCount--;
@@ -1967,10 +1972,17 @@ li {
                         }
                         if (nd is NodeFolder)
                         {
-                            //(nd as NodeFolder).ListAll.Remove(entry);
+                            foreach (var cnd in (nd as NodeFolder).Children)
+                            {
+                                if (cnd is NodeFeed)
+                                {
+                                    if ((cnd as NodeFeed).Id == entry.ServiceId)
+                                    {
+                                        (cnd as NodeFeed).EntryCount--;
+                                    }
+                                }
+                            }
 
-                            if (entry.MyNodeFeed != null)
-                                entry.MyNodeFeed.EntryCount--;
                         }
 
                         // minus the count.

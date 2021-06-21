@@ -570,7 +570,7 @@
                                 <Style TargetType="{x:Type Button}">
                                     <Setter Property="OverridesDefaultStyle" Value="true" />
                                     <Setter Property="Background" Value="{DynamicResource BoardBackgroundColorBrush}" />
-                                    <Setter Property="Foreground" Value="{DynamicResource ControlForegroundColorBrush}"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource ControlMediumColorBrush}"/>
                                     <Setter Property="BorderThickness" Value="0" />
                                     <Setter Property="BorderBrush" Value="#ccc" />
                                     <Setter Property="Margin" Value="12 0 12 0" />
@@ -682,7 +682,7 @@
                     <!-- CardsView -->
                     <TabItem Header="Cards" Style="{DynamicResource TabItemBottomStyle}">
 
-                        <ListView x:Name="CardViewListview" Background="Transparent" Foreground="LightGray" BorderThickness="0" Padding="0" SelectionMode="Single" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" ItemsSource="{Binding Entries, NotifyOnTargetUpdated=True}" TargetUpdated="CardViewListview_TargetUpdated" SelectedItem="{Binding Mode=TwoWay,Path=SelectedItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListView x:Name="CardViewListview" Background="Transparent" Foreground="LightGray" BorderThickness="0" Padding="0" SelectionMode="Single" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" ItemsSource="{Binding Entries, NotifyOnTargetUpdated=True}" SelectedItem="{Binding Mode=TwoWay,Path=SelectedItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListView.InputBindings>
                                 <KeyBinding Key="Return" Command="{Binding Path=DataContext.ListviewEnterKeyCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" />
                             </ListView.InputBindings>
@@ -1264,7 +1264,6 @@
                                                         </DataTrigger>
                                                     </DataTemplate.Triggers>
 
-
                                                 </DataTemplate>
                                             </GridViewColumn.CellTemplate>
                                         </GridViewColumn>
@@ -1274,7 +1273,7 @@
                                     <Style TargetType="ListViewItem">
                                         <Setter Property="Padding" Value="0"/>
                                         <Setter Property="Margin" Value="6 6 6 0"/>
-                                        <Setter Property="BorderBrush" Value="#121212"/>
+                                        <Setter Property="BorderBrush" Value="#FF2F2B2B"/>
                                         <Setter Property="ContextMenu" Value="{StaticResource ItemContextMenu}" />
                                         <Setter Property="HorizontalContentAlignment" Value="Left" />
                                         <Setter Property="VerticalContentAlignment" Value="Top" />
@@ -1292,10 +1291,10 @@
                                         </Setter>
                                         <Style.Triggers>
                                             <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="BorderBrush" Value="#121212"/>
+                                                <Setter Property="BorderBrush" Value="#FF1D1C1C"/>
                                             </Trigger>
                                             <Trigger Property="IsSelected" Value="True">
-                                                <Setter Property="BorderBrush" Value="#121212" />
+                                                <Setter Property="BorderBrush" Value="#FF1D1C1C" />
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
@@ -1340,7 +1339,7 @@
                             </Grid>
 
                             <!-- Entries listview -->
-                            <ListView x:Name="ListViewListView" Grid.Row="1" Grid.Column="0" MinHeight="80" BorderThickness="0" Padding="0" Foreground="LightGray" helpers:GridViewSort.AutoSort="True" helpers:GridViewSort.ShowSortGlyph="True" IsSynchronizedWithCurrentItem="True" Background="{DynamicResource WindowBackgroundBaseColorBrush}" Margin="0" ItemsSource="{Binding Entries, NotifyOnTargetUpdated=True}" TargetUpdated="ListViewListView_TargetUpdated" SelectedItem="{Binding Mode=TwoWay,Path=SelectedItem}" SelectionMode="Single" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" AlternationCount="2" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
+                            <ListView x:Name="ListViewListView" Grid.Row="1" Grid.Column="0" MinHeight="80" BorderThickness="0" Padding="0" Foreground="LightGray" helpers:GridViewSort.AutoSort="True" helpers:GridViewSort.ShowSortGlyph="True" IsSynchronizedWithCurrentItem="True" Background="{DynamicResource WindowBackgroundBaseColorBrush}" Margin="0" ItemsSource="{Binding Entries, NotifyOnTargetUpdated=True}" SelectedItem="{Binding Mode=TwoWay,Path=SelectedItem}" SelectionMode="Single" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" AlternationCount="2" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
                                 <ListView.InputBindings>
                                     <KeyBinding Key="Enter"
                                 Command="{Binding Path=DataContext.ListviewEnterKeyCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}"

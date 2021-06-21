@@ -135,10 +135,10 @@ namespace BlogWrite.Views
             _env = await CoreWebView2Environment.CreateAsync(userDataFolder: myDocFolerPath, options: op);
             //_env = await CoreWebView2Environment.CreateAsync(userDataFolder: System.IO.Path.Combine(System.IO.Path.GetTempPath(), "BlogWrite"), options: op);
 
-            Task nowait = ListViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
+            await ListViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
             ListViewContentPreviewWebBrowser.CoreWebView2InitializationCompleted += ListViewContentPreviewWebBrowser_InitializationCompleted;
 
-            nowait = InAppWebBrowser.EnsureCoreWebView2Async(_env);
+            await InAppWebBrowser.EnsureCoreWebView2Async(_env);
             InAppWebBrowser.CoreWebView2InitializationCompleted += InAppWebBrowser_InitializationCompleted;
         }
 
@@ -277,7 +277,10 @@ namespace BlogWrite.Views
         {
             await ListViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
 
-            ListViewContentPreviewWebBrowser.NavigateToString(arg);
+            if (string.IsNullOrEmpty(arg))
+                ListViewContentPreviewWebBrowser.NavigateToString(html);
+            else
+                ListViewContentPreviewWebBrowser.NavigateToString(arg);
         }
 
         public async void OnNavigateUrlToContentPreviewBrowser(Uri arg)
@@ -467,37 +470,6 @@ namespace BlogWrite.Views
             if (ListViewListView.Items.Count > 0)
             {
                 ListViewListView.ScrollIntoView(ListViewListView.Items[0]);
-            }
-        }
-
-        #endregion
-
-        #region == ListView ==
-
-        private void EntryListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (!(sender is ListView))
-                return;
-
-            // not good at all
-            //(sender as ListView).ScrollIntoView((sender as ListView).SelectedItem);
-        }
-
-        private void CardViewListview_TargetUpdated(object sender, DataTransferEventArgs e)
-        {
-            if (CardViewListview.Items.Count > 0)
-            {
-                // not good at all
-                //CardViewListview.ScrollIntoView(CardViewListview.Items[0]);
-            }
-        }
-
-        private void ListViewListView_TargetUpdated(object sender, DataTransferEventArgs e)
-        {
-            if (ListViewListView.Items.Count > 0)
-            {
-                // not good at all
-                //ListViewListView.ScrollIntoView(ListViewListView.Items[0]);
             }
         }
 

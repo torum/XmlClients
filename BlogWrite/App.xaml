@@ -1734,8 +1734,8 @@
                         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
                         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
                         <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
-                        <Setter Property="TextElement.Foreground" Value="{DynamicResource ControlForegroundColorBrush}"/>
-                        <Setter Property="Foreground" Value="{DynamicResource ControlForegroundColorBrush}"/>
+                        <Setter Property="TextElement.Foreground" Value="{DynamicResource ControlMediumColorBrush}"/>
+                        <Setter Property="Foreground" Value="{DynamicResource ControlMediumColorBrush}"/>
                         <Setter Property="Control.Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="ComboBox">

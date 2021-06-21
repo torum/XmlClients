@@ -284,9 +284,6 @@ namespace BlogWrite.Models
             }
         }
 
-        // Pointer to the NodeFeed. 
-        public NodeFeed MyNodeFeed { get; set; }
-
         public FeedEntryItem(string title, string serviceId, BaseClient bc) : base(title, serviceId, bc)
         {
             PathIcon = _rsNew;

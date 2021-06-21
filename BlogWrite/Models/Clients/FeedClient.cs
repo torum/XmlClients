@@ -749,7 +749,8 @@ namespace BlogWrite.Models.Clients
             if (entItem.ContentType == EntryItem.ContentTypes.textHtml)
             {
                 // gets image Uri
-                entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
+                if (entItem.ImageUri == null)
+                    entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
             }
         }
 
@@ -843,6 +844,32 @@ namespace BlogWrite.Models.Clients
                                                 + Environment.NewLine +
                                                 "Atom feed entry(" + entry.Name + ") contain invalid entry atom:altUri: " + e.Message +
                                                 Environment.NewLine);
+                                        }
+                                    }
+                                    break;
+                                }
+                                catch
+                                {
+                                    break;
+                                }
+                            case "enclosure":
+                                try
+                                {
+                                    if (!string.IsNullOrEmpty(typeAttr))
+                                    {
+                                        if ((typeAttr == "image/jpg") || (typeAttr == "image/jpeg") || (typeAttr == "image/png") || (typeAttr == "image/gif"))
+                                        {
+                                            try
+                                            {
+                                                entry.ImageUri = new Uri(hrefAttr);
+                                            }
+                                            catch (Exception e)
+                                            {
+                                                ToDebugWindow(">> Exception @FeedClient@CreateAtomEntryFromXmlAtom:new Uri()"
+                                                    + Environment.NewLine +
+                                                    "Atom feed entry (" + entry.Name + ") contain invalid entry > enclosure@link Uri: " + e.Message +
+                                                    Environment.NewLine);
+                                            }
                                         }
                                     }
                                     break;
