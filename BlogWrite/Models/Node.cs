@@ -34,6 +34,13 @@ namespace BlogWrite.Models
         atUnknown
     }
 
+    public enum ViewTypes
+    {
+        vtCards,
+        vtMagazine,
+        vtThreePanes
+    }
+
     // HTTP REST Auth Types enum.
     public enum AuthTypes
     {
@@ -163,6 +170,58 @@ namespace BlogWrite.Models
             }
         }
 
+        private int _entryCount;
+        public int EntryCount
+        {
+            get
+            {
+                return _entryCount;
+            }
+            set
+            {
+                if (_entryCount == value)
+                    return;
+
+                _entryCount = value;
+
+                NotifyPropertyChanged(nameof(EntryCount));
+
+                if (_entryCount > 0)
+                {
+                    if (_entryCount > 99)
+                    {
+                        SubNodeText = "99+";
+                    }
+                    else
+                    {
+                        SubNodeText = _entryCount.ToString();
+                    }
+                }
+                else
+                {
+                    SubNodeText = "";
+                }
+            }
+        }
+
+        private ViewTypes _viewType;
+        public ViewTypes ViewType
+        {
+            get
+            {
+                return _viewType;
+            }
+            set
+            {
+                if (_viewType == value)
+                    return;
+
+                _viewType = value;
+
+                NotifyPropertyChanged(nameof(ViewType));
+            }
+        }
+
         private bool _isDragOver;
         public bool IsDragOver
         {
@@ -258,6 +317,15 @@ namespace BlogWrite.Models
             BindingOperations.EnableCollectionSynchronization(_children, new object());
         }
 
+        public bool ContainsChild(NodeTree nt)
+        {
+            if (ContainsChildLoop(this.Children, nt))
+                return true;
+            else
+                return false;
+
+        }
+
         private bool ContainsChildLoop(ObservableCollection<NodeTree> childList, NodeTree ntc)
         {
             bool hasChild = false;
@@ -275,15 +343,6 @@ namespace BlogWrite.Models
             }
 
             return hasChild;
-        }
-
-        public bool ContainsChild(NodeTree nt)
-        {
-            if (ContainsChildLoop(this.Children, nt))
-                return true;
-            else
-                return false;
-
         }
 
     }
@@ -331,7 +390,6 @@ namespace BlogWrite.Models
         public ServiceTypes ServiceType { get; set; }
 
         public BaseClient Client { get; }
-
 
         public ErrorObject ErrorHttp { get; set; }
 
@@ -408,7 +466,7 @@ namespace BlogWrite.Models
         }
     }
 
-    // Base NodeFeed class for Feed (Node/NodeTree/NodeService)
+    // NodeFeed class for Feed (Node/NodeTree/NodeService)
     public class NodeFeed : NodeService
     {
         private static string _defaultPathIcon = "M6.18,15.64A2.18,2.18 0 0,1 8.36,17.82C8.36,19 7.38,20 6.18,20C5,20 4,19 4,17.82A2.18,2.18 0 0,1 6.18,15.64M4,4.44A15.56,15.56 0 0,1 19.56,20H16.73A12.73,12.73 0 0,0 4,7.27V4.44M4,10.1A9.9,9.9 0 0,1 13.9,20H11.07A7.07,7.07 0 0,0 4,12.93V10.1Z";
@@ -419,53 +477,19 @@ namespace BlogWrite.Models
 
         public Uri SiteUri { get; set; }
 
-        private int _unredCount;
-        public int UnreadCount
-        {
-            get
-            {
-                return _unredCount;
-            }
-            set
-            {
-                if (_unredCount == value)
-                    return;
-
-                _unredCount = value;
-
-                NotifyPropertyChanged(nameof(UnreadCount));
-
-                if (_unredCount > 0)
-                {
-                    if (_unredCount > 99)
-                    {
-                        SubNodeText = "99+";
-                    }
-                    else
-                    {
-                        SubNodeText = _unredCount.ToString();
-                    }
-                }
-                else
-                {
-                    SubNodeText = "";
-                }
-            }
-        }
-
-        private bool _sDisplayUnreadOnly = true;
+        private bool _isDisplayUnreadOnly = true;
         public bool IsDisplayUnreadOnly
         {
             get
             {
-                return _sDisplayUnreadOnly;
+                return _isDisplayUnreadOnly;
             }
             set
             {
-                if (_sDisplayUnreadOnly == value)
+                if (_isDisplayUnreadOnly == value)
                     return;
 
-                _sDisplayUnreadOnly = value;
+                _isDisplayUnreadOnly = value;
 
                 NotifyPropertyChanged(nameof(IsDisplayUnreadOnly));
             }
@@ -510,39 +534,13 @@ namespace BlogWrite.Models
             }
         }
 
-        public ObservableCollection<EntryItem> List { get; } = new ObservableCollection<EntryItem>();
+        public ObservableCollection<EntryItem> List = new ObservableCollection<EntryItem>();
 
         public NodeFeed(string name, Uri feedUrl) : base(name, feedUrl, ApiTypes.atFeed, ServiceTypes.Feed)
         {
             PathIcon = "M6.18,15.64A2.18,2.18 0 0,1 8.36,17.82C8.36,19 7.38,20 6.18,20C5,20 4,19 4,17.82A2.18,2.18 0 0,1 6.18,15.64M4,4.44A15.56,15.56 0 0,1 19.56,20H16.73A12.73,12.73 0 0,0 4,7.27V4.44M4,10.1A9.9,9.9 0 0,1 13.9,20H11.07A7.07,7.07 0 0,0 4,12.93V10.1Z";
         }
     }
-    /*
-    // Atom Feed (Node/NodeTree/NodeService/NodeFeed)
-    public class NodeAtomFeed : NodeFeed
-    {
-        //public new ObservableCollection<FeedEntryItem> List { get; } = new ObservableCollection<FeedEntryItem>();
-
-        public NodeAtomFeed(string name, Uri feedUrl) : base(name, feedUrl, ApiTypes.atAtomFeed)
-        {
-            Api = ApiTypes.atAtomFeed;
-            ServiceType = ServiceTypes.Feed;
-        }
-    }
-
-    // RSS Feed  (Node/NodeTree/NodeService/NodeFeed)
-    public class NodeRssFeed : NodeFeed
-    {
-        //public new ObservableCollection<FeedEntryItem> List { get; } = new ObservableCollection<FeedEntryItem>();
-
-        public NodeRssFeed(string name, Uri feedUrl) : base(name, feedUrl, ApiTypes.atRssFeed)
-        {
-            Api = ApiTypes.atRssFeed;
-            ServiceType = ServiceTypes.Feed;
-        }
-    }
-
-    */
 
     // Workspaces Node (Node/NodeTree)
     public class NodeWorkspaces : NodeTree

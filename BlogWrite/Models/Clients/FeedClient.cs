@@ -15,7 +15,7 @@ using System.Collections.ObjectModel;
 namespace BlogWrite.Models.Clients
 {
     // Feed Client - reads Atom 1.0. 0.3, RSS 2.0 and 1.0.
-    class FeedClient : BaseClient
+    public class FeedClient : BaseClient
     {
         public override async Task<HttpClientEntryItemCollectionResultWrapper> GetEntries(Uri entriesUrl, string feedId)
         {
@@ -99,6 +99,9 @@ namespace BlogWrite.Models.Clients
                             if (!string.IsNullOrEmpty(ent.EntryId))
                                 list.Add(ent);
                         }
+
+                        // 
+                        //await GetImages(list);
                     }
                     // RSS 1.0
                     else if (xdoc.DocumentElement.LocalName.Equals("RDF"))
@@ -125,6 +128,9 @@ namespace BlogWrite.Models.Clients
                             if (!string.IsNullOrEmpty(ent.EntryId))
                                 list.Add(ent);
                         }
+
+                        // 
+                        //await GetImages(list);
                     }
                     else if (xdoc.DocumentElement.LocalName.Equals("feed"))
                     {
@@ -154,6 +160,9 @@ namespace BlogWrite.Models.Clients
                                 if (!string.IsNullOrEmpty(ent.EntryId))
                                     list.Add(ent);
                             }
+
+                            // 
+                            //await GetImages(list);
                         }
                         // Old Atom 0.3
                         else if (xdoc.DocumentElement.NamespaceURI.Equals("http://purl.org/atom/ns#"))
@@ -181,6 +190,9 @@ namespace BlogWrite.Models.Clients
                                 if (!string.IsNullOrEmpty(ent.EntryId))
                                     list.Add(ent);
                             }
+
+                            // 
+                            //await GetImages(list);
 
                             ToDebugWindow("<< Old version of Atom feed format detected. Update recommended: " + entriesUrl.AbsoluteUri
                                 + Environment.NewLine);
@@ -279,8 +291,6 @@ namespace BlogWrite.Models.Clients
             }
             catch (Exception e)
             {
-                //Debug.WriteLine("Exception @new Uri(entryLinkUri.InnerText)" + "(" + entItem.Name + ")" + " : " + e.Message);
-
                 ToDebugWindow(">> Exception @FeedClient@FillEntryItemFromXmlRss:new Uri()"
                     + Environment.NewLine +
                     "RSS feed entry (" + entItem.Name + ") contain invalid entry Uri: " + e.Message +
@@ -336,6 +346,36 @@ namespace BlogWrite.Models.Clients
 
             entItem.Author = entryAuthor;
 
+            // gets imageUri from enclosure
+            XmlNode enclosure = entryNode.SelectSingleNode("enclosure");
+            if (enclosure != null)
+            {
+                if (enclosure.Attributes["url"] != null)
+                {
+                    string urlImage = enclosure.Attributes["url"].Value;
+
+                    if (enclosure.Attributes["type"] != null)
+                    {
+                        string imageType = enclosure.Attributes["type"].Value;
+
+                        if ((imageType == "image/jpg") || (imageType == "image/jpeg")  || (imageType == "image/png") || (imageType == "image/gif"))
+                        {
+                            try
+                            {
+                                entItem.ImageUri = new Uri(urlImage);
+                            }
+                            catch (Exception e)
+                            {
+                                ToDebugWindow(">> Exception @FeedClient@FillEntryItemFromXmlRss:new Uri()"
+                                    + Environment.NewLine +
+                                    "RSS feed entry (" + entItem.Name + ") contain invalid entry > enclosure@link Uri: " + e.Message +
+                                    Environment.NewLine);
+                            }
+                        }
+                    }
+                }
+            }
+
             // Force textHtml for RSS feed. Even though description was missing. (needs this for browser)
             entItem.ContentType = EntryItem.ContentTypes.textHtml;
 
@@ -343,20 +383,20 @@ namespace BlogWrite.Models.Clients
             if (sum != null)
             {
                 // Content
-                entItem.Content = sum.InnerText;
+                entItem.Content = await StripStyleAttributes(sum.InnerText);
 
-                // Summary
-                entItem.Summary = await StripStyleAttributes(sum.InnerText);
-                
-                if (!string.IsNullOrEmpty(sum.InnerText))
+                if (!string.IsNullOrEmpty(entItem.Content))
                 {
-                    entItem.SummaryPlainText = await StripHtmlTags(sum.InnerText);
+                    // Summary
+                    entItem.Summary = await StripHtmlTags(entItem.Content);
+                    //entItem.Summary = Truncate(entItem.Summary, 230);
 
-                    entItem.SummaryPlainText = Truncate(entItem.SummaryPlainText, 78);
+                    //entItem.SummaryPlainText = Truncate(entItem.Summary, 78);
+
+                    // gets image Uri
+                    if (entItem.ImageUri == null)
+                        entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
                 }
-
-                // gets image Uri
-                entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
             }
 
             entItem.Status = FeedEntryItem.ReadStatus.rsNew;
@@ -438,16 +478,14 @@ namespace BlogWrite.Models.Clients
             if (sum != null)
             {
                 // Content
-                entItem.Content = sum.InnerText;
+                entItem.Content = await StripStyleAttributes(sum.InnerText);
 
-                // Summary
-                entItem.Summary = await StripStyleAttributes(sum.InnerText);
-
-                if (!string.IsNullOrEmpty(sum.InnerText))
+                if (!string.IsNullOrEmpty(entItem.Content))
                 {
-                    entItem.SummaryPlainText = await StripHtmlTags(sum.InnerText);
+                    // Summary
+                    entItem.Summary = await StripHtmlTags(entItem.Content);
 
-                    entItem.SummaryPlainText = Truncate(entItem.SummaryPlainText, 78);
+                    //entItem.SummaryPlainText = Truncate(entItem.SummaryPlainText, 78);
                 }
 
                 // gets image Uri
@@ -653,11 +691,11 @@ namespace BlogWrite.Models.Clients
                 entItem.Summary = await StripStyleAttributes(sum.InnerText);
                 //entry.ContentType = EntryFull.ContentTypes.textHtml;
 
-                if (!string.IsNullOrEmpty(sum.InnerText))
+                if (!string.IsNullOrEmpty(entItem.Summary))
                 {
-                    //entry.SummaryPlainText = await StripHtmlTags(sum.InnerText);
+                    entItem.Summary = await StripHtmlTags(entItem.Summary);
 
-                    entItem.SummaryPlainText = Truncate(sum.InnerText, 78);
+                    //entItem.SummaryPlainText = Truncate(sum.InnerText, 78);
                 }
             }
             else
@@ -668,12 +706,13 @@ namespace BlogWrite.Models.Clients
                 {
                     if (entItem.ContentType == EntryItem.ContentTypes.textHtml)
                     {
-                        s = await StripHtmlTags(s);
-                        entItem.SummaryPlainText = Truncate(s, 78);
+                        entItem.Summary = await StripHtmlTags(s);
+                        //entItem.SummaryPlainText = Truncate(s, 78);
                     }
                     else if (entItem.ContentType == EntryItem.ContentTypes.text)
                     {
-                        entItem.SummaryPlainText = Truncate(s, 78);
+                        entItem.Summary = s;
+                        //entItem.SummaryPlainText = Truncate(s, 78);
                     }
                 }
             }
@@ -700,7 +739,7 @@ namespace BlogWrite.Models.Clients
             entItem.Published = entry.Published;
             entItem.Author = entry.Author;
             entItem.Summary = entry.Summary;
-            entItem.SummaryPlainText = entry.SummaryPlainText;
+            //entItem.SummaryPlainText = entry.SummaryPlainText;
             entItem.Content = entry.Content;
             entItem.ContentType = entry.ContentType;
             // entItem.EntryBody = entry;
@@ -1028,11 +1067,11 @@ namespace BlogWrite.Models.Clients
                 entry.Summary = await StripStyleAttributes(sum.InnerText);
                 //entry.ContentType = EntryFull.ContentTypes.textHtml;
 
-                if (!string.IsNullOrEmpty(sum.InnerText))
+                if (!string.IsNullOrEmpty(entry.Summary))
                 {
-                    //entry.SummaryPlainText = await StripHtmlTags(sum.InnerText);
+                    entry.Summary = await StripHtmlTags(entry.Summary);
 
-                    entry.SummaryPlainText = Truncate(sum.InnerText, 78);
+                    //entItem.SummaryPlainText = Truncate(sum.InnerText, 78);
                 }
             }
             else
@@ -1041,14 +1080,15 @@ namespace BlogWrite.Models.Clients
 
                 if (!string.IsNullOrEmpty(s))
                 {
-                    if (entry.ContentType == EntryFull.ContentTypes.textHtml)
+                    if (entry.ContentType == EntryItem.ContentTypes.textHtml)
                     {
-                        s = await StripHtmlTags(s);
-                        entry.SummaryPlainText = Truncate(s, 78);
+                        entry.Summary = await StripHtmlTags(s);
+                        //entItem.SummaryPlainText = Truncate(s, 78);
                     }
-                    else if (entry.ContentType == EntryFull.ContentTypes.text)
+                    else if (entry.ContentType == EntryItem.ContentTypes.text)
                     {
-                        entry.SummaryPlainText = Truncate(s, 78);
+                        entry.Summary = s;
+                        //entItem.SummaryPlainText = Truncate(s, 78);
                     }
                 }
             }

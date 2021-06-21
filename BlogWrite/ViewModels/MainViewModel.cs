@@ -25,34 +25,27 @@ namespace BlogWrite.ViewModels
 {
     /// TODO: 
     /// 
-    /// View形式をFeedやサービスごとに覚える。
-    /// 
-    /// Magazine View styleの追加。
-    /// 
-    /// 画像のダウンロードとサムネイル化と、読み込みのタイミング。
-    /// Entry画像のダウンロードは、visibilityChanged か何かで、ListView内で表示されたタイミングで取得するように変更。
-    /// 
-    /// 
-    /// DBのサイズを最適化する。項目も見直す。
-    /// 
-    /// Feedの自動更新Timer
-    /// 
     /// App Icon / App name .... FeedDesk?
     /// 
-    /// InfoWindowでService情報も見れるようにする。
+    /// DBで、画像の保存は別テーブルに分ける。
+    /// 画像のダウンロードとサムネイル化と表示は、visibilityChanged か何かで、ListView内で表示されたタイミングで取得するように変更したい。
+    /// 画像の取得はまず、Entryの拡張を確認して、なければDescriptionのHTMLを見て、無ければ本文を取りに行く？
+    /// 
+    /// DBのサイズを最適化する。項目も見直す。
+    /// 一定数以上でなおかつ一定期間（１ヵ月）過ぎた古いFeedEntryはSelectの段階で無視し、自動でIsReadにする。App終了時かイニシャライズ時に削除する。
+    /// 
     /// InfoWindowで、Feedの更新頻度を設定できるようにする。
     /// 
-    /// [Bug] Feed取得中はDrag and DropやDeleteできないようにする。
-    /// 現状毎回DBからEntriesを読み込んでいるなら、各NodeにCollectionをため込んでおく意味ないなぁ・・・Feed Folderまとめ表示で使ってるけど・・・。
+    /// 設定画面
     /// 
-    /// ServiceDiscoveryのFeed追加で、もう一画面かましてサイト名を表示して、Feedの名前を変更できるようにする?
-    /// debug windowに書き出されたらバグアイコンを黄色にする?
-    /// 
-    /// "あとで読む"
+    /// Feed取得中はDrag and DropやDeleteできないようにする。
     /// 
     /// AtomPub and XML-RPC ..
+    /// InfoWindowでService情報も見れるようにする。
 
     /// 更新履歴：
+    /// v0.0.0.36 Magazine View styleの追加。View形式をFeedやサービスごとに覚えた。
+    /// v0.0.0.35 Feed Folderまとめ表示を改善し、DebugTextがある場合はアイコンを黄色にするようにした。
     /// v0.0.0.34 Feed Folderまとめ表示。
     /// v0.0.0.33 OPML import and export.
     /// v0.0.0.32 NodeFeedをDeleteした時に、DBから記事を削除。AtomFeedNode/RssFeedNode, AtomFeedClient/RssFeedClientをまとめて一つにした。
@@ -95,7 +88,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.34";
+        const string _appVer = "0.0.0.36";
         public string AppVer
         {
             get
@@ -173,7 +166,7 @@ namespace BlogWrite.ViewModels
 
         #endregion
 
-        #region == Treeview ==
+        #region == Service Treeview ==
 
         private ServiceTreeBuilder _services = new ServiceTreeBuilder();
         public ObservableCollection<NodeTree> Services
@@ -199,40 +192,51 @@ namespace BlogWrite.ViewModels
 
                 NotifyPropertyChanged(nameof(SelectedNode));
 
+                // Clear Listview selected Item.
                 SelectedItem = null;
+
+                // Clear HTTP error if shown.
+                HttpError = null;
+                IsShowHttpClientErrorMessage = false;
+
+                // Clear DB error if shown.
+                DatabaseError = null;
+                IsShowDatabaseErrorMessage = false;
 
                 if (_selectedNode == null)
                     return;
 
+                // Update Title bar info
                 SelectedServiceName = _selectedNode.Name;
 
+                // Reset visibility flags for buttons etc
                 IsShowInFeedAndFolder = false;
                 IsShowInFeed = false;
 
+                if (_selectedNode.ViewType == ViewTypes.vtCards)
+                    SelectedViewTabIndex = 0;
+                else if (_selectedNode.ViewType == ViewTypes.vtMagazine)
+                    SelectedViewTabIndex = 1;
+                else if (_selectedNode.ViewType == ViewTypes.vtThreePanes)
+                    SelectedViewTabIndex = 2;
+
                 if (_selectedNode is NodeService)
                 {
+                    // Show HTTP Error if assigned.
                     if ((_selectedNode as NodeService).ErrorHttp != null)
                     {
                         HttpError = (_selectedNode as NodeService).ErrorHttp;
                         IsShowHttpClientErrorMessage = true;
                     }
-                    else
-                    {
-                        HttpError = null;
-                        IsShowHttpClientErrorMessage = false;
-                    }
 
+                    // Show DB Error if assigned.
                     if ((_selectedNode as NodeService).ErrorDatabase != null)
                     {
                         DatabaseError = (_selectedNode as NodeService).ErrorDatabase;
                         IsShowDatabaseErrorMessage = true;
                     }
-                    else
-                    {
-                        DatabaseError = null;
-                        IsShowDatabaseErrorMessage = false;
-                    }
 
+                    // NodeFeed is selected
                     if (_selectedNode is NodeFeed)
                     {
                         // Reset view...
@@ -249,12 +253,18 @@ namespace BlogWrite.ViewModels
                         IsShowInFeedAndFolder = true;
                         IsShowInFeed = true;
                     }
+                    else
+                    {
+                        // TODO: 
+                    }
                 }
                 else if (_selectedNode is NodeFolder)
                 {
                     IsShowInFeedAndFolder = true;
                     IsShowInFeed = false;
                 }
+
+                Entries.Clear();
 
                 LoadEntries(_selectedNode);
             }
@@ -277,32 +287,19 @@ namespace BlogWrite.ViewModels
 
         #endregion
 
-        #region == ListView ==
+        #region == Entry ListViews ==
 
+        private ObservableCollection<EntryItem> _entries = new ObservableCollection<EntryItem>();
         public ObservableCollection<EntryItem> Entries
         {
-            get
+            get { return _entries; }
+            set
             {
-                if (_selectedNode == null)
-                    return null;
+                if (_entries == value)
+                    return;
 
-                if (_selectedNode is NodeEntryCollection)
-                {
-                    return (_selectedNode as NodeEntryCollection).List;
-                }
-                else if (_selectedNode is NodeFeed)
-                {
-                    return (_selectedNode as NodeFeed).List;
-                }
-                else if (_selectedNode is NodeFolder)
-                {
-                    // TODO:
-                    return (_selectedNode as NodeFolder).ListAll;
-                }
-                else
-                {
-                    return null;
-                }
+                _entries = value;
+                NotifyPropertyChanged(nameof(Entries));
             }
         }
 
@@ -338,6 +335,30 @@ namespace BlogWrite.ViewModels
 
                 NotifyPropertyChanged(nameof(Entries));
 
+            }
+        }
+
+        private int _selectedViewTabIndex = 0;
+        public int SelectedViewTabIndex
+        {
+            get { return _selectedViewTabIndex; }
+            set
+            {
+                if (_selectedViewTabIndex == value)
+                    return;
+
+                _selectedViewTabIndex = value;
+                NotifyPropertyChanged(nameof(SelectedViewTabIndex));
+
+                if (SelectedNode is not null)
+                {
+                    if (_selectedViewTabIndex == 0)
+                        SelectedNode.ViewType = ViewTypes.vtCards;
+                    else if (_selectedViewTabIndex == 1)
+                        SelectedNode.ViewType = ViewTypes.vtMagazine;
+                    else if (_selectedViewTabIndex == 2)
+                        SelectedNode.ViewType = ViewTypes.vtThreePanes;
+                }
             }
         }
 
@@ -678,6 +699,23 @@ li {
             }
         }
 
+        private bool _isDebugTextHasText;
+        public bool IsDebugTextHasText
+        {
+            get
+            {
+                return _isDebugTextHasText;
+            }
+            set
+            {
+                if (_isDebugTextHasText == value)
+                    return;
+
+                _isDebugTextHasText = value;
+                NotifyPropertyChanged(nameof(IsDebugTextHasText));
+            }
+        }
+
         #endregion
 
         #region == Status messages == 
@@ -793,12 +831,6 @@ li {
 
         #endregion
 
-        #region == SQLite Database ==
-
-        private readonly DataAccess dataAccessModule = new DataAccess();
-
-        #endregion
-
         #endregion
 
         #region == Events ==
@@ -832,14 +864,22 @@ li {
 
         #endregion
 
+        #region == Other ==
+
         private string _envDataFolder = System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         private string _appDataFolder;
         private string _appConfigFilePath;
 
+        private readonly DataAccess dataAccessModule = new DataAccess();
+
         private OpenDialogService _openDialogService = new OpenDialogService();
+
+        #endregion
 
         public MainViewModel()
         {
+            // tmp
+            IsSaveLog = true;
             IsShowMainErrorMessage = false;
 
             #region == Config folder ==
@@ -941,10 +981,7 @@ li {
 
             #endregion
 
-            // test
-            IsSaveLog = true;
-
-            // loads searvice tree
+            // Load searvice tree
             if (File.Exists(_appDataFolder + System.IO.Path.DirectorySeparatorChar + "Searvies.xml"))
             {
                 XmlDocument doc = new XmlDocument();
@@ -1081,6 +1118,11 @@ li {
 
             // starts update feeds and collections.
             StartUpdate();
+
+            // starts hourly timer.
+            var aTimer = new System.Timers.Timer(60 * 60 * 1000); // one hour in milliseconds
+            aTimer.Elapsed += new System.Timers.ElapsedEventHandler(OnTimedEvent);
+            aTimer.Start();
         }
 
         // OnWindowClosing
@@ -1214,13 +1256,7 @@ li {
 
             #endregion
 
-            #region == Services ==
-            // Save Services.xml.
-
-            XmlDocument xdoc = _services.AsXmlDoc();
-            xdoc.Save(_appDataFolder + System.IO.Path.DirectorySeparatorChar + "Searvies.xml");
-
-            #endregion
+            SaveServiceXml();
 
             // Save error logs.
             if (Application.Current != null)
@@ -1239,6 +1275,9 @@ li {
 
         public void OnDebugOutput(BaseClient sender, string data)
         {
+            if (string.IsNullOrEmpty(data))
+                return;
+
             if (IsDebugWindowEnabled)
             {
                 if (Application.Current == null) { return; }
@@ -1247,11 +1286,22 @@ li {
                     DebugOutput?.Invoke(this, Environment.NewLine + data);
                 });
             }
+
+            IsDebugTextHasText = true;
         }
 
         #endregion
 
         #region == Methods ==
+
+        private void SaveServiceXml()
+        {
+            XmlDocument xdoc = _services.AsXmlDoc();
+
+            xdoc.Save(System.IO.Path.Combine(_appDataFolder, "Searvies.xml"));
+        }
+
+        #region == Init and start ups ==
 
         private void InitClients()
         {
@@ -1274,6 +1324,11 @@ li {
                 if (c.Children.Count > 0)
                     InitClientsRecursiveLoop(c.Children);
             }
+        }
+
+        private void OnTimedEvent(object source, System.Timers.ElapsedEventArgs e)
+        {
+            StartUpdate();
         }
 
         private void StartUpdate()
@@ -1315,6 +1370,10 @@ li {
             }
         }
 
+        #endregion
+
+        #region == Public methods accessible from code behind ==
+
         public void AddFeed(FeedLink fl)
         {
             if (FeedDupeCheck(fl.FeedUri.AbsoluteUri))
@@ -1346,20 +1405,6 @@ li {
             GetEntries(a);
         }
 
-        public void AddService(NodeService nodeService)
-        {
-            nodeService.Parent = _services;
-            nodeService.IsExpanded = true;
-            nodeService.IsSelected = true;
-            nodeService.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
-
-            // Add Node to internal (virtual) Treeview.
-            if (Application.Current == null) { return; }
-            Application.Current.Dispatcher.Invoke(() => Services.Add(nodeService));
-
-            SaveServiceXml();
-        }
-
         private bool FeedDupeCheck(string feedUri)
         {
             return FeedDupeCheckRecursiveLoop(Services, feedUri);
@@ -1383,6 +1428,20 @@ li {
             }
 
             return false;
+        }
+
+        public void AddService(NodeService nodeService)
+        {
+            nodeService.Parent = _services;
+            nodeService.IsExpanded = true;
+            nodeService.IsSelected = true;
+            nodeService.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
+
+            // Add Node to internal (virtual) Treeview.
+            if (Application.Current == null) { return; }
+            Application.Current.Dispatcher.Invoke(() => Services.Add(nodeService));
+
+            SaveServiceXml();
         }
 
         public void DeleteNodeTree(NodeTree nt)
@@ -1495,13 +1554,11 @@ li {
             }
         }
 
-        private void SaveServiceXml()
-        {
-            XmlDocument xdoc = _services.AsXmlDoc();
-            
-            xdoc.Save(System.IO.Path.Combine(_appDataFolder, "Searvies.xml"));
-        }
+        #endregion
 
+        #region == Data retrieval and manupilations ==
+
+        // Gets Entries from Web and Inserts into DB.
         private async void GetEntries(NodeTree nd)
         {
             if (nd == null)
@@ -1511,66 +1568,77 @@ li {
             {
                 NodeFeed fnd = nd as NodeFeed;
 
-                if (fnd.Api != ApiTypes.atFeed)
-                    return;
-
                 var fc = fnd.Client;
 
-                if (fc == null)
+                // check some conditions.
+                if ((fnd.Api != ApiTypes.atFeed) || (fc == null))
                     return;
 
+                // Update Node Downloading Status
                 if (Application.Current == null) { return; }
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     fnd.Status = NodeFeed.DownloadStatus.loading;
+
+                    fnd.LastUpdate = DateTime.Now;
                 });
 
+                // Get Entries from web.
                 HttpClientEntryItemCollectionResultWrapper resEntries = await fc.GetEntries(fnd.EndPoint, fnd.Id);
 
+                // Check Node exists. Could have been deleted.
                 if (fnd == null)
-                    return; // could have been deleted.
+                    return; 
 
+                // Result is HTTP Error
                 if (resEntries.IsError)
                 {
                     if (Application.Current == null) { return; }
                     Application.Current.Dispatcher.Invoke(() =>
                     {
+                        // Sets Node Error.
                         fnd.ErrorHttp = resEntries.Error;
 
+                        // If Node is selected, show the Error.
                         if (fnd == SelectedNode)
                         {
                             HttpError = fnd.ErrorHttp;
                             IsShowHttpClientErrorMessage = true;
                         }
 
+                        // Update Node Downloading Status
                         fnd.Status = NodeFeed.DownloadStatus.error;
                     });
 
                     return;
                 }
+                // Result is success.
                 else
                 {
                     if (Application.Current == null) { return; }
                     Application.Current.Dispatcher.Invoke(() =>
                     {
-                        // Clear Error
+                        // Clear Node Error
                         fnd.ErrorHttp = null;
                         if (fnd == SelectedNode)
                         {
-                            // hide error
+                            // Hide any Error Message
                             HttpError = null;
                             IsShowHttpClientErrorMessage = false;
                         }
 
                         if (resEntries.Entries.Count > 0)
                         {
+                            // Insert result to Sqlite database.
                             SqliteDataAccessInsertResultWrapper resInsert = dataAccessModule.InsertEntries(resEntries.Entries, (nd as NodeFeed).Id);
+
+                            // Result is DB Error
                             if (resInsert.IsError)
                             {
+                                // Sets Node Error.
                                 fnd.ErrorDatabase = resInsert.Error;
 
-                                // TODO: DB Status 
-
+                                // If Node is selected, show the Error.
                                 if (fnd == SelectedNode)
                                 {
                                     DatabaseError = fnd.ErrorDatabase;
@@ -1580,23 +1648,45 @@ li {
                                 // IsBusy = false;
                                 return;
                             }
+                            // Result is Success.
                             else
                             {
-                                fnd.UnreadCount += resInsert.InsertedCount;
-
                                 // Clear error.
                                 fnd.ErrorDatabase = null;
 
-                                if (fnd == SelectedNode)
+                                // If Node is selected hide any Error message if shown.
+                                if (nd == SelectedNode)
                                 {
                                     DatabaseError = null;
                                     IsShowDatabaseErrorMessage = false;
                                 }
 
-                                if (fnd == SelectedNode)
+                                // Update Node Unread count.
+                                fnd.EntryCount += resInsert.InsertedEntries.Count;
+
+                                // If parent is a folder 
+                                if (nd.Parent is NodeFolder)
                                 {
-                                    if (resInsert.InsertedCount > 0)
+                                    // Update parent folder's unread count.
+                                    (nd.Parent as NodeFolder).EntryCount = (nd.Parent as NodeFolder).EntryCount + resInsert.InsertedEntries.Count;
+                                }
+
+                                // If Node is selected Load Entries.
+                                if (nd == SelectedNode)
+                                {
+                                    if (resInsert.InsertedEntries.Count > 0)
                                         LoadEntries(nd);
+                                    //
+                                }
+                                else if ((nd.Parent == SelectedNode) && (nd.Parent is NodeFolder))
+                                {
+                                    foreach (var asdf in resInsert.InsertedEntries)
+                                    {
+                                        Entries.Insert(0, asdf);
+                                    }
+
+                                    // sort
+                                    Entries = new ObservableCollection<EntryItem>(Entries.OrderByDescending(n => n.Published));
                                 }
                             }
                         }
@@ -1605,10 +1695,12 @@ li {
                             //Debug.WriteLine("0 entries. ");
                         }
 
-
+                        // Update Node Downloading Status
                         fnd.Status = NodeFeed.DownloadStatus.normal;
                     });
                 }
+
+                // TODO: GetImages
             }
             else if (nd is NodeEntryCollection)
             {
@@ -1621,41 +1713,33 @@ li {
             }
         }
 
+        // Select Entries from DB and Loads Entry collection.
         private void LoadEntries(NodeTree nd)
         {
+            if (nd == null)
+                return;
+
             if (nd is NodeFeed)
             {
-                if (nd == SelectedNode)
-                {
-                    if (Application.Current == null) { return; }
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        (nd as NodeFeed).List.Clear();
-                    });
-                    // This changes the listview.
-                    NotifyPropertyChanged(nameof(Entries));
-                }
-
-                //await Task.Delay(100);
-
                 if (Application.Current == null) { return; }
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    if (nd == null)
-                        return;
+                    NodeFeed fnd = nd as NodeFeed;
 
                     IsWorking = true;
 
-                    SqliteDataAccessSelectResultWrapper res = dataAccessModule.SelectEntriesByFeedId((nd as NodeFeed).List, (nd as NodeFeed).Id, (nd as NodeFeed).IsDisplayUnreadOnly);
+                    fnd.List.Clear();
+
+                    SqliteDataAccessSelectResultWrapper res = dataAccessModule.SelectEntriesByFeedId(fnd);
                     if (res.IsError)
                     {
                         // set's error
-                        (nd as NodeFeed).ErrorDatabase = res.Error;
+                        fnd.ErrorDatabase = res.Error;
 
                         if (nd == SelectedNode)
                         {
                             // show error
-                            DatabaseError = (nd as NodeFeed).ErrorDatabase;
+                            DatabaseError = fnd.ErrorDatabase;
                             IsShowDatabaseErrorMessage = true;
                         }
 
@@ -1665,9 +1749,9 @@ li {
                     else
                     {
                         // Clear error
-                        (nd as NodeFeed).ErrorDatabase = null;
+                        fnd.ErrorDatabase = null;
                         // update the count
-                        (nd as NodeFeed).UnreadCount = res.UnreadCount;
+                        fnd.EntryCount = res.UnreadCount;
 
                         if (nd == SelectedNode)
                         {
@@ -1675,8 +1759,16 @@ li {
                             DatabaseError = null;
                             IsShowDatabaseErrorMessage = false;
 
-                            if ((nd as NodeFeed).List.Count > 0)
+                            // 
+                            Entries = res.SelectedEntries;
+
+                            if (Entries.Count > 0)
                                 ResetListviewPosition?.Invoke(this, 0);
+                        }
+                        else
+                        {
+                            // for folder view..
+                            fnd.List = new ObservableCollection<EntryItem>(res.SelectedEntries);
                         }
                     }
 
@@ -1688,22 +1780,24 @@ li {
                 if (Application.Current == null) { return; }
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    IsBusy = true;
+                    NodeFolder ndf = nd as NodeFolder;
 
-                    (nd as NodeFolder).ListAll.Clear();
+                    IsWorking = true;
 
-                    if ((nd as NodeFolder).Children.Count > 0)
+                    ndf.ListAll.Clear();
+
+                    if (ndf.Children.Count > 0)
                     {
-                        foreach (NodeTree nt in (nd as NodeFolder).Children)
+                        foreach (NodeTree nt in ndf.Children)
                         {
                             if (nt is NodeFeed)
                             {
-                                LoadEntries((nt as NodeFeed));
+                                LoadEntries(nt);
                             }
                         }
 
                         ObservableCollection<EntryItem> tmpList = new();
-                        foreach (NodeTree nt in (nd as NodeFolder).Children)
+                        foreach (NodeTree nt in ndf.Children)
                         {
                             if (nt is NodeFeed)
                             {
@@ -1715,13 +1809,21 @@ li {
                         }
 
                         // Sort
-                        (nd as NodeFolder).ListAll = new ObservableCollection<EntryItem>(tmpList.OrderByDescending(n => n.Published));
+                        //ndf.ListAll = new ObservableCollection<EntryItem>(tmpList.OrderByDescending(n => n.Published));
 
-                        // This changes the listview.
-                        NotifyPropertyChanged(nameof(Entries));
+                        // 
+                        ndf.EntryCount = tmpList.Count;
+
+                        if (nd == SelectedNode)
+                        {
+                            Entries = new ObservableCollection<EntryItem>(tmpList.OrderByDescending(n => n.Published));
+
+                            if (Entries.Count > 0)
+                                ResetListviewPosition?.Invoke(this, 0);
+                        }
                     }
 
-                    IsBusy = false;
+                    IsWorking = false;
                 });
             }
             else if (nd is NodeEntryCollection)
@@ -1739,6 +1841,7 @@ li {
             }
         }
 
+        // Update Entries's IsRead/Archived flag in the DB.
         private void ArchiveAll(NodeTree nd)
         {
             if (nd == null)
@@ -1751,7 +1854,7 @@ li {
                 {
                     IsWorking = true;
 
-                    SqliteDataAccessResultWrapper res = dataAccessModule.UpdateEntriesAsRead((nd as NodeFeed).List, (nd as NodeFeed).Id);
+                    SqliteDataAccessResultWrapper res = dataAccessModule.UpdateEntriesAsRead((nd as NodeFeed).List);
                     if (res.IsError)
                     {
                         (nd as NodeFeed).ErrorDatabase = res.Error;
@@ -1770,8 +1873,14 @@ li {
                         // Clear error
                         (nd as NodeFeed).ErrorDatabase = null;
 
+                        // minus the parent folder's unread count.
+                        if (nd.Parent is NodeFolder)
+                        {
+                            (nd.Parent as NodeFolder).EntryCount = (nd.Parent as NodeFolder).EntryCount - (nd as NodeFeed).EntryCount;
+                        }
+
                         // reset unread count.
-                        (nd as NodeFeed).UnreadCount = 0;
+                        (nd as NodeFeed).EntryCount = 0;
 
                         if (nd == SelectedNode)
                         {
@@ -1799,13 +1908,20 @@ li {
                     }
                 }
 
-                (nd as NodeFolder).ListAll.Clear();
+                //(nd as NodeFolder).ListAll.Clear();
+
+                if (nd == SelectedNode)
+                    Entries.Clear();
             }
         }
 
-        private void ArchiveThis(NodeFeed nd, FeedEntryItem entry)
+        // Update Entry's IsRead/Archived flag in the DB.
+        private void ArchiveThis(NodeTree nd, FeedEntryItem entry)
         {
             if (nd == null)
+                return;
+
+            if ((nd is not NodeFeed) && (nd is not NodeFolder))
                 return;
 
             if (Application.Current == null) { return; }
@@ -1816,14 +1932,15 @@ li {
                 ObservableCollection<EntryItem> list = new();
                 list.Add(entry);
 
-                SqliteDataAccessResultWrapper res = dataAccessModule.UpdateEntriesAsRead(list, nd.Id);
+                SqliteDataAccessResultWrapper res = dataAccessModule.UpdateEntriesAsRead(list);
                 if (res.IsError)
                 {
-                    nd.ErrorDatabase = res.Error;
+                    if (nd is NodeFeed)
+                        (nd as NodeFeed).ErrorDatabase = res.Error;
 
-                    if (nd == SelectedNode)
+                    if ((nd == SelectedNode) && (nd is NodeService))
                     {
-                        DatabaseError = nd.ErrorDatabase;
+                        DatabaseError = (nd as NodeService).ErrorDatabase;
                         IsShowDatabaseErrorMessage = true;
                     }
 
@@ -1833,21 +1950,49 @@ li {
                 else
                 {
                     // Clear error
-                    nd.ErrorDatabase = null;
+                    if (nd is NodeFeed)
+                        (nd as NodeFeed).ErrorDatabase = null;
 
-                    // remove entry from list
-                    nd.List.Remove(entry);
-                    // minus the count.
-                    nd.UnreadCount--;
+                    if (res.AffectedCount > 0)
+                    {
+                        // remove entry from list
+                        if (nd is NodeFeed)
+                        {
+                            //(nd as NodeFeed).List.Remove(entry);
+
+                            if (nd.Parent is NodeFolder)
+                            {
+                                (nd.Parent as NodeFolder).EntryCount--;
+                            }
+                        }
+                        if (nd is NodeFolder)
+                        {
+                            //(nd as NodeFolder).ListAll.Remove(entry);
+
+                            if (entry.MyNodeFeed != null)
+                                entry.MyNodeFeed.EntryCount--;
+                        }
+
+                        // minus the count.
+                        nd.EntryCount--;
+
+                        // remove
+                        if (nd == SelectedNode)
+                            Entries.Remove(entry);
+                    }
                 }
 
                 IsBusy = false;
             });
         }
 
-        private void UpdateEntryStatus(NodeFeed nd, FeedEntryItem entry)
+        // Update Entry's Status in the DB.
+        private void UpdateEntryStatus(NodeTree nd, FeedEntryItem entry)
         {
             if (nd == null)
+                return;
+
+            if ((nd is not NodeFeed) && (nd is not NodeFolder))
                 return;
 
             if (Application.Current == null) { return; }
@@ -1855,14 +2000,15 @@ li {
             {
                 IsBusy = true;
 
-                SqliteDataAccessResultWrapper res = dataAccessModule.UpdateEntryStatus(entry, nd.Id);
+                SqliteDataAccessResultWrapper res = dataAccessModule.UpdateEntryStatus(entry);
                 if (res.IsError)
                 {
-                    nd.ErrorDatabase = res.Error;
+                    if (nd is NodeFeed)
+                        (nd as NodeFeed).ErrorDatabase = res.Error;
 
-                    if (nd == SelectedNode)
+                    if ((nd == SelectedNode) && (nd is NodeFeed))
                     {
-                        DatabaseError = nd.ErrorDatabase;
+                        DatabaseError = (nd as NodeFeed).ErrorDatabase;
                         IsShowDatabaseErrorMessage = true;
                     }
 
@@ -1872,18 +2018,13 @@ li {
                 else
                 {
                     // Clear error
-                    nd.ErrorDatabase = null;
-
-                    // minus the unread count.
-                    //nd.UnreadCount--;
+                    if (nd is NodeFeed)
+                        (nd as NodeFeed).ErrorDatabase = null;
 
                     if (nd == SelectedNode)
                     {
                         DatabaseError = null;
                         IsShowDatabaseErrorMessage = false;
-
-                        // 
-                        //LoadEntries(nd);
                     }
                 }
 
@@ -1944,6 +2085,8 @@ li {
 
             return b;
         }
+
+        #endregion
 
         #endregion
 
@@ -2058,7 +2201,7 @@ li {
             if (selectedEntry == null)
                 return;
 
-            if (SelectedNode is NodeFeed)
+            if ((SelectedNode is NodeFeed) || (SelectedNode is NodeFolder))
             {
                 if (OpenInExternalBrowserCommand_CanExecute())
                     OpenInExternalBrowserCommand_Execute(selectedEntry);
@@ -2082,7 +2225,7 @@ li {
             if (selectedEntry == null)
                 return;
 
-            if (SelectedNode is NodeFeed)
+            if ((SelectedNode is NodeFeed) || (SelectedNode is NodeFolder))
             {
                 if (OpenInExternalBrowserCommand_CanExecute())
                     OpenInExternalBrowserCommand_Execute(selectedEntry);
@@ -2288,10 +2431,10 @@ li {
 
                     if (SelectedNode != null)
                     {
-                        if (SelectedNode is NodeFeed)
+                        if ((SelectedNode is NodeFeed) || (SelectedNode is NodeFolder))
                         {
                             // UPDATE DB
-                            UpdateEntryStatus((SelectedNode as NodeFeed), (selectedEntry as FeedEntryItem));
+                            UpdateEntryStatus(SelectedNode, selectedEntry as FeedEntryItem);
                         }
                     }
                 }
@@ -2326,10 +2469,10 @@ li {
 
                     if (SelectedNode != null)
                     {
-                        if (SelectedNode is NodeFeed)
+                        if ((SelectedNode is NodeFeed) || (SelectedNode is NodeFolder))
                         {
                             // UPDATE DB
-                            UpdateEntryStatus((SelectedNode as NodeFeed), (selectedEntry as FeedEntryItem));
+                            UpdateEntryStatus(SelectedNode, selectedEntry as FeedEntryItem);
                         }
                     }
                 }
@@ -2365,8 +2508,14 @@ li {
 
         public bool ArchiveThisCommand_CanExecute()
         {
-            if (SelectedNode == null) return false;
-            return (SelectedNode is NodeFeed) ? true : false;
+            if (SelectedNode == null) 
+                return false;
+
+            //return (SelectedNode is NodeFeed) ? true : false;
+            if (!((SelectedNode is NodeFeed) || (SelectedNode is NodeFolder)))
+                return false;
+
+            return true;
         }
 
         public void ArchiveThisCommand_Execute(EntryItem selectedEntry)
@@ -2374,7 +2523,7 @@ li {
             if (SelectedNode == null)
                 return;
 
-            if (!(SelectedNode is NodeFeed))
+            if (!((SelectedNode is NodeFeed) || (SelectedNode is NodeFolder)))
                 return;
 
             if (selectedEntry == null)
@@ -2383,7 +2532,7 @@ li {
             if (!(selectedEntry is FeedEntryItem))
                 return;
 
-            ArchiveThis(SelectedNode as NodeFeed, selectedEntry as FeedEntryItem);
+            ArchiveThis(SelectedNode, selectedEntry as FeedEntryItem);
         }
 
         #endregion
@@ -2440,6 +2589,8 @@ li {
             {
                 DebugClear?.Invoke();
             });
+
+            IsDebugTextHasText = false;
         }
 
         public ICommand CloseContentBrowserCommand { get; }

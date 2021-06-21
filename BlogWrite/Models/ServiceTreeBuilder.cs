@@ -10,6 +10,7 @@ namespace BlogWrite.Models
     {
         public ServiceTreeBuilder() { }
 
+        // Loads service tree.
         public void LoadXmlDoc(XmlDocument doc)
         {
             if (doc == null)
@@ -105,6 +106,24 @@ namespace BlogWrite.Models
                                 break;
                         }
 
+                        string viewType = (s.Attributes["ViewType"] != null) ? s.Attributes["ViewType"].Value : "Cards";
+                        ViewTypes vt;
+                        switch (viewType)
+                        {
+                            case "Cards":
+                                vt = ViewTypes.vtCards;
+                                break;
+                            case "Magazine":
+                                vt = ViewTypes.vtMagazine;
+                                break;
+                            case "ThreePanes":
+                                vt = ViewTypes.vtThreePanes;
+                                break;
+                            default:
+                                vt = ViewTypes.vtCards;
+                                break;
+                        }
+
                         if (stp == ServiceTypes.Feed)
                             continue;
 
@@ -117,6 +136,8 @@ namespace BlogWrite.Models
 
                             account.ServiceType = stp;
                             account.Api = at;
+
+                            account.ViewType = vt;
 
                             XmlNodeList workspaceList = s.SelectNodes("Workspaces");
                             foreach (XmlNode w in workspaceList)
@@ -265,6 +286,35 @@ namespace BlogWrite.Models
                             folder.IsExpanded = isExpandeds;
                             folder.Parent = this;
 
+                            int unreadCount = 0;
+                            var attr = s.Attributes["UnreadCount"];
+                            if (attr != null)
+                            {
+                                if (!string.IsNullOrEmpty(s.Attributes["UnreadCount"].Value))
+                                    unreadCount = int.Parse(s.Attributes["UnreadCount"].Value);
+                            }
+                            folder.EntryCount = unreadCount;
+
+                            string viewType = (s.Attributes["ViewType"] != null) ? s.Attributes["ViewType"].Value : "Cards";
+                            ViewTypes vt;
+                            switch (viewType)
+                            {
+                                case "Cards":
+                                    vt = ViewTypes.vtCards;
+                                    break;
+                                case "Magazine":
+                                    vt = ViewTypes.vtMagazine;
+                                    break;
+                                case "ThreePanes":
+                                    vt = ViewTypes.vtThreePanes;
+                                    break;
+                                default:
+                                    vt = ViewTypes.vtCards;
+                                    break;
+                            }
+                            folder.ViewType = vt;
+
+
 
                             XmlNodeList feedList = s.SelectNodes("Feed");
                             foreach (XmlNode f in feedList)
@@ -309,6 +359,24 @@ namespace BlogWrite.Models
                     break;
                 default:
                     at = ApiTypes.atUnknown;
+                    break;
+            }
+
+            string viewType = (node.Attributes["ViewType"] != null) ? node.Attributes["ViewType"].Value : "Cards";
+            ViewTypes vt;
+            switch (viewType)
+            {
+                case "Cards":
+                    vt = ViewTypes.vtCards;
+                    break;
+                case "Magazine":
+                    vt = ViewTypes.vtMagazine;
+                    break;
+                case "ThreePanes":
+                    vt = ViewTypes.vtThreePanes;
+                    break;
+                default:
+                    vt = ViewTypes.vtCards;
                     break;
             }
 
@@ -362,7 +430,8 @@ namespace BlogWrite.Models
                 feed.SiteTitle = siteTitle;
                 feed.SiteUri = siteUri;
 
-                feed.UnreadCount = unreadCount;
+                feed.EntryCount = unreadCount;
+                feed.ViewType = vt;
                 feed.LastUpdate = lastUpdate;
 
                 feed.Api = at;
@@ -373,6 +442,7 @@ namespace BlogWrite.Models
             return null;
         }
 
+        // Saves service tree.
         public XmlDocument AsXmlDoc()
         {
             XmlDocument doc = new();
@@ -420,8 +490,22 @@ namespace BlogWrite.Models
                         attrse.Value = ((NodeService)s).EndPoint.AbsoluteUri;
                         service.SetAttributeNode(attrse);
 
-
-
+                        XmlAttribute attrv = doc.CreateAttribute("ViewType");
+                        switch (s.ViewType)
+                        {
+                            case ViewTypes.vtCards:
+                                attrv.Value = "Cards";
+                                service.SetAttributeNode(attrv);
+                                break;
+                            case ViewTypes.vtMagazine:
+                                attrv.Value = "Magazine";
+                                service.SetAttributeNode(attrv);
+                                break;
+                            case ViewTypes.vtThreePanes:
+                                attrv.Value = "ThreePanes";
+                                service.SetAttributeNode(attrv);
+                                break;
+                        }
 
                         XmlAttribute atstp = doc.CreateAttribute("Type");
                         switch (((NodeService)s).ServiceType)
@@ -612,6 +696,27 @@ namespace BlogWrite.Models
                     attrd.Value = (s).IsSelected ? "true" : "false";
                     folder.SetAttributeNode(attrd);
 
+                    attrd = doc.CreateAttribute("UnreadCount");
+                    attrd.Value = s.EntryCount.ToString();
+                    folder.SetAttributeNode(attrd);
+
+                    attrd = doc.CreateAttribute("ViewType");
+                    switch (s.ViewType)
+                    {
+                        case ViewTypes.vtCards:
+                            attrd.Value = "Cards";
+                            folder.SetAttributeNode(attrd);
+                            break;
+                        case ViewTypes.vtMagazine:
+                            attrd.Value = "Magazine";
+                            folder.SetAttributeNode(attrd);
+                            break;
+                        case ViewTypes.vtThreePanes:
+                            attrd.Value = "ThreePanes";
+                            folder.SetAttributeNode(attrd);
+                            break;
+                    }
+
                     root.AppendChild(folder);
 
                     foreach (var fd in s.Children)
@@ -625,8 +730,6 @@ namespace BlogWrite.Models
                 }
 
             }
-
-            //System.Diagnostics.Debug.WriteLine(doc.OuterXml);
 
             return doc;
         }
@@ -668,6 +771,23 @@ namespace BlogWrite.Models
                     break;
             }
 
+            attrf = doc.CreateAttribute("ViewType");
+            switch (fd.ViewType)
+            {
+                case ViewTypes.vtCards:
+                    attrf.Value = "Cards";
+                    feed.SetAttributeNode(attrf);
+                    break;
+                case ViewTypes.vtMagazine:
+                    attrf.Value = "Magazine";
+                    feed.SetAttributeNode(attrf);
+                    break;
+                case ViewTypes.vtThreePanes:
+                    attrf.Value = "ThreePanes";
+                    feed.SetAttributeNode(attrf);
+                    break;
+            }
+
             attrf = doc.CreateAttribute("SiteTitle");
             attrf.Value = fd.SiteTitle;
             feed.SetAttributeNode(attrf);
@@ -678,7 +798,7 @@ namespace BlogWrite.Models
             feed.SetAttributeNode(attrf);
 
             attrf = doc.CreateAttribute("UnreadCount");
-            attrf.Value = fd.UnreadCount.ToString();
+            attrf.Value = fd.EntryCount.ToString();
             feed.SetAttributeNode(attrf);
 
             attrf = doc.CreateAttribute("LastUpdate");

@@ -32,22 +32,24 @@ namespace BlogWrite.Models
     }
 
     public class SqliteDataAccessResultWrapper: ResultWrapper
-    { }
+    {
+        public int AffectedCount;
+    }
 
     public class SqliteDataAccessInsertResultWrapper: SqliteDataAccessResultWrapper
     {
-        public int InsertedCount;
+        public ObservableCollection<EntryItem> InsertedEntries = new();
     }
 
     public class SqliteDataAccessSelectResultWrapper: SqliteDataAccessResultWrapper
     {
         public int UnreadCount;
+
+        public ObservableCollection<EntryItem> SelectedEntries = new();
     }
 
-    public class HttpClientEntryItemCollectionResultWrapper
+    public class HttpClientEntryItemCollectionResultWrapper : ResultWrapper
     {
-        public ErrorObject Error = new ErrorObject();
-        public bool IsError = false;
-        public ObservableCollection<EntryItem> Entries;
+        public ObservableCollection<EntryItem> Entries = new();
     }
 }

@@ -3457,7 +3457,7 @@
                                             </Grid.ColumnDefinitions>
 
                                             <Border Name="HeaderBorder" Grid.Row="0" Margin="0 0 0 0" BorderThickness="0 0 0 0" CornerRadius="0">
-                                                <ContentPresenter x:Name="ContentSite" ContentSource="Header" RecognizesAccessKey="True" Margin="12 0 0 3" VerticalAlignment="Center" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}"/>
+                                                <ContentPresenter x:Name="ContentSite" ContentSource="Header" RecognizesAccessKey="True" Margin="0 0 0 0" VerticalAlignment="Center" HorizontalAlignment="Center" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}"/>
                                             </Border>
                                         </Grid>
                                     </Border>
@@ -3473,7 +3473,7 @@
 
                                             <Setter Property="Background" Value="{DynamicResource BoardBackgroundColorBrush}" />
                                             <Setter Property="Foreground" Value="{DynamicResource ControlMediumColorBrush}" />
-                                            <Setter TargetName="ContentSite" Property="Margin" Value="12 0 0 3" />
+                                            <Setter TargetName="ContentSite" Property="Margin" Value="0" />
                                         </MultiTrigger>
 
                                         <MultiTrigger>
@@ -3488,7 +3488,7 @@
                                             <Setter TargetName="HeaderBorder" Property="BorderThickness" Value="0 0 0 0" />
                                             <Setter Property="Foreground" Value="White" />
 
-                                            <Setter TargetName="ContentSite" Property="Margin" Value="12 0 0 0" />
+                                            <Setter TargetName="ContentSite" Property="Margin" Value="0 0 0 3" />
                                         </MultiTrigger>
 
                                         <Trigger Property="IsSelected" Value="True">
@@ -3502,7 +3502,7 @@
 
                                             <Setter Property="Foreground" Value="{DynamicResource ControlForegroundColorBrush}" />
 
-                                            <Setter TargetName="ContentSite" Property="Margin" Value="12 0 0 0" />
+                                            <Setter TargetName="ContentSite" Property="Margin" Value="0 0 0 3" />
                                         </Trigger>
 
                                         <Trigger Property="IsSelected" Value="False">
@@ -3514,7 +3514,7 @@
                                             <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource BoardBackgroundColorBrush}" />
                                             <Setter TargetName="HeaderBorder" Property="BorderThickness" Value="0 0 0 0" />
 
-                                            <Setter TargetName="ContentSite" Property="Margin" Value="12 0 0 3" />
+                                            <Setter TargetName="ContentSite" Property="Margin" Value="0 0 0 0" />
                                         </Trigger>
 
                                         <Trigger Property="IsEnabled" Value="False">

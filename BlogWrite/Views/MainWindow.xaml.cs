@@ -138,8 +138,8 @@ namespace BlogWrite.Views
             Task nowait = ListViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
             ListViewContentPreviewWebBrowser.CoreWebView2InitializationCompleted += ListViewContentPreviewWebBrowser_InitializationCompleted;
 
-            nowait = CardViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
-            CardViewContentPreviewWebBrowser.CoreWebView2InitializationCompleted += CardViewContentPreviewWebBrowser_InitializationCompleted;
+            nowait = InAppWebBrowser.EnsureCoreWebView2Async(_env);
+            InAppWebBrowser.CoreWebView2InitializationCompleted += InAppWebBrowser_InitializationCompleted;
         }
 
         private void ListViewContentPreviewWebBrowser_InitializationCompleted(object sender, EventArgs e)
@@ -150,12 +150,12 @@ namespace BlogWrite.Views
             ListViewContentPreviewWebBrowser.NavigateToString(html);
         }
 
-        private void CardViewContentPreviewWebBrowser_InitializationCompleted(object sender, EventArgs e)
+        private void InAppWebBrowser_InitializationCompleted(object sender, EventArgs e)
         {
             // Not yet supported in WebView2
-            //CardViewContentPreviewWebBrowser.CoreWebView2.Settings.UserAgent = "";
+            //InAppWebBrowser.CoreWebView2.Settings.UserAgent = "";
 
-            CardViewContentPreviewWebBrowser.NavigateToString(html);
+            InAppWebBrowser.NavigateToString(html);
         }
 
         #endregion
@@ -285,19 +285,19 @@ namespace BlogWrite.Views
             if (arg == null)
                 return;
 
-            if (ViewTab.SelectedIndex == 0)
+            if ((ViewTab.SelectedIndex == 0) || (ViewTab.SelectedIndex == 1))
             {
-                if (GridCardViewContentPreviewWebBrowser.Visibility != Visibility.Visible)
+                if (GridInAppWebBrowser.Visibility != Visibility.Visible)
                 {
-                    GridCardViewContentPreviewWebBrowser.Visibility = Visibility.Visible;
+                    GridInAppWebBrowser.Visibility = Visibility.Visible;
                 }
 
-                await CardViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
+                await InAppWebBrowser.EnsureCoreWebView2Async(_env);
 
-                CardViewContentPreviewWebBrowser.Source = arg;
+                InAppWebBrowser.Source = arg;
 
             }
-            else if (ViewTab.SelectedIndex == 1)
+            else if (ViewTab.SelectedIndex == 2)
             {
                 if (GridListViewContentPreviewWebBrowser.Visibility != Visibility.Visible)
                 {
@@ -411,23 +411,27 @@ namespace BlogWrite.Views
                 {
 
                 }
+                else if (ViewTab.SelectedIndex == 2)
+                {
+
+                }
             }
             else
             {
-                if (ViewTab.SelectedIndex == 0)
+                if ((ViewTab.SelectedIndex == 0) || (ViewTab.SelectedIndex == 1))
                 {
-                    if (GridCardViewContentPreviewWebBrowser.Visibility == Visibility.Visible)
+                    if (GridInAppWebBrowser.Visibility == Visibility.Visible)
                     {
-                        GridCardViewContentPreviewWebBrowser.Visibility = Visibility.Collapsed;
+                        GridInAppWebBrowser.Visibility = Visibility.Collapsed;
 
                         // Browser
-                        await CardViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
+                        await InAppWebBrowser.EnsureCoreWebView2Async(_env);
                         // "Close browser window."
-                        CardViewContentPreviewWebBrowser.Source = new System.Uri("about:blank", System.UriKind.Absolute);
+                        InAppWebBrowser.Source = new System.Uri("about:blank", System.UriKind.Absolute);
                     }
 
                 }
-                else if (ViewTab.SelectedIndex == 1)
+                else if (ViewTab.SelectedIndex == 2)
                 {
                     if (GridListViewContentPreviewWebBrowser.Visibility == Visibility.Visible)
                     {
@@ -453,6 +457,11 @@ namespace BlogWrite.Views
             if (CardViewListview.Items.Count > 0)
             {
                 CardViewListview.ScrollIntoView(CardViewListview.Items[0]);
+            }
+
+            if (MagazineListView.Items.Count > 0)
+            {
+                MagazineListView.ScrollIntoView(MagazineListView.Items[0]);
             }
 
             if (ListViewListView.Items.Count > 0)
@@ -1160,7 +1169,6 @@ namespace BlogWrite.Views
             public POINT ptMinTrackSize;
             public POINT ptMaxTrackSize;
         }
-
 
         #endregion
 

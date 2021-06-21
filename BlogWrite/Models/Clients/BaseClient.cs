@@ -14,6 +14,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Windows;
 using System.Collections.ObjectModel;
+using System.Windows.Media;
 
 namespace BlogWrite.Models.Clients
 {
@@ -44,6 +45,7 @@ namespace BlogWrite.Models.Clients
                     Byte[] bytes = await this.GetImage(entItem.ImageUri);
                     if (bytes != Array.Empty<byte>())
                     {
+                        /*
                         if (Application.Current != null)
                         {
                             Application.Current.Dispatcher.Invoke(() =>
@@ -51,6 +53,19 @@ namespace BlogWrite.Models.Clients
                                 entItem.Image = BitmapImageFromBytes(bytes);
                             });
                         }
+                        */
+
+                        var imageSource = (BitmapSource)new ImageSourceConverter().ConvertFrom(bytes);
+                        //var width = 220d;
+                        //var scale = width / imageSource.PixelWidth;
+                        var height = 127d;
+                        var scale = height / imageSource.PixelHeight;
+                        WriteableBitmap writable = new WriteableBitmap(new TransformedBitmap(imageSource, new ScaleTransform(scale, scale)));
+                        writable.Freeze();
+
+                        entItem.ImageByteArray = WritableBitmapImageToByteArray(writable);
+
+                        //entItem.ImageByteArray = bytes;
                     }
                 }
             }
@@ -58,30 +73,32 @@ namespace BlogWrite.Models.Clients
             return entryItems;
         }
 
-        private async Task<byte[]> GetImage(Uri imageUri)
+        private Byte[] WritableBitmapImageToByteArray(WriteableBitmap writableBitmapImage)
         {
-            byte[] res = Array.Empty<byte>();
-
             try
             {
-                res = await _HTTPConn.Client.GetByteArrayAsync(imageUri);
+                byte[] data = Array.Empty<byte>();
+
+                BitmapEncoder encoder = new BmpBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create((BitmapSource)writableBitmapImage));
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    encoder.Save(ms);
+                    data = ms.ToArray();
+                }
+
+                return data;
             }
             catch (Exception e)
             {
-                if (e.InnerException != null)
-                {
-                    Debug.WriteLine(e.InnerException.Message + " @BaseClient::GetImage:GetByteArrayAsync");
-                    //res.Error.ErrText = "「" + e.InnerException.Message + "」";
-                }
-                else
-                {
-                    Debug.WriteLine(e.Message + " @BaseClient::GetImage:GetByteArrayAsync");
-                    //res.Error.ErrText = "「" + e.Message + "」";
-                }
-            }
+                Debug.WriteLine(e.Message + " @BaseClient::WritableBitmapImageToByteArray");
 
-            return res;
+                ToDebugWindow("<< " + e.InnerException.ToString() + " @BaseClient::WritableBitmapImageToByteArray: " + e.Message + Environment.NewLine);
+
+                return Array.Empty<byte>();
+            }
         }
+
 
         #region == Events ==
 
@@ -101,6 +118,33 @@ namespace BlogWrite.Models.Clients
         protected void ToDebugWindow(string data)
         {
             Task nowait = Task.Run(() => { DebugOutput?.Invoke(this, data); });
+        }
+
+        private async Task<byte[]> GetImage(Uri imageUri)
+        {
+            byte[] res = Array.Empty<byte>();
+
+            try
+            {
+                res = await _HTTPConn.Client.GetByteArrayAsync(imageUri);
+            }
+            catch (Exception e)
+            {
+                if (e.InnerException != null)
+                {
+                    Debug.WriteLine(e.InnerException.Message + " @BaseClient::GetImage:GetByteArrayAsync");
+
+                    ToDebugWindow("<< " + e.InnerException.ToString() + " @BaseClient::GetImage:GetByteArrayAsync: " + e.InnerException.Message + Environment.NewLine + imageUri.AbsoluteUri + Environment.NewLine);
+                }
+                else
+                {
+                    Debug.WriteLine(e.Message + " @BaseClient::GetImage:GetByteArrayAsync");
+
+                    ToDebugWindow("<< " + e.ToString() + " @BaseClient::GetImage:GetByteArrayAsync: " + e.Message + Environment.NewLine + imageUri.AbsoluteUri + Environment.NewLine);
+                }
+            }
+
+            return res;
         }
 
         #region == Fill ErrorObject ==
@@ -299,6 +343,7 @@ namespace BlogWrite.Models.Clients
         }
 
         #endregion
+
     }
 }
 
