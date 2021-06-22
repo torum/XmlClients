@@ -38,11 +38,10 @@ The Feed Reader functionality.
 
 - [x] ~~Feed Auto Discovery (Parse a HTML Web page and find RSS and Atom links)~~
 - [x] ~~Parse feeds (Atom 1.0, 0.3, RSS 2.0, 1.0)~~
-- [x] ~~Display in various view types.~~ 
-- [x] ~~Display contents in a embeded browser.~~ 
-- [x] ~~Save entries in a sqlite database.~~ 
-- [x] ~~Manage entries read/unread status.~~ 
-- [x] ~~Auto update feeds.~~ 
+- [x] ~~Display and manage feeds and entries.~~ 
+- [x] ~~Display contents and page in a embeded browser.~~ 
+- [x] ~~Manage entries read/unread status with sqlite database.~~ 
+- [x] ~~Auto update entries.~~ 
 - [x] ~~Import and export feeds list as OPML.~~ 
 - [ ] ~~Get optional image Uris,~~ download and display images. 
 
