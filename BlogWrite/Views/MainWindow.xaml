@@ -1234,7 +1234,7 @@
 
                                                             <TextBlock x:Name="EntryTitle" Grid.Row="0" Text="{Binding Name}" FontSize="13.5" TextWrapping="Wrap" Padding="6 2 6 0" Foreground="{DynamicResource NormalTextColorBrush}"></TextBlock>
 
-                                                            <TextBlock x:Name="EntryAuthor" Grid.Row="1" Margin="6 6 6 0" Text="{Binding Author}" Foreground="#444" HorizontalAlignment="Left" VerticalAlignment="Bottom"></TextBlock>
+                                                            <TextBlock x:Name="EntryAuthor" Grid.Row="1" Margin="6 6 6 0" Foreground="#444" HorizontalAlignment="Left" VerticalAlignment="Bottom"><Run Text="by "/><Run Text="{Binding Author}"/></TextBlock>
 
                                                             <TextBlock x:Name="EntrySummary" Grid.Row="2" Margin="6 6 6 0" Text="{Binding Summary}" TextWrapping="Wrap" Foreground="#555"></TextBlock>
 

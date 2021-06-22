@@ -374,7 +374,7 @@ namespace BlogWrite.Models.Clients
         {
             HttpClientEntryItemCollectionResultWrapper res = new HttpClientEntryItemCollectionResultWrapper();
 
-            ObservableCollection<EntryItem> list = new ObservableCollection<EntryItem>();
+            List<EntryItem> list = new List<EntryItem>();
             res.Entries = list;
 
             //System.Diagnostics.Debug.WriteLine("GetEntries Uri: " + entriesUrl.AbsoluteUri);

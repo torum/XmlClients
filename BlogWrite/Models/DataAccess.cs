@@ -131,15 +131,14 @@ namespace BlogWrite.Models
             return res;
         }
 
-        public SqliteDataAccessSelectResultWrapper SelectEntriesByFeedId(NodeFeed ndf)
+        public SqliteDataAccessSelectResultWrapper SelectEntriesByFeedId(string feedId, bool UnreadOnly = true)
         {
             SqliteDataAccessSelectResultWrapper res = new SqliteDataAccessSelectResultWrapper();
 
-            if (ndf is null)
+            if (string.IsNullOrEmpty(feedId))
                 return res;
 
-            bool IsUnreadOnly = ndf.IsDisplayUnreadOnly;
-            string feedId = ndf.Id;
+            bool IsUnreadOnly = UnreadOnly;
 
             try
             {
@@ -392,6 +391,19 @@ namespace BlogWrite.Models
                     }
                 }
             }
+            catch (System.InvalidOperationException ex)
+            {
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+                res.Error.ErrText = "InvalidOperationException";
+                res.Error.ErrDescription = ex.Message;
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
+                res.Error.ErrPlaceParent = "DataAccess::SelectEntriesByMultipleFeedIds";
+
+                return res;
+            }
             catch (Exception e)
             {
                 res.IsError = true;
@@ -400,17 +412,17 @@ namespace BlogWrite.Models
                 res.Error.ErrText = e.ToString();
                 if (e.InnerException != null)
                 {
-                    Debug.WriteLine(e.InnerException.Message + " @DataAccess::SelectEntriesByFeedId");
+                    Debug.WriteLine(e.InnerException.Message + " @DataAccess::SelectEntriesByMultipleFeedIds");
                     res.Error.ErrDescription = e.InnerException.Message;
                 }
                 else
                 {
-                    Debug.WriteLine(e.Message + " @DataAccess::SelectEntriesByFeedId");
+                    Debug.WriteLine(e.Message + " @DataAccess::SelectEntriesByMultipleFeedIds");
                     res.Error.ErrDescription = e.Message;
                 }
                 res.Error.ErrDatetime = DateTime.Now;
                 res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
-                res.Error.ErrPlaceParent = "DataAccess::SelectEntriesByFeedId";
+                res.Error.ErrPlaceParent = "DataAccess::SelectEntriesByMultipleFeedIds";
 
                 return res;
             }
@@ -418,14 +430,12 @@ namespace BlogWrite.Models
             return res;
         }
 
-        public SqliteDataAccessInsertResultWrapper InsertEntries(ObservableCollection<EntryItem> entries, string feedId)
+        public SqliteDataAccessInsertResultWrapper InsertEntries(List<EntryItem> entries)
         {
             SqliteDataAccessInsertResultWrapper res = new SqliteDataAccessInsertResultWrapper();
 
-            if (string.IsNullOrEmpty(feedId))
+            if (entries is null)
                 return res;
-
-            //int c = 0;
 
             try
             {
@@ -455,8 +465,8 @@ namespace BlogWrite.Models
 
                                 cmd.Parameters.AddWithValue("@Id", entry.Id);
                                 
-                                cmd.Parameters.AddWithValue("@feedId", feedId);
-                                
+                                cmd.Parameters.AddWithValue("@feedId", entry.ServiceId);//feedId
+
                                 cmd.Parameters.AddWithValue("@EntryId", entry.EntryId);
                                 
                                 cmd.Parameters.AddWithValue("@AltHtmlUri", entry.AltHtmlUri.AbsoluteUri);
@@ -545,6 +555,34 @@ namespace BlogWrite.Models
                     }
                 }
             }
+            catch (System.Reflection.TargetInvocationException ex)
+            {
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+                res.Error.ErrText = "TargetInvocationException";
+                res.Error.ErrDescription = ex.Message;
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
+                res.Error.ErrPlaceParent = "DataAccess::InsertEntries";
+
+                return res;
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                Debug.WriteLine("Opps. InvalidOperationException@DataAccess::InsertEntries");
+
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+                res.Error.ErrText = "InvalidOperationException";
+                res.Error.ErrDescription = ex.Message;
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
+                res.Error.ErrPlaceParent = "DataAccess::InsertEntries";
+
+                return res;
+            }
             catch (Exception e)
             {
                 res.IsError = true;
@@ -568,12 +606,12 @@ namespace BlogWrite.Models
                 return res;
             }
 
-            Debug.WriteLine(string.Format("{0} Entries from {1} Inserted to DB", res.AffectedCount.ToString(), feedId));
+            Debug.WriteLine(string.Format("{0} Entries Inserted to DB", res.AffectedCount.ToString()));
 
             return res;
         }
 
-        public SqliteDataAccessResultWrapper UpdateEntriesAsRead(ObservableCollection<EntryItem> entries)
+        public SqliteDataAccessResultWrapper UpdateEntriesAsRead(List<EntryItem> entries)
         {
             SqliteDataAccessResultWrapper res = new SqliteDataAccessResultWrapper();
 
@@ -605,13 +643,13 @@ namespace BlogWrite.Models
                                 if (entry is FeedEntryItem)
                                 {
                                     (entry as FeedEntryItem).IsRead = true;
-                                    cmd.Parameters.AddWithValue("@IsRead", bool.TrueString);// (entry as FeedEntryItem).IsRead.ToString()
+                                    cmd.Parameters.AddWithValue("@IsRead", bool.TrueString);
                                 }
 
-                                res.AffectedCount = cmd.ExecuteNonQuery();
+                                // TODO:
+                                res.AffectedCount += cmd.ExecuteNonQuery();
                             }
 
-                            //　コミット
                             cmd.Transaction.Commit();
                         }
                         catch (Exception e)
@@ -677,6 +715,111 @@ namespace BlogWrite.Models
                 res.Error.ErrDatetime = DateTime.Now;
                 res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
                 res.Error.ErrPlaceParent = "DataAccess::UpdateEntriesAsRead";
+
+                return res;
+            }
+
+            //Debug.WriteLine(string.Format("{0} Entries from {1} Updated as read in the DB", c.ToString(), feedId));
+
+            return res;
+        }
+
+        public SqliteDataAccessResultWrapper UpdateAllEntriesAsRead(List<string> feedIds)
+        {
+            SqliteDataAccessResultWrapper res = new SqliteDataAccessResultWrapper();
+
+            if (feedIds is null)
+                return res;
+
+            if (feedIds.Count == 0)
+                return res;
+
+            string before = string.Format("UPDATE Entry SET IsRead = '{0}' WHERE ", bool.TrueString);
+
+            string middle = "(";
+
+            foreach (var asdf in feedIds)
+            {
+                if (middle != "(")
+                    middle = middle + "OR ";
+
+                middle = middle + String.Format("Feed_ID = '{0}' ", asdf);
+            }
+
+            string after = string.Format(") AND IsRead = '{0}'", bool.FalseString);
+
+            //Debug.WriteLine(before + middle + after);
+
+            try
+            {
+                using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
+                {
+                    connection.Open();
+
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        cmd.Transaction = connection.BeginTransaction();
+
+                        try
+                        {
+                            cmd.CommandText = before + middle + after;
+
+                            cmd.CommandType = CommandType.Text;
+
+                            res.AffectedCount = cmd.ExecuteNonQuery();
+
+                            cmd.Transaction.Commit();
+                        }
+                        catch (Exception e)
+                        {
+                            cmd.Transaction.Rollback();
+
+                            res.IsError = true;
+                            res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                            res.Error.ErrCode = "";
+                            res.Error.ErrText = "Exception";
+                            res.Error.ErrDescription = e.Message;
+                            res.Error.ErrDatetime = DateTime.Now;
+                            res.Error.ErrPlace = "connection.Open(),Transaction.Commit";
+                            res.Error.ErrPlaceParent = "DataAccess::UpdateAllEntriesAsRead";
+
+                            return res;
+                        }
+                    }
+                }
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+                res.Error.ErrText = "InvalidOperationException";
+                res.Error.ErrDescription = ex.Message;
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
+                res.Error.ErrPlaceParent = "DataAccess::UpdateAllEntriesAsRead";
+
+                return res;
+            }
+            catch (Exception e)
+            {
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+
+                if (e.InnerException != null)
+                {
+                    res.Error.ErrText = "InnerException";
+                    res.Error.ErrDescription = e.InnerException.Message;
+                }
+                else
+                {
+                    res.Error.ErrText = "Exception";
+                    res.Error.ErrDescription = e.Message;
+                }
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
+                res.Error.ErrPlaceParent = "DataAccess::UpdateAllEntriesAsRead";
 
                 return res;
             }

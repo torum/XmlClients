@@ -536,7 +536,7 @@ namespace BlogWrite.Models
             }
         }
 
-        public ObservableCollection<EntryItem> List = new ObservableCollection<EntryItem>();
+        //public ObservableCollection<EntryItem> List = new ObservableCollection<EntryItem>();
 
         public NodeFeed(string name, Uri feedUrl) : base(name, feedUrl, ApiTypes.atFeed, ServiceTypes.Feed)
         {

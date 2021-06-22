@@ -50,6 +50,6 @@ namespace BlogWrite.Models
 
     public class HttpClientEntryItemCollectionResultWrapper : ResultWrapper
     {
-        public ObservableCollection<EntryItem> Entries = new();
+        public List<EntryItem> Entries = new();
     }
 }

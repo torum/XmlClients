@@ -20,6 +20,7 @@ using BlogWrite.Common;
 using BlogWrite.Models;
 using BlogWrite.Models.Clients;
 using Microsoft.Data.Sqlite;
+using System.Threading;
 
 namespace BlogWrite.ViewModels
 {
@@ -35,8 +36,6 @@ namespace BlogWrite.ViewModels
     /// 
     /// InfoWindowで、Feedの更新頻度を設定できるようにする。
     /// 
-    /// Database access を Asyncで・・・
-    /// 
     /// 設定画面
     /// 
     /// Feed取得中はDrag and DropやDeleteできないようにする。
@@ -45,6 +44,7 @@ namespace BlogWrite.ViewModels
     /// InfoWindowでService情報も見れるようにする。
 
     /// 更新履歴：
+    /// v0.0.0.39 ArchiveAll 作り直し。Database access を Asyncで With Lock.
     /// v0.0.0.38 Folderまとめ読みは、SQL一発で。 LIMIT 100
     /// v0.0.0.37 3paneのcontentpreviewbrowserの初期化が出来て無かった。
     /// v0.0.0.36 Magazine View styleの追加。View形式をFeedやサービスごとに覚えた。
@@ -91,7 +91,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.38";
+        const string _appVer = "0.0.0.39";
         public string AppVer
         {
             get
@@ -269,7 +269,7 @@ namespace BlogWrite.ViewModels
 
                 Entries.Clear();
 
-                LoadEntries(_selectedNode);
+                Task.Run(() => LoadEntries(_selectedNode));
             }
         }
 
@@ -451,7 +451,9 @@ namespace BlogWrite.ViewModels
                     else
                         (SelectedNode as NodeFeed).IsDisplayUnreadOnly = false;
 
-                    LoadEntries(SelectedNode as NodeFeed);
+                    //LoadEntries(SelectedNode as NodeFeed);
+                    // Test
+                    Task.Run(() => LoadEntries(SelectedNode as NodeFeed));
                 }
             }
         }
@@ -885,6 +887,8 @@ li {
 
         private OpenDialogService _openDialogService = new OpenDialogService();
 
+        private ReaderWriterLockSlim _readerWriterLock = new ReaderWriterLockSlim();
+
         #endregion
 
         public MainViewModel()
@@ -1312,8 +1316,6 @@ li {
             xdoc.Save(System.IO.Path.Combine(_appDataFolder, "Searvies.xml"));
         }
 
-        #region == Init and start ups ==
-
         private void InitClients()
         {
             InitClientsRecursiveLoop(_services.Children);
@@ -1337,6 +1339,8 @@ li {
             }
         }
 
+        #region == Feed Auto Update ==
+
         private void OnTimedEvent(object source, System.Timers.ElapsedEventArgs e)
         {
             StartUpdate();
@@ -1345,8 +1349,35 @@ li {
         private async void StartUpdate()
         {
             await Task.Run(() => StartUpdateRecursiveLoop(_services.Children));
+            /*
+            List<EntryItem> list = await StartUpdateRecursiveLoop(_services.Children);
 
-            //
+            if (list.Count == 0)
+                return;
+
+            SqliteDataAccessInsertResultWrapper resInsert = dataAccessModule.InsertEntries(list);
+
+            if (resInsert.InsertedEntries.Count == 0)
+                return;
+
+            if (Application.Current == null) { return; }
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                // Result is DB Error
+                if (resInsert.IsError)
+                {
+                    // Sets Error.
+                    MainError = resInsert.Error;
+                    IsShowMainErrorMessage = true;
+
+                    return;
+                }
+                else
+                {
+                   //
+                }
+            });
+            */
         }
 
         private async void StartUpdateRecursiveLoop(ObservableCollection<NodeTree> nt)
@@ -1369,8 +1400,6 @@ li {
                         {
                             (c as NodeFeed).LastUpdate = now;
 
-                            //Debug.WriteLine("GETting: " + last.ToString());
-
                             GetEntries(c);
 
                             await Task.Delay(1000);
@@ -1379,7 +1408,9 @@ li {
                 }
 
                 if (c.Children.Count > 0)
-                    StartUpdateRecursiveLoop(c.Children);
+                {
+                    await Task.Run(() => StartUpdateRecursiveLoop(c.Children));
+                }
             }
         }
 
@@ -1571,6 +1602,179 @@ li {
 
         #region == Data retrieval and manupilations ==
 
+        private SqliteDataAccessSelectResultWrapper SelectEntriesByFeedIdLock(string id, bool bln)
+        {
+            SqliteDataAccessSelectResultWrapper res = new();
+
+            try
+            {
+                _readerWriterLock.EnterReadLock();
+
+                res = dataAccessModule.SelectEntriesByFeedId(id, bln);
+            }
+            finally
+            {
+                _readerWriterLock.ExitReadLock();
+            }
+
+            return res;
+        }
+
+        private SqliteDataAccessSelectResultWrapper SelectEntriesByMultipleFeedIdsLock(List<string> list)
+        {
+            SqliteDataAccessSelectResultWrapper res = new();
+
+            try
+            {
+                _readerWriterLock.EnterReadLock();
+
+                res = dataAccessModule.SelectEntriesByMultipleFeedIds(list);
+            }
+            finally
+            {
+                _readerWriterLock.ExitReadLock();
+            }
+
+            return res;
+        }
+
+        private SqliteDataAccessInsertResultWrapper InsertEntriesLock(List<EntryItem> list)
+        {
+            SqliteDataAccessInsertResultWrapper resInsert = new();
+            
+            bool isbreaked = false;
+
+            try
+            {
+                _readerWriterLock.EnterWriteLock();
+                if (_readerWriterLock.WaitingReadCount > 0)
+                {
+                    isbreaked = true;
+                }
+                else
+                {
+                    // Insert result to Sqlite database.
+                    resInsert = dataAccessModule.InsertEntries(list);
+
+                }
+            }
+            finally
+            {
+                _readerWriterLock.ExitWriteLock();
+            }
+            if (isbreaked)
+            {
+                Thread.Sleep(10);
+                //await Task.Delay(100);
+
+                return InsertEntriesLock(list);
+            }
+
+            return resInsert;
+        }
+
+        private SqliteDataAccessResultWrapper UpdateAllEntriesAsReadLock(List<string> list)
+        {
+            SqliteDataAccessResultWrapper res = new();
+
+            bool isbreaked = false;
+
+            try
+            {
+                _readerWriterLock.EnterWriteLock();
+                if (_readerWriterLock.WaitingReadCount > 0)
+                {
+                    isbreaked = true;
+                }
+                else
+                {
+                    res = dataAccessModule.UpdateAllEntriesAsRead(list);
+
+                }
+            }
+            finally
+            {
+                _readerWriterLock.ExitWriteLock();
+            }
+            if (isbreaked)
+            {
+                Thread.Sleep(10);
+                //await Task.Delay(100);
+
+                return UpdateAllEntriesAsReadLock(list);
+            }
+
+            return res;
+        }
+        
+        private SqliteDataAccessResultWrapper UpdateEntriesAsReadLock(List<EntryItem> list)
+        {
+            SqliteDataAccessResultWrapper res = new();
+
+            bool isbreaked = false;
+
+            try
+            {
+                _readerWriterLock.EnterWriteLock();
+                if (_readerWriterLock.WaitingReadCount > 0)
+                {
+                    isbreaked = true;
+                }
+                else
+                {
+                    res = dataAccessModule.UpdateEntriesAsRead(list);
+
+                }
+            }
+            finally
+            {
+                _readerWriterLock.ExitWriteLock();
+            }
+            if (isbreaked)
+            {
+                Thread.Sleep(10);
+                //await Task.Delay(100);
+
+                return UpdateEntriesAsReadLock(list);
+            }
+
+            return res;
+        }
+
+        private SqliteDataAccessResultWrapper UpdateEntryStatusLock(EntryItem entry)
+        {
+            SqliteDataAccessResultWrapper res = new();
+
+            bool isbreaked = false;
+
+            try
+            {
+                _readerWriterLock.EnterWriteLock();
+                if (_readerWriterLock.WaitingReadCount > 0)
+                {
+                    isbreaked = true;
+                }
+                else
+                {
+                    res = dataAccessModule.UpdateEntryStatus(entry);
+
+                }
+            }
+            finally
+            {
+                _readerWriterLock.ExitWriteLock();
+            }
+            if (isbreaked)
+            {
+                Thread.Sleep(10);
+                //await Task.Delay(100);
+
+                return UpdateEntryStatusLock(entry);
+            }
+
+            return res;
+        }
+
         // Gets Entries from Web and Inserts into DB.
         private async void GetEntries(NodeTree nd)
         {
@@ -1640,11 +1844,19 @@ li {
                             IsShowHttpClientErrorMessage = false;
                         }
 
-                        if (resEntries.Entries.Count > 0)
-                        {
-                            // Insert result to Sqlite database.
-                            SqliteDataAccessInsertResultWrapper resInsert = dataAccessModule.InsertEntries(resEntries.Entries, (nd as NodeFeed).Id);
+                    });
 
+                    // Test
+                    SqliteDataAccessInsertResultWrapper resInsert = InsertEntriesLock(resEntries.Entries);
+
+                    if (resEntries.Entries.Count > 0)
+                    {
+                        // Insert result to Sqlite database.
+                        //SqliteDataAccessInsertResultWrapper resInsert = dataAccessModule.InsertEntries(resEntries.Entries);
+
+                        if (Application.Current == null) { return; }
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
                             // Result is DB Error
                             if (resInsert.IsError)
                             {
@@ -1661,7 +1873,6 @@ li {
                                 // IsBusy = false;
                                 return;
                             }
-                            // Result is Success.
                             else
                             {
                                 // Clear error.
@@ -1688,7 +1899,9 @@ li {
                                 if (nd == SelectedNode)
                                 {
                                     if (resInsert.InsertedEntries.Count > 0)
-                                        LoadEntries(nd);
+                                        //LoadEntries(nd);
+                                        // Test
+                                        Task.Run(() => LoadEntries(nd));
                                 }
                                 else if ((nd.Parent == SelectedNode) && (nd.Parent is NodeFolder))
                                 {
@@ -1701,12 +1914,16 @@ li {
                                     Entries = new ObservableCollection<EntryItem>(Entries.OrderByDescending(n => n.Published));
                                 }
                             }
-                        }
-                        else
-                        {
-                            //Debug.WriteLine("0 entries. ");
-                        }
+                        });
+                    }
+                    else
+                    {
+                        //Debug.WriteLine("0 entries. ");
+                    }
 
+                    if (Application.Current == null) { return; }
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
                         // Update Node Downloading Status
                         fnd.Status = NodeFeed.DownloadStatus.normal;
                     });
@@ -1742,12 +1959,14 @@ li {
 
                     IsWorking = true;
 
-                    fnd.List.Clear();
-
                     if (forceUnread)
                         fnd.IsDisplayUnreadOnly = true;
 
-                    SqliteDataAccessSelectResultWrapper res = dataAccessModule.SelectEntriesByFeedId(fnd);
+                    // Test
+                    SqliteDataAccessSelectResultWrapper res = SelectEntriesByFeedIdLock(fnd.Id, fnd.IsDisplayUnreadOnly);
+
+                    // SqliteDataAccessSelectResultWrapper res = dataAccessModule.SelectEntriesByFeedId(fnd.Id, fnd.IsDisplayUnreadOnly);
+
                     if (res.IsError)
                     {
                         // set's error
@@ -1770,9 +1989,6 @@ li {
                         
                         // Update the count
                         fnd.EntryCount = res.UnreadCount;
-
-                        // For Folder view and ArchiveAll
-                        fnd.List = new ObservableCollection<EntryItem>(res.SelectedEntries);
 
                         if (nd == SelectedNode)
                         {
@@ -1812,7 +2028,9 @@ li {
                             }
                         }
 
-                        SqliteDataAccessSelectResultWrapper res = dataAccessModule.SelectEntriesByMultipleFeedIds(tmpList);
+                        //SqliteDataAccessSelectResultWrapper res = dataAccessModule.SelectEntriesByMultipleFeedIds(tmpList);
+                        // Test
+                        SqliteDataAccessSelectResultWrapper res = SelectEntriesByMultipleFeedIdsLock(tmpList);
 
                         ndf.EntryCount = res.SelectedEntries.Count;
 
@@ -1856,7 +2074,13 @@ li {
                 {
                     IsWorking = true;
 
-                    SqliteDataAccessResultWrapper res = dataAccessModule.UpdateEntriesAsRead((nd as NodeFeed).List);
+                    List<string> list = new();
+                    list.Add((nd as NodeFeed).Id);
+
+                    //SqliteDataAccessResultWrapper res = dataAccessModule.UpdateAllEntriesAsRead(list);
+                    // Test
+                    SqliteDataAccessResultWrapper res = UpdateAllEntriesAsReadLock(list);
+
                     if (res.IsError)
                     {
                         (nd as NodeFeed).ErrorDatabase = res.Error;
@@ -1893,8 +2117,11 @@ li {
 
                                 // clear here.
                                 Entries.Clear();
+
                                 // 
-                                LoadEntries(nd);
+                                //LoadEntries(nd);
+                                // Test
+                                Task.Run(() => LoadEntries(_selectedNode));
                             }
                         }
                     }
@@ -1906,19 +2133,36 @@ li {
             {
                 if ((nd as NodeFolder).Children.Count > 0)
                 {
+                    List<string> list = new();
+
                     foreach (NodeTree hoge in (nd as NodeFolder).Children)
                     {
                         if (hoge is NodeFeed)
                         {
-                            ArchiveAll(hoge);
+                            list.Add((hoge as NodeFeed).Id);
                         }
                     }
+
+                    //SqliteDataAccessResultWrapper res = dataAccessModule.UpdateAllEntriesAsRead(list);
+                    // Test
+                    SqliteDataAccessResultWrapper res = UpdateAllEntriesAsReadLock(list);
+
+                    if (res.AffectedCount > 0)
+                    {
+                        foreach (NodeTree hoge in (nd as NodeFolder).Children)
+                        {
+                            if (hoge is NodeFeed)
+                            {
+                                (hoge as NodeFeed).EntryCount = 0;
+                            }
+                        }
+
+                        (nd as NodeFolder).EntryCount = 0;
+
+                        if (nd == SelectedNode)
+                            Entries.Clear();
+                    }
                 }
-
-                //(nd as NodeFolder).ListAll.Clear();
-
-                if (nd == SelectedNode)
-                    Entries.Clear();
             }
         }
 
@@ -1936,10 +2180,14 @@ li {
             {
                 IsBusy = true;
 
-                ObservableCollection<EntryItem> list = new();
+                List<EntryItem> list = new();
+
                 list.Add(entry);
 
-                SqliteDataAccessResultWrapper res = dataAccessModule.UpdateEntriesAsRead(list);
+                //SqliteDataAccessResultWrapper res = dataAccessModule.UpdateEntriesAsRead(list);
+                // Test
+                SqliteDataAccessResultWrapper res = UpdateEntriesAsReadLock(list);
+
                 if (res.IsError)
                 {
                     if (nd is NodeFeed)
@@ -2012,7 +2260,10 @@ li {
             {
                 IsBusy = true;
 
-                SqliteDataAccessResultWrapper res = dataAccessModule.UpdateEntryStatus(entry);
+                //SqliteDataAccessResultWrapper res = dataAccessModule.UpdateEntryStatus(entry);
+                // Test
+                SqliteDataAccessResultWrapper res = UpdateEntryStatusLock(entry);
+
                 if (res.IsError)
                 {
                     if (nd is NodeFeed)
@@ -2044,6 +2295,7 @@ li {
             });
         }
 
+        // TODO
         private async Task<bool> GetEntry(EntryItem selectedEntry)
         {
             if (selectedEntry == null)
@@ -2073,6 +2325,7 @@ li {
             return true;
         }
 
+        // TODO
         private async Task<bool> DeleteEntry(EntryItem selectedEntry)
         {
             if (selectedEntry == null)
