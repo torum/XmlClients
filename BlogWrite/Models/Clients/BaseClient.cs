@@ -15,6 +15,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Collections.ObjectModel;
 using System.Windows.Media;
+using System.Reflection;
 
 namespace BlogWrite.Models.Clients
 {
@@ -26,6 +27,7 @@ namespace BlogWrite.Models.Clients
         public HTTPConnection()
         {
             Client = new HttpClient();
+            Client.DefaultRequestHeaders.UserAgent.TryParseAdd("BlogWrite" + "/" + Assembly.GetExecutingAssembly().GetName().Version.ToString());
         }
     }
 

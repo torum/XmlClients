@@ -1311,7 +1311,7 @@
                     </TabItem>
 
                     <!-- ListView -->
-                    <TabItem Header="Three-pane" Style="{DynamicResource TabItemBottomStyle}">
+                    <TabItem Header="Three Pane" Style="{DynamicResource TabItemBottomStyle}">
 
                         <Grid x:Name="GridListView" Background="{DynamicResource BoardBackgroundColorBrush}">
                             <Grid.RowDefinitions>

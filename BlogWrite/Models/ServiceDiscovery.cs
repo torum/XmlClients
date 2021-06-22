@@ -52,31 +52,38 @@ namespace BlogWrite.Models
         }
     }
 
-    // Searvice Document Link Class
-    public class SearviceDocumentLink
+    // Base Searvice Document Link Class
+    public abstract class SearviceDocumentLink
     {
-        public enum ServiceDocumentKinds
+        public SearviceDocumentLink()
         {
-            Feed,
-            RSD,
-            AtomSrv,
-            AtomApi,
-            Unknown
-        }
 
-        public Uri EndpointUri { get; set; }
-
-        public ServiceDocumentKinds ServiceDocumentKind { get; set; }
-
-        // XML-RPC specific blogid. 
-        public string BlogID { get; set; }
-
-        public SearviceDocumentLink(Uri fu, ServiceDocumentKinds fk)
-        {
-            EndpointUri = fu;
-            ServiceDocumentKind = fk;
         }
     }
+
+    public class RsdApi
+    {
+        public string Name { get; set; }
+        public string BlogID { get; set; }
+        public bool Preferred { get; set; }
+        public Uri ApiLink { get; set; }
+    }
+
+    public class RsdLink : SearviceDocumentLink
+    {
+        public string engineName { get; set; }
+
+        public Uri homePageLink { get; set; }
+
+        public List<RsdApi> Apis { get; set; } = new();
+
+
+        public RsdLink()
+        {
+
+        }
+    }
+
 
     // Base class for Result.
     abstract class ServiceResultBase
@@ -109,7 +116,7 @@ namespace BlogWrite.Models
     }
 
     // HTML Result Class that Holds Feeds and Service Links embedded in HTML. (BasedOn ServiceResultBase)
-    class ServiceResultMultiple : ServiceResultBase
+    class ServiceResultHtmlPage : ServiceResultBase
     {
         private ObservableCollection<FeedLink> _feeds = new();
         public ObservableCollection<FeedLink> Feeds
@@ -139,7 +146,7 @@ namespace BlogWrite.Models
             }
         }
 
-        public ServiceResultMultiple()
+        public ServiceResultHtmlPage()
         {
 
         }
@@ -155,6 +162,17 @@ namespace BlogWrite.Models
 
         }
     }
+
+    class ServiceResultRsd : ServiceResultBase
+    {
+        public RsdLink Rsd;
+
+        public ServiceResultRsd()
+        {
+
+        }
+    }
+
 
     // Base Class for Service Result That Holds Feed link info. (BasedOn ServiceResultBase)
     abstract class ServiceResult : ServiceResultBase
@@ -235,17 +253,6 @@ namespace BlogWrite.Models
 
         public async Task<ServiceResultBase> DiscoverService(Uri addr)
         {
-            /*
-            // Initialize variables.
-            _serviceDocKind = _serviceDocumentKind.Unknown;
-            _serviceDocUrl = null;
-            _endpointUrl =null;
-            _feedUrl = null;
-            _blogId = "";
-            _serviceTypes= ServiceTypes.Unknown;
-            _feedKind = feedKind.Unknown;
-            */
-
             UpdateStatus(string.Format(">> HTTP GET " + addr.AbsoluteUri));
 
             try
@@ -277,12 +284,12 @@ namespace BlogWrite.Models
                             // HTML parse.
                             ServiceResultBase res = await ParseHtml(HTTPResponse.Content, addr);
 
-                            if (res is ServiceResultMultiple)
+                            if (res is ServiceResultHtmlPage)
                             {
-                                if ((res as ServiceResultMultiple).Feeds.Count == 0)
+                                if ((res as ServiceResultHtmlPage).Feeds.Count == 0)
                                     UpdateStatus("- No feed link found.");
 
-                                if ((res as ServiceResultMultiple).Services.Count == 0)
+                                if ((res as ServiceResultHtmlPage).Services.Count == 0)
                                     UpdateStatus("- No Service link found.");
                             }
 
@@ -310,7 +317,7 @@ namespace BlogWrite.Models
                         }
                         else if (contenTypeString.StartsWith("application/rdf+xml"))
                         {
-                            UpdateStatus("- Parsing RSS feed ...");
+                            UpdateStatus("- Parsing RSS/RDF feed ...");
 
                             // XML parse.
                             ServiceResultBase feed = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
@@ -337,29 +344,18 @@ namespace BlogWrite.Models
                         }
                         else if (contenTypeString.StartsWith("application/rsd+xml"))
                         {
-                            bool y = await GetRsd();
-                            /*
-                            if (((_serviceTypes == ServiceTypes.XmlRpc_WordPress) || (_serviceTypes == ServiceTypes.XmlRpc_MovableType)) 
-                                && (_endpointUrl != null))
-                            {
-                                ServiceResultXmlRpc xp = new ServiceResultXmlRpc();
-                                xp.Service = _serviceTypes;
-                                xp.EndpointUri = _endpointUrl;
-                                xp.BlogID = _blogId;
-                                return xp;
-                            }
-                            else
-                            {
-                                UpdateStatus("Could not determin service type. [WordPress,MovableType] not found.");
-                                ServiceResultErr re = new ServiceResultErr("Failed", "Could not determin service type.");
-                                return re;
-                            }
-                            */
+                            UpdateStatus("- Parsing RSD document ...");
 
-                            UpdateStatus("- RSD (UNDERDEVELOPENT).");
+                            var source = await HTTPResponse.Content.ReadAsStreamAsync();
+                            var parser = new XmlParser();
+                            var document = await parser.ParseDocumentAsync(source);
 
-                            ServiceResultErr re = new ServiceResultErr("RSD (UNDERDEVELOPENT).", string.Format("{0} is RSD. (UNDERDEVELOPENT)", contenTypeString));
-                            return re;
+                            RsdLink rsd = ParseRsd(document);
+
+                            ServiceResultRsd resRsd = new ServiceResultRsd();
+                            resRsd.Rsd = rsd;
+
+                            return (resRsd as ServiceResultBase);
                         }
                         else if (contenTypeString.StartsWith("application/atom+xml"))
                         {
@@ -523,8 +519,6 @@ namespace BlogWrite.Models
 
                             UpdateStatus("- Parsing XML document to determine the what this is ...");
 
-                            // TODO;
-
                             // XML parse.
                             ServiceResultBase xml = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
 
@@ -557,28 +551,12 @@ namespace BlogWrite.Models
                         }
                         else if (contenTypeString.StartsWith("application/rsd+xml"))
                         {
-                            bool y = await GetRsd();
-                            /*
-                            if (((_serviceTypes == ServiceTypes.XmlRpc_WordPress) || (_serviceTypes == ServiceTypes.XmlRpc_MovableType)) 
-                                && (_endpointUrl != null))
-                            {
-                                ServiceResultXmlRpc xp = new ServiceResultXmlRpc();
-                                xp.Service = _serviceTypes;
-                                xp.EndpointUri = _endpointUrl;
-                                xp.BlogID = _blogId;
-                                return xp;
-                            }
-                            else
-                            {
-                                UpdateStatus("Could not determin service type. [WordPress,MovableType] not found.");
-                                ServiceResultErr re = new ServiceResultErr("Failed", "Could not determin service type.");
-                                return re;
-                            }
-                            */
+                            //await ParseRsd(HTTPResponse.Content);
 
-                            UpdateStatus("- RSD (UNDERDEVELOPENT).");
+                            UpdateStatus("- RSD (No need to be authenticated). Something went wrong.");
 
-                            ServiceResultErr re = new ServiceResultErr("RSD (UNDERDEVELOPENT).", string.Format("{0} is RSD. (UNDERDEVELOPENT)", contenTypeString));
+                            // Error
+                            ServiceResultErr re = new ServiceResultErr("RSD (No need to be authenticated).", string.Format("{0} is RSD. (Something went wrong)", contenTypeString));
                             return re;
                         }
                         else if (contenTypeString.StartsWith("application/atom+xml"))
@@ -677,7 +655,7 @@ namespace BlogWrite.Models
 
         private async Task<ServiceResultBase> ParseHtml(HttpContent content, Uri addr)
         {
-            ServiceResultMultiple res = new();
+            ServiceResultHtmlPage res = new();
 
             //Use the default configuration for AngleSharp
             var config = Configuration.Default;
@@ -697,9 +675,14 @@ namespace BlogWrite.Models
             if (elementTitle != null)
             {
                 siteTitle = elementTitle.TextContent;
+
+                UpdateStatus("- Webpage title found: " + siteTitle);
+            }
+            else
+            {
+                UpdateStatus("- Webpage title NOT found.");
             }
 
-            //
             var elements = document.QuerySelectorAll("link");
 
             foreach (var e in elements)
@@ -713,7 +696,34 @@ namespace BlogWrite.Models
                 {
                     if (re.ToUpper() == "EDITURI")
                     {
-                        // TODO:
+                        if (!string.IsNullOrEmpty(ty) && !string.IsNullOrEmpty(hf))
+                        {
+                            if (ty == "application/rsd+xml")
+                            {
+                                UpdateStatus(">> A link to RSD document found.");
+
+                                Uri _rsdUrl = null;
+                                try
+                                {
+                                    _rsdUrl = new Uri(hf);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Debug.WriteLine("Exception@ServiceDiscovery@ParseHTML on var _rsdUrl = new Uri(hf) : " + ex.Message);
+
+                                    UpdateStatus(">> A link to RSD document invalid :" + ex.Message);
+                                }
+
+                                if (_rsdUrl != null)
+                                {
+                                    RsdLink rsd = await GetAndParseRsd(_rsdUrl);
+                                    if (rsd.Apis.Count > 0)
+                                    {
+                                        res.Services.Add(rsd);
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     if (re.ToUpper() == "SERVICE")
@@ -728,7 +738,6 @@ namespace BlogWrite.Models
 
                     if (re.ToUpper() == "ALTERNATE")
                     {
-                        
                         if (!string.IsNullOrEmpty(ty) && !string.IsNullOrEmpty(hf))
                         {
                             if (ty == "application/atom+xml")
@@ -766,14 +775,24 @@ namespace BlogWrite.Models
                                     Debug.WriteLine("Exception@ServiceDiscovery@ParseHTML on var _rssFeedUrl = new Uri(hf) : " + ex.Message);
                                 }
                             }
+                            else
+                            {
+                                Debug.WriteLine("rel type: " + ty);
+                            }
                         }
                     }
                 }
             }
 
+            if (elements.Length == 0)
+            {
+                // If webpage is hosted on a free host like Byethost, it returns a empty html with a Javascript to test whether it is a bot or not.
+                // <noscript>This site requires Javascript to work, please enable Javascript in your browser or use a browser with Javascript support</noscript>
 
+                UpdateStatus("- No link found. If the webpage is hosted on a free host like Byethost, it returns a empty html with a Javascript to test whether it is a browser or not. In this case, we can't access the page.");
+            }
+            
             return res;
-
         }
 
         private async Task<ServiceResultBase> ParseXml(HttpContent content, Uri addr)
@@ -952,6 +971,21 @@ namespace BlogWrite.Models
 
                             return (atom as ServiceResultBase);
                         }
+                    }
+                    else if (document.DocumentElement.LocalName.Equals("rsd"))
+                    {
+                        UpdateStatus("- Parsing RSD document ...");
+
+                        RsdLink rsd = ParseRsd(document);
+
+                        ServiceResultRsd resRsd = new ServiceResultRsd();
+                        resRsd.Rsd = rsd;
+
+                        return (resRsd as ServiceResultBase);
+                    }
+                    else
+                    {
+                        UpdateStatus("- Unknown XML document ...");
                     }
                 }
             }
@@ -1161,173 +1195,126 @@ namespace BlogWrite.Models
             return (ret as ServiceResultBase);
         }
 
-        private async Task<bool> GetRsd()
+        private async Task<RsdLink> GetAndParseRsd(Uri addr)
         {
-            await Task.Delay(1);
+            UpdateStatus(string.Format(">> HTTP GET " + addr.AbsoluteUri));
 
-            UpdateStatus(">> Trying to access the RSD document...");
-            /*
-            var HTTPResponse = await _httpClient.GetAsync(_serviceDocUrl);
+            RsdLink rsdDoc = new();
 
-            if (!HTTPResponse.IsSuccessStatusCode)
-            {
-                UpdateStatus("<< HTTP error: " + HTTPResponse.StatusCode.ToString());
-                UpdateStatus("Failed to retrive the RSD document.");
-                return false;
-            }
-                
-            if (HTTPResponse.Content == null)
-            {
-                UpdateStatus("<< Returned no content.");
-                return false;
-            }
-            
-            UpdateStatus(">> Loading a RSD document...");
-
-            var st = await HTTPResponse.Content.ReadAsStreamAsync();
-            if (st == null)
-                return false;
-
-            XmlDocument xdoc = new XmlDocument();
             try
             {
-                xdoc.Load(st);
+                var HTTPResponse = await _httpClient.GetAsync(addr);
+
+                UpdateStatus(string.Format("<< HTTP status {0} returned.", HTTPResponse.StatusCode.ToString()));
+
+                if (HTTPResponse.IsSuccessStatusCode)
+                {
+                    if (HTTPResponse.Content != null)
+                    {
+                        var source = await HTTPResponse.Content.ReadAsStreamAsync();
+                        var parser = new XmlParser();
+                        var document = await parser.ParseDocumentAsync(source);
+
+                        rsdDoc = ParseRsd(document);
+                    }
+                }
+                else
+                {
+                    UpdateStatus("- Could not retrieve RSD document. ");
+                }
+
+            }
+            catch (System.Net.Http.HttpRequestException e)
+            {
+                UpdateStatus("<< HttpRequestException: " + e.Message);
             }
             catch (Exception e)
             {
-                UpdateStatus("Load RSD failed.  Xml document error: " + e.Message);
-
-                Debug.WriteLine("LoadXml failed: " + e.Message);
+                UpdateStatus("<< HTTP error: " + e.Message);
             }
-            */
 
-            // RSD: XML-RPC or AtomAPI or WP json
-            // Content-Type: application/rsd+xml
+            return rsdDoc;
+        }
 
-            /*
-            <?xml version="1.0" encoding="UTF-8"?>
-            <rsd version="1.0" xmlns="http://archipelago.phrasewise.com/rsd">
-              <service>
-                <engineName>WordPress</engineName>
-                <engineLink>https://wordpress.org/</engineLink>
-                <homePageLink>http://1270.0.0.1</homePageLink>
-                <apis>
-                  <api name="WordPress" blogID="1" preferred="true" apiLink="http://1270.0.0.1/xmlrpc.php" />
-                  <api name="Movable Type" blogID="1" preferred="false" apiLink="http://1270.0.0.1/xmlrpc.php" />
-                  <api name="MetaWeblog" blogID="1" preferred="false" apiLink="http://1270.0.0.1xmlrpc.php" />
-                  <api name="Blogger" blogID="1" preferred="false" apiLink="http://1270.0.0.1/xmlrpc.php" />
-                  <api name="WP-API" blogID="1" preferred="false" apiLink="http://1270.0.0.1/wp-json/" />
-                </apis>
-              </service>
-            </rsd>
-            */
+        private RsdLink ParseRsd(AngleSharp.Xml.Dom.IXmlDocument document)
+        {
+            RsdLink rsdDoc = new();
 
-            /*
-            UpdateStatus(">> Trying to parse the RSD documnet...");
-
-            XmlNamespaceManager NsMgr = new XmlNamespaceManager(xdoc.NameTable);
-            NsMgr.AddNamespace("rsd", "http://archipelago.phrasewise.com/rsd");
-
-            XmlNodeList apis = xdoc.SelectNodes("//rsd:rsd/rsd:service/rsd:apis/rsd:api", NsMgr);
-            if (apis == null)
-                return false;
-
-            var api = "";
-            foreach (XmlNode a in apis)
+            try
             {
-                var apiLink = a.Attributes["apiLink"].Value;
-                if (!string.IsNullOrEmpty(apiLink))
+                //var source = await content.ReadAsStreamAsync();
+                //var parser = new XmlParser();
+                //var document = await parser.ParseDocumentAsync(source);
+
+                if (document != null)
                 {
-                    var nm = "";
-                    
-                    var pref = a.Attributes["preferred"].Value;
-                    if (pref.ToLower() == "true")
+                    if (document.DocumentElement != null)
                     {
-                        api = apiLink;
-                        
-                        nm = a.Attributes["name"].Value;
-                        if (!string.IsNullOrEmpty(nm))
+                        rsdDoc.engineName = document.DocumentElement.QuerySelector("service > engineName").TextContent;
+
+                        var homePageLink = document.DocumentElement.QuerySelector("service > homePageLink").TextContent;
+                        if (!string.IsNullOrEmpty(homePageLink))
                         {
-                            if (nm.ToLower() == "wordpress")
+                            try
                             {
-                                _serviceTypes = ServiceTypes.XmlRpc_WordPress;
-
-                                var id = a.Attributes["blogID"].Value;
-                                if (!string.IsNullOrEmpty(id)) {
-                                    _blogId = id;
-                                }
-
-                                UpdateStatus("Found WordPress API.");
-
-                                break;
+                                rsdDoc.homePageLink = new Uri(homePageLink);
                             }
-                            else if (nm.ToLower() == "movable type")
-                            {
-                                _serviceTypes = ServiceTypes.XmlRpc_MovableType;
+                            catch { }
+                        }
 
-                                var id = a.Attributes["blogID"].Value;
-                                if (!string.IsNullOrEmpty(id))
+                        var apis = document.DocumentElement.QuerySelectorAll("service > apis > api");
+                        if (apis != null)
+                        {
+                            foreach (var api in apis)
+                            {
+                                var apiName = api.GetAttribute("name");
+                                var apiBlogId = api.GetAttribute("blogID");
+                                var apiPreferred = api.GetAttribute("preferred");
+                                var apiLink = api.GetAttribute("apiLink");
+
+                                RsdApi hoge = new();
+                                hoge.Name = apiName;
+                                hoge.BlogID = apiBlogId;
+                                if (!string.IsNullOrEmpty(apiPreferred))
                                 {
-                                    _blogId = id;
+                                    if (apiPreferred.ToLower() == "true")
+                                    {
+                                        hoge.Preferred = true;
+                                    }
+                                }
+                                if (!string.IsNullOrEmpty(apiLink))
+                                {
+                                    try
+                                    {
+                                        hoge.ApiLink = new Uri(apiLink);
+                                    }
+                                    catch { }
                                 }
 
-                                UpdateStatus("Found Movable Type API.");
+                                rsdDoc.Apis.Add(hoge);
+                            }
+                        }
 
-                                break;
+                        foreach (var fuga in rsdDoc.Apis)
+                        {
+                            if ((fuga.Name.ToLower() == "wordpress") && (fuga.Preferred))
+                            {
+                                UpdateStatus(string.Format("-  WordPress found."));
+                            }
+                            else
+                            {
+                                // TODO:
                             }
                         }
                     }
-
-                    api = apiLink;
-
-                    nm = a.Attributes["name"].Value;
-                    if (!string.IsNullOrEmpty(nm))
-                    {
-                        if (nm.ToLower() == "wordpress")
-                        {
-                            _serviceTypes = ServiceTypes.XmlRpc_WordPress;
-
-                            var id = a.Attributes["blogID"].Value;
-                            if (!string.IsNullOrEmpty(id))
-                            {
-                                _blogId = id;
-                            }
-
-                            UpdateStatus("Found WordPress API.");
-
-                            break;
-                        }
-                        else if (nm.ToLower() == "movable type")
-                        {
-                            _serviceTypes = ServiceTypes.XmlRpc_MovableType;
-
-                            var id = a.Attributes["blogID"].Value;
-                            if (!string.IsNullOrEmpty(id))
-                            {
-                                _blogId = id;
-                            }
-
-                            UpdateStatus("Found Movable Type API.");
-
-                            break;
-                        }
-                    }
-
-                    
                 }
             }
+            catch (Exception e)
+            {
+                UpdateStatus("Load XML/RSD failed: " + e.Message);
+            }
 
-            if (!string.IsNullOrEmpty(api))
-            {
-                _endpointUrl = new Uri(api);
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-            */
-            return false;
+            return rsdDoc;
         }
 
         private async void UpdateStatus(string data)
@@ -1378,6 +1365,30 @@ namespace BlogWrite.Models
     }
 
     #region == Sample XML Code ==
+
+    // RSD - Really Simple Discovery: XML-RPC or AtomAPI or WP json
+    // Content-Type: application/rsd+xml
+
+    // RSD - Really Simple Discovery
+    // <link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://1270.0.0.1/xmlrpc.php" />
+    /*
+    <?xml version="1.0" encoding="UTF-8"?>
+    <rsd version="1.0" xmlns="http://archipelago.phrasewise.com/rsd">
+      <service>
+        <engineName>WordPress</engineName>
+        <engineLink>https://wordpress.org/</engineLink>
+        <homePageLink>http://1270.0.0.1</homePageLink>
+        <apis>
+          <api name="WordPress" blogID="1" preferred="true" apiLink="http://1270.0.0.1/xmlrpc.php" />
+          <api name="Movable Type" blogID="1" preferred="false" apiLink="http://1270.0.0.1/xmlrpc.php" />
+          <api name="MetaWeblog" blogID="1" preferred="false" apiLink="http://1270.0.0.1xmlrpc.php" />
+          <api name="Blogger" blogID="1" preferred="false" apiLink="http://1270.0.0.1/xmlrpc.php" />
+          <api name="WP-API" blogID="1" preferred="false" apiLink="http://1270.0.0.1/wp-json/" />
+        </apis>
+      </service>
+    </rsd>
+    */
+
 
     // AtomPub Service Document
     // Content-Type: application/atomsvc+xml

@@ -282,7 +282,7 @@
                         <Grid Grid.Row="2" Grid.Column="1" Margin="6" Visibility="{Binding IsShowLog, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
                             <Border CornerRadius="3" Background="{DynamicResource WindowBackgroundBaseColorBrush}">
 
-                                <TextBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Padding="6" Opacity="0.8" Text="{Binding StatusLogText, Mode=OneWay}" IsReadOnly="True" BorderThickness="0" Style="{StaticResource TransparentTextBoxStyle}"></TextBox>
+                                <TextBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Padding="6" Opacity="0.8" Text="{Binding StatusLogText, Mode=OneWay}" TextWrapping="Wrap" IsReadOnly="True" BorderThickness="0" VerticalScrollBarVisibility="Auto" Style="{StaticResource TransparentTextBoxStyle}"></TextBox>
 
                             </Border>
 

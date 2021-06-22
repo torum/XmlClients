@@ -26,24 +26,39 @@ namespace BlogWrite.ViewModels
 {
     /// TODO: 
     /// 
+    /// DeleteNodeTree
+    /// 
+    /// 
+    /// [General]
     /// App Icon / App name .... FeedDesk?
     /// 
+    /// [Auto Discovery]
+    /// RsdLinkからの追加。
+    /// xmlrpc.php直叩きした時の判定。
+    /// 
+    /// [Feed Reader]
+    /// DBのサイズを最適化する。項目も見直す。
     /// DBで、画像の保存は別テーブルに分ける。
     /// 画像のダウンロードとサムネイル化と表示は、visibilityChanged か何かで、ListView内で表示されたタイミングで取得するように変更したい。
-    /// 
-    /// DBのサイズを最適化する。項目も見直す。
-    /// 一定数以上でなおかつ一定期間（１ヵ月）過ぎた古いFeedEntryはSelectの段階で無視し、自動でIsReadにする。App終了時かイニシャライズ時に削除する。
-    /// 
-    /// InfoWindowで、Feedの更新頻度を設定できるようにする。
-    /// 
-    /// 設定画面
-    /// 
     /// Feed取得中はDrag and DropやDeleteできないようにする。
+    /// 一定数以上でなおかつ一定期間（１ヵ月）過ぎた古いFeedEntryはSelectの段階で無視し、自動でIsReadにする。App終了時かイニシャライズ時に削除する。
+    /// InfoWindowで、個別にFeedの更新頻度を設定できるようにする。
     /// 
-    /// AtomPub and XML-RPC ..
+    /// [Settings window]
+    /// 作る
+    /// 
+    /// [AtomPub and XML-RPC]
+    /// RSD の解析
     /// InfoWindowでService情報も見れるようにする。
+    /// ...
+    /// 
+    /// [Editor]
+    /// ...
+    ///  
 
-    /// 更新履歴：
+    /// Change History：
+    /// v0.0.0.41 AutoDiscoveryのHTMLからRSDパース。登録はまだ。
+    /// v0.0.0.40 SQLite へのDB accessが、すべてAsync化されて軽くなった。
     /// v0.0.0.39 ArchiveAll 作り直し。Database access を Asyncで With Lock.
     /// v0.0.0.38 Folderまとめ読みは、SQL一発で。 LIMIT 100
     /// v0.0.0.37 3paneのcontentpreviewbrowserの初期化が出来て無かった。
@@ -91,7 +106,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.39";
+        const string _appVer = "0.0.0.40";
         public string AppVer
         {
             get
@@ -1446,7 +1461,7 @@ li {
 
             SaveServiceXml();
 
-            GetEntries(a);
+            Task.Run(() => GetEntries(a));
         }
 
         private bool FeedDupeCheck(string feedUri)
@@ -1846,7 +1861,7 @@ li {
 
                     });
 
-                    // Test
+                    // 
                     SqliteDataAccessInsertResultWrapper resInsert = InsertEntriesLock(resEntries.Entries);
 
                     if (resEntries.Entries.Count > 0)
@@ -1952,19 +1967,22 @@ li {
 
             if (nd is NodeFeed)
             {
+                NodeFeed fnd = nd as NodeFeed;
+
                 if (Application.Current == null) { return; }
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    NodeFeed fnd = nd as NodeFeed;
-
                     IsWorking = true;
 
                     if (forceUnread)
                         fnd.IsDisplayUnreadOnly = true;
+                });
 
-                    // Test
-                    SqliteDataAccessSelectResultWrapper res = SelectEntriesByFeedIdLock(fnd.Id, fnd.IsDisplayUnreadOnly);
+                SqliteDataAccessSelectResultWrapper res = SelectEntriesByFeedIdLock(fnd.Id, fnd.IsDisplayUnreadOnly);
 
+                if (Application.Current == null) { return; }
+                Application.Current.Dispatcher.Invoke(() =>
+                {
                     // SqliteDataAccessSelectResultWrapper res = dataAccessModule.SelectEntriesByFeedId(fnd.Id, fnd.IsDisplayUnreadOnly);
 
                     if (res.IsError)
@@ -1980,6 +1998,7 @@ li {
                         }
 
                         IsWorking = false;
+
                         return;
                     }
                     else
@@ -2009,17 +2028,17 @@ li {
             }
             else if (nd is NodeFolder)
             {
-                if (Application.Current == null) { return; }
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    NodeFolder ndf = nd as NodeFolder;
+                NodeFolder ndf = nd as NodeFolder;
 
+                if (ndf.Children.Count > 0)
+                {
                     IsWorking = true;
 
-                    if (ndf.Children.Count > 0)
-                    {
-                        List<string> tmpList = new();
+                    List<string> tmpList = new();
 
+                    if (Application.Current == null) { return; }
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
                         foreach (NodeTree nt in ndf.Children)
                         {
                             if (nt is NodeFeed)
@@ -2027,11 +2046,15 @@ li {
                                 tmpList.Add((nt as NodeFeed).Id);
                             }
                         }
+                    });
 
-                        //SqliteDataAccessSelectResultWrapper res = dataAccessModule.SelectEntriesByMultipleFeedIds(tmpList);
-                        // Test
-                        SqliteDataAccessSelectResultWrapper res = SelectEntriesByMultipleFeedIdsLock(tmpList);
+                    //SqliteDataAccessSelectResultWrapper res = dataAccessModule.SelectEntriesByMultipleFeedIds(tmpList);
+                    // Test
+                    SqliteDataAccessSelectResultWrapper res = SelectEntriesByMultipleFeedIdsLock(tmpList);
 
+                    if (Application.Current == null) { return; }
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
                         ndf.EntryCount = res.SelectedEntries.Count;
 
                         if (nd == SelectedNode)
@@ -2041,10 +2064,11 @@ li {
                             if (Entries.Count > 0)
                                 ResetListviewPosition?.Invoke(this, 0);
                         }
-                    }
 
-                    IsWorking = false;
-                });
+                        IsWorking = false;
+                    });
+                }
+
             }
             else if (nd is NodeEntryCollection)
             {
@@ -2073,15 +2097,17 @@ li {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     IsWorking = true;
+                });
 
-                    List<string> list = new();
-                    list.Add((nd as NodeFeed).Id);
+                List<string> list = new();
+                list.Add((nd as NodeFeed).Id);
 
-                    //SqliteDataAccessResultWrapper res = dataAccessModule.UpdateAllEntriesAsRead(list);
-                    // Test
-                    SqliteDataAccessResultWrapper res = UpdateAllEntriesAsReadLock(list);
+                SqliteDataAccessResultWrapper res = UpdateAllEntriesAsReadLock(list);
 
-                    if (res.IsError)
+                if (res.IsError)
+                {
+                    if (Application.Current == null) { return; }
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
                         (nd as NodeFeed).ErrorDatabase = res.Error;
 
@@ -2091,10 +2117,15 @@ li {
                             IsShowDatabaseErrorMessage = true;
                         }
 
-                        IsBusy = false;
-                        return;
-                    }
-                    else
+                        IsWorking = false;
+                    });
+
+                    return;
+                }
+                else
+                {
+                    if (Application.Current == null) { return; }
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
                         // Clear error
                         (nd as NodeFeed).ErrorDatabase = null;
@@ -2124,10 +2155,10 @@ li {
                                 Task.Run(() => LoadEntries(_selectedNode));
                             }
                         }
-                    }
 
-                    IsWorking = false;
-                });
+                        IsWorking = false;
+                    });
+                }
             }
             else if (nd is NodeFolder)
             {
@@ -2143,26 +2174,34 @@ li {
                         }
                     }
 
-                    //SqliteDataAccessResultWrapper res = dataAccessModule.UpdateAllEntriesAsRead(list);
-                    // Test
                     SqliteDataAccessResultWrapper res = UpdateAllEntriesAsReadLock(list);
 
                     if (res.AffectedCount > 0)
                     {
-                        foreach (NodeTree hoge in (nd as NodeFolder).Children)
+                        if (Application.Current == null) { return; }
+                        Application.Current.Dispatcher.Invoke(() =>
                         {
-                            if (hoge is NodeFeed)
+                            foreach (NodeTree hoge in (nd as NodeFolder).Children)
                             {
-                                (hoge as NodeFeed).EntryCount = 0;
+                                if (hoge is NodeFeed)
+                                {
+                                    (hoge as NodeFeed).EntryCount = 0;
+                                }
                             }
-                        }
 
-                        (nd as NodeFolder).EntryCount = 0;
+                            (nd as NodeFolder).EntryCount = 0;
 
-                        if (nd == SelectedNode)
-                            Entries.Clear();
+                            if (nd == SelectedNode)
+                                Entries.Clear();
+                        });
                     }
                 }
+
+                if (Application.Current == null) { return; }
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    IsWorking = false;
+                });
             }
         }
 
@@ -2179,16 +2218,18 @@ li {
             Application.Current.Dispatcher.Invoke(() =>
             {
                 IsBusy = true;
+            });
 
-                List<EntryItem> list = new();
+            List<EntryItem> list = new();
 
-                list.Add(entry);
+            list.Add(entry);
 
-                //SqliteDataAccessResultWrapper res = dataAccessModule.UpdateEntriesAsRead(list);
-                // Test
-                SqliteDataAccessResultWrapper res = UpdateEntriesAsReadLock(list);
+            SqliteDataAccessResultWrapper res = UpdateEntriesAsReadLock(list);
 
-                if (res.IsError)
+            if (res.IsError)
+            {
+                if (Application.Current == null) { return; }
+                Application.Current.Dispatcher.Invoke(() =>
                 {
                     if (nd is NodeFeed)
                         (nd as NodeFeed).ErrorDatabase = res.Error;
@@ -2200,9 +2241,14 @@ li {
                     }
 
                     IsBusy = false;
-                    return;
-                }
-                else
+                });
+
+                return;
+            }
+            else
+            {
+                if (Application.Current == null) { return; }
+                Application.Current.Dispatcher.Invoke(() =>
                 {
                     // Clear error
                     if (nd is NodeFeed)
@@ -2240,10 +2286,10 @@ li {
                         if (nd == SelectedNode)
                             Entries.Remove(entry);
                     }
-                }
 
-                IsBusy = false;
-            });
+                    IsBusy = false;
+                });
+            }
         }
 
         // Update Entry's Status in the DB.
@@ -2259,12 +2305,14 @@ li {
             Application.Current.Dispatcher.Invoke(() =>
             {
                 IsBusy = true;
+            });
 
-                //SqliteDataAccessResultWrapper res = dataAccessModule.UpdateEntryStatus(entry);
-                // Test
-                SqliteDataAccessResultWrapper res = UpdateEntryStatusLock(entry);
+            SqliteDataAccessResultWrapper res = UpdateEntryStatusLock(entry);
 
-                if (res.IsError)
+            if (res.IsError)
+            {
+                if (Application.Current == null) { return; }
+                Application.Current.Dispatcher.Invoke(() =>
                 {
                     if (nd is NodeFeed)
                         (nd as NodeFeed).ErrorDatabase = res.Error;
@@ -2276,9 +2324,14 @@ li {
                     }
 
                     IsBusy = false;
-                    return;
-                }
-                else
+                });
+
+                return;
+            }
+            else
+            {
+                if (Application.Current == null) { return; }
+                Application.Current.Dispatcher.Invoke(() =>
                 {
                     // Clear error
                     if (nd is NodeFeed)
@@ -2289,10 +2342,10 @@ li {
                         DatabaseError = null;
                         IsShowDatabaseErrorMessage = false;
                     }
-                }
 
-                IsBusy = false;
-            });
+                    IsBusy = false;
+                });
+            }
         }
 
         // TODO
@@ -2699,7 +2752,8 @@ li {
                         if ((SelectedNode is NodeFeed) || (SelectedNode is NodeFolder))
                         {
                             // UPDATE DB
-                            UpdateEntryStatus(SelectedNode, selectedEntry as FeedEntryItem);
+                            //UpdateEntryStatus(SelectedNode, selectedEntry as FeedEntryItem);
+                            Task.Run(() => UpdateEntryStatus(SelectedNode, selectedEntry as FeedEntryItem));
                         }
                     }
                 }
@@ -2737,7 +2791,8 @@ li {
                         if ((SelectedNode is NodeFeed) || (SelectedNode is NodeFolder))
                         {
                             // UPDATE DB
-                            UpdateEntryStatus(SelectedNode, selectedEntry as FeedEntryItem);
+                            //UpdateEntryStatus(SelectedNode, selectedEntry as FeedEntryItem);
+                            Task.Run(() => UpdateEntryStatus(SelectedNode, selectedEntry as FeedEntryItem));
                         }
                     }
                 }
@@ -2766,7 +2821,8 @@ li {
             if (!((SelectedNode is NodeFeed) || (SelectedNode is NodeFolder)))
                 return;
 
-            ArchiveAll(SelectedNode);
+            //ArchiveAll(SelectedNode);
+            Task.Run(() => ArchiveAll(SelectedNode));
         }
 
         public ICommand ArchiveThisCommand { get; }
@@ -2797,7 +2853,8 @@ li {
             if (!(selectedEntry is FeedEntryItem))
                 return;
 
-            ArchiveThis(SelectedNode, selectedEntry as FeedEntryItem);
+            //ArchiveThis(SelectedNode, selectedEntry as FeedEntryItem);
+            Task.Run(() => ArchiveThis(SelectedNode, selectedEntry as FeedEntryItem));
         }
 
         #endregion
