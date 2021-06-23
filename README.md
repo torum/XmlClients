@@ -47,6 +47,10 @@ https://codex.wordpress.org/XML-RPC_Blogger_API
 
 or progress so far...
 
+#### General
+
+- [ ] Internationalization
+
 #### Feed Reader
 
 The Feed Reading functionality.
