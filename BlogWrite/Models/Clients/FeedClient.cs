@@ -321,6 +321,17 @@ namespace BlogWrite.Models.Clients
                             + Environment.NewLine +
                             "RSS feed entry(" + entItem.Name + ") contain invalid entry pubDate (DateTimeRFC822 expected): " + e.Message +
                             Environment.NewLine);
+
+                        // TODO: really shouldn't to cover these invalid format, but...for the usability stand point...
+                        try
+                        {
+                            DateTime tmp;
+                            if (DateTime.TryParse(s, out tmp))
+                            {
+                                entItem.Published = tmp.ToUniversalTime();
+                            }
+                        }
+                        catch { }
                     }
                 }
             }

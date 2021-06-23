@@ -26,9 +26,6 @@ namespace BlogWrite.ViewModels
 {
     /// TODO: 
     /// 
-    /// DeleteNodeTree
-    /// 
-    /// 
     /// [General]
     /// App Icon / App name .... FeedDesk?
     /// 
@@ -37,10 +34,9 @@ namespace BlogWrite.ViewModels
     /// xmlrpc.php直叩きした時の判定。
     /// 
     /// [Feed Reader]
-    /// DBのサイズを最適化する。項目も見直す。
-    /// DBで、画像の保存は別テーブルに分ける。
+    /// Feed取得中はDrag and DropやDeleteできないようにする。Statusの見直し。
+    /// DBのサイズを最適化する。項目も見直す。 画像の保存は別テーブルに分ける。
     /// 画像のダウンロードとサムネイル化と表示は、visibilityChanged か何かで、ListView内で表示されたタイミングで取得するように変更したい。
-    /// Feed取得中はDrag and DropやDeleteできないようにする。
     /// 一定数以上でなおかつ一定期間（１ヵ月）過ぎた古いFeedEntryはSelectの段階で無視し、自動でIsReadにする。App終了時かイニシャライズ時に削除する。
     /// InfoWindowで、個別にFeedの更新頻度を設定できるようにする。
     /// 
@@ -57,6 +53,7 @@ namespace BlogWrite.ViewModels
     ///  
 
     /// Change History：
+    /// v0.0.0.42 空のFolderの削除が出来て無かった。DeleteのLockも。
     /// v0.0.0.41 AutoDiscoveryのHTMLからRSDパース。登録はまだ。
     /// v0.0.0.40 SQLite へのDB accessが、すべてAsync化されて軽くなった。
     /// v0.0.0.39 ArchiveAll 作り直し。Database access を Asyncで With Lock.
@@ -106,7 +103,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.40";
+        const string _appVer = "0.0.0.42";
         public string AppVer
         {
             get
@@ -1363,7 +1360,12 @@ li {
 
         private async void StartUpdate()
         {
+            StatusBarMessage = "Updating...";
+
             await Task.Run(() => StartUpdateRecursiveLoop(_services.Children));
+
+            StatusBarMessage = "";
+
             /*
             List<EntryItem> list = await StartUpdateRecursiveLoop(_services.Children);
 
@@ -1413,6 +1415,8 @@ li {
                         }
                         else
                         {
+                            //StatusBarMessage = "Updating " + (c as NodeFeed).Name;
+
                             (c as NodeFeed).LastUpdate = now;
 
                             GetEntries(c);
@@ -1503,7 +1507,7 @@ li {
             SaveServiceXml();
         }
 
-        public void DeleteNodeTree(NodeTree nt)
+        public async void DeleteNodeTree(NodeTree nt)
         {
             if ((nt is NodeFolder) || (nt is NodeFeed) || (nt is NodeService))
             {
@@ -1513,7 +1517,7 @@ li {
 
                     if (Application.Current == null) { return; }
                     Application.Current.Dispatcher.Invoke(() =>
-                    {
+                    {   
                         // check status
                         if (fnd.Status == NodeFeed.DownloadStatus.loading)
                         {
@@ -1522,8 +1526,17 @@ li {
 
                         IsBusy = true;
 
-                        SqliteDataAccessResultWrapper resDelete = dataAccessModule.DeleteEntriesByFeedId(fnd.Id);
-                        if (resDelete.IsError)
+                    });
+
+                    List<string> ids = new();
+                    ids.Add(fnd.Id);
+
+                    SqliteDataAccessResultWrapper resDelete = await DeleteEntriesByFeedIdsLock(ids);//dataAccessModule.DeleteEntriesByFeedIds(ids);
+
+                    if (resDelete.IsError)
+                    {
+                        if (Application.Current == null) { return; }
+                        Application.Current.Dispatcher.Invoke(() =>
                         {
                             fnd.ErrorDatabase = resDelete.Error;
 
@@ -1534,15 +1547,21 @@ li {
                             }
 
                             IsBusy = false;
+
                             return;
-                        }
-                        else
+                        });
+
+                    }
+                    else
+                    {
+                        if (Application.Current == null) { return; }
+                        Application.Current.Dispatcher.Invoke(() =>
                         {
                             nt.Parent.Children.Remove(nt);
 
                             IsBusy = false;
-                        }
-                    });
+                        });
+                    }
                 }
                 else if (nt is NodeFolder)
                 {
@@ -1552,37 +1571,55 @@ li {
                         Application.Current.Dispatcher.Invoke(() =>
                         {
                             IsBusy = true;
+                        });
 
-                            List<NodeTree> tmpDeletes = new();
+                        List<NodeTree> tmpDeletes = new();
 
-                            foreach (var del in (nt as NodeFolder).Children)
+                        foreach (var ndc in (nt as NodeFolder).Children)
+                        {
+                            if (ndc is not NodeFeed)
+                                continue;
+
+                            // check status
+                            if ((ndc as NodeFeed).Status == NodeFeed.DownloadStatus.loading)
                             {
-                                if (del is not NodeFeed)
-                                    continue;
-
-                                // check status
-                                if ((del as NodeFeed).Status == NodeFeed.DownloadStatus.loading)
-                                {
-                                    continue;
-                                }
-
-                                SqliteDataAccessResultWrapper resDelete = dataAccessModule.DeleteEntriesByFeedId((del as NodeFeed).Id);
-                                if (resDelete.IsError)
-                                {
-                                    (del as NodeFeed).ErrorDatabase = resDelete.Error;
-
-                                    if (del == SelectedNode)
-                                    {
-                                        DatabaseError = (del as NodeFeed).ErrorDatabase;
-                                        IsShowDatabaseErrorMessage = true;
-                                    }
-                                }
-                                else
-                                {
-                                    tmpDeletes.Add(del);
-                                }
+                                continue;
                             }
 
+                            List<string> ids = new();
+                            ids.Add((ndc as NodeFeed).Id);
+
+                            SqliteDataAccessResultWrapper resDelete = await DeleteEntriesByFeedIdsLock(ids);
+
+                            if (resDelete.IsError)
+                            {
+                                if (Application.Current == null) { return; }
+                                Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    (ndc as NodeFeed).ErrorDatabase = resDelete.Error;
+
+                                    if (ndc == SelectedNode)
+                                    {
+                                        DatabaseError = (ndc as NodeFeed).ErrorDatabase;
+                                        IsShowDatabaseErrorMessage = true;
+                                    }
+
+                                (ndc as NodeFeed).Status = NodeFeed.DownloadStatus.error;
+
+                                    IsBusy = false;
+
+                                    return;
+                                });
+                            }
+                            else
+                            {
+                                tmpDeletes.Add(ndc);
+                            }
+                        }
+
+                        if (Application.Current == null) { return; }
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
                             if (tmpDeletes.Count > 0)
                             {
                                 foreach (var tmp in tmpDeletes)
@@ -1600,7 +1637,14 @@ li {
                             IsBusy = false;
                         });
                     }
-
+                    else
+                    {
+                        if (Application.Current == null) { return; }
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            (nt as NodeFolder).Parent.Children.Remove(nt);
+                        });
+                    }
                 }
                 else if (nt is NodeService)
                 {
@@ -1635,7 +1679,7 @@ li {
             return res;
         }
 
-        private SqliteDataAccessSelectResultWrapper SelectEntriesByMultipleFeedIdsLock(List<string> list)
+        private SqliteDataAccessSelectResultWrapper SelectEntriesByFeedIdsLock(List<string> list)
         {
             SqliteDataAccessSelectResultWrapper res = new();
 
@@ -1643,7 +1687,7 @@ li {
             {
                 _readerWriterLock.EnterReadLock();
 
-                res = dataAccessModule.SelectEntriesByMultipleFeedIds(list);
+                res = dataAccessModule.SelectEntriesByFeedIds(list);
             }
             finally
             {
@@ -1790,6 +1834,40 @@ li {
             return res;
         }
 
+        private async Task<SqliteDataAccessResultWrapper> DeleteEntriesByFeedIdsLock(List<string> list)
+        {
+            SqliteDataAccessResultWrapper res = new();
+
+            bool isbreaked = false;
+
+            try
+            {
+                _readerWriterLock.EnterWriteLock();
+                if (_readerWriterLock.WaitingReadCount > 0)
+                {
+                    isbreaked = true;
+                }
+                else
+                {
+                    res = dataAccessModule.DeleteEntriesByFeedIds(list);
+
+                }
+            }
+            finally
+            {
+                _readerWriterLock.ExitWriteLock();
+            }
+            if (isbreaked)
+            {
+                Thread.Sleep(10);
+                //await Task.Delay(100);
+
+                return await DeleteEntriesByFeedIdsLock(list);
+            }
+
+            return res;
+        }
+
         // Gets Entries from Web and Inserts into DB.
         private async void GetEntries(NodeTree nd)
         {
@@ -1810,7 +1888,7 @@ li {
                 if (Application.Current == null) { return; }
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    fnd.Status = NodeFeed.DownloadStatus.loading;
+                    fnd.Status = NodeFeed.DownloadStatus.downloading;
 
                     fnd.LastUpdate = DateTime.Now;
                 });
@@ -1859,6 +1937,7 @@ li {
                             IsShowHttpClientErrorMessage = false;
                         }
 
+                        fnd.Status = NodeFeed.DownloadStatus.saving;
                     });
 
                     // 
@@ -1885,6 +1964,7 @@ li {
                                     IsShowDatabaseErrorMessage = true;
                                 }
 
+                                fnd.Status = NodeFeed.DownloadStatus.error;
                                 // IsBusy = false;
                                 return;
                             }
@@ -1914,9 +1994,10 @@ li {
                                 if (nd == SelectedNode)
                                 {
                                     if (resInsert.InsertedEntries.Count > 0)
-                                        //LoadEntries(nd);
-                                        // Test
+                                    {
                                         Task.Run(() => LoadEntries(nd));
+                                        return;
+                                    }
                                 }
                                 else if ((nd.Parent == SelectedNode) && (nd.Parent is NodeFolder))
                                 {
@@ -1976,6 +2057,8 @@ li {
 
                     if (forceUnread)
                         fnd.IsDisplayUnreadOnly = true;
+
+                    fnd.Status = NodeFeed.DownloadStatus.loading;
                 });
 
                 SqliteDataAccessSelectResultWrapper res = SelectEntriesByFeedIdLock(fnd.Id, fnd.IsDisplayUnreadOnly);
@@ -1998,6 +2081,8 @@ li {
                         }
 
                         IsWorking = false;
+
+                        fnd.Status = NodeFeed.DownloadStatus.error;
 
                         return;
                     }
@@ -2023,6 +2108,8 @@ li {
                         }
                     }
 
+                    fnd.Status = NodeFeed.DownloadStatus.normal;
+
                     IsWorking = false;
                 });
             }
@@ -2046,11 +2133,12 @@ li {
                                 tmpList.Add((nt as NodeFeed).Id);
                             }
                         }
+
+                        // TODO:
+                        //ndf.Status = NodeFeed.DownloadStatus.normal;
                     });
 
-                    //SqliteDataAccessSelectResultWrapper res = dataAccessModule.SelectEntriesByMultipleFeedIds(tmpList);
-                    // Test
-                    SqliteDataAccessSelectResultWrapper res = SelectEntriesByMultipleFeedIdsLock(tmpList);
+                    SqliteDataAccessSelectResultWrapper res = SelectEntriesByFeedIdsLock(tmpList);
 
                     if (Application.Current == null) { return; }
                     Application.Current.Dispatcher.Invoke(() =>
@@ -2064,6 +2152,9 @@ li {
                             if (Entries.Count > 0)
                                 ResetListviewPosition?.Invoke(this, 0);
                         }
+
+                        // TODO:
+                        //ndf.Status = NodeFeed.DownloadStatus.normal;
 
                         IsWorking = false;
                     });
@@ -2097,6 +2188,9 @@ li {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     IsWorking = true;
+
+                    // TODO: not really saving
+                    (nd as NodeFeed).Status = NodeFeed.DownloadStatus.saving;
                 });
 
                 List<string> list = new();
@@ -2117,6 +2211,8 @@ li {
                             IsShowDatabaseErrorMessage = true;
                         }
 
+                        (nd as NodeFeed).Status = NodeFeed.DownloadStatus.error;
+
                         IsWorking = false;
                     });
 
@@ -2129,6 +2225,9 @@ li {
                     {
                         // Clear error
                         (nd as NodeFeed).ErrorDatabase = null;
+
+                        //
+                        (nd as NodeFeed).Status = NodeFeed.DownloadStatus.normal;
 
                         if (res.AffectedCount > 0)
                         {

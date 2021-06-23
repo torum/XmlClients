@@ -283,7 +283,7 @@ namespace BlogWrite.Models
             return res;
         }
 
-        public SqliteDataAccessSelectResultWrapper SelectEntriesByMultipleFeedIds(List<string> feedIds)
+        public SqliteDataAccessSelectResultWrapper SelectEntriesByFeedIds(List<string> feedIds)
         {
             SqliteDataAccessSelectResultWrapper res = new SqliteDataAccessSelectResultWrapper();
 
@@ -948,14 +948,31 @@ namespace BlogWrite.Models
             return res;
         }
 
-        public SqliteDataAccessResultWrapper DeleteEntriesByFeedId(string feedId)
+        public SqliteDataAccessResultWrapper DeleteEntriesByFeedIds(List<string> feedIds)
         {
             SqliteDataAccessResultWrapper res = new SqliteDataAccessResultWrapper();
 
-            if (string.IsNullOrEmpty(feedId))
+            if (feedIds is null)
                 return res;
 
-            //int c = 0;
+            if (feedIds.Count == 0)
+                return res;
+
+            string before = "DELETE FROM Entry WHERE ";
+
+            string middle = "(";
+
+            foreach (var asdf in feedIds)
+            {
+                if (middle != "(")
+                    middle = middle + "OR ";
+
+                middle = middle + String.Format("Feed_ID = '{0}' ", asdf);
+            }
+
+            string after = ")";
+
+            //Debug.WriteLine(before + middle + after);
 
             try
             {
@@ -965,11 +982,37 @@ namespace BlogWrite.Models
 
                     using (var cmd = connection.CreateCommand())
                     {
-                        cmd.CommandText = String.Format("DELETE FROM Entry WHERE Feed_ID = '{0}'", feedId);
+                        cmd.CommandText = before + middle + after;
 
                         res.AffectedCount = cmd.ExecuteNonQuery();
                     }
                 }
+            }
+            catch (System.Reflection.TargetInvocationException ex)
+            {
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+                res.Error.ErrText = "TargetInvocationException";
+                res.Error.ErrDescription = ex.Message;
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open(),cmd.ExecuteNonQuery()";
+                res.Error.ErrPlaceParent = "DataAccess::DeleteEntriesByFeedIds";
+
+                return res;
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+                res.Error.ErrText = "InvalidOperationException";
+                res.Error.ErrDescription = ex.Message;
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open(),cmd.ExecuteNonQuery()";
+                res.Error.ErrPlaceParent = "DataAccess::DeleteEntriesByFeedIds";
+
+                return res;
             }
             catch (Exception e)
             {
@@ -979,22 +1022,22 @@ namespace BlogWrite.Models
                 res.Error.ErrText = e.ToString();
                 if (e.InnerException != null)
                 {
-                    Debug.WriteLine(e.InnerException.Message + " @DataAccess::DeleteEntriesByFeedId");
+                    Debug.WriteLine(e.InnerException.Message + " @DataAccess::DeleteEntriesByFeedIds");
                     res.Error.ErrDescription = e.InnerException.Message;
                 }
                 else
                 {
-                    Debug.WriteLine(e.Message + " @DataAccess::DeleteEntriesByFeedId");
+                    Debug.WriteLine(e.Message + " @DataAccess::DeleteEntriesByFeedIds");
                     res.Error.ErrDescription = e.Message;
                 }
                 res.Error.ErrDatetime = DateTime.Now;
-                res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
-                res.Error.ErrPlaceParent = "DataAccess::DeleteEntriesByFeedId";
+                res.Error.ErrPlace = "connection.Open(),cmd.ExecuteNonQuery()";
+                res.Error.ErrPlaceParent = "DataAccess::DeleteEntriesByFeedIds";
 
                 return res;
             }
 
-            Debug.WriteLine(string.Format("{0} Entries Deleted ByFeedId {1} from DB", res.AffectedCount, feedId));
+            Debug.WriteLine(string.Format("{0} Entries Deleted from DB", res.AffectedCount));
 
             return res;
         }
