@@ -2,7 +2,7 @@
 
 ### Under developement
   
-A full featured feed reader and a WYSIWYG blog editing (web publishing) client.  - a C#/WPF port of "BlogWrite" originaly developed with Delphi.
+A full featured feed reader and a blog editing (web publishing) client - C#/WPF port of "BlogWrite" originaly developed with Delphi.
 
 ![BlogWrite4](https://github.com/torum/BlogWrite/blob/master/docs/images/BlogWrite4.png?raw=true) 
 
@@ -37,29 +37,33 @@ or progress so far...
 The Feed Reader functionality.
 
 - [x] ~~Feed Auto Discovery (Parse a HTML Web page and find RSS and Atom links)~~
-- [x] ~~Download feeds and parse and display in various view types.~~ 
-- [x] ~~Display contents in a embeded browser.~~ 
-- [x] ~~Save entries in a sqlite database.~~ 
-- [x] ~~Manage entries read/unread status.~~ 
+- [x] ~~Parse feeds (Atom 1.0, 0.3, RSS 2.0, 1.0)~~
+- [x] ~~Display and manage feeds and entries.~~ 
+- [x] ~~Display contents and page in a embeded browser.~~ 
+- [x] ~~Manage entries read/unread status with sqlite database.~~ 
+- [x] ~~Auto update entries.~~ 
 - [x] ~~Import and export feeds list as OPML.~~ 
-- [ ] ~~Download optional image~~ and display. 
+- [ ] ~~Get optional image Uris,~~ download and display images. 
 
-#### Editor
+#### CRUD API and protocol implementation
 
-WYSIWYG editor.
+The Editing functionality.
+
+- [x] Service Auto Discovery (~~Atom Publishing protocol,~~ RSD, XML-RPC)
+- [ ] Display and manage service or blog infomation (~~Atom Publishing protocol,~~ WordPress, Movable Type, etc)
+- [ ] Display and manage list of entries for editing.
+
+##### Editor
+
+The WYSIWYG editor.
 
 - [x] ~~Basic editor window~~
 - [ ] Post, Update, Delete
 - [ ] WYSIWYG editing.
 - [ ] ...
-
-
-#### API, protocol implementation
-
-The editing functionality.
-
-- [x] ~~Service Auto Discovery (Parse a xml document)~~
-- [x] ~~Download and parse and display service or blog infomation~~
 - [ ] ...
-
+- [ ] ...
+- [ ] ...
+- [ ] ...
+- [ ] ...
 
