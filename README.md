@@ -2,7 +2,7 @@
 
 ### Under developement
   
-A full featured feed reader and a blog editing (web publishing) client - C#/WPF port of "BlogWrite" originaly developed with Delphi.
+A blog editing (web publishing) client with a full-featured feed reader functionality - C#/WPF port of "BlogWrite" originaly developed with Delphi.
 
 ![BlogWrite4](https://github.com/torum/BlogWrite/blob/master/docs/images/BlogWrite4.png?raw=true) 
 
