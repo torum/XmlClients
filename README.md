@@ -4,7 +4,21 @@
   
 A blog editing (web publishing) client with a full-featured feed reading functionality - C#/WPF port of "BlogWrite" originaly developed with Delphi.
 
-![BlogWrite4](https://github.com/torum/BlogWrite/blob/master/docs/images/BlogWrite4.png?raw=true) 
+Cards View
+![BlogWrite_CardsView](https://github.com/torum/BlogWrite/blob/master/docs/images/BlogWrite_Cards.png?raw=true) 
+
+Embedded Browser
+![BlogWrite_Embedded_Browser](https://github.com/torum/BlogWrite/blob/master/docs/images/BlogWrite_Embedded.png?raw=true) 
+
+Magazine View
+![BlogWrite_MagazineView](https://github.com/torum/BlogWrite/blob/master/docs/images/BlogWrite_Magazine.png?raw=true) 
+
+ThreePane View
+![BlogWrite_ThreePane](https://github.com/torum/BlogWrite/blob/master/docs/images/BlogWrite_ThreePane.png?raw=true) 
+
+Debug Window
+![BlogWrite_DebugWindow](https://github.com/torum/BlogWrite/blob/master/docs/images/DebugWindow.png?raw=true) 
+
 
 ### Implements following Feed formats, REST protocols & API specifications:  
 
