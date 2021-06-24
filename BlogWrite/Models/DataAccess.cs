@@ -55,7 +55,7 @@ namespace BlogWrite.Models
                                 "ImageUrl TEXT," +
                                 "Image BLOB," +
                                 "Status TEXT," +
-                                "IsRead TEXT)";
+                                "IsRead TEXT)"; // TODO: rename to IsArchived
 
                             tableCmd.ExecuteNonQuery();
 
@@ -206,17 +206,17 @@ namespace BlogWrite.Models
                                 if (!string.IsNullOrEmpty(blnstr))
                                 {
                                     if (blnstr == bool.TrueString)
-                                        entry.IsRead = true;
+                                        entry.IsArchived = true;
                                     else
-                                        entry.IsRead = false;
+                                        entry.IsArchived = false;
                                 }
 
                                 //
-                                if (entry.IsRead)
+                                if (entry.IsArchived)
                                     if (entry.Status == FeedEntryItem.ReadStatus.rsNew)
                                         entry.Status = FeedEntryItem.ReadStatus.rsNormal;
 
-                                if (!entry.IsRead)
+                                if (!entry.IsArchived)
                                 {
                                     res.UnreadCount++;
                                 }
@@ -368,17 +368,17 @@ namespace BlogWrite.Models
                                 if (!string.IsNullOrEmpty(blnstr))
                                 {
                                     if (blnstr == bool.TrueString)
-                                        entry.IsRead = true;
+                                        entry.IsArchived = true;
                                     else
-                                        entry.IsRead = false;
+                                        entry.IsArchived = false;
                                 }
 
                                 //
-                                if (entry.IsRead)
+                                if (entry.IsArchived)
                                     if (entry.Status == FeedEntryItem.ReadStatus.rsNew)
                                         entry.Status = FeedEntryItem.ReadStatus.rsNormal;
 
-                                if (!entry.IsRead)
+                                if (!entry.IsArchived)
                                 {
                                     res.UnreadCount++;
                                 }
@@ -642,7 +642,7 @@ namespace BlogWrite.Models
 
                                 if (entry is FeedEntryItem)
                                 {
-                                    (entry as FeedEntryItem).IsRead = true;
+                                    (entry as FeedEntryItem).IsArchived = true;
                                     cmd.Parameters.AddWithValue("@IsRead", bool.TrueString);
                                 }
 
@@ -864,7 +864,7 @@ namespace BlogWrite.Models
                                 //    (entry as FeedEntryItem).IsRead = true;
 
                                 cmd.Parameters.AddWithValue("@Status", (entry as FeedEntryItem).Status.ToString());
-                                cmd.Parameters.AddWithValue("@IsRead", (entry as FeedEntryItem).IsRead.ToString());
+                                cmd.Parameters.AddWithValue("@IsRead", (entry as FeedEntryItem).IsArchived.ToString());
                             }
 
                             var r = cmd.ExecuteNonQuery();

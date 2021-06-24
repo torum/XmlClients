@@ -37,6 +37,7 @@ namespace BlogWrite.ViewModels
     /// Feed取得中はDrag and DropやDeleteできないようにする。Statusの見直し。
     /// DBのサイズを最適化する。項目も見直す。 画像の保存は別テーブルに分ける。
     /// 画像のダウンロードとサムネイル化と表示は、visibilityChanged か何かで、ListView内で表示されたタイミングで取得するように変更したい。
+    /// InfoWindowで、画像の取得と表示、をオフにできるようにする。
     /// 一定数以上でなおかつ一定期間（１ヵ月）過ぎた古いFeedEntryはSelectの段階で無視し、自動でIsReadにする。App終了時かイニシャライズ時に削除する。
     /// InfoWindowで、個別にFeedの更新頻度を設定できるようにする。
     /// 
@@ -53,6 +54,7 @@ namespace BlogWrite.ViewModels
     ///  
 
     /// Change History：
+    /// v0.0.0.43 CommonStatus を追加して、IsArchivedだったら、Archiveボタンを非表示にするようにした。MagazineViewでタイトルの文字サイズを読みやすくした。
     /// v0.0.0.42 空のFolderの削除が出来て無かった。DeleteのLockも。
     /// v0.0.0.41 AutoDiscoveryのHTMLからRSDパース。登録はまだ。
     /// v0.0.0.40 SQLite へのDB accessが、すべてAsync化されて軽くなった。
@@ -103,7 +105,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.42";
+        const string _appVer = "0.0.0.43";
         public string AppVer
         {
             get
@@ -959,6 +961,10 @@ li {
                 param => ArchiveThisCommand_Execute(param),
                 param => ArchiveThisCommand_CanExecute());
 
+            ArchiveSelectedCommand = new GenericRelayCommand<EntryItem>(
+                param => ArchiveSelectedCommand_Execute(param),
+                param => ArchiveSelectedCommand_CanExecute());
+            
             OpenEditorAsNewCommand = new RelayCommand(OpenEditorAsNewCommand_Execute, OpenEditorAsNewCommand_CanExecute);
             ShowSettingsCommand = new RelayCommand(ShowSettingsCommand_Execute, ShowSettingsCommand_CanExecute);
             ShowDebugWindowCommand = new RelayCommand(ShowDebugWindowCommand_Execute, ShowDebugWindowCommand_CanExecute);
@@ -2950,6 +2956,62 @@ li {
                 return;
 
             if (!(selectedEntry is FeedEntryItem))
+                return;
+
+            //ArchiveThis(SelectedNode, selectedEntry as FeedEntryItem);
+            Task.Run(() => ArchiveThis(SelectedNode, selectedEntry as FeedEntryItem));
+        }
+
+        public ICommand ArchiveSelectedCommand { get; }
+
+        public bool ArchiveSelectedCommand_CanExecute()
+        {
+            if (SelectedNode == null)
+                return false;
+
+            //return (SelectedNode is NodeFeed) ? true : false;
+            if (!((SelectedNode is NodeFeed) || (SelectedNode is NodeFolder)))
+                return false;
+
+            if (SelectedItem is null)
+                return false;
+
+            if (SelectedItem is not FeedEntryItem)
+                return false;
+
+            if (!string.IsNullOrEmpty(SelectedItem.CommonStatus))
+            {
+                if (SelectedItem.CommonStatus.Equals("IsArchived"))
+                    return false;
+            }
+
+            return true;
+        }
+
+        public void ArchiveSelectedCommand_Execute(EntryItem selectedEntry)
+        {
+            if (SelectedNode == null)
+                return;
+
+            if (!((SelectedNode is NodeFeed) || (SelectedNode is NodeFolder)))
+                return;
+
+            if (selectedEntry == null)
+                return;
+
+            if (selectedEntry is not FeedEntryItem)
+                return;
+
+            if (selectedEntry != SelectedItem)
+                return;
+
+            if (SelectedItem is null)
+                return;
+
+            if (SelectedItem is not FeedEntryItem)
+                return;
+
+            if (SelectedItem.CommonStatus.Equals("IsArchived"))
                 return;
 
             //ArchiveThis(SelectedNode, selectedEntry as FeedEntryItem);

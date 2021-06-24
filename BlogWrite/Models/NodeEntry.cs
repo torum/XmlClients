@@ -169,6 +169,23 @@ namespace BlogWrite.Models
             }
         }
 
+        private string _commonStatus = "";
+        public string CommonStatus
+        {
+            get
+            {
+                return _commonStatus;
+            }
+            protected set
+            {
+                if (_commonStatus == value)
+                    return;
+                _commonStatus = value;
+                NotifyPropertyChanged(nameof(CommonStatus));
+            }
+        }
+
+
         private Uri _imageUri;
         public Uri ImageUri
         {
@@ -268,19 +285,23 @@ namespace BlogWrite.Models
             }
         }
 
-        private bool _isRead = false;
-        public bool IsRead
+        private bool _isArchived = false;
+        public bool IsArchived
         {
             get
             {
-                return _isRead;
+                return _isArchived;
             }
             set
             {
-                if (_isRead == value)
+                if (_isArchived == value)
                     return;
-                _isRead = value;
-                NotifyPropertyChanged(nameof(IsRead));
+                _isArchived = value;
+                NotifyPropertyChanged(nameof(IsArchived));
+
+                if (IsArchived)
+                    CommonStatus = "IsArchived";
+
             }
         }
 
