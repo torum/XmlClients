@@ -537,7 +537,7 @@ namespace BlogWrite.Views
             {
                 if (targetItem is NodeFeed)
                 {
-                    if ((targetItem as NodeFeed).Status == NodeFeed.DownloadStatus.loading)
+                    if (((targetItem as NodeFeed).Status != NodeFeed.DownloadStatus.normal) || (targetItem as NodeFeed).Status != NodeFeed.DownloadStatus.error)
                         return;
                 }
 
@@ -769,6 +769,10 @@ namespace BlogWrite.Views
 
                 _draggingItem = this.TreeViewMenu.SelectedItem as NodeTree;
 
+                if (_draggingItem is NodeFeed)
+                    if (!(((_draggingItem as NodeFeed).Status == NodeFeed.DownloadStatus.normal) || ((_draggingItem as NodeFeed).Status == NodeFeed.DownloadStatus.error)))
+                        return;
+
                 if (_draggingItem != null)
                 {
                     if ((_draggingItem is NodeService) || (_draggingItem is NodeFolder) || (_draggingItem is NodeFeed))
@@ -908,9 +912,12 @@ namespace BlogWrite.Views
             if (IsRenamingInProgress)
                 return;
 
+            if (_draggingItem is NodeFeed)
+                if (!(((_draggingItem as NodeFeed).Status == NodeFeed.DownloadStatus.normal) || ((_draggingItem as NodeFeed).Status == NodeFeed.DownloadStatus.error)))
+                    return;
+
             try
             {
-
                 // Verify that this is a valid drop and then store the drop target
                 NodeTree TargetItem = GetNearestContainer(e.OriginalSource as UIElement);
                 if (TargetItem != null && _draggingItem != null)
@@ -957,6 +964,10 @@ namespace BlogWrite.Views
             if ((_draggingItem is NodeFolder) && (targetItem.Parent is NodeFolder))
                 isEqual = false;
 
+            if (_draggingItem is NodeFeed)
+                if (!(((_draggingItem as NodeFeed).Status == NodeFeed.DownloadStatus.normal) || ((_draggingItem as NodeFeed).Status == NodeFeed.DownloadStatus.error)))
+                    isEqual = false;
+
             return isEqual;
         }
 
@@ -980,6 +991,10 @@ namespace BlogWrite.Views
 
         private void MoveItem(NodeTree sourceItem, NodeTree targetItem)
         {
+            if (_draggingItem is NodeFeed)
+                if (!(((_draggingItem as NodeFeed).Status == NodeFeed.DownloadStatus.normal) || ((_draggingItem as NodeFeed).Status == NodeFeed.DownloadStatus.error)))
+                    return;
+
             if (_insertType == InsertType.Children)
             {
                 if (targetItem is NodeFolder)
@@ -995,6 +1010,17 @@ namespace BlogWrite.Views
                             targetItem.Children.Add(sourceItem);
                             sourceItem.Parent = targetItem;
                             targetItem.IsExpanded = true;
+
+                            if ((sourceItem.Parent is NodeFolder) && (sourceItem is NodeFeed))
+                            {
+                                (sourceItem.Parent as NodeFolder).EntryCount -= (sourceItem as NodeFeed).EntryCount;
+                            }
+
+                            if ((targetItem is NodeFolder) && (sourceItem is NodeFeed))
+                            {
+                                (targetItem as NodeFolder).EntryCount += (sourceItem as NodeFeed).EntryCount;
+                            }
+
                         }
                     }
                     catch (Exception) { }
@@ -1018,6 +1044,15 @@ namespace BlogWrite.Views
                             sourceItem.Parent = targetItem.Parent;
                             targetItem.IsExpanded = true;
 
+                            if ((sourceItem.Parent is NodeFolder) && (sourceItem is NodeFeed))
+                            {
+                                (sourceItem.Parent as NodeFolder).EntryCount -= (sourceItem as NodeFeed).EntryCount;
+                            }
+
+                            if ((targetItem.Parent is NodeFolder) && (sourceItem is NodeFeed))
+                            {
+                                (targetItem.Parent as NodeFolder).EntryCount += (sourceItem as NodeFeed).EntryCount;
+                            }
                         }
                     }
                     catch (Exception) { }

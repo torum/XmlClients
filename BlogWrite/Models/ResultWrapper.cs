@@ -4,6 +4,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace BlogWrite.Models
 {
@@ -47,6 +49,12 @@ namespace BlogWrite.Models
 
         public ObservableCollection<EntryItem> SelectedEntries = new();
     }
+
+    public class SqliteDataAccessSelectImageResultWrapper : SqliteDataAccessResultWrapper
+    {
+        public BitmapImage Image;
+    }
+
 
     public class HttpClientEntryItemCollectionResultWrapper : ResultWrapper
     {

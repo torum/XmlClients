@@ -49,13 +49,24 @@ namespace BlogWrite.Models
                                 "Published TEXT NOT NULL," +
                                 "Author TEXT," +
                                 "Summary TEXT," +
-                                "SummaryPlainText TEXT," + // TODO: remove this.
                                 "Content TEXT," +
-                                "ContentType TEXT," + 
+                                "ContentType TEXT," +
                                 "ImageUrl TEXT," +
-                                "Image BLOB," +
+                                "IsImageDownloaded TEXT," +
+                                "Image_ID TEXT," +
+                                //"Image BLOB," + // TODO reamove.
                                 "Status TEXT," +
-                                "IsRead TEXT)"; // TODO: rename to IsArchived
+                                "IsArchived TEXT)";
+
+                            tableCmd.ExecuteNonQuery();
+
+                            tableCmd.CommandText = "CREATE TABLE IF NOT EXISTS Image (" +
+                                "Image_ID TEXT NOT NULL PRIMARY KEY," +
+                                "ID TEXT NOT NULL," +
+                                "Image BLOB," +
+                                //"FOREIGN KEY (ID) REFERENCES Entry(ID)" +
+                                "CONSTRAINT fk_Entry FOREIGN KEY (ID) REFERENCES Entry (ID) ON DELETE CASCADE" +
+                                ")";
 
                             tableCmd.ExecuteNonQuery();
 
@@ -131,14 +142,14 @@ namespace BlogWrite.Models
             return res;
         }
 
-        public SqliteDataAccessSelectResultWrapper SelectEntriesByFeedId(string feedId, bool UnreadOnly = true)
+        public SqliteDataAccessSelectResultWrapper SelectEntriesByFeedId(string feedId, bool UnarchivedOnly = true)
         {
             SqliteDataAccessSelectResultWrapper res = new SqliteDataAccessSelectResultWrapper();
 
             if (string.IsNullOrEmpty(feedId))
                 return res;
 
-            bool IsUnreadOnly = UnreadOnly;
+            bool IsUnreadOnly = UnarchivedOnly;
 
             try
             {
@@ -150,7 +161,7 @@ namespace BlogWrite.Models
                     {
                         if (IsUnreadOnly)
                         {
-                            cmd.CommandText = String.Format("SELECT * FROM Entry WHERE Feed_ID = '{0}' AND IsRead = '{1}' ORDER BY Published DESC LIMIT 100", feedId, bool.FalseString);
+                            cmd.CommandText = String.Format("SELECT * FROM Entry WHERE Feed_ID = '{0}' AND IsArchived = '{1}' ORDER BY Published DESC LIMIT 100", feedId, bool.FalseString);
                         }
                         else
                         {
@@ -174,9 +185,6 @@ namespace BlogWrite.Models
                                 
                                 entry.Summary = Convert.ToString(reader["Summary"]);
 
-                                // TODO
-                                //entry.SummaryPlainText = Convert.ToString(reader["SummaryPlainText"]);
-
                                 entry.Content = Convert.ToString(reader["Content"]);
 
                                 entry.ContentType = EntryItem.ContentTypes.textHtml;
@@ -184,9 +192,22 @@ namespace BlogWrite.Models
                                 if (!string.IsNullOrEmpty(Convert.ToString(reader["ImageUrl"])))
                                     entry.ImageUri = new Uri(Convert.ToString(reader["ImageUrl"]));
 
+                                string bln = Convert.ToString(reader["IsImageDownloaded"]);
+                                if (!string.IsNullOrEmpty(bln))
+                                {
+                                    if (bln == bool.TrueString)
+                                        entry.IsImageDownloaded = true;
+                                    else
+                                        entry.IsImageDownloaded = false;
+                                }
+
+                                entry.ImageId = Convert.ToString(reader["Image_ID"]);
+
+                                /*
                                 if (reader["Image"] != DBNull.Value)
                                 {
                                     byte[] imageBytes = (byte[])reader["Image"];
+
                                     if (Application.Current != null)
                                     {
                                         Application.Current.Dispatcher.Invoke(() =>
@@ -194,7 +215,10 @@ namespace BlogWrite.Models
                                             entry.Image = BitmapImageFromBytes(imageBytes);
                                         });
                                     }
+
+                                    entry.IsImageDownloaded = true;
                                 }
+                                */
 
                                 string status = Convert.ToString(reader["Status"]);
                                 if (!string.IsNullOrEmpty(status))
@@ -202,7 +226,7 @@ namespace BlogWrite.Models
 
                                 entry.Author = Convert.ToString(reader["Author"]);
 
-                                string blnstr = Convert.ToString(reader["IsRead"]);
+                                string blnstr = Convert.ToString(reader["IsArchived"]);
                                 if (!string.IsNullOrEmpty(blnstr))
                                 {
                                     if (blnstr == bool.TrueString)
@@ -305,7 +329,7 @@ namespace BlogWrite.Models
                 middle = middle + String.Format("Feed_ID = '{0}' ", asdf);
             }
 
-            string after = string.Format(") AND IsRead = '{0}' ORDER BY Published DESC LIMIT 100", bool.FalseString);
+            string after = string.Format(") AND IsArchived = '{0}' ORDER BY Published DESC LIMIT 100", bool.FalseString);
 
             //Debug.WriteLine(before + middle + after);
 
@@ -336,9 +360,6 @@ namespace BlogWrite.Models
 
                                 entry.Summary = Convert.ToString(reader["Summary"]);
 
-                                // TODO
-                                //entry.SummaryPlainText = Convert.ToString(reader["SummaryPlainText"]);
-
                                 entry.Content = Convert.ToString(reader["Content"]);
 
                                 entry.ContentType = EntryItem.ContentTypes.textHtml;
@@ -346,9 +367,11 @@ namespace BlogWrite.Models
                                 if (!string.IsNullOrEmpty(Convert.ToString(reader["ImageUrl"])))
                                     entry.ImageUri = new Uri(Convert.ToString(reader["ImageUrl"]));
 
+                                /*
                                 if (reader["Image"] != DBNull.Value)
                                 {
                                     byte[] imageBytes = (byte[])reader["Image"];
+
                                     if (Application.Current != null)
                                     {
                                         Application.Current.Dispatcher.Invoke(() =>
@@ -356,7 +379,21 @@ namespace BlogWrite.Models
                                             entry.Image = BitmapImageFromBytes(imageBytes);
                                         });
                                     }
+
+                                    entry.IsImageDownloaded = true;
                                 }
+                                */
+
+                                string bln = Convert.ToString(reader["IsImageDownloaded"]);
+                                if (!string.IsNullOrEmpty(bln))
+                                {
+                                    if (bln == bool.TrueString)
+                                        entry.IsImageDownloaded = true;
+                                    else
+                                        entry.IsImageDownloaded = false;
+                                }
+
+                                entry.ImageId = Convert.ToString(reader["Image_ID"]);
 
                                 string status = Convert.ToString(reader["Status"]);
                                 if (!string.IsNullOrEmpty(status))
@@ -364,7 +401,7 @@ namespace BlogWrite.Models
 
                                 entry.Author = Convert.ToString(reader["Author"]);
 
-                                string blnstr = Convert.ToString(reader["IsRead"]);
+                                string blnstr = Convert.ToString(reader["IsArchived"]);
                                 if (!string.IsNullOrEmpty(blnstr))
                                 {
                                     if (blnstr == bool.TrueString)
@@ -386,6 +423,82 @@ namespace BlogWrite.Models
                                 res.AffectedCount++;
 
                                 res.SelectedEntries.Add(entry);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+                res.Error.ErrText = "InvalidOperationException";
+                res.Error.ErrDescription = ex.Message;
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
+                res.Error.ErrPlaceParent = "DataAccess::SelectEntriesByMultipleFeedIds";
+
+                return res;
+            }
+            catch (Exception e)
+            {
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+                res.Error.ErrText = e.ToString();
+                if (e.InnerException != null)
+                {
+                    Debug.WriteLine(e.InnerException.Message + " @DataAccess::SelectEntriesByMultipleFeedIds");
+                    res.Error.ErrDescription = e.InnerException.Message;
+                }
+                else
+                {
+                    Debug.WriteLine(e.Message + " @DataAccess::SelectEntriesByMultipleFeedIds");
+                    res.Error.ErrDescription = e.Message;
+                }
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
+                res.Error.ErrPlaceParent = "DataAccess::SelectEntriesByMultipleFeedIds";
+
+                return res;
+            }
+
+            return res;
+        }
+
+        public SqliteDataAccessSelectImageResultWrapper SelectImageByImageId(string imageId)
+        {
+            SqliteDataAccessSelectImageResultWrapper res = new SqliteDataAccessSelectImageResultWrapper();
+
+            try
+            {
+                using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
+                {
+                    connection.Open();
+
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        cmd.CommandText = String.Format("SELECT * FROM Image WHERE Image_ID = '{0}'", imageId);
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                if (reader["Image"] != DBNull.Value)
+                                {
+                                    byte[] bi = (byte[])reader["Image"];
+
+                                    if (Application.Current != null)
+                                    {
+                                        Application.Current.Dispatcher.Invoke(() =>
+                                        {
+                                            res.Image = BitmapImageFromBytes(bi);
+                                        });
+                                    }
+                                }
+
+                                res.AffectedCount++;
                             }
                         }
                     }
@@ -455,7 +568,7 @@ namespace BlogWrite.Models
                                 if ((entry.EntryId == null) || (entry.AltHtmlUri == null))
                                     continue;
 
-                                string sqlInsert = "INSERT OR IGNORE INTO Entry (ID, Feed_ID, Entry_ID, Url, Title, Published, Author, Summary, SummaryPlainText, Content, ContentType, ImageUrl, Image, Status, IsRead) VALUES (@Id, @feedId, @EntryId, @AltHtmlUri, @Title, @Published, @Author, @Summary, @SummaryPlainText, @Content, @ContentType, @ImageUri, @Image, @Status, @IsRead)";
+                                string sqlInsert = "INSERT OR IGNORE INTO Entry (ID, Feed_ID, Entry_ID, Url, Title, Published, Author, Summary, Content, ContentType, ImageUrl, IsImageDownloaded, Image_ID, Status, IsArchived) VALUES (@Id, @feedId, @EntryId, @AltHtmlUri, @Title, @Published, @Author, @Summary, @Content, @ContentType, @ImageUri, @IsImageDownloaded, @ImageId, @Status, @IsArchived)";
                                     
                                 cmd.CommandText = sqlInsert;
 
@@ -488,12 +601,6 @@ namespace BlogWrite.Models
                                 else
                                     cmd.Parameters.AddWithValue("@Summary", string.Empty);
 
-                                // TODO
-                                //if (entry.SummaryPlainText != null)
-                                //    cmd.Parameters.AddWithValue("@SummaryPlainText", entry.SummaryPlainText);
-                                //else
-                                    cmd.Parameters.AddWithValue("@SummaryPlainText", string.Empty);
-
                                 if (entry.Content != null)
                                     cmd.Parameters.AddWithValue("@Content", entry.Content);
                                 else
@@ -506,6 +613,17 @@ namespace BlogWrite.Models
                                 else
                                     cmd.Parameters.AddWithValue("@ImageUri", string.Empty);
 
+                                if (entry.IsImageDownloaded)
+                                    cmd.Parameters.AddWithValue("@IsImageDownloaded", bool.TrueString);
+                                else
+                                    cmd.Parameters.AddWithValue("@IsImageDownloaded", bool.FalseString);
+
+                                if (entry.ImageId != null)
+                                    cmd.Parameters.AddWithValue("@ImageId", entry.ImageId);
+                                else
+                                    cmd.Parameters.AddWithValue("@ImageId", string.Empty);
+
+                                /*
                                 if ((entry.ImageByteArray == Array.Empty<byte>()) || entry.ImageByteArray == null)
                                 {
                                     cmd.Parameters.AddWithValue("@Image", DBNull.Value);
@@ -516,11 +634,12 @@ namespace BlogWrite.Models
                                     parameter1.Value = entry.ImageByteArray;
                                     cmd.Parameters.Add(parameter1);
                                 }
+                                */
 
                                 if (entry is FeedEntryItem)
                                 {
                                     cmd.Parameters.AddWithValue("@Status", (entry as FeedEntryItem).Status.ToString());
-                                    cmd.Parameters.AddWithValue("@IsRead", bool.FalseString);//(entry as FeedEntryItem).IsRead.ToString()
+                                    cmd.Parameters.AddWithValue("@IsArchived", bool.FalseString);//(entry as FeedEntryItem).IsArchived.ToString()
                                 }
 
                                 var r = cmd.ExecuteNonQuery();
@@ -611,6 +730,164 @@ namespace BlogWrite.Models
             return res;
         }
 
+        public SqliteDataAccessInsertResultWrapper InsertImages(List<EntryItem> entries)
+        {
+            SqliteDataAccessInsertResultWrapper res = new SqliteDataAccessInsertResultWrapper();
+
+            if (entries is null)
+                return res;
+
+            try
+            {
+                using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
+                {
+                    connection.Open();
+
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        cmd.Transaction = connection.BeginTransaction();
+                        try
+                        {
+                            foreach (var entry in entries)
+                            {
+                                if (entry is not FeedEntryItem)
+                                    continue;
+                                if ((entry.EntryId == null) || (entry.AltHtmlUri == null))
+                                    continue;
+
+                                if ((entry.ImageUri == null) || (entry.ImageByteArray == null) || (entry.ImageByteArray == Array.Empty<byte>()) || entry.IsImageDownloaded)
+                                    continue;
+
+                                // Insert Image
+                                string sqlInsert = "INSERT OR IGNORE INTO Image (Image_ID, ID, Image) VALUES (@ImageId, @Id, @Image)";
+
+                                cmd.CommandText = sqlInsert;
+
+                                cmd.CommandType = CommandType.Text;
+
+                                cmd.Parameters.Clear();
+
+                                cmd.Parameters.AddWithValue("@ImageId", entry.Id+':'+entry.ImageUri.AbsoluteUri);
+
+                                cmd.Parameters.AddWithValue("@Id", entry.Id);
+
+                                if ((entry.ImageByteArray == Array.Empty<byte>()) || entry.ImageByteArray == null)
+                                {
+                                    cmd.Parameters.AddWithValue("@Image", DBNull.Value);
+                                }
+                                else
+                                {
+                                    SqliteParameter parameter1 = new("@Image", System.Data.DbType.Binary);
+                                    parameter1.Value = entry.ImageByteArray;
+                                    cmd.Parameters.Add(parameter1);
+                                }
+
+                                var r = cmd.ExecuteNonQuery();
+
+                                if (r > 0)
+                                {
+                                    //c++;
+                                    res.AffectedCount++;
+
+                                    res.InsertedEntries.Add(entry);
+                                }
+
+                                // Update Entry IsImageDownloaded
+                                string sqlUpdateImageDownloadedFlag = String.Format("UPDATE Entry SET IsImageDownloaded = {1}, Image_ID = {2} WHERE ID = {0}", "@EntryId", "@IsImageDownloaded", "@ImageId");
+
+                                cmd.CommandText = sqlUpdateImageDownloadedFlag;
+                                cmd.CommandType = CommandType.Text;
+
+                                cmd.Parameters.Clear();
+
+                                cmd.Parameters.AddWithValue("@EntryId", entry.Id);
+
+                                (entry as FeedEntryItem).IsImageDownloaded = true;
+                                cmd.Parameters.AddWithValue("@IsImageDownloaded", bool.TrueString);
+
+                                cmd.Parameters.AddWithValue("@ImageId", entry.Id + ':' + entry.ImageUri.AbsoluteUri);
+
+                                //res.AffectedCount += cmd.ExecuteNonQuery();
+                                cmd.ExecuteNonQuery();
+                            }
+
+                            //　コミット
+                            cmd.Transaction.Commit();
+                        }
+                        catch (Exception e)
+                        {
+                            cmd.Transaction.Rollback();
+
+                            res.IsError = true;
+                            res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                            res.Error.ErrCode = "";
+                            res.Error.ErrText = "Exception";
+                            res.Error.ErrDescription = e.Message;
+                            res.Error.ErrDatetime = DateTime.Now;
+                            res.Error.ErrPlace = "connection.Open(),Transaction.Commit";
+                            res.Error.ErrPlaceParent = "DataAccess::InsertImages";
+
+                            return res;
+                        }
+                    }
+                }
+            }
+            catch (System.Reflection.TargetInvocationException ex)
+            {
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+                res.Error.ErrText = "TargetInvocationException";
+                res.Error.ErrDescription = ex.Message;
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
+                res.Error.ErrPlaceParent = "DataAccess::InsertImages";
+
+                return res;
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                Debug.WriteLine("Opps. InvalidOperationException@DataAccess::InsertImages");
+
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+                res.Error.ErrText = "InvalidOperationException";
+                res.Error.ErrDescription = ex.Message;
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
+                res.Error.ErrPlaceParent = "DataAccess::InsertImages";
+
+                return res;
+            }
+            catch (Exception e)
+            {
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+
+                if (e.InnerException != null)
+                {
+                    res.Error.ErrText = "InnerException";
+                    res.Error.ErrDescription = e.InnerException.Message;
+                }
+                else
+                {
+                    res.Error.ErrText = "Exception";
+                    res.Error.ErrDescription = e.Message;
+                }
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
+                res.Error.ErrPlaceParent = "DataAccess::InsertImages";
+
+                return res;
+            }
+
+            Debug.WriteLine(string.Format("{0} Images Inserted to DB", res.AffectedCount.ToString()));
+
+            return res;
+        }
+
         public SqliteDataAccessResultWrapper UpdateEntriesAsRead(List<EntryItem> entries)
         {
             SqliteDataAccessResultWrapper res = new SqliteDataAccessResultWrapper();
@@ -631,7 +908,7 @@ namespace BlogWrite.Models
                                 if (entry is not FeedEntryItem)
                                     continue;
 
-                                string sqlUpdateAsRead = String.Format("UPDATE Entry SET IsRead = {1} WHERE ID = {0}", "@EntryId", "@IsRead");
+                                string sqlUpdateAsRead = String.Format("UPDATE Entry SET IsArchived = {1} WHERE ID = {0}", "@EntryId", "@IsArchived");
 
                                 cmd.CommandText = sqlUpdateAsRead;
                                 cmd.CommandType = CommandType.Text;
@@ -643,7 +920,7 @@ namespace BlogWrite.Models
                                 if (entry is FeedEntryItem)
                                 {
                                     (entry as FeedEntryItem).IsArchived = true;
-                                    cmd.Parameters.AddWithValue("@IsRead", bool.TrueString);
+                                    cmd.Parameters.AddWithValue("@IsArchived", bool.TrueString);
                                 }
 
                                 // TODO:
@@ -734,7 +1011,7 @@ namespace BlogWrite.Models
             if (feedIds.Count == 0)
                 return res;
 
-            string before = string.Format("UPDATE Entry SET IsRead = '{0}' WHERE ", bool.TrueString);
+            string before = string.Format("UPDATE Entry SET IsArchived = '{0}' WHERE ", bool.TrueString);
 
             string middle = "(";
 
@@ -746,7 +1023,7 @@ namespace BlogWrite.Models
                 middle = middle + String.Format("Feed_ID = '{0}' ", asdf);
             }
 
-            string after = string.Format(") AND IsRead = '{0}'", bool.FalseString);
+            string after = string.Format(") AND IsArchived = '{0}'", bool.FalseString);
 
             //Debug.WriteLine(before + middle + after);
 
@@ -849,7 +1126,7 @@ namespace BlogWrite.Models
                         cmd.Transaction = connection.BeginTransaction();
                         try
                         {
-                            string sqlUpdateAsRead = String.Format("UPDATE Entry SET Status = {1}, IsRead = {2} WHERE ID = {0}", "@EntryId", "@Status", "@IsRead");
+                            string sqlUpdateAsRead = String.Format("UPDATE Entry SET Status = {1}, IsArchived = {2} WHERE ID = {0}", "@EntryId", "@Status", "@IsArchived");
 
                             cmd.CommandText = sqlUpdateAsRead;
                             cmd.CommandType = CommandType.Text;
@@ -861,10 +1138,10 @@ namespace BlogWrite.Models
                             if (entry is FeedEntryItem)
                             {
                                 //if ((entry as FeedEntryItem).Status == FeedEntryItem.ReadStatus.rsVisited)
-                                //    (entry as FeedEntryItem).IsRead = true;
+                                //    (entry as FeedEntryItem).IsArchived = true;
 
                                 cmd.Parameters.AddWithValue("@Status", (entry as FeedEntryItem).Status.ToString());
-                                cmd.Parameters.AddWithValue("@IsRead", (entry as FeedEntryItem).IsArchived.ToString());
+                                cmd.Parameters.AddWithValue("@IsArchived", (entry as FeedEntryItem).IsArchived.ToString());
                             }
 
                             var r = cmd.ExecuteNonQuery();
@@ -958,6 +1235,7 @@ namespace BlogWrite.Models
             if (feedIds.Count == 0)
                 return res;
 
+            //
             string before = "DELETE FROM Entry WHERE ";
 
             string middle = "(";
@@ -972,7 +1250,7 @@ namespace BlogWrite.Models
 
             string after = ")";
 
-            //Debug.WriteLine(before + middle + after);
+            var sqlDelEntries = before + middle + after;
 
             try
             {
@@ -982,9 +1260,13 @@ namespace BlogWrite.Models
 
                     using (var cmd = connection.CreateCommand())
                     {
-                        cmd.CommandText = before + middle + after;
+                        //cmd.Transaction = connection.BeginTransaction();
+
+                        cmd.CommandText = sqlDelEntries;
 
                         res.AffectedCount = cmd.ExecuteNonQuery();
+
+                        //cmd.Transaction.Commit();
                     }
                 }
             }

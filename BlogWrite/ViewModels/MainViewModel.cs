@@ -26,6 +26,7 @@ namespace BlogWrite.ViewModels
 {
     /// TODO: 
     /// 
+    /// 
     /// [General]
     /// App Icon / App name .... FeedDesk?
     /// 
@@ -34,9 +35,6 @@ namespace BlogWrite.ViewModels
     /// xmlrpc.php直叩きした時の判定。
     /// 
     /// [Feed Reader]
-    /// Feed取得中はDrag and DropやDeleteできないようにする。Statusの見直し。
-    /// DBのサイズを最適化する。項目も見直す。 画像の保存は別テーブルに分ける。
-    /// 画像のダウンロードとサムネイル化と表示は、visibilityChanged か何かで、ListView内で表示されたタイミングで取得するように変更したい。
     /// InfoWindowで、画像の取得と表示、をオフにできるようにする。
     /// 一定数以上でなおかつ一定期間（１ヵ月）過ぎた古いFeedEntryはSelectの段階で無視し、自動でIsReadにする。App終了時かイニシャライズ時に削除する。
     /// InfoWindowで、個別にFeedの更新頻度を設定できるようにする。
@@ -54,6 +52,8 @@ namespace BlogWrite.ViewModels
     ///  
 
     /// Change History：
+    /// v0.0.0.45 D&Dしたら、フォルダの未読数を計算し直し。更新中はD&D出来ないように。
+    /// v0.0.0.44 Download, Insert, Load and Display "Eye Catching" Image.
     /// v0.0.0.43 CommonStatus を追加して、IsArchivedだったら、Archiveボタンを非表示にするようにした。MagazineViewでタイトルの文字サイズを読みやすくした。
     /// v0.0.0.42 空のFolderの削除が出来て無かった。DeleteのLockも。
     /// v0.0.0.41 AutoDiscoveryのHTMLからRSDパース。登録はまだ。
@@ -105,7 +105,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.43";
+        const string _appVer = "0.0.0.45";
         public string AppVer
         {
             get
@@ -257,9 +257,9 @@ namespace BlogWrite.ViewModels
                     if (_selectedNode is NodeFeed)
                     {
                         // Reset view...
-                        (SelectedNode as NodeFeed).IsDisplayUnreadOnly = true;
+                        (SelectedNode as NodeFeed).IsDisplayUnarchivedOnly = true;
 
-                        if ((SelectedNode as NodeFeed).IsDisplayUnreadOnly)
+                        if ((SelectedNode as NodeFeed).IsDisplayUnarchivedOnly)
                             _selectedComboBoxItemIndex = 0;
                         else
                             _selectedComboBoxItemIndex = 1;
@@ -283,7 +283,8 @@ namespace BlogWrite.ViewModels
 
                 Entries.Clear();
 
-                Task.Run(() => LoadEntries(_selectedNode));
+                Task nowait = Task.Run(() => LoadEntriesAsync(_selectedNode));
+                //LoadEntries(_selectedNode);
             }
         }
 
@@ -461,13 +462,12 @@ namespace BlogWrite.ViewModels
                 if (SelectedNode is NodeFeed)
                 {
                     if (_selectedComboBoxItemIndex == 0)
-                        (SelectedNode as NodeFeed).IsDisplayUnreadOnly = true;
+                        (SelectedNode as NodeFeed).IsDisplayUnarchivedOnly = true;
                     else
-                        (SelectedNode as NodeFeed).IsDisplayUnreadOnly = false;
+                        (SelectedNode as NodeFeed).IsDisplayUnarchivedOnly = false;
 
+                    Task nowait = Task.Run(() => LoadEntriesAsync(SelectedNode as NodeFeed));
                     //LoadEntries(SelectedNode as NodeFeed);
-                    // Test
-                    Task.Run(() => LoadEntries(SelectedNode as NodeFeed));
                 }
             }
         }
@@ -1029,6 +1029,32 @@ li {
             }
         }
 
+        #region == Events ==
+
+        public void OnDebugOutput(BaseClient sender, string data)
+        {
+            if (string.IsNullOrEmpty(data))
+                return;
+
+            if (IsDebugWindowEnabled)
+            {
+                if (Application.Current == null) { return; }
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    DebugOutput?.Invoke(this, Environment.NewLine + data);
+                });
+            }
+
+            IsDebugTextHasText = true;
+        }
+
+        private void OnTimedEvent(object source, System.Timers.ElapsedEventArgs e)
+        {
+            StartUpdate();
+        }
+
+        #endregion
+
         #region == Startup and Shutdown ==
 
         // OnWindowLoaded
@@ -1302,31 +1328,6 @@ li {
             }
         }
 
-        #endregion
-
-        #region == Events ==
-
-        public void OnDebugOutput(BaseClient sender, string data)
-        {
-            if (string.IsNullOrEmpty(data))
-                return;
-
-            if (IsDebugWindowEnabled)
-            {
-                if (Application.Current == null) { return; }
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    DebugOutput?.Invoke(this, Environment.NewLine + data);
-                });
-            }
-
-            IsDebugTextHasText = true;
-        }
-
-        #endregion
-
-        #region == Methods ==
-
         private void SaveServiceXml()
         {
             XmlDocument xdoc = _services.AsXmlDoc();
@@ -1357,53 +1358,20 @@ li {
             }
         }
 
-        #region == Feed Auto Update ==
+        #endregion
 
-        private void OnTimedEvent(object source, System.Timers.ElapsedEventArgs e)
-        {
-            StartUpdate();
-        }
+        #region == Feed Auto Update ==
 
         private async void StartUpdate()
         {
             StatusBarMessage = "Updating...";
 
-            await Task.Run(() => StartUpdateRecursiveLoop(_services.Children));
+            await Task.Run(() => StartUpdateRecursiveLoopAsync(_services.Children));
 
             StatusBarMessage = "";
-
-            /*
-            List<EntryItem> list = await StartUpdateRecursiveLoop(_services.Children);
-
-            if (list.Count == 0)
-                return;
-
-            SqliteDataAccessInsertResultWrapper resInsert = dataAccessModule.InsertEntries(list);
-
-            if (resInsert.InsertedEntries.Count == 0)
-                return;
-
-            if (Application.Current == null) { return; }
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                // Result is DB Error
-                if (resInsert.IsError)
-                {
-                    // Sets Error.
-                    MainError = resInsert.Error;
-                    IsShowMainErrorMessage = true;
-
-                    return;
-                }
-                else
-                {
-                   //
-                }
-            });
-            */
         }
 
-        private async void StartUpdateRecursiveLoop(ObservableCollection<NodeTree> nt)
+        private async Task StartUpdateRecursiveLoopAsync(ObservableCollection<NodeTree> nt)
         {
             foreach (NodeTree c in nt)
             {
@@ -1425,7 +1393,8 @@ li {
 
                             (c as NodeFeed).LastUpdate = now;
 
-                            GetEntries(c);
+                            //GetEntries(c);
+                            Task nowait = Task.Run(() => GetEntriesAsync(c));
 
                             await Task.Delay(1000);
                         }
@@ -1434,7 +1403,8 @@ li {
 
                 if (c.Children.Count > 0)
                 {
-                    await Task.Run(() => StartUpdateRecursiveLoop(c.Children));
+                    //await Task.Run(() => StartUpdateRecursiveLoop(c.Children));
+                    await StartUpdateRecursiveLoopAsync(c.Children);
                 }
             }
         }
@@ -1471,7 +1441,7 @@ li {
 
             SaveServiceXml();
 
-            Task.Run(() => GetEntries(a));
+            Task.Run(() => GetEntriesAsync(a));
         }
 
         private bool FeedDupeCheck(string feedUri)
@@ -1525,7 +1495,7 @@ li {
                     Application.Current.Dispatcher.Invoke(() =>
                     {   
                         // check status
-                        if (fnd.Status == NodeFeed.DownloadStatus.loading)
+                        if ( !((fnd.Status == NodeFeed.DownloadStatus.normal) || (fnd.Status == NodeFeed.DownloadStatus.error)) )
                         {
                             return;
                         }
@@ -1537,7 +1507,7 @@ li {
                     List<string> ids = new();
                     ids.Add(fnd.Id);
 
-                    SqliteDataAccessResultWrapper resDelete = await DeleteEntriesByFeedIdsLock(ids);//dataAccessModule.DeleteEntriesByFeedIds(ids);
+                    SqliteDataAccessResultWrapper resDelete = await DeleteEntriesByFeedIdsLock(ids);
 
                     if (resDelete.IsError)
                     {
@@ -1587,9 +1557,11 @@ li {
                                 continue;
 
                             // check status
-                            if ((ndc as NodeFeed).Status == NodeFeed.DownloadStatus.loading)
+                            if ( !( ((ndc as NodeFeed).Status == NodeFeed.DownloadStatus.normal) || ((ndc as NodeFeed).Status == NodeFeed.DownloadStatus.error)) )
                             {
-                                continue;
+                                IsBusy = false;
+
+                                return;
                             }
 
                             List<string> ids = new();
@@ -1610,7 +1582,7 @@ li {
                                         IsShowDatabaseErrorMessage = true;
                                     }
 
-                                (ndc as NodeFeed).Status = NodeFeed.DownloadStatus.error;
+                                    (ndc as NodeFeed).Status = NodeFeed.DownloadStatus.error;
 
                                     IsBusy = false;
 
@@ -1703,6 +1675,24 @@ li {
             return res;
         }
 
+        private SqliteDataAccessSelectImageResultWrapper SelectImagesByImageIdLock(string id)
+        {
+            SqliteDataAccessSelectImageResultWrapper res = new();
+
+            try
+            {
+                _readerWriterLock.EnterReadLock();
+
+                res = dataAccessModule.SelectImageByImageId(id);
+            }
+            finally
+            {
+                _readerWriterLock.ExitReadLock();
+            }
+
+            return res;
+        }
+
         private SqliteDataAccessInsertResultWrapper InsertEntriesLock(List<EntryItem> list)
         {
             SqliteDataAccessInsertResultWrapper resInsert = new();
@@ -1733,6 +1723,41 @@ li {
                 //await Task.Delay(100);
 
                 return InsertEntriesLock(list);
+            }
+
+            return resInsert;
+        }
+
+        private SqliteDataAccessInsertResultWrapper InsertImagesLock(List<EntryItem> list)
+        {
+            SqliteDataAccessInsertResultWrapper resInsert = new();
+
+            bool isbreaked = false;
+
+            try
+            {
+                _readerWriterLock.EnterWriteLock();
+                if (_readerWriterLock.WaitingReadCount > 0)
+                {
+                    isbreaked = true;
+                }
+                else
+                {
+                    // Insert result to Sqlite database.
+                    resInsert = dataAccessModule.InsertImages(list);
+
+                }
+            }
+            finally
+            {
+                _readerWriterLock.ExitWriteLock();
+            }
+            if (isbreaked)
+            {
+                Thread.Sleep(10);
+                //await Task.Delay(100);
+
+                return InsertImagesLock(list);
             }
 
             return resInsert;
@@ -1874,8 +1899,7 @@ li {
             return res;
         }
 
-        // Gets Entries from Web and Inserts into DB.
-        private async void GetEntries(NodeTree nd)
+        private async Task GetEntriesAsync(NodeTree nd)
         {
             if (nd == null)
                 return;
@@ -1951,15 +1975,16 @@ li {
 
                     if (resEntries.Entries.Count > 0)
                     {
-                        // Insert result to Sqlite database.
-                        //SqliteDataAccessInsertResultWrapper resInsert = dataAccessModule.InsertEntries(resEntries.Entries);
+                        // Get Images
+                        await GetImagesAsync(fnd, resInsert.InsertedEntries);
 
-                        if (Application.Current == null) { return; }
-                        Application.Current.Dispatcher.Invoke(() =>
+                        // Result is DB Error
+                        if (resInsert.IsError)
                         {
-                            // Result is DB Error
-                            if (resInsert.IsError)
+                            if (Application.Current == null) { return; }
+                            Application.Current.Dispatcher.Invoke(() =>
                             {
+
                                 // Sets Node Error.
                                 fnd.ErrorDatabase = resInsert.Error;
 
@@ -1971,10 +1996,15 @@ li {
                                 }
 
                                 fnd.Status = NodeFeed.DownloadStatus.error;
+
                                 // IsBusy = false;
                                 return;
-                            }
-                            else
+                            });
+                        }
+                        else
+                        {
+                            if (Application.Current == null) { return; }
+                            Application.Current.Dispatcher.Invoke(() =>
                             {
                                 // Clear error.
                                 fnd.ErrorDatabase = null;
@@ -1995,17 +2025,22 @@ li {
                                     // Update parent folder's unread count.
                                     (nd.Parent as NodeFolder).EntryCount = (nd.Parent as NodeFolder).EntryCount + resInsert.InsertedEntries.Count;
                                 }
+                            });
 
-                                // If Node is selected Load Entries.
-                                if (nd == SelectedNode)
+                            // If Node is selected Load Entries.
+                            if (nd == SelectedNode)
+                            {
+                                if (resInsert.InsertedEntries.Count > 0)
                                 {
-                                    if (resInsert.InsertedEntries.Count > 0)
-                                    {
-                                        Task.Run(() => LoadEntries(nd));
-                                        return;
-                                    }
+                                    await LoadEntriesAsync(nd);
+
+                                    return;
                                 }
-                                else if ((nd.Parent == SelectedNode) && (nd.Parent is NodeFolder))
+                            }
+                            else if ((nd.Parent == SelectedNode) && (nd.Parent is NodeFolder))
+                            {
+                                if (Application.Current == null) { return; }
+                                Application.Current.Dispatcher.Invoke(() =>
                                 {
                                     foreach (var asdf in resInsert.InsertedEntries)
                                     {
@@ -2014,9 +2049,9 @@ li {
 
                                     // sort
                                     Entries = new ObservableCollection<EntryItem>(Entries.OrderByDescending(n => n.Published));
-                                }
+                                });
                             }
-                        });
+                        }
                     }
                     else
                     {
@@ -2030,8 +2065,6 @@ li {
                         fnd.Status = NodeFeed.DownloadStatus.normal;
                     });
                 }
-
-                // TODO: GetImages
             }
             else if (nd is NodeEntryCollection)
             {
@@ -2044,8 +2077,7 @@ li {
             }
         }
 
-        // Select Entries from DB and Loads Entry collection.
-        private void LoadEntries(NodeTree nd, bool forceUnread = false)
+        private async Task LoadEntriesAsync(NodeTree nd, bool forceUnread = false)
         {
             if (nd == null)
                 return;
@@ -2062,19 +2094,17 @@ li {
                     IsWorking = true;
 
                     if (forceUnread)
-                        fnd.IsDisplayUnreadOnly = true;
+                        fnd.IsDisplayUnarchivedOnly = true;
 
                     fnd.Status = NodeFeed.DownloadStatus.loading;
                 });
 
-                SqliteDataAccessSelectResultWrapper res = SelectEntriesByFeedIdLock(fnd.Id, fnd.IsDisplayUnreadOnly);
+                SqliteDataAccessSelectResultWrapper res = SelectEntriesByFeedIdLock(fnd.Id, fnd.IsDisplayUnarchivedOnly);
 
-                if (Application.Current == null) { return; }
-                Application.Current.Dispatcher.Invoke(() =>
+                if (res.IsError)
                 {
-                    // SqliteDataAccessSelectResultWrapper res = dataAccessModule.SelectEntriesByFeedId(fnd.Id, fnd.IsDisplayUnreadOnly);
-
-                    if (res.IsError)
+                    if (Application.Current == null) { return; }
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
                         // set's error
                         fnd.ErrorDatabase = res.Error;
@@ -2091,33 +2121,46 @@ li {
                         fnd.Status = NodeFeed.DownloadStatus.error;
 
                         return;
-                    }
-                    else
+                    });
+
+                }
+                else
+                {
+                    if (Application.Current == null) { return; }
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
                         // Clear error
                         fnd.ErrorDatabase = null;
-                        
+
                         // Update the count
                         fnd.EntryCount = res.UnreadCount;
 
+                        // If this is selected Node.
                         if (nd == SelectedNode)
                         {
                             // Hide error
                             DatabaseError = null;
                             IsShowDatabaseErrorMessage = false;
 
-                            // 
-                            Entries = res.SelectedEntries;
+                            // Load entries.
+                            //Entries = res.SelectedEntries;
+                            // COPY!! 
+                            Entries = new ObservableCollection<EntryItem>(res.SelectedEntries);
 
                             if (Entries.Count > 0)
                                 ResetListviewPosition?.Invoke(this, 0);
                         }
-                    }
 
-                    fnd.Status = NodeFeed.DownloadStatus.normal;
+                        fnd.Status = NodeFeed.DownloadStatus.normal;
 
-                    IsWorking = false;
-                });
+                        IsWorking = false;
+                    });
+
+                    if (nd == SelectedNode)
+                        if (res.SelectedEntries.Count > 0)
+                            await LoadImagesAsync(nd, res.SelectedEntries);
+                }
+
             }
             else if (nd is NodeFolder)
             {
@@ -2153,7 +2196,10 @@ li {
 
                         if (nd == SelectedNode)
                         {
-                            Entries = res.SelectedEntries;
+                            // Load entries.  
+                            //Entries = res.SelectedEntries;
+                            // COPY!!
+                            Entries = new ObservableCollection<EntryItem>(res.SelectedEntries);
 
                             if (Entries.Count > 0)
                                 ResetListviewPosition?.Invoke(this, 0);
@@ -2164,6 +2210,10 @@ li {
 
                         IsWorking = false;
                     });
+
+                    if (nd == SelectedNode)
+                        if (res.SelectedEntries.Count > 0)
+                            await LoadImagesAsync(nd, res.SelectedEntries);
                 }
 
             }
@@ -2182,8 +2232,131 @@ li {
             }
         }
 
-        // Update Entries's IsRead/Archived flag in the DB.
-        private void ArchiveAll(NodeTree nd)
+        private async Task GetImagesAsync(NodeTree nd, ObservableCollection<EntryItem> entries)
+        {
+            if (nd is not NodeFeed) 
+                return;
+
+            //if (nd != SelectedNode)
+            //    return;
+
+            // Get images.
+            List<EntryItem> list = new();
+
+            foreach (var hoge in entries)
+            {
+                //if (nd != SelectedNode)
+                //    return;
+
+                if (!hoge.IsImageDownloaded) 
+                { 
+                    if (hoge.ImageUri != null)
+                    {
+                        list.Add(hoge);
+                    }
+                }
+            }
+
+            var fc = (nd as NodeFeed).Client;
+
+            if ((fc is not null) && (list.Count > 0))
+            {
+                // Get it off the site.
+                await fc.GetImages(list);
+
+                SqliteDataAccessInsertResultWrapper resInsert = InsertImagesLock(list);
+
+                if (resInsert.IsError)
+                {
+                    if (Application.Current == null) { return; }
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        // set's error
+                        (nd as NodeFeed).ErrorDatabase = resInsert.Error;
+
+                        if (nd == SelectedNode)
+                        {
+                            // show error
+                            DatabaseError = (nd as NodeFeed).ErrorDatabase;
+                            IsShowDatabaseErrorMessage = true;
+                        }
+
+                        (nd as NodeFeed).Status = NodeFeed.DownloadStatus.error;
+
+                        return;
+                    });
+
+                }
+                else
+                {
+                    if (Application.Current == null) { return; }
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        // Clear error
+                        (nd as NodeFeed).ErrorDatabase = null;
+
+                        // If this is selected Node.
+                        if (nd == SelectedNode)
+                        {
+                            // Hide error
+                            DatabaseError = null;
+                            IsShowDatabaseErrorMessage = false;
+
+                        }
+
+                        (nd as NodeFeed).Status = NodeFeed.DownloadStatus.normal;
+
+                        return;
+                    });
+                }
+            }
+        }
+
+        private async Task LoadImagesAsync(NodeTree nd, ObservableCollection<EntryItem> entries)
+        {
+            if ((nd is not NodeFeed) && (nd is not NodeFolder))
+                return;
+
+            if (nd != SelectedNode)
+                return;
+
+            foreach (var hoge in entries)
+            {
+                if (nd != SelectedNode)
+                    return;
+
+                if (hoge.IsImageDownloaded)
+                {
+                    if (!string.IsNullOrEmpty(hoge.ImageId))
+                    {
+                        // Get it from image table.
+                        SqliteDataAccessSelectImageResultWrapper res = SelectImagesByImageIdLock(hoge.ImageId);
+
+                        if (!res.IsError)
+                        {
+                            if (Application.Current != null)
+                            {
+                                Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    try
+                                    {
+                                        hoge.Image = res.Image;
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Debug.WriteLine("Exception @LoadImages: " + e.Message);
+                                    }
+                                });
+                            }
+                        }
+
+                        await Task.Delay(20);
+                    }
+                }
+            }
+        }
+
+        private async Task ArchiveAllAsync(NodeTree nd)
         {
             if (nd == null)
                 return;
@@ -2255,14 +2428,15 @@ li {
                                 Entries.Clear();
 
                                 // 
-                                //LoadEntries(nd);
-                                // Test
-                                Task.Run(() => LoadEntries(_selectedNode));
+                                //Task.Run(() => LoadEntries(_selectedNode));
                             }
                         }
 
                         IsWorking = false;
                     });
+
+                    if (nd == SelectedNode)
+                        await LoadEntriesAsync(_selectedNode);
                 }
             }
             else if (nd is NodeFolder)
@@ -2310,7 +2484,6 @@ li {
             }
         }
 
-        // Update Entry's IsRead/Archived flag in the DB.
         private void ArchiveThis(NodeTree nd, FeedEntryItem entry)
         {
             if (nd == null)
@@ -2397,7 +2570,6 @@ li {
             }
         }
 
-        // Update Entry's Status in the DB.
         private void UpdateEntryStatus(NodeTree nd, FeedEntryItem entry)
         {
             if (nd == null)
@@ -2511,8 +2683,6 @@ li {
 
         #endregion
 
-        #endregion
-
         #region == ICommands ==
 
         #region == TreeView ==
@@ -2572,7 +2742,7 @@ li {
                 //if ((_selectedNode as NodeEntryCollection).List.Count > 0)
                 //    (_selectedNode as NodeEntryCollection).List.Clear();
 
-                Task.Run(() => GetEntries((_selectedNode as NodeEntryCollection)));
+                Task.Run(() => GetEntriesAsync((_selectedNode as NodeEntryCollection)));
 
             }
             else if (_selectedNode is NodeFeed)
@@ -2582,7 +2752,7 @@ li {
 
                 (_selectedNode as NodeFeed).LastUpdate = DateTime.Now;
 
-                Task.Run(() => GetEntries(_selectedNode));
+                Task.Run(() => GetEntriesAsync(_selectedNode));
             }
             else if (_selectedNode is NodeService)
             {
@@ -2927,7 +3097,7 @@ li {
                 return;
 
             //ArchiveAll(SelectedNode);
-            Task.Run(() => ArchiveAll(SelectedNode));
+            Task.Run(() => ArchiveAllAsync(SelectedNode));
         }
 
         public ICommand ArchiveThisCommand { get; }

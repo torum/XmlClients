@@ -38,25 +38,22 @@ namespace BlogWrite.Models.Clients
 
         public abstract Task<HttpClientEntryItemCollectionResultWrapper> GetEntries(Uri entriesUrl, string feedId);
 
-        public async Task<ObservableCollection<EntryItem>> GetImages(ObservableCollection<EntryItem> entryItems)
+        public async Task<List<EntryItem>> GetImages(List<EntryItem> entryItems)
         {
             foreach (var entItem in entryItems)
             {
+                if (entItem.IsImageDownloaded)
+                    continue;
+
                 if (entItem.ImageUri != null)
                 {
+                    //Debug.WriteLine("Gettting Image: " + entItem.ImageUri.AbsoluteUri);
+
+                    // 
                     Byte[] bytes = await this.GetImage(entItem.ImageUri);
+
                     if (bytes != Array.Empty<byte>())
                     {
-                        /*
-                        if (Application.Current != null)
-                        {
-                            Application.Current.Dispatcher.Invoke(() =>
-                            {
-                                entItem.Image = BitmapImageFromBytes(bytes);
-                            });
-                        }
-                        */
-
                         var imageSource = (BitmapSource)new ImageSourceConverter().ConvertFrom(bytes);
                         //var width = 220d;
                         //var scale = width / imageSource.PixelWidth;
@@ -67,7 +64,13 @@ namespace BlogWrite.Models.Clients
 
                         entItem.ImageByteArray = WritableBitmapImageToByteArray(writable);
 
-                        //entItem.ImageByteArray = bytes;
+                        if (Application.Current != null)
+                        {
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                entItem.Image = BitmapImageFromBytes(bytes);
+                            });
+                        }
                     }
                 }
             }

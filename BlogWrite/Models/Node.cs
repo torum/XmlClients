@@ -481,21 +481,21 @@ namespace BlogWrite.Models
 
         public Uri SiteUri { get; set; }
 
-        private bool _isDisplayUnreadOnly = true;
-        public bool IsDisplayUnreadOnly
+        private bool _isDisplayUnarchivedOnly = true;
+        public bool IsDisplayUnarchivedOnly
         {
             get
             {
-                return _isDisplayUnreadOnly;
+                return _isDisplayUnarchivedOnly;
             }
             set
             {
-                if (_isDisplayUnreadOnly == value)
+                if (_isDisplayUnarchivedOnly == value)
                     return;
 
-                _isDisplayUnreadOnly = value;
+                _isDisplayUnarchivedOnly = value;
 
-                NotifyPropertyChanged(nameof(IsDisplayUnreadOnly));
+                NotifyPropertyChanged(nameof(IsDisplayUnarchivedOnly));
             }
         }
 

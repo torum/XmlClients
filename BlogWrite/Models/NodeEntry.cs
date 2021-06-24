@@ -169,6 +169,7 @@ namespace BlogWrite.Models
             }
         }
 
+        // For FeedEntryItem, "IsArchived" is used so far.
         private string _commonStatus = "";
         public string CommonStatus
         {
@@ -185,7 +186,6 @@ namespace BlogWrite.Models
             }
         }
 
-
         private Uri _imageUri;
         public Uri ImageUri
         {
@@ -200,6 +200,38 @@ namespace BlogWrite.Models
 
                 _imageUri = value;
                 NotifyPropertyChanged(nameof(ImageUri));
+            }
+        }
+
+        private bool _isImageDownloaded = false;
+        public bool IsImageDownloaded
+        {
+            get
+            {
+                return _isImageDownloaded;
+            }
+            set
+            {
+                if (_isImageDownloaded == value)
+                    return;
+                _isImageDownloaded = value;
+                NotifyPropertyChanged(nameof(IsImageDownloaded));
+            }
+        }
+
+        private string _imageId = "";
+        public string ImageId
+        {
+            get
+            {
+                return _imageId;
+            }
+            set
+            {
+                if (_imageId == value)
+                    return;
+                _imageId = value;
+                NotifyPropertyChanged(nameof(ImageId));
             }
         }
 
@@ -304,6 +336,7 @@ namespace BlogWrite.Models
 
             }
         }
+
 
         public FeedEntryItem(string title, string serviceId, BaseClient bc) : base(title, serviceId, bc)
         {
