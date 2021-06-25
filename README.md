@@ -4,22 +4,6 @@
   
 A blog editing (web publishing) client with a full-featured feed reading functionality - C#/WPF port of "BlogWrite" originaly developed with Delphi.
 
-Cards View
-![BlogWrite_CardsView](https://github.com/torum/BlogWrite/blob/master/docs/images/BlogWrite_Cards.png?raw=true) 
-
-Magazine View
-![BlogWrite_MagazineView](https://github.com/torum/BlogWrite/blob/master/docs/images/BlogWrite_Magazine.png?raw=true) 
-
-ThreePane View
-![BlogWrite_ThreePane](https://github.com/torum/BlogWrite/blob/master/docs/images/BlogWrite_ThreePane.png?raw=true) 
-
-Embedded Browser
-![BlogWrite_Embedded_Browser](https://github.com/torum/BlogWrite/blob/master/docs/images/BlogWrite_Embedded.png?raw=true) 
-
-Debug Window
-![BlogWrite_DebugWindow](https://github.com/torum/BlogWrite/blob/master/docs/images/DebugWindow.png?raw=true) 
-
-
 
 ### Implements following Feed formats, REST protocols & API specifications:  
 
@@ -42,7 +26,6 @@ https://codex.wordpress.org/XML-RPC_MovableType_API
 https://codex.wordpress.org/XML-RPC_MetaWeblog_API  
 https://codex.wordpress.org/XML-RPC_Blogger_API  
 
-
 ### Road map
 
 or progress so far...
@@ -60,7 +43,7 @@ The Feed Reading functionality.
 - [x] Display and manage feeds and entries. 
 - [x] Display contents in various views and webpages in a embeded browser. 
 - [x] Manage entries read/unread status with sqlite database.
-- [x] Auto update entries.
+- [x] Auto update feeds and entries.
 - [x] Import feed list from OPML and export feed list as OPML. 
 - [x] Get optional "eye catching" image Uris.
 - [x] Download and display "eye catching" images. 
@@ -86,4 +69,24 @@ The WYSIWYG editor.
 - [ ] ...
 - [ ] ...
 - [ ] ...
+
+
+
+### Screenshots  
+
+Cards View
+![BlogWrite_CardsView](https://github.com/torum/BlogWrite/blob/master/docs/images/BlogWrite_Cards.png?raw=true) 
+
+Magazine View
+![BlogWrite_MagazineView](https://github.com/torum/BlogWrite/blob/master/docs/images/BlogWrite_Magazine.png?raw=true) 
+
+ThreePane View
+![BlogWrite_ThreePane](https://github.com/torum/BlogWrite/blob/master/docs/images/BlogWrite_ThreePane.png?raw=true) 
+
+Embedded Browser
+![BlogWrite_Embedded_Browser](https://github.com/torum/BlogWrite/blob/master/docs/images/BlogWrite_Embedded.png?raw=true) 
+
+Debug Window
+![BlogWrite_DebugWindow](https://github.com/torum/BlogWrite/blob/master/docs/images/DebugWindow.png?raw=true) 
+
 
