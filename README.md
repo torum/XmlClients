@@ -50,9 +50,9 @@ The Feed Reading functionality.
 - [x] Download and display "eye catching" images. 
 - [ ] Search 
 - [ ] Star/Pin/ReadItLator Folder
-- [ ] Options (text configuration, etc)
 - [ ] Favicon
 - [ ] Wide view (three vertical columns)
+- [ ] Options (text configuration, etc)
 
 #### CRUD API and protocol implementations
 
