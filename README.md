@@ -33,6 +33,7 @@ or progress so far...
 #### General
 
 - [ ] Internationalization
+- [ ] Settings
 
 #### Feed Reader
 
