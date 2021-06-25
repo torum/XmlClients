@@ -62,8 +62,8 @@ The Feed Reading functionality.
 - [x] Manage entries read/unread status with sqlite database.
 - [x] Auto update entries.
 - [x] Import feed list from OPML and export feed list as OPML. 
-- [x] Get optional "eye catch" image Uris.
-- [ ] Download and display optional images. 
+- [x] Get optional "eye catching" image Uris.
+- [x] Download and display "eye catching" images. 
 
 #### CRUD API and protocol implementations
 
