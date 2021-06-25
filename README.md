@@ -41,12 +41,18 @@ The Feed Reading functionality.
 - [x] Feed Auto Discovery (Parse a HTML Web page and find RSS and Atom links)
 - [x] Parse feeds (Atom 1.0, 0.3, RSS 2.0, 1.0)
 - [x] Display and manage feeds and entries. 
-- [x] Display contents in various views and webpages in a embeded browser. 
-- [x] Manage entries read/unread status with sqlite database.
+- [x] Display contents in various views (Cards, Magazine, ThereePane)
+- [x] View webpages in a embeded browser. 
+- [x] Manage entries read/unread status with Sqlite database.
 - [x] Auto update feeds and entries.
 - [x] Import feed list from OPML and export feed list as OPML. 
 - [x] Get optional "eye catching" image Uris.
 - [x] Download and display "eye catching" images. 
+- [ ] Search 
+- [ ] Star/Pin/ReadItLator Folder
+- [ ] Options (text configuration, etc)
+- [ ] Favicon
+- [ ] Wide view (three vertical columns)
 
 #### CRUD API and protocol implementations
 
