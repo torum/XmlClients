@@ -1664,18 +1664,21 @@
                                         </Grid.RowDefinitions>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
 
-                                        <Button Grid.Row="0" Grid.Column="0" Width="24" Height="24" Style="{DynamicResource PathButton}" Content="M12,10L8,14H11V20H13V14H16M19,4H5C3.89,4 3,4.9 3,6V18A2,2 0 0,0 5,20H9V18H5V8H19V18H15V20H19A2,2 0 0,0 21,18V6A2,2 0 0,0 19,4Z" HorizontalAlignment="Center" Command="{Binding Path=OpenInAppBrowserCommand}" CommandParameter="{Binding SelectedItem}"></Button>
+                                        <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal">
 
-                                        <Button Grid.Row="0" Grid.Column="1" Width="24" Height="24" Style="{DynamicResource PathButton}" Content="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z" HorizontalAlignment="Center" Command="{Binding Path=OpenInExternalBrowserCommand}" CommandParameter="{Binding SelectedItem}"></Button>
+                                            <Button Width="24" Height="24" Style="{DynamicResource PathButton}" Content="M12,10L8,14H11V20H13V14H16M19,4H5C3.89,4 3,4.9 3,6V18A2,2 0 0,0 5,20H9V18H5V8H19V18H15V20H19A2,2 0 0,0 21,18V6A2,2 0 0,0 19,4Z" HorizontalAlignment="Center" Command="{Binding Path=OpenInAppBrowserCommand}" CommandParameter="{Binding SelectedItem}"></Button>
 
-                                        <!-- Browser close button -->
+                                            <Button Width="24" Height="24" Style="{DynamicResource PathButton}" Content="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z" HorizontalAlignment="Center" Command="{Binding Path=OpenInExternalBrowserCommand}" CommandParameter="{Binding SelectedItem}"></Button>
+                                        
+                                        </StackPanel>
+
+                                        <!-- Browser close button
                                         <Button Grid.Row="0" Grid.Column="3" Command="{Binding CloseContentBrowserCommand}" Style="{StaticResource PathButton}" Width="24" Height="24" Margin="0" HorizontalAlignment="Right" VerticalAlignment="Center" Content="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19M17,8.4L13.4,12L17,15.6L15.6,17L12,13.4L8.4,17L7,15.6L10.6,12L7,8.4L8.4,7L12,10.6L15.6,7L17,8.4Z"></Button>
-
+-->
                                     </Grid>
 
                                     <!-- Contents viewer -->
@@ -1736,6 +1739,7 @@
 
                                 </Grid>
                             </Border>
+                        
                         </Grid>
 
                     </TabItem>
@@ -2063,8 +2067,6 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-
-                        <Button Grid.Row="0" Grid.Column="1" Width="24" Height="24" Style="{DynamicResource PathButton}" Content="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z" HorizontalAlignment="Center" Command="{Binding Path=OpenInExternalBrowserCommand}" CommandParameter="{Binding SelectedItem}"></Button>
 
                         <!-- Browser close button -->
                         <Button Grid.Row="0" Grid.Column="3" Command="{Binding CloseContentBrowserCommand}" Style="{StaticResource PathButton}" Width="24" Height="24" Margin="0" HorizontalAlignment="Right" VerticalAlignment="Center" Content="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19M17,8.4L13.4,12L17,15.6L15.6,17L12,13.4L8.4,17L7,15.6L10.6,12L7,8.4L8.4,7L12,10.6L15.6,7L17,8.4Z"></Button>

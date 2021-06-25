@@ -52,6 +52,7 @@ namespace BlogWrite.ViewModels
     ///  
 
     /// Change History：
+    /// v0.0.0.46 3PaneモードIn app browserでの閉じるボタンを辞めて、右に移動。全画面InAppBrowserの方はデフォブラウザで開くを辞めた。非選択アイテムでは開けないから。
     /// v0.0.0.45 D&Dしたら、フォルダの未読数を計算し直し。更新中はD&D出来ないように。
     /// v0.0.0.44 Download, Insert, Load and Display "Eye Catching" Image.
     /// v0.0.0.43 CommonStatus を追加して、IsArchivedだったら、Archiveボタンを非表示にするようにした。MagazineViewでタイトルの文字サイズを読みやすくした。
@@ -105,7 +106,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.45";
+        const string _appVer = "0.0.0.46";
         public string AppVer
         {
             get
