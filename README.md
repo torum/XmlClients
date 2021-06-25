@@ -34,6 +34,7 @@ or progress so far...
 
 - [ ] Internationalization
 - [ ] Settings
+- [ ] Themes
 
 #### Feed Reader
 
