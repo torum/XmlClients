@@ -55,10 +55,10 @@ namespace BlogWrite.Models.Clients
                     if (bytes != Array.Empty<byte>())
                     {
                         var imageSource = (BitmapSource)new ImageSourceConverter().ConvertFrom(bytes);
-                        //var width = 220d;
-                        //var scale = width / imageSource.PixelWidth;
-                        var height = 127d;
-                        var scale = height / imageSource.PixelHeight;
+                        var width = 220d;
+                        var scale = width / imageSource.PixelWidth;
+                        //var height = 127d;
+                        //var scale = height / imageSource.PixelHeight;
                         WriteableBitmap writable = new WriteableBitmap(new TransformedBitmap(imageSource, new ScaleTransform(scale, scale)));
                         writable.Freeze();
 

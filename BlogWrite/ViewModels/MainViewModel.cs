@@ -28,6 +28,7 @@ namespace BlogWrite.ViewModels
     /// 
     /// 
     /// [General]
+    /// i18n
     /// App Icon / App name .... FeedDesk?
     /// 
     /// [Auto Discovery]
@@ -35,8 +36,15 @@ namespace BlogWrite.ViewModels
     /// xmlrpc.php直叩きした時の判定。
     /// 
     /// [Feed Reader]
+    /// Options (text configuration)
+    /// Star/Pin/ReadItLator
+    /// Wide layout - three vertical columns
+    /// Search
+    /// trap Open in new window event in WebView2 and redirect it in default browser.
+    /// FavIcon
+    /// Copy the URL to clipboard
     /// InfoWindowで、画像の取得と表示、をオフにできるようにする。
-    /// 一定数以上でなおかつ一定期間（１ヵ月）過ぎた古いFeedEntryはSelectの段階で無視し、自動でIsReadにする。App終了時かイニシャライズ時に削除する。
+    /// 一定数以上または一定期間（１ヵ月）過ぎた古いFeedEntryはApp終了時かイニシャライズ時に削除する。
     /// InfoWindowで、個別にFeedの更新頻度を設定できるようにする。
     /// 
     /// [Settings window]
@@ -52,7 +60,8 @@ namespace BlogWrite.ViewModels
     ///  
 
     /// Change History：
-    /// v0.0.0.46 3PaneモードIn app browserでの閉じるボタンを辞めて、右に移動。全画面InAppBrowserの方はデフォブラウザで開くを辞めた。非選択アイテムでは開けないから。
+    /// v0.0.0.47 全画面InAppBrowserの方で、今開いているページをデフォブラウザで開く、ようにした。
+    /// v0.0.0.46 3PaneモードIn app browserでの閉じるボタンを辞めた。全画面InAppBrowserの方はデフォブラウザで開くを辞めた。非選択アイテムでは開けないから。
     /// v0.0.0.45 D&Dしたら、フォルダの未読数を計算し直し。更新中はD&D出来ないように。
     /// v0.0.0.44 Download, Insert, Load and Display "Eye Catching" Image.
     /// v0.0.0.43 CommonStatus を追加して、IsArchivedだったら、Archiveボタンを非表示にするようにした。MagazineViewでタイトルの文字サイズを読みやすくした。
@@ -882,6 +891,7 @@ li {
 
         public event EventHandler<Uri> NavigateUrlToContentPreviewBrowser;
 
+        public event EventHandler<Uri> OpenCurrentUrlInExternalBrowser;
 
         public delegate void ContentsBrowserWindowShowHideEventHandler();
         public event ContentsBrowserWindowShowHideEventHandler ContentsBrowserWindowShowHide;
@@ -949,6 +959,8 @@ li {
             OpenInExternalBrowserCommand = new GenericRelayCommand<EntryItem>(
                 param => OpenInExternalBrowserCommand_Execute(param),
                 param => OpenInExternalBrowserCommand_CanExecute());
+
+            OpenInExternalBrowserCurrentUrlCommand = new RelayCommand(OpenInExternalBrowserCurrentUrlCommand_Execute, OpenInExternalBrowserCurrentUrlCommand_CanExecute);
 
             OpenInAppBrowserCommand = new GenericRelayCommand<EntryItem>(
                 param => OpenInAppBrowserCommand_Execute(param),
@@ -3012,7 +3024,8 @@ li {
 
             if (selectedEntry.AltHtmlUri != null)
             {
-                //SelectedItem = selectedEntry;
+                // TODO: Not good. This write html to browser...
+                SelectedItem = selectedEntry;
 
                 //System.Diagnostics.Process.Start(selectedEntry.AltHTMLUri.AbsoluteUri);
                 ProcessStartInfo psi = new ProcessStartInfo(selectedEntry.AltHtmlUri.AbsoluteUri);
@@ -3036,6 +3049,24 @@ li {
             }
         }
 
+        public ICommand OpenInExternalBrowserCurrentUrlCommand { get; }
+
+        public bool OpenInExternalBrowserCurrentUrlCommand_CanExecute()
+        {
+            return true;
+        }
+
+        public void OpenInExternalBrowserCurrentUrlCommand_Execute()
+        {
+            if (SelectedItem == null)
+                return;
+
+            if (SelectedItem.AltHtmlUri != null)
+            {
+                OpenCurrentUrlInExternalBrowser?.Invoke(this, null);
+            }
+        }
+
         public ICommand OpenInAppBrowserCommand { get; }
 
         public bool OpenInAppBrowserCommand_CanExecute()
@@ -3050,8 +3081,8 @@ li {
 
             if (selectedEntry.AltHtmlUri != null)
             {
-                // Not good. This write html to browser....
-                //SelectedItem = selectedEntry;
+                // TODO: Not good. This write html to browser....
+                SelectedItem = selectedEntry;
 
                 // Bring Browser to front.
                 IsContentBrowserVisible = true;

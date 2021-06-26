@@ -676,7 +676,7 @@
                                             <RowDefinition Height="Auto" />
                                         </Grid.RowDefinitions>
                                         <ToggleButton x:Name="Expander" Grid.Row="0" Grid.Column="0" Style="{StaticResource ExpandCollapseToggleStyle}" IsChecked="{Binding Path=IsExpanded, RelativeSource={RelativeSource TemplatedParent}}" ClickMode="Press"/>
-                                        <Border Name="Bd" Grid.Column="1" Grid.Row="0" Padding="5,0,0,0" BorderThickness="0" BorderBrush="LightGray" Background="{TemplateBinding Panel.Background}" CornerRadius="3">
+                                        <Border Name="Bd" Grid.Column="1" Grid.Row="0" Padding="5,0,0,0" BorderThickness="0" BorderBrush="LightGray" Background="{TemplateBinding Panel.Background}" CornerRadius="2">
                                             <ContentPresenter Content="{TemplateBinding HeaderedContentControl.Header}" ContentTemplate="{TemplateBinding HeaderedContentControl.HeaderTemplate}" ContentStringFormat="{TemplateBinding HeaderedItemsControl.HeaderStringFormat}" ContentSource="Header" Name="PART_Header" HorizontalAlignment="Stretch"/>
                                         </Border>
                                         <!--

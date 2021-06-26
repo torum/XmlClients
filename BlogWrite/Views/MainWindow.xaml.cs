@@ -91,6 +91,8 @@ namespace BlogWrite.Views
 
                     vm.NavigateUrlToContentPreviewBrowser += (sender, arg) => { this.OnNavigateUrlToContentPreviewBrowser(arg); };
 
+                    vm.OpenCurrentUrlInExternalBrowser += (sender, arg) => { this.OnOpenCurrentUrlInExternalBrowser(arg); };
+
                     vm.OpenServiceDiscoveryView += (sender, arg) => { this.OnCreateServiceDiscoveryWindow(this); };
 
                     vm.ContentsBrowserWindowShowHide += () => this.OnContentsBrowserWindowShowHide();
@@ -319,6 +321,54 @@ namespace BlogWrite.Views
             }
 
         }
+
+        public async void OnOpenCurrentUrlInExternalBrowser(Uri arg)
+        {
+            //if (arg == null)
+            //    return;
+
+            if ((ViewTab.SelectedIndex == 0) || (ViewTab.SelectedIndex == 1))
+            {
+                if (GridInAppWebBrowser.Visibility != Visibility.Visible)
+                {
+                    GridInAppWebBrowser.Visibility = Visibility.Visible;
+                }
+
+                await InAppWebBrowser.EnsureCoreWebView2Async(_env);
+
+                string url = InAppWebBrowser.Source.AbsoluteUri;
+
+                //System.Diagnostics.Process.Start(selectedEntry.AltHTMLUri.AbsoluteUri);
+                ProcessStartInfo psi = new ProcessStartInfo(url);
+                psi.UseShellExecute = true;
+                Process.Start(psi);
+            }
+            else if (ViewTab.SelectedIndex == 2)
+            {
+                if (GridListViewContentPreviewWebBrowser.Visibility != Visibility.Visible)
+                {
+                    // Re-set Listview, splitter and browser heights.
+                    GridListView.RowDefinitions[1].Height = new GridLength(3, GridUnitType.Star);
+                    GridListView.RowDefinitions[2].Height = new GridLength(8);
+                    GridListView.RowDefinitions[3].Height = new GridLength(5, GridUnitType.Star);
+
+                    SplitterListViewContentPreviewWebBrowser.Visibility = Visibility.Visible;
+                    GridListViewContentPreviewWebBrowser.Visibility = Visibility.Visible;
+                }
+
+                await ListViewContentPreviewWebBrowser.EnsureCoreWebView2Async(_env);
+
+                string url = ListViewContentPreviewWebBrowser.Source.AbsoluteUri;
+
+                //System.Diagnostics.Process.Start(selectedEntry.AltHTMLUri.AbsoluteUri);
+                ProcessStartInfo psi = new ProcessStartInfo(url);
+                psi.UseShellExecute = true;
+                Process.Start(psi);
+            }
+
+        }
+
+        
 
         public void OnDebugOutput(string arg)
         {
