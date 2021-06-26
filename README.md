@@ -48,13 +48,10 @@ The Feed Reading functionality.
 - [x] Manage entries read/unread status with Sqlite database.
 - [x] Auto update feeds and entries.
 - [x] Import feed list from OPML and export feed list as OPML. 
-- [x] Get optional "eye catching" image Uris.
 - [x] Download and display "eye catching" images. 
-- [ ] Search 
-- [ ] Star/Pin/ReadItLator Folder
-- [ ] Favicon
-- [ ] Wide view (three vertical columns)
 - [ ] Options (text configuration, etc)
+
+*Search, Star/Pin/ReadItLator, Favicon, Wide view (three vertical columns)
 
 #### CRUD API and protocol implementations
 
@@ -69,16 +66,10 @@ The Editing functionality.
 The WYSIWYG editor.
 
 - [x] Basic editor window
-- [ ] Post, Update, Delete
-- [ ] WYSIWYG editing.
-- [ ] ...
-- [ ] ...
-- [ ] ...
-- [ ] ...
-- [ ] ...
-- [ ] ...
-
-
+- [ ] Post, Update, Delete entries
+- [ ] Manage categories and tags
+- [ ] WYSIWYG editing
+- [ ] Manage imaegs
 
 ### Screenshots  
 
