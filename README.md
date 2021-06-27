@@ -5,28 +5,21 @@
 A blog editing (web publishing) client with a full-featured feed reading functionality - C#/WPF rewrite of "BlogWrite" originaly developed in Delphi.
 
 
-### Implements following Feed formats, REST protocols & API specifications:  
+### Implements following formats, protocols & APIs:  
 
-The Atom Syndication Format (Atom 1.0)  
-https://tools.ietf.org/html/rfc4287
+* Atom 1.0 ([The Atom Syndication Format](https://tools.ietf.org/html/rfc4287)) and 0.3
 
-RSS 1.0 RDF Site Summary  
-https://www.w3.org/2001/09/rdfprimer/rss.html
+* RSS 1.0 ([RDF Site Summary](https://www.w3.org/2001/09/rdfprimer/rss.html)) and 2.0 ([Really Simple Syndication](https://validator.w3.org/feed/docs/rss2.html))
 
-RSS 2.0 Really Simple Syndication  
-https://validator.w3.org/feed/docs/rss2.html
+* [Atom Publishing Protocol](https://tools.ietf.org/html/rfc5023)
 
-Atom Publishing Protocol  
-https://tools.ietf.org/html/rfc5023
+* [XML-RPC API](https://codex.wordpress.org/XML-RPC_Support)
+([Blogger API](https://codex.wordpress.org/XML-RPC_Blogger_API),
+[MetaWeblog API](https://codex.wordpress.org/XML-RPC_MetaWeblog_API),
+[MovableType API](https://codex.wordpress.org/XML-RPC_MovableType_API),
+[WordPress API](https://codex.wordpress.org/XML-RPC_WordPress_API))
 
-XML-RPC API (MetaWeblog API, Blogger_API, Movable Type API, Wordpress API)  
-https://codex.wordpress.org/XML-RPC_Support  
-https://codex.wordpress.org/XML-RPC_WordPress_API  
-https://codex.wordpress.org/XML-RPC_MovableType_API  
-https://codex.wordpress.org/XML-RPC_MetaWeblog_API  
-https://codex.wordpress.org/XML-RPC_Blogger_API  
-
-### Road map
+### Roadmap
 
 or progress so far...
 
@@ -51,7 +44,7 @@ The Feed Reading functionality.
 - [x] Download and display "eye catching" images. 
 - [ ] Options (text configuration, etc)
 
-*Search, Star/Pin/ReadItLator, Favicon, Wide view (three vertical columns)
+*additionaly, Search, Star/Pin/ReadItLator, Favicon, Wide view (three vertical columns) and more.
 
 #### CRUD API and protocol implementations
 
@@ -69,7 +62,7 @@ The WYSIWYG editor.
 - [ ] Post, Update, Delete entries
 - [ ] Manage categories and tags
 - [ ] WYSIWYG editing
-- [ ] Manage imaegs
+- [ ] Manage images and files.
 
 ### Screenshots  
 
