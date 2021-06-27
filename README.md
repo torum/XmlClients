@@ -38,7 +38,7 @@ The Feed Reading functionality.
 - [x] Display and manage feeds and entries. 
 - [x] Display contents in various views (Cards, Magazine, ThereePane)
 - [x] View webpages in a embeded browser. 
-- [x] Manage entries read/unread status with Sqlite database.
+- [x] Manage entries read/unread status with SQLite database.
 - [x] Auto update feeds and entries.
 - [x] Import feed list from OPML and export feed list as OPML. 
 - [x] Download and display "eye catching" images. 
