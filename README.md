@@ -62,7 +62,8 @@ The WYSIWYG editor.
 - [ ] Post, Update, Delete entries
 - [ ] Manage categories and tags
 - [ ] WYSIWYG editing
-- [ ] Manage images and files.
+- [ ] Markdown support
+- [ ] Manage images and files
 
 ### Screenshots  
 
