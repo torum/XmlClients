@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:BlogWrite.Views" 
         xmlns:viewmodels="clr-namespace:BlogWrite.ViewModels" 
         xmlns:models="clr-namespace:BlogWrite.Models" 
-        d:DataContext="{d:DesignInstance Type=viewmodels:ServiceDiscoveryViewModel}"
+        d:DataContext="{d:DesignInstance Type=viewmodels:AddViewModel}"
         mc:Ignorable="d"
         ResizeMode="NoResize"
         Background="{DynamicResource WindowBackgroundBaseColorBrush}"
@@ -321,7 +321,7 @@
 
                             <StackPanel Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left" Margin="6">
 
-                                <Button Command="{Binding AddSelectedAndCloseCommand}" Style="{DynamicResource PathButton}">M17,13H13V17H11V13H7V11H11V7H13V11H17M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z</Button>
+                                <Button Command="{Binding AddSelectedNextCommand}" Style="{DynamicResource PathButton}">M22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2A10,10 0 0,1 22,12M6,13H14L10.5,16.5L11.92,17.92L17.84,12L11.92,6.08L10.5,7.5L14,11H6V13Z</Button>
 
                             </StackPanel>
                         </Grid>
@@ -416,14 +416,14 @@
                         <StackPanel Grid.Row="1" Grid.Column="1" Margin="6 6 12 6">
                             <Label Content="User ID" Style="{DynamicResource DefaultLabelStyle}" Margin="6 6 6 0"></Label>
                             <Border VerticalAlignment="Center" HorizontalAlignment="Stretch" CornerRadius="3" Background="{DynamicResource NormalTextBoxBackgroundColorBrush}" Padding="0" Margin="6">
-                                <TextBox VerticalAlignment="Center" HorizontalAlignment="Stretch" Text="{Binding UserId}"></TextBox>
+                                <TextBox VerticalAlignment="Center" HorizontalAlignment="Stretch" Text="{Binding UserIdAtomPub}"></TextBox>
                             </Border>
                         </StackPanel>
 
                         <StackPanel Grid.Row="2" Grid.Column="1" Margin="6 6 12 6">
                             <Label Content="API key (typicaly different from login password)" Style="{DynamicResource DefaultLabelStyle}" Margin="6 6 6 0"></Label>
                             <Border VerticalAlignment="Center" HorizontalAlignment="Stretch" CornerRadius="3" Background="{DynamicResource NormalTextBoxBackgroundColorBrush}" Padding="0" Margin="6">
-                                <TextBox VerticalAlignment="Center" HorizontalAlignment="Stretch" Text="{Binding ApiKey}"></TextBox>
+                                <TextBox VerticalAlignment="Center" HorizontalAlignment="Stretch" Text="{Binding ApiKeyAtomPub}"></TextBox>
                             </Border>
                         </StackPanel>
 
@@ -445,9 +445,7 @@
                 <TabItem>
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
-                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
@@ -458,7 +456,7 @@
 
                         <Grid Grid.Row="0" Grid.Column="1">
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="auto"/>
+                                <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -466,18 +464,58 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Grid.Row="0" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="6">
+                            <StackPanel Grid.Row="0" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="6">
 
-                                <Label Content="Atom Publishing Protocol (Service Document) detected!" HorizontalAlignment="Right" Style="{DynamicResource DefaultLabelStyle}" Margin="6"></Label>
+                                <Label Content="{Binding SelectedItemType}" HorizontalAlignment="Right" Style="{DynamicResource DefaultLabelStyle}" Margin="6"></Label>
 
                             </StackPanel>
 
-                            <StackPanel Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left" Margin="6">
+                            <StackPanel Grid.Row="0" Grid.Column="1" VerticalAlignment="Bottom" Margin="6">
 
-                                <Button Style="{DynamicResource PathButton}">M17,13H13V17H11V13H7V11H11V7H13V11H17M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z</Button>
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="0" Grid.Column="2" HorizontalAlignment="Right" Margin="6">
+
+                                <Button Command="{Binding AddSelectedAndCloseCommand}" Style="{DynamicResource PathButton}">M17,13H13V17H11V13H7V11H11V7H13V11H17M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z</Button>
 
                             </StackPanel>
                         </Grid>
+
+                        <Grid Grid.Row="1" Grid.Column="1" Margin="24 0 24 0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+
+                            <StackPanel Grid.Row="0" Grid.Column="1" Margin="6" HorizontalAlignment="Center">
+
+                                <Label Content="Label" HorizontalAlignment="Left" Style="{DynamicResource DefaultLabelStyle}" Margin="0 0 0 3"></Label>
+
+                                <TextBox HorizontalAlignment="Left" Width="200" Text="{Binding SelectedItemTitleLabel}"></TextBox>
+
+                            </StackPanel>
+
+                            <GroupBox Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center" Margin="6 12 6 6" Header="XML-RPC API" Foreground="{DynamicResource NormalTextBoxBackgroundColorBrush}" Visibility="{Binding IsXmlRpc, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
+                                <StackPanel HorizontalAlignment="Left" Margin="12">
+
+                                    <Label Content="User ID" HorizontalAlignment="Left" Style="{DynamicResource DefaultLabelStyle}" Margin="0 0 0 3"></Label>
+
+                                    <TextBox HorizontalAlignment="Stretch" Width="200" Margin="0" Text="{Binding UserIdXmlRpc, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+
+
+                                    <Label Content="Password" HorizontalAlignment="Left" Style="{DynamicResource DefaultLabelStyle}" Margin="0 9 0 3"></Label>
+
+                                    <TextBox HorizontalAlignment="Stretch" Width="200" Margin="0 0 0 12" Text="{Binding PasswordXmlRpc, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+
+                                </StackPanel>
+                            </GroupBox>
+
+                        </Grid>
+
 
                     </Grid>
                 </TabItem>

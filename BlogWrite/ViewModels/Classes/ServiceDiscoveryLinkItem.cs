@@ -9,7 +9,7 @@ using BlogWrite.Common;
 
 namespace BlogWrite.ViewModels
 {
-    // For ServiceDiscoveryViewModel.
+    // For ServiceDiscovery AddViewModel.
 
     public abstract class ServiceDiscoveryLinkItem : ViewModelBase
     {
@@ -95,6 +95,7 @@ namespace BlogWrite.ViewModels
 
     }
 
+    // FeedLinkItem: extends ServiceDiscoveryLinkItem
     public class FeedLinkItem : ServiceDiscoveryLinkItem
     {
         public FeedLink FeedLinkData { get; set; }
@@ -118,23 +119,25 @@ namespace BlogWrite.ViewModels
         }
     }
 
+    // ServiceDocumentLinkItem: extends ServiceDiscoveryLinkItem
     public class ServiceDocumentLinkItem : ServiceDiscoveryLinkItem
     {
+        // TODO: Not really used?
         public bool IsSupported { get; set; }
 
         public SearviceDocumentLink SearviceDocumentLinkData { get; set; }
 
-        public ServiceDocumentLinkItem(SearviceDocumentLink sd)
+        public ServiceDocumentLinkItem(SearviceDocumentLink searviceDocumentLink)
         {
-            SearviceDocumentLinkData = sd;
+            SearviceDocumentLinkData = searviceDocumentLink;
 
-            if (sd is RsdLink)
+            if (searviceDocumentLink is RsdLink)
             {
-                Title = (sd as RsdLink).engineName;
+                Title = (searviceDocumentLink as RsdLink).EngineName;
 
-                foreach (var hoge in (sd as RsdLink).Apis)
+                foreach (var hoge in (searviceDocumentLink as RsdLink).Apis)
                 {
-                    if ((hoge.Name.ToLower() == "wordpress") && (hoge.Preferred))
+                    if ((hoge.Name.ToLower() == "wordpress") && hoge.Preferred)
                     {
                         TypeText = "XML-RPC (WP)";
                         IconPath = IconPathStrings["XML-RPC"];
@@ -146,7 +149,7 @@ namespace BlogWrite.ViewModels
                             IsSupported = true;
                         }
                     }
-                    else if ((hoge.Name.ToLower() == "movable type") && (hoge.Preferred))
+                    else if ((hoge.Name.ToLower() == "movable type") && hoge.Preferred)
                     {
                         TypeText = "XML-RPC (MT)";
                         IconPath = IconPathStrings["XML-RPC"];
@@ -159,6 +162,16 @@ namespace BlogWrite.ViewModels
                         }
                     }
                 }
+            }
+            else if (searviceDocumentLink is AppLink)
+            {
+                Title = (searviceDocumentLink as AppLink).NodeService.Name;
+
+                TypeText = "Atom Publishing Protocol";
+                IconPath = IconPathStrings["AtomPub"];
+
+                // TODO:
+                IsSupported = true;
             }
         }
     }

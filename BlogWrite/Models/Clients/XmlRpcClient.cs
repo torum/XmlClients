@@ -11,41 +11,42 @@ using System.Collections.ObjectModel;
 
 namespace BlogWrite.Models.Clients
 {
-    /// <summary>
-    /// XmlRpcClient 
-    /// Implements: 
-    ///   XML-RPC Movable Type API, MetaWeblog API, Blogger API 
-    /// Uses following methods:
-    ///  metaWeblog.getUsersBlogs
-    ///  metaWeblog.getRecentPosts
-    ///  metaWeblog.getPost
-    ///  metaWeblog.newPost
-    ///  metaWeblog.editPost
-    ///  metaWeblog.deletePost
-    ///  metaWeblog.getCategories
-    ///  metaWeblog.newMediaObject
-    ///  mt.getRecentPostTitles
-    ///  mt.supportedMethods
-    ///  mt.supportedTextFilters
-    ///  mt.publishPost
-    ///  mt.getCategoryList
-    ///  mt.getPostCategories
-    ///  mt.setPostCategories
-    /// </summary>
-    class XmlRpcMTClient : BlogClient
+    class XmlRpcClient : BlogClient
     {
-        public XmlRpcMTClient(string userName, string userPassword, Uri endpoint) : base(userName, userPassword, endpoint)
+        /// <summary>
+        /// XmlRpcClient 
+        /// Implements: 
+        ///   XML-RPC Movable Type API, MetaWeblog API, Blogger API 
+        /// Uses following methods:
+        ///  metaWeblog.getUsersBlogs
+        ///  metaWeblog.getRecentPosts
+        ///  metaWeblog.getPost
+        ///  metaWeblog.newPost
+        ///  metaWeblog.editPost
+        ///  metaWeblog.deletePost
+        ///  metaWeblog.getCategories
+        ///  metaWeblog.newMediaObject
+        ///  mt.getRecentPostTitles
+        ///  mt.supportedMethods
+        ///  mt.supportedTextFilters
+        ///  mt.publishPost
+        ///  mt.getCategoryList
+        ///  mt.getPostCategories
+        ///  mt.setPostCategories
+        /// </summary>
+        /// 
+        public XmlRpcClient(string userName, string userPassword, Uri endpoint) : base(userName, userPassword, endpoint)
         {
 
         }
 
         public override async Task<NodeService> GetAccount(string accountName)
         {
-            NodeService account = new NodeService(accountName, _userName, _userPassword, _endpoint, ApiTypes.atXMLRPC_MovableType, ServiceTypes.XmlRpc_MovableType);
+            NodeService account = new NodeService(accountName, _userName, _userPassword, _endpoint, ApiTypes.atXMLRPC_MovableType, ServiceTypes.XmlRpc);
 
-            NodeWorkspaces blogs = await GetBlogs();
+            List<NodeWorkspace> blogs = await GetBlogs();
 
-            foreach (var item in blogs.Children)
+            foreach (var item in blogs)
             {
                 item.Parent = account;
                 account.Children.Add(item);
@@ -56,9 +57,9 @@ namespace BlogWrite.Models.Clients
             return account;
         }
 
-        public override async Task<NodeWorkspaces> GetBlogs()
+        public override async Task<List<NodeWorkspace>> GetBlogs()
         {
-            NodeWorkspaces blogs = new NodeWorkspaces();
+            List<NodeWorkspace> blogs = new();
 
             XmlDocument xdoc = new XmlDocument();
             XmlDeclaration xdec = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
@@ -215,7 +216,6 @@ namespace BlogWrite.Models.Clients
                     if (memberList == null)
                         continue;
 
-                    NodeEntries entries = new NodeEntries();
                     //bool isAdmin = false;
                     //bool isPrimary = false;
                     Uri url = null;
@@ -296,9 +296,7 @@ namespace BlogWrite.Models.Clients
                             xmlrpc = _endpoint;
                         }
 
-                        NodeXmlRpcMTEntryCollection entry = new NodeXmlRpcMTEntryCollection(blogName, xmlrpc);
-
-                        // TODO: blogid, isAdmin, etc
+                        NodeXmlRpcEntryCollection col = new NodeXmlRpcEntryCollection(blogName, xmlrpc, blogid);
 
 
                         // Categories
@@ -306,7 +304,7 @@ namespace BlogWrite.Models.Clients
 
                         foreach (NodeCategory c in cats)
                         {
-                            entry.Children.Add(c);
+                            col.Children.Add(c);
                         }
 
                         //blogid, blogName are required. 
@@ -317,17 +315,15 @@ namespace BlogWrite.Models.Clients
 
                         //make sure compare them case insensitive.
 
-                        entry.Parent = blog;
-                        blog.Children.Add(entry);
+                        col.Parent = blog;
+                        blog.Children.Add(col);
 
                     }
 
                     blog.IsExpanded = true;
 
-                    blogs.Children.Add(blog);
+                    blogs.Add(blog);
                 }
-
-                //blogs.IsExpanded = true;
             }
             else
             {
@@ -1205,138 +1201,140 @@ name: wp_post_thumbnail - value:
 
         }
     }
-}
 
+    #region == Sample XML ==
 
-/*
-<?xml version="1.0" encoding="UTF-8"?>
-<methodResponse>
-  <params>
-    <param>
+    /*
+    <?xml version="1.0" encoding="UTF-8"?>
+    <methodResponse>
+      <params>
+        <param>
+          <value>
+
+            <array>
+              <data>
+
       <value>
+        <struct>
+          <member>
+            <name>dateCreated</name>
+            <value><dateTime.iso8601>20180406T05:17:44</dateTime.iso8601></value>
+          </member>
+          <member><name>userid</name><value><string>1</string></value></member>
+          <member><name>postid</name><value><string>50</string></value></member>
+          <member><name>description</name><value><string>hogehoge</string></value></member>
+          <member><name>title</name><value><string>test2</string></value></member>
+          <member><name>link</name><value><string>http://hoge.jp/en/blog/2018/04/06/test2/</string></value></member>
+          <member><name>permaLink</name><value><string>http://hoge.jp/en/blog/2018/04/06/test2/</string></value></member>
+          <member><name>categories</name>
+            <value>
+              <array>
+                <data>
+                  <value><string>Blogroll</string></value>
+                  <value><string>Uncategorized</string></value>
+                </data>
+              </array>
+            </value>
+          </member>
+          <member><name>mt_excerpt</name><value><string></string></value></member>
+          <member><name>mt_text_more</name><value><string></string></value></member>
+          <member><name>wp_more_text</name><value><string></string></value></member>
+          <member><name>mt_allow_comments</name><value><int>0</int></value></member>
+          <member><name>mt_allow_pings</name><value><int>1</int></value></member>
+          <member><name>mt_keywords</name><value><string></string></value></member>
+          <member><name>wp_slug</name><value><string>test2</string></value></member>
+          <member><name>wp_password</name><value><string></string></value></member>
+          <member><name>wp_author_id</name><value><string>1</string></value></member>
+          <member><name>wp_author_display_name</name><value><string>torum</string></value></member>
+          <member><name>date_created_gmt</name><value><dateTime.iso8601>20180406T05:17:44</dateTime.iso8601></value></member>
+          <member><name>post_status</name><value><string>publish</string></value></member>
+          <member><name>custom_fields</name>
+            <value>
+              <array>
+                <data>
+                  <value>
+                    <struct>
+                      <member><name>id</name><value><string>67</string></value></member>
+                      <member><name>key</name><value><string>_edit_last</string></value></member>
+                      <member><name>value</name><value><string>1</string></value></member>
+                    </struct>
+                  </value>
+                  <value>
+                    <struct>
+                      <member><name>id</name><value><string>66</string></value></member>
+                      <member><name>key</name><value><string>_edit_lock</string></value></member>
+                      <member><name>value</name><value><string>1522991724:1</string></value></member>
+                    </struct>
+                  </value>
+                </data>
+              </array>
+            </value>
+          </member>
+          <member><name>wp_post_format</name><value><string>standard</string></value></member>
+          <member><name>date_modified</name><value><dateTime.iso8601>20180406T05:17:44</dateTime.iso8601></value></member>
+          <member><name>date_modified_gmt</name><value><dateTime.iso8601>20180406T05:17:44</dateTime.iso8601></value></member>
+          <member><name>sticky</name><value><boolean>0</boolean></value></member>
+          <member><name>wp_post_thumbnail</name><value><string></string></value></member>
+        </struct>
+      </value>
 
-        <array>
-          <data>
-
-  <value>
-    <struct>
-      <member>
-        <name>dateCreated</name>
-        <value><dateTime.iso8601>20180406T05:17:44</dateTime.iso8601></value>
-      </member>
+      <value><struct>
+      <member><name>dateCreated</name><value><dateTime.iso8601>20180405T02:08:25</dateTime.iso8601></value></member>
       <member><name>userid</name><value><string>1</string></value></member>
-      <member><name>postid</name><value><string>50</string></value></member>
-      <member><name>description</name><value><string>hogehoge</string></value></member>
-      <member><name>title</name><value><string>test2</string></value></member>
-      <member><name>link</name><value><string>http://hoge.jp/en/blog/2018/04/06/test2/</string></value></member>
-      <member><name>permaLink</name><value><string>http://hoge.jp/en/blog/2018/04/06/test2/</string></value></member>
-      <member><name>categories</name>
-        <value>
-          <array>
-            <data>
-              <value><string>Blogroll</string></value>
-              <value><string>Uncategorized</string></value>
-            </data>
-          </array>
-        </value>
-      </member>
+      <member><name>postid</name><value><string>47</string></value></member>
+      <member><name>description</name><value><string>test body</string></value></member>
+      <member><name>title</name><value><string>This is a test</string></value></member>
+      <member><name>link</name><value><string>http://hoge.jp/en/blog/2018/04/05/this-is-a-test/</string></value></member>
+      <member><name>permaLink</name><value><string>http://hoge.jp/en/blog/2018/04/05/this-is-a-test/</string></value></member>
+      <member><name>categories</name><value><array><data>
+      <value><string>Software</string></value>
+      <value><string>testCat</string></value>
+    </data></array></value></member>
       <member><name>mt_excerpt</name><value><string></string></value></member>
       <member><name>mt_text_more</name><value><string></string></value></member>
       <member><name>wp_more_text</name><value><string></string></value></member>
       <member><name>mt_allow_comments</name><value><int>0</int></value></member>
       <member><name>mt_allow_pings</name><value><int>1</int></value></member>
       <member><name>mt_keywords</name><value><string></string></value></member>
-      <member><name>wp_slug</name><value><string>test2</string></value></member>
+      <member><name>wp_slug</name><value><string>this-is-a-test</string></value></member>
       <member><name>wp_password</name><value><string></string></value></member>
       <member><name>wp_author_id</name><value><string>1</string></value></member>
       <member><name>wp_author_display_name</name><value><string>torum</string></value></member>
-      <member><name>date_created_gmt</name><value><dateTime.iso8601>20180406T05:17:44</dateTime.iso8601></value></member>
+      <member><name>date_created_gmt</name><value><dateTime.iso8601>20180405T02:08:25</dateTime.iso8601></value></member>
       <member><name>post_status</name><value><string>publish</string></value></member>
-      <member><name>custom_fields</name>
-        <value>
-          <array>
-            <data>
-              <value>
-                <struct>
-                  <member><name>id</name><value><string>67</string></value></member>
-                  <member><name>key</name><value><string>_edit_last</string></value></member>
-                  <member><name>value</name><value><string>1</string></value></member>
-                </struct>
-              </value>
-              <value>
-                <struct>
-                  <member><name>id</name><value><string>66</string></value></member>
-                  <member><name>key</name><value><string>_edit_lock</string></value></member>
-                  <member><name>value</name><value><string>1522991724:1</string></value></member>
-                </struct>
-              </value>
-            </data>
-          </array>
-        </value>
-      </member>
+      <member><name>custom_fields</name><value><array><data>
+      <value><struct>
+      <member><name>id</name><value><string>62</string></value></member>
+      <member><name>key</name><value><string>_edit_last</string></value></member>
+      <member><name>value</name><value><string>1</string></value></member>
+    </struct></value>
+      <value><struct>
+      <member><name>id</name><value><string>63</string></value></member>
+      <member><name>key</name><value><string>_edit_lock</string></value></member>
+      <member><name>value</name><value><string>1522893995:1</string></value></member>
+    </struct></value>
+    </data></array></value></member>
       <member><name>wp_post_format</name><value><string>standard</string></value></member>
-      <member><name>date_modified</name><value><dateTime.iso8601>20180406T05:17:44</dateTime.iso8601></value></member>
-      <member><name>date_modified_gmt</name><value><dateTime.iso8601>20180406T05:17:44</dateTime.iso8601></value></member>
+      <member><name>date_modified</name><value><dateTime.iso8601>20180405T02:08:25</dateTime.iso8601></value></member>
+      <member><name>date_modified_gmt</name><value><dateTime.iso8601>20180405T02:08:25</dateTime.iso8601></value></member>
       <member><name>sticky</name><value><boolean>0</boolean></value></member>
       <member><name>wp_post_thumbnail</name><value><string></string></value></member>
-    </struct>
-  </value>
+    </struct></value>
 
-  <value><struct>
-  <member><name>dateCreated</name><value><dateTime.iso8601>20180405T02:08:25</dateTime.iso8601></value></member>
-  <member><name>userid</name><value><string>1</string></value></member>
-  <member><name>postid</name><value><string>47</string></value></member>
-  <member><name>description</name><value><string>test body</string></value></member>
-  <member><name>title</name><value><string>This is a test</string></value></member>
-  <member><name>link</name><value><string>http://hoge.jp/en/blog/2018/04/05/this-is-a-test/</string></value></member>
-  <member><name>permaLink</name><value><string>http://hoge.jp/en/blog/2018/04/05/this-is-a-test/</string></value></member>
-  <member><name>categories</name><value><array><data>
-  <value><string>Software</string></value>
-  <value><string>testCat</string></value>
-</data></array></value></member>
-  <member><name>mt_excerpt</name><value><string></string></value></member>
-  <member><name>mt_text_more</name><value><string></string></value></member>
-  <member><name>wp_more_text</name><value><string></string></value></member>
-  <member><name>mt_allow_comments</name><value><int>0</int></value></member>
-  <member><name>mt_allow_pings</name><value><int>1</int></value></member>
-  <member><name>mt_keywords</name><value><string></string></value></member>
-  <member><name>wp_slug</name><value><string>this-is-a-test</string></value></member>
-  <member><name>wp_password</name><value><string></string></value></member>
-  <member><name>wp_author_id</name><value><string>1</string></value></member>
-  <member><name>wp_author_display_name</name><value><string>torum</string></value></member>
-  <member><name>date_created_gmt</name><value><dateTime.iso8601>20180405T02:08:25</dateTime.iso8601></value></member>
-  <member><name>post_status</name><value><string>publish</string></value></member>
-  <member><name>custom_fields</name><value><array><data>
-  <value><struct>
-  <member><name>id</name><value><string>62</string></value></member>
-  <member><name>key</name><value><string>_edit_last</string></value></member>
-  <member><name>value</name><value><string>1</string></value></member>
-</struct></value>
-  <value><struct>
-  <member><name>id</name><value><string>63</string></value></member>
-  <member><name>key</name><value><string>_edit_lock</string></value></member>
-  <member><name>value</name><value><string>1522893995:1</string></value></member>
-</struct></value>
-</data></array></value></member>
-  <member><name>wp_post_format</name><value><string>standard</string></value></member>
-  <member><name>date_modified</name><value><dateTime.iso8601>20180405T02:08:25</dateTime.iso8601></value></member>
-  <member><name>date_modified_gmt</name><value><dateTime.iso8601>20180405T02:08:25</dateTime.iso8601></value></member>
-  <member><name>sticky</name><value><boolean>0</boolean></value></member>
-  <member><name>wp_post_thumbnail</name><value><string></string></value></member>
-</struct></value>
+              </data>
+            </array>
 
-          </data>
-        </array>
-
-      </value>
-    </param>
-  </params>
-</methodResponse>
+          </value>
+        </param>
+      </params>
+    </methodResponse>
 
 
-*/
+    */
 
+    #endregion
 
+}
 
 
 

@@ -26,14 +26,19 @@ namespace BlogWrite.ViewModels
 {
     /// TODO: 
     /// 
+    /// [Service Auto Discovery]
+    /// xmlrpc.php直叩きした時の判定。
+    /// 
+    /// [CRUD Services]
+    /// InfoWindowでService情報も見れるようにする。
+    /// ...
+    /// 
+    /// [Editor]
+    /// ...
     /// 
     /// [General]
     /// i18n
     /// App Icon / App name .... FeedDesk?
-    /// 
-    /// [Auto Discovery]
-    /// RsdLinkからの追加。
-    /// xmlrpc.php直叩きした時の判定。
     /// 
     /// [Feed Reader]
     /// Options (text configuration)
@@ -50,16 +55,10 @@ namespace BlogWrite.ViewModels
     /// [Settings window]
     /// 作る
     /// 
-    /// [AtomPub and XML-RPC]
-    /// RSD の解析
-    /// InfoWindowでService情報も見れるようにする。
-    /// ...
-    /// 
-    /// [Editor]
-    /// ...
-    ///  
 
     /// Change History：
+    /// v0.0.0.49 とりあえず、AtomPubのServiceDocumentとXML-RPCのRSDからの登録と保存・復帰。
+    /// v0.0.0.48 表示する文字数とかフォントファミリーを少し弄った。
     /// v0.0.0.47 全画面InAppBrowserの方で、今開いているページをデフォブラウザで開く、ようにした。
     /// v0.0.0.46 3PaneモードIn app browserでの閉じるボタンを辞めた。全画面InAppBrowserの方はデフォブラウザで開くを辞めた。非選択アイテムでは開けないから。
     /// v0.0.0.45 D&Dしたら、フォルダの未読数を計算し直し。更新中はD&D出来ないように。
@@ -115,7 +114,7 @@ namespace BlogWrite.ViewModels
         const string _appName = "BlogWrite";
 
         // Application version
-        const string _appVer = "0.0.0.46";
+        const string _appVer = "0.0.0.49";
         public string AppVer
         {
             get
@@ -1429,7 +1428,10 @@ li {
         public void AddFeed(FeedLink fl)
         {
             if (FeedDupeCheck(fl.FeedUri.AbsoluteUri))
+            {
+                Debug.WriteLine("FeedDupeCheck:" + fl.FeedUri.AbsoluteUri);
                 return;
+            }
 
             NodeFeed a = new(fl.Title, fl.FeedUri);
             a.IsSelected = true;
@@ -1445,6 +1447,8 @@ li {
             {
                 a.Parent = SelectedNode;
                 Application.Current.Dispatcher.Invoke(() => SelectedNode.Children.Add(a));
+                
+                SelectedNode.IsExpanded = true;
             }
             else
             {
@@ -1482,18 +1486,132 @@ li {
             return false;
         }
 
-        public void AddService(NodeService nodeService)
+        public void AddAtomPub(NodeService nodeService)
         {
-            nodeService.Parent = _services;
-            nodeService.IsExpanded = true;
-            nodeService.IsSelected = true;
-            nodeService.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
+            NodeService account = new NodeService(nodeService.Name, nodeService.UserName, nodeService.UserPassword, nodeService.EndPoint, ApiTypes.atAtomPub, ServiceTypes.AtomPub);
+
+            account.Parent = _services;
+            account.IsExpanded = true;
+            account.IsSelected = true;
+            account.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
 
             // Add Node to internal (virtual) Treeview.
             if (Application.Current == null) { return; }
-            Application.Current.Dispatcher.Invoke(() => Services.Add(nodeService));
+            Application.Current.Dispatcher.Invoke(() => Services.Add(account));
 
             SaveServiceXml();
+
+            if (account.Client is AtomPubClient)
+            {
+                UpdateService(account);
+            }
+        }
+
+        public void AddXmlRpc(RsdLink rsd, string userId, string userPassword)
+        {
+            Uri addr = null;
+            ApiTypes at = ApiTypes.atUnknown;
+
+            foreach (var hoge in rsd.Apis)
+            {
+                if ((hoge.Name.ToLower() == "wordpress") && hoge.Preferred)
+                {
+                    if (hoge.ApiLink != null)
+                    {
+                        addr = hoge.ApiLink;
+                    }
+
+                    at = ApiTypes.atXMLRPC_WordPress;
+
+                    break;
+                }
+                else if ((hoge.Name.ToLower() == "movable type") && hoge.Preferred)
+                {
+                    if (hoge.ApiLink != null)
+                    {
+                        addr = hoge.ApiLink;
+                    }
+
+                    at = ApiTypes.atXMLRPC_MovableType;
+
+                    break;
+                }
+            }
+
+            if ((at != ApiTypes.atUnknown) && (addr != null))
+            {
+                NodeService account = new NodeService(rsd.Title, userId, userPassword, addr, at, ServiceTypes.XmlRpc);
+
+                account.Parent = _services;
+                account.IsExpanded = true;
+                account.IsSelected = true;
+                account.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
+
+                // Add Node to internal (virtual) Treeview.
+                if (Application.Current == null) { return; }
+                Application.Current.Dispatcher.Invoke(() => Services.Add(account));
+
+                SaveServiceXml();
+
+                if (account.Client is XmlRpcClient)
+                {
+                    UpdateService(account);
+                }
+            }
+        }
+
+        private async void UpdateService(NodeService account)
+        {
+            if ((account.ServiceType == ServiceTypes.XmlRpc) && (account.Client is XmlRpcClient))
+            {
+                // TODO: tmp. 
+                account.Children.Clear();
+
+                List<NodeWorkspace> blogs = await (account.Client as XmlRpcClient).GetBlogs();
+
+                foreach (var b in blogs)
+                {
+                    if (b is NodeWorkspace)
+                    {
+                        foreach (var nec in b.Children)
+                        {
+                            if (nec is NodeXmlRpcEntryCollection)
+                            {
+                                account.Children.Add(nec);
+                                nec.Parent = account;
+                                nec.IsExpanded = true;
+                                nec.IsSelected = true;
+                            }
+                        }
+                    }
+                }
+            }
+            else if ((account.ServiceType == ServiceTypes.AtomPub) && (account.Client is AtomPubClient))
+            {
+                // TODO: tmp. 
+                account.Children.Clear();
+
+                List<NodeWorkspace> blogs = await (account.Client as AtomPubClient).GetBlogs();
+
+                foreach (var b in blogs)
+                {
+                    if (b is NodeWorkspace)
+                    {
+                        foreach (var nec in b.Children)
+                        {
+                            if (nec is NodeAtomPubEntryCollection)
+                            {
+                                account.Children.Add(nec);
+                                nec.Parent = account;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Debug.WriteLine("UpdateService: unknown type");
+            }
         }
 
         public async void DeleteNodeTree(NodeTree nt)
@@ -1640,6 +1758,13 @@ li {
                 else if (nt is NodeService)
                 {
                     // TODO:
+                    if (Application.Current == null) { return; }
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        nt.Parent.Children.Remove(nt);
+
+                        //IsBusy = false;
+                    });
                 }
                 else
                 {
@@ -2081,12 +2206,32 @@ li {
             }
             else if (nd is NodeEntryCollection)
             {
-                var bc = (nd as NodeEntryCollection).Client;
-                if (bc == null)
-                    return;
+                if ((nd as NodeEntryCollection).Parent is NodeService)
+                {
+                    NodeService ns = (nd as NodeEntryCollection).Parent as NodeService;
 
-                // TODO:
-                
+
+                    var bc = (nd as NodeEntryCollection).Client;
+                    if (bc == null)
+                        return;
+
+                    // TODO:
+
+                    HttpClientEntryItemCollectionResultWrapper resEntries = await bc.GetEntries((nd as NodeEntryCollection).Uri, ns.Id);
+
+
+                    if (Application.Current == null) { return; }
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        foreach (var asdf in resEntries.Entries)
+                        {
+                            Entries.Insert(0, asdf);
+                        }
+
+                        // sort
+                        Entries = new ObservableCollection<EntryItem>(Entries.OrderByDescending(n => n.Published));
+                    });
+                }
             }
         }
 
@@ -2752,11 +2897,7 @@ li {
 
             if (_selectedNode is NodeEntryCollection)
             {
-                //if ((_selectedNode as NodeEntryCollection).List.Count > 0)
-                //    (_selectedNode as NodeEntryCollection).List.Clear();
-
-                Task.Run(() => GetEntriesAsync((_selectedNode as NodeEntryCollection)));
-
+                Task.Run(() => GetEntriesAsync(_selectedNode));
             }
             else if (_selectedNode is NodeFeed)
             {
@@ -2769,7 +2910,7 @@ li {
             }
             else if (_selectedNode is NodeService)
             {
-                // TODO:
+                UpdateService(_selectedNode as NodeService);
             }
         }
 
@@ -2984,10 +3125,16 @@ li {
 
             EntryFull newEntry = null;
 
-            if (SelectedNode is NodeAtomPubCollection)
+            if (SelectedNode is NodeAtomPubEntryCollection)
             {
                 newEntry = new AtomEntry("", serviceId, (SelectedNode as NodeEntryCollection).Client);
             }
+            else if (SelectedNode is NodeXmlRpcEntryCollection)
+            {
+                // TODO: temp
+                newEntry = new MTEntry("", serviceId, (SelectedNode as NodeEntryCollection).Client);
+            }
+            /*
             else if (SelectedNode is NodeXmlRpcMTEntryCollection)
             {
                 newEntry = new MTEntry("", serviceId, (SelectedNode as NodeEntryCollection).Client);
@@ -2996,6 +3143,7 @@ li {
             {
                 newEntry = new WPEntry("", serviceId, (SelectedNode as NodeEntryCollection).Client);
             }
+            */
 
             if (newEntry == null)
                 return;
@@ -3387,6 +3535,5 @@ li {
         #endregion
 
         #endregion
-
     }
 }

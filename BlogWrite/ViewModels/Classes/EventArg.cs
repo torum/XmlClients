@@ -20,15 +20,23 @@ namespace BlogWrite.ViewModels
 
     }
 
-    // For registering feed from ServiceDiscoveryViewModel.
+    // For registering feed from ServiceDiscovery AddViewModel.
     public class RegisterFeedEventArgs : EventArgs
     {
         public FeedLink FeedLinkData { get; set; }
     }
 
-    // For registering Service from ServiceDiscoveryViewModel.
-    public class RegisterServiceEventArgs : EventArgs
+    // For registering Service from ServiceDiscovery AddViewModel.
+    public class RegisterAtomPubEventArgs : EventArgs
     {
         public NodeService NodeService { get; set; }
+    }
+
+    public class RegisterXmlRpcEventArgs : EventArgs
+    {
+        public string UserIdXmlRpc { get; set; }
+        public string PasswordXmlRpc { get; set; }
+        public RsdLink RsdLink { get; set; }
+
     }
 }

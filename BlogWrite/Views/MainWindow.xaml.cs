@@ -242,11 +242,12 @@ namespace BlogWrite.Views
         public void OnCreateServiceDiscoveryWindow(Window owner)
         {
             var win = new AddWindow();
-            win.DataContext = new ServiceDiscoveryViewModel();
+            win.DataContext = new AddViewModel();
 
-            var vm = (win.DataContext as ServiceDiscoveryViewModel);
+            var vm = (win.DataContext as AddViewModel);
             vm.RegisterFeed += (sender, arg) => OnRegisterFeed(arg);
-            vm.RegisterService += (sender, arg) => OnRegisterService(arg);
+            vm.RegisterAtomPub += (sender, arg) => OnRegisterAtomPub(arg);
+            vm.RegisterXmlRpc += (sender, arg) => OnRegisterXmlRpc(arg);
             vm.CloseAction = new Action(win.Close);
 
             win.Owner = this;//owner;
@@ -264,7 +265,7 @@ namespace BlogWrite.Views
             (this.DataContext as MainViewModel).AddFeed(arg.FeedLinkData);
         }
 
-        public void OnRegisterService(RegisterServiceEventArgs arg)
+        public void OnRegisterAtomPub(RegisterAtomPubEventArgs arg)
         {
             if (this.DataContext == null)
                 return;
@@ -272,7 +273,17 @@ namespace BlogWrite.Views
             if (this.DataContext is not MainViewModel)
                 return;
 
-            (this.DataContext as MainViewModel).AddService(arg.NodeService);
+            (this.DataContext as MainViewModel).AddAtomPub(arg.NodeService);
+        }
+        public void OnRegisterXmlRpc(RegisterXmlRpcEventArgs arg)
+        {
+            if (this.DataContext == null)
+                return;
+
+            if (this.DataContext is not MainViewModel)
+                return;
+
+            (this.DataContext as MainViewModel).AddXmlRpc(arg.RsdLink, arg.UserIdXmlRpc, arg.PasswordXmlRpc);
         }
 
         public async void OnWriteHtmlToContentPreviewBrowser(string arg)
@@ -587,7 +598,9 @@ namespace BlogWrite.Views
             {
                 if (targetItem is NodeFeed)
                 {
-                    if (((targetItem as NodeFeed).Status != NodeFeed.DownloadStatus.normal) || (targetItem as NodeFeed).Status != NodeFeed.DownloadStatus.error)
+                    if (((targetItem as NodeFeed).Status == NodeFeed.DownloadStatus.downloading) || 
+                        ((targetItem as NodeFeed).Status == NodeFeed.DownloadStatus.loading) ||
+                        ((targetItem as NodeFeed).Status == NodeFeed.DownloadStatus.saving))
                         return;
                 }
 

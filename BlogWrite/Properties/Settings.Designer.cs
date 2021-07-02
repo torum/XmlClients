@@ -25,18 +25,6 @@ namespace BlogWrite.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string DefaultProfileID {
-            get {
-                return ((string)(this["DefaultProfileID"]));
-            }
-            set {
-                this["DefaultProfileID"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
         public double MainWindow_Left {
             get {

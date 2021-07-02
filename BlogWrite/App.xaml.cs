@@ -54,7 +54,7 @@ namespace BlogWrite
                 this.Shutdown();
             }
 
-            // テスト用
+            // For testing.
             //ChangeTheme("DefaultTheme");
             //ChangeTheme("LightTheme");
 

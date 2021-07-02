@@ -53,22 +53,15 @@ namespace BlogWrite.Models
                             case "AtomPub":
                                 stp = ServiceTypes.AtomPub;
                                 break;
-                            case "AtomPub_Hatena":
-                                stp = ServiceTypes.AtomPub_Hatena;
-                                break;
                             case "Feed":
                                 stp = ServiceTypes.Feed;
                                 break;
                             case "XML-RPC":
                                 stp = ServiceTypes.XmlRpc;
                                 break;
-                            case "XML-RPC_MovableType":
-                                stp = ServiceTypes.XmlRpc_MovableType;
+                            case "AtomAPI":
+                                stp = ServiceTypes.AtomApi;
                                 break;
-                            case "XML-RPC_WordPress":
-                                stp = ServiceTypes.XmlRpc_WordPress;
-                                break;
-                            // other
                             default:
                                 stp = ServiceTypes.Unknown;
                                 break;
@@ -89,18 +82,15 @@ namespace BlogWrite.Models
                             case "Feed":
                                 at = ApiTypes.atFeed;
                                 break;
-                            //case "XML-RPC":
-                            //    at = ApiTypes.atXMLRPC_MovableType;
-                            //    break;
                             case "XML-RPC_MovableType":
                                 at = ApiTypes.atXMLRPC_MovableType;
                                 break;
                             case "XML-RPC_WordPress":
                                 at = ApiTypes.atXMLRPC_WordPress;
                                 break;
-                            //case "AtomAPI":
-                            //    at = ApiTypes.atAtomAPI;
-                            //    break;
+                            case "AtomAPI":
+                                at = ApiTypes.atAtomApi;
+                                break;
                             default:
                                 at = ApiTypes.atUnknown;
                                 break;
@@ -139,120 +129,130 @@ namespace BlogWrite.Models
 
                             account.ViewType = vt;
 
-                            XmlNodeList workspaceList = s.SelectNodes("Workspaces");
-                            foreach (XmlNode w in workspaceList)
+
+                            XmlNodeList collectionList = s.SelectNodes("Collection");
+                            foreach (XmlNode c in collectionList)
                             {
-                                var workspaceName = w.Attributes["Name"].Value;
-                                var selectedw = string.IsNullOrEmpty(w.Attributes["Selected"].Value) ? "" : w.Attributes["Selected"].Value;
-                                var expandedw = string.IsNullOrEmpty(w.Attributes["Expanded"].Value) ? "" : w.Attributes["Expanded"].Value;
-                                bool isSelectedw = (selectedw == "true") ? true : false;
-                                bool isExpandedw = (expandedw == "true") ? true : false;
+                                var collectionName = c.Attributes["Name"].Value;
+                                var selectedc = string.IsNullOrEmpty(c.Attributes["Selected"].Value) ? "" : c.Attributes["Selected"].Value;
+                                var expandedc = string.IsNullOrEmpty(c.Attributes["Expanded"].Value) ? "" : c.Attributes["Expanded"].Value;
+                                bool isSelectedc = (selectedc == "true") ? true : false;
+                                bool isExpandedc = (expandedc == "true") ? true : false;
 
-                                if (!string.IsNullOrEmpty(workspaceName))
+                                string collectionHref = (c.Attributes["Href"] != null) ? c.Attributes["Href"].Value : "";
+
+                                string collectionId = (c.Attributes["Id"] != null) ? c.Attributes["Id"].Value : "";
+
+                                if ((!string.IsNullOrEmpty(collectionName)) && (!string.IsNullOrEmpty(collectionHref)))
                                 {
+                                    NodeEntryCollection entries = null;
 
-                                    NodeWorkspace blog = new NodeWorkspace(workspaceName);
-                                    blog.IsSelected = isSelectedw;
-                                    blog.IsExpanded = isExpandedw;
-                                    blog.Parent = account;
-
-                                    XmlNodeList collectionList = w.SelectNodes("Collection");
-                                    foreach (XmlNode c in collectionList)
+                                    // TODO:
+                                    switch (account.Api)
                                     {
-                                        var collectionName = c.Attributes["Name"].Value;
-                                        var selectedc = string.IsNullOrEmpty(c.Attributes["Selected"].Value) ? "" : c.Attributes["Selected"].Value;
-                                        var expandedc = string.IsNullOrEmpty(c.Attributes["Expanded"].Value) ? "" : c.Attributes["Expanded"].Value;
-                                        bool isSelectedc = (selectedc == "true") ? true : false;
-                                        bool isExpandedc = (expandedc == "true") ? true : false;
+                                        case ApiTypes.atAtomPub:
+                                            entries = new NodeAtomPubEntryCollection(collectionName, new Uri(collectionHref), collectionId);
+                                            break;
+                                        case ApiTypes.atXMLRPC_MovableType:
+                                            entries = new NodeXmlRpcEntryCollection(collectionName, new Uri(collectionHref), collectionId);
+                                            break;
+                                        case ApiTypes.atXMLRPC_WordPress:
+                                            entries = new NodeXmlRpcEntryCollection(collectionName, new Uri(collectionHref), collectionId);
+                                            break;
+                                            //case ApiTypes.atAtomAPI:
+                                            //    break;
+                                    }
 
-                                        string collectionHref = (c.Attributes["Href"] != null) ? c.Attributes["Href"].Value : "";
+                                    if (entries == null)
+                                        continue;
 
-                                        if ((!string.IsNullOrEmpty(collectionName)) && (!string.IsNullOrEmpty(collectionHref)))
+                                    if (entries is NodeAtomPubEntryCollection)
+                                    {
+                                        if (c.Attributes["CategoriesUri"] != null)
                                         {
-                                            NodeEntryCollection entry = null;
+                                            var catsUrl = c.Attributes["CategoriesUri"].Value;
+                                            if (!string.IsNullOrEmpty(catsUrl))
+                                            {
+                                                try
+                                                {
+                                                    Uri catsUri = new(catsUrl);
+                                                    (entries as NodeAtomPubEntryCollection).CategoriesUri = catsUri;
+                                                }
+                                                catch { }
+                                            }
+                                        }
 
-                                            switch ((blog.Parent as NodeService).Api)
+                                        var catFixed = c.Attributes["IsCategoryFixed"].Value;
+                                        if (!string.IsNullOrEmpty(catFixed))
+                                        {
+                                            if (catFixed == "true")
+                                            {
+                                                (entries as NodeAtomPubEntryCollection).IsCategoryFixed = true;
+                                            }
+                                        }
+
+                                        XmlNodeList acceptList = c.SelectNodes("Accept");
+                                        foreach (XmlNode act in acceptList)
+                                        {
+                                            (entries as NodeAtomPubEntryCollection).AcceptTypes.Add(act.InnerText);
+                                        }
+                                    }
+
+                                    XmlNodeList categoryList = c.SelectNodes("Category");
+                                    foreach (XmlNode t in categoryList)
+                                    {
+                                        var categoryName = t.Attributes["Name"].Value;
+                                        var selectedt = string.IsNullOrEmpty(t.Attributes["Selected"].Value) ? "" : t.Attributes["Selected"].Value;
+                                        var expandedt = string.IsNullOrEmpty(t.Attributes["Expanded"].Value) ? "" : t.Attributes["Expanded"].Value;
+                                        bool isSelectedt = (selectedc == "true") ? true : false;
+                                        bool isExpandedt = (expandedc == "true") ? true : false;
+
+                                        if (!string.IsNullOrEmpty(categoryName))
+                                        {
+
+                                            NodeCategory category = null;
+
+                                            switch (account.Api)
                                             {
                                                 case ApiTypes.atAtomPub:
-                                                    entry = new NodeAtomPubCollection(collectionName, new Uri(collectionHref));
+                                                    category = new NodeAtomPubCategory(categoryName);
                                                     break;
-                                                //case ApiTypes.atXMLRPC:
-                                                //    break;
                                                 case ApiTypes.atXMLRPC_MovableType:
-                                                    entry = new NodeXmlRpcMTEntryCollection(collectionName, new Uri(collectionHref));
+                                                    category = new NodeXmlRpcMTCategory(categoryName);
                                                     break;
                                                 case ApiTypes.atXMLRPC_WordPress:
-                                                    entry = new NodeXmlRpcWPEntryCollection(collectionName, new Uri(collectionHref));
+                                                    category = new NodeXmlRpcWPCategory(categoryName);
                                                     break;
                                                     //case ApiTypes.atAtomAPI:
                                                     //    break;
                                             }
 
-                                            if (entry == null)
-                                                continue;
+                                            if (category == null)
+                                                return;
 
-                                            //TODO:
-                                            //AcceptTypeps, CategoriesUri 
-
-
-                                            entry.IsSelected = isSelectedc;
-                                            entry.IsExpanded = isExpandedc;
-                                            entry.Parent = blog;
-
-
-                                            XmlNodeList categoryList = c.SelectNodes("Category");
-                                            foreach (XmlNode t in categoryList)
+                                            if (category is NodeAtomPubCategory)
                                             {
-                                                var categoryName = t.Attributes["Name"].Value;
-                                                var selectedt = string.IsNullOrEmpty(t.Attributes["Selected"].Value) ? "" : t.Attributes["Selected"].Value;
-                                                var expandedt = string.IsNullOrEmpty(t.Attributes["Expanded"].Value) ? "" : t.Attributes["Expanded"].Value;
-                                                bool isSelectedt = (selectedc == "true") ? true : false;
-                                                bool isExpandedt = (expandedc == "true") ? true : false;
+                                                (category as NodeAtomPubCategory).Term = categoryName;
 
-                                                if (!string.IsNullOrEmpty(categoryName))
-                                                {
-
-                                                    NodeCategory category = null;
-
-                                                    switch ((blog.Parent as NodeService).Api)
-                                                    {
-                                                        case ApiTypes.atAtomPub:
-                                                            category = new NodeAtomPubCategory(categoryName);
-                                                            break;
-                                                        //case ApiTypes.atXMLRPC:
-                                                        //    break;
-                                                        case ApiTypes.atXMLRPC_MovableType:
-                                                            category = new NodeXmlRpcMTCategory(categoryName);
-                                                            break;
-                                                        case ApiTypes.atXMLRPC_WordPress:
-                                                            category = new NodeXmlRpcWPCategory(categoryName);
-                                                            break;
-                                                            //case ApiTypes.atAtomAPI:
-                                                            //    break;
-                                                    }
-
-                                                    if (category == null)
-                                                        return;
-
-                                                    //
-
-
-                                                    category.IsSelected = isSelectedc;
-                                                    category.IsExpanded = isExpandedc;
-                                                    category.Parent = entry;
-
-                                                    entry.Children.Add(category);
-                                                }
+                                                var categoryScheme = t.Attributes["Scheme"].Value;
+                                                (category as NodeAtomPubCategory).Scheme = categoryScheme;
                                             }
 
-                                            blog.Children.Add(entry);
-                                        }
 
+                                            category.IsSelected = isSelectedc;
+                                            category.IsExpanded = isExpandedc;
+                                            category.Parent = entries;
+
+                                            entries.Children.Add(category);
+                                        }
                                     }
 
-                                    account.Children.Add(blog);
-                                }
+                                    entries.IsSelected = isSelectedc;
+                                    entries.IsExpanded = isExpandedc;
+                                    entries.Parent = account;
 
+                                    account.Children.Add(entries);
+                                }
                             }
 
                             this.Children.Add(account);
@@ -514,10 +514,6 @@ namespace BlogWrite.Models
                                 atstp.Value = "AtomPub";
                                 service.SetAttributeNode(atstp);
                                 break;
-                            case ServiceTypes.AtomPub_Hatena:
-                                atstp.Value = "AtomPub_Hatena";
-                                service.SetAttributeNode(atstp);
-                                break;
                             case ServiceTypes.Feed:
                                 atstp.Value = "Feed";
                                 service.SetAttributeNode(atstp);
@@ -526,15 +522,10 @@ namespace BlogWrite.Models
                                 atstp.Value = "XML-RPC";
                                 service.SetAttributeNode(atstp);
                                 break;
-                            case ServiceTypes.XmlRpc_MovableType:
-                                atstp.Value = "XML-RPC_MovableType";
+                            case ServiceTypes.AtomApi:
+                                atstp.Value = "AtomAPI";
                                 service.SetAttributeNode(atstp);
                                 break;
-                            case ServiceTypes.XmlRpc_WordPress:
-                                atstp.Value = "XML-RPC_WordPress";
-                                service.SetAttributeNode(atstp);
-                                break;
-                            // other...
                             case ServiceTypes.Unknown:
                                 atstp.Value = "Unknown";
                                 service.SetAttributeNode(atstp);
@@ -553,10 +544,6 @@ namespace BlogWrite.Models
                                 atapi.Value = "Feed";
                                 service.SetAttributeNode(atapi);
                                 break;
-                            //case ApiTypes.atXMLRPC:
-                            //    atapi.Value = "XML-RPC";
-                            //    service.SetAttributeNode(atapi);
-                            //    break;
                             case ApiTypes.atXMLRPC_MovableType:
                                 atapi.Value = "XML-RPC_MovableType";
                                 service.SetAttributeNode(atapi);
@@ -565,118 +552,117 @@ namespace BlogWrite.Models
                                 atapi.Value = "XML-RPC_WordPress";
                                 service.SetAttributeNode(atapi);
                                 break;
+                            case ApiTypes.atAtomApi:
+                                atapi.Value = "AtomAPI";
+                                service.SetAttributeNode(atapi);
+                                break;
                             case ApiTypes.atUnknown:
                                 atapi.Value = "Unknown";
                                 service.SetAttributeNode(atapi);
                                 break;
-                                //case ApiTypes.atAtomAPI:
-                                //    atapi.Value = "AtomAPI";
-                                //    service.SetAttributeNode(atapi);
-                                //    break;
                         }
 
                         root.AppendChild(service);
 
-                        foreach (var w in s.Children)
+
+                        foreach (var c in s.Children)
                         {
-                            if (!(w is NodeWorkspace)) continue;
+                            if (!(c is NodeEntryCollection)) continue;
 
-                            XmlElement workspace = doc.CreateElement(string.Empty, "Workspaces", string.Empty);
+                            XmlElement collection = doc.CreateElement(string.Empty, "Collection", string.Empty);
 
-                            XmlAttribute attrw = doc.CreateAttribute("Name");
-                            attrw.Value = (w).Name;
-                            workspace.SetAttributeNode(attrw);
+                            XmlAttribute attrc = doc.CreateAttribute("Name");
+                            attrc.Value = c.Name;
+                            collection.SetAttributeNode(attrc);
 
-                            XmlAttribute attwd = doc.CreateAttribute("Expanded");
-                            attwd.Value = (w).IsExpanded ? "true" : "false";
-                            workspace.SetAttributeNode(attwd);
+                            XmlAttribute attrcd = doc.CreateAttribute("Expanded");
+                            attrcd.Value = c.IsExpanded ? "true" : "false";
+                            collection.SetAttributeNode(attrcd);
 
-                            XmlAttribute attwp = doc.CreateAttribute("Selected");
-                            attwp.Value = (w).IsSelected ? "true" : "false";
-                            workspace.SetAttributeNode(attwp);
+                            XmlAttribute attrcs = doc.CreateAttribute("Selected");
+                            attrcs.Value = c.IsSelected ? "true" : "false";
+                            collection.SetAttributeNode(attrcs);
 
-                            service.AppendChild(workspace);
+                            XmlAttribute attrch = doc.CreateAttribute("Href");
+                            attrch.Value = ((NodeEntryCollection)c).Uri.AbsoluteUri;
+                            collection.SetAttributeNode(attrch);
 
-                            foreach (var c in w.Children)
+                            XmlAttribute attrid = doc.CreateAttribute("Id");
+                            attrid.Value = (c as NodeEntryCollection).Id;
+                            collection.SetAttributeNode(attrid);
+
+                            service.AppendChild(collection);
+
+                            if (c is NodeAtomPubEntryCollection)
                             {
-                                if (!(c is NodeEntryCollection)) continue;
-
-                                XmlElement collection = doc.CreateElement(string.Empty, "Collection", string.Empty);
-
-                                XmlAttribute attrc = doc.CreateAttribute("Name");
-                                attrc.Value = (c).Name;
-                                collection.SetAttributeNode(attrc);
-
-                                XmlAttribute attrcd = doc.CreateAttribute("Expanded");
-                                attrcd.Value = (c).IsExpanded ? "true" : "false";
-                                collection.SetAttributeNode(attrcd);
-
-                                XmlAttribute attrcs = doc.CreateAttribute("Selected");
-                                attrcs.Value = (c).IsSelected ? "true" : "false";
-                                collection.SetAttributeNode(attrcs);
-
-                                XmlAttribute attrch = doc.CreateAttribute("Href");
-                                attrch.Value = ((NodeEntryCollection)c).Uri.AbsoluteUri;
-                                collection.SetAttributeNode(attrch);
-
-
-                                workspace.AppendChild(collection);
-
-                                if (c is NodeAtomPubCollection)
+                                foreach (var a in (c as NodeAtomPubEntryCollection).AcceptTypes)
                                 {
-                                    foreach (var a in (c as NodeAtomPubCollection).AcceptTypes)
-                                    {
-                                        XmlElement acceptType = doc.CreateElement(string.Empty, "Accept", string.Empty);
-                                        XmlText xt = doc.CreateTextNode(a);
-                                        acceptType.AppendChild(xt);
+                                    XmlElement acceptType = doc.CreateElement(string.Empty, "Accept", string.Empty);
+                                    XmlText xt = doc.CreateTextNode(a);
+                                    acceptType.AppendChild(xt);
 
-                                        collection.AppendChild(acceptType);
-                                    }
+                                    collection.AppendChild(acceptType);
                                 }
 
-                                foreach (var t in (c as NodeEntryCollection).Children)
+                                if ((c as NodeAtomPubEntryCollection).CategoriesUri != null)
                                 {
-                                    if (!(t is NodeCategory)) continue;
+                                    XmlAttribute attrcaturi = doc.CreateAttribute("CategoriesUri");
+                                    attrcaturi.Value = (c as NodeAtomPubEntryCollection).CategoriesUri.AbsoluteUri;
+                                    collection.SetAttributeNode(attrcaturi);
+                                }
 
-                                    XmlElement category = doc.CreateElement(string.Empty, "Category", string.Empty);
+                                XmlAttribute attrcatfixed = doc.CreateAttribute("IsCategoryFixed");
+                                attrcatfixed.Value = (c as NodeAtomPubEntryCollection).IsCategoryFixed ? "true" : "false";
+                                collection.SetAttributeNode(attrcatfixed);
+                            }
 
-                                    XmlAttribute attrt = doc.CreateAttribute("Name");
-                                    attrt.Value = (t).Name;
-                                    category.SetAttributeNode(attrt);
+                            foreach (var t in (c as NodeEntryCollection).Children)
+                            {
+                                if (!(t is NodeCategory)) continue;
 
-                                    XmlAttribute attrtd = doc.CreateAttribute("Expanded");
-                                    attrtd.Value = (t).IsExpanded ? "true" : "false";
-                                    category.SetAttributeNode(attrtd);
+                                XmlElement category = doc.CreateElement(string.Empty, "Category", string.Empty);
 
-                                    XmlAttribute attrts = doc.CreateAttribute("Selected");
-                                    attrts.Value = (t).IsSelected ? "true" : "false";
-                                    category.SetAttributeNode(attrts);
+                                XmlAttribute attrt = doc.CreateAttribute("Name");
+                                attrt.Value = (t).Name;
+                                category.SetAttributeNode(attrt);
 
-                                    collection.AppendChild(category);
+                                XmlAttribute attrtd = doc.CreateAttribute("Expanded");
+                                attrtd.Value = (t).IsExpanded ? "true" : "false";
+                                category.SetAttributeNode(attrtd);
 
-                                    if (t is NodeAtomPubCategory)
-                                    {
-                                        //
-                                        //XmlAttribute attrtt = doc.CreateAttribute("Term");
-                                        //attrtt.Value = ((NodeCategory)t).Term;
-                                        //category.SetAttributeNode(attrtt);
-                                    }
-                                    else if (t is NodeXmlRpcMTCategory)
-                                    {
-                                        //
+                                XmlAttribute attrts = doc.CreateAttribute("Selected");
+                                attrts.Value = (t).IsSelected ? "true" : "false";
+                                category.SetAttributeNode(attrts);
 
-                                    }
-                                    else if (t is NodeXmlRpcWPCategory)
-                                    {
-                                        //
+                                collection.AppendChild(category);
 
-                                    }
+                                if (t is NodeAtomPubCategory)
+                                {
+                                    //
+                                    //XmlAttribute attrtt = doc.CreateAttribute("Term");
+                                    //attrtt.Value = ((NodeCategory)t).Term;
+                                    //category.SetAttributeNode(attrtt);
 
+                                    //
+                                    XmlAttribute attrschme = doc.CreateAttribute("Scheme");
+                                    attrschme.Value = (t as NodeAtomPubCategory).Scheme;
+                                    category.SetAttributeNode(attrschme);
+                                }
+                                else if (t is NodeXmlRpcMTCategory)
+                                {
+                                    //
+
+                                }
+                                else if (t is NodeXmlRpcWPCategory)
+                                {
+                                    //
 
                                 }
 
 
                             }
+
+
                         }
                     }
                 }

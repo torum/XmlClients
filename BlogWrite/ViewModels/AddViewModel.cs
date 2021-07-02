@@ -13,7 +13,7 @@ using System.Security.Cryptography;
 
 namespace BlogWrite.ViewModels
 {
-    public class ServiceDiscoveryViewModel : ViewModelBase
+    public class AddViewModel : ViewModelBase
     {
         private ServiceDiscovery _serviceDiscovery;
 
@@ -135,39 +135,39 @@ namespace BlogWrite.ViewModels
             }
         }
 
-        private string _userId = "";
-        public string UserId
+        private string _userIdAtomPub = "";
+        public string UserIdAtomPub
         {
             get
             {
-                return _userId;
+                return _userIdAtomPub;
             }
             set
             {
-                if (_userId == value)
+                if (_userIdAtomPub == value)
                     return;
 
-                _userId = value;
+                _userIdAtomPub = value;
 
-                NotifyPropertyChanged(nameof(UserId));
+                NotifyPropertyChanged(nameof(UserIdAtomPub));
             }
         }
 
-        private string _apiKey = "";
-        public string ApiKey
+        private string _apiKeyAtomPub = "";
+        public string ApiKeyAtomPub
         {
             get
             {
-                return _apiKey;
+                return _apiKeyAtomPub;
             }
             set
             {
-                if (_apiKey == value)
+                if (_apiKeyAtomPub == value)
                     return;
 
-                _apiKey = value;
+                _apiKeyAtomPub = value;
 
-                NotifyPropertyChanged(nameof(ApiKey));
+                NotifyPropertyChanged(nameof(ApiKeyAtomPub));
             }
         }
 
@@ -184,6 +184,96 @@ namespace BlogWrite.ViewModels
 
                 _authType = value;
                 this.NotifyPropertyChanged("AuthType");
+            }
+        }
+
+        private string _selectedItemType;
+        public string SelectedItemType
+        {
+            get
+            {
+                return _selectedItemType;
+            }
+            private set
+            {
+                if (_selectedItemType == value)
+                    return;
+
+                _selectedItemType = value;
+
+                NotifyPropertyChanged(nameof(SelectedItemType));
+            }
+        }
+
+        private string _selectedItemTitleLabel;
+        public string SelectedItemTitleLabel
+        {
+            get
+            {
+                return _selectedItemTitleLabel;
+            }
+            set
+            {
+                if (_selectedItemTitleLabel == value)
+                    return;
+
+                _selectedItemTitleLabel = value;
+
+                NotifyPropertyChanged(nameof(SelectedItemTitleLabel));
+            }
+        }
+
+        private bool _isXmlRpc;
+        public bool IsXmlRpc
+        {
+            get
+            {
+                return _isXmlRpc;
+            }
+            set
+            {
+                if (_isXmlRpc == value)
+                    return;
+
+                _isXmlRpc = value;
+
+                NotifyPropertyChanged(nameof(IsXmlRpc));
+            }
+        }
+
+        private string _UserIdXmlRpc = "";
+        public string UserIdXmlRpc
+        {
+            get
+            {
+                return _UserIdXmlRpc;
+            }
+            set
+            {
+                if (_UserIdXmlRpc == value)
+                    return;
+
+                _UserIdXmlRpc = value;
+
+                NotifyPropertyChanged(nameof(_UserIdXmlRpc));
+            }
+        }
+
+        private string _passwordXmlRpc = "";
+        public string PasswordXmlRpc
+        {
+            get
+            {
+                return _passwordXmlRpc;
+            }
+            set
+            {
+                if (_passwordXmlRpc == value)
+                    return;
+
+                _passwordXmlRpc = value;
+
+                NotifyPropertyChanged(nameof(PasswordXmlRpc));
             }
         }
 
@@ -283,25 +373,30 @@ namespace BlogWrite.ViewModels
 
         public event EventHandler<RegisterFeedEventArgs> RegisterFeed;
 
-        public event EventHandler<RegisterServiceEventArgs> RegisterService;
+        public event EventHandler<RegisterAtomPubEventArgs> RegisterAtomPub;
+
+        public event EventHandler<RegisterXmlRpcEventArgs> RegisterXmlRpc;
 
         public Action CloseAction { get; set; }
 
         #endregion
 
-        public ServiceDiscoveryViewModel()
+        public AddViewModel()
         {
             _serviceDiscovery = new ServiceDiscovery();
 
             #region == Command init ==
 
             CheckEndpointCommand = new RelayCommand(CheckEndpointCommand_Execute, CheckEndpointCommand_CanExecute);
+
             CheckEndpointWithAuthCommand = new RelayCommand(CheckEndpointWithAuthCommand_Execute, CheckEndpointWithAuthCommand_CanExecute);
 
             GoBackTo1Command = new RelayCommand(GoBackTo1Command_Execute, GoBackTo1Command_CanExecute);
 
             AddSelectedAndCloseCommand = new RelayCommand(AddSelectedAndCloseCommand_Execute, AddSelectedAndCloseCommand_CanExecute);
 
+            AddSelectedNextCommand = new RelayCommand(AddSelectedNextCommand_Execute, AddSelectedNextCommand_CanExecute);
+            
             #endregion
 
             #region == Event subscription ==
@@ -566,15 +661,16 @@ namespace BlogWrite.ViewModels
 
         public bool CheckEndpointWithAuthCommand_CanExecute()
         {
-            if (string.IsNullOrEmpty(UserId))
+            if (string.IsNullOrEmpty(UserIdAtomPub))
                 return false;
 
-            if (string.IsNullOrEmpty(ApiKey))
+            if (string.IsNullOrEmpty(ApiKeyAtomPub))
                 return false;
 
             return true;
         }
 
+        // TODO
         public async void CheckEndpointWithAuthCommand_Execute()
         {
             Uri uri;
@@ -591,7 +687,7 @@ namespace BlogWrite.ViewModels
 
             try
             {
-                ServiceResultBase sr = await _serviceDiscovery.DiscoverServiceWithAuth(uri, UserId, ApiKey, AuthType);
+                ServiceResultBase sr = await _serviceDiscovery.DiscoverServiceWithAuth(uri, UserIdAtomPub, ApiKeyAtomPub, AuthType);
 
                 if (sr == null)
                     return;
@@ -625,23 +721,38 @@ namespace BlogWrite.ViewModels
 
                 if (sr is ServiceResultAtomPub)
                 {
-                    // Add Service button page.
-                    //GoToServiceFoundPage();
+                    // TODO: Add Service button page.
 
-                    RegisterServiceEventArgs arg = new();
+                    AppLink al = new AppLink();
+                    al.NodeService = (sr as ServiceResultAtomPub).AtomService;
+
+                    ServiceDocumentLinkItem sdli = new(al);
+
+                    SelectedLinkItem = sdli;
+
+                    SelectedItemTitleLabel = sdli.Title;
+
+                    SelectedItemType = sdli.TypeText;
+
+                    IsXmlRpc = false;
+
+                    GoToServiceFoundPage();
+
+                    /*
+                    RegisterAtomPubEventArgs arg = new();
                     arg.NodeService = (sr as ServiceResultAtomPub).AtomService;
 
-                    RegisterService?.Invoke(this, arg);
+                    RegisterAtomPub?.Invoke(this, arg);
 
                     if (CloseAction != null)
                         CloseAction();
+                    */
                 }
             }
             finally
             {
                 IsBusy = false;
             }
-
         }
 
         public ICommand GoBackTo1Command { get; }
@@ -659,7 +770,49 @@ namespace BlogWrite.ViewModels
             IsShowError = false;
             IsShowLog = false;
 
-            SelectedTabIndex = 0;
+            GoToFirstPage();
+        }
+
+        public ICommand AddSelectedNextCommand { get; }
+
+        public bool AddSelectedNextCommand_CanExecute()
+        {
+            if (SelectedLinkItem == null)
+                return false;
+            else
+                return true;
+        }
+
+        public void AddSelectedNextCommand_Execute()
+        {
+            if (SelectedLinkItem == null)
+                return;
+
+            if (SelectedLinkItem is FeedLinkItem)
+            {
+                SelectedItemTitleLabel = (SelectedLinkItem as FeedLinkItem).Title;
+
+                SelectedItemType = (SelectedLinkItem as FeedLinkItem).TypeText;
+
+                IsXmlRpc = false;
+            }
+            else if (SelectedLinkItem is ServiceDocumentLinkItem)
+            {
+                SelectedItemTitleLabel = (SelectedLinkItem as ServiceDocumentLinkItem).Title;
+
+                SelectedItemType = (SelectedLinkItem as ServiceDocumentLinkItem).TypeText;
+
+                if ((SelectedLinkItem as ServiceDocumentLinkItem).SearviceDocumentLinkData is RsdLink)
+                {
+                    IsXmlRpc = true;
+                }
+                else if ((SelectedLinkItem as ServiceDocumentLinkItem).SearviceDocumentLinkData is AppLink)
+                {
+                    IsXmlRpc = false;
+                }
+            }
+
+            GoToServiceFoundPage();
         }
 
         public ICommand AddSelectedAndCloseCommand { get; }
@@ -668,8 +821,17 @@ namespace BlogWrite.ViewModels
         {
             if (SelectedLinkItem == null)
                 return false;
-            else
-                return true;
+
+            if (IsXmlRpc)
+            {
+                if (string.IsNullOrEmpty(UserIdXmlRpc))
+                    return false;
+
+                if (string.IsNullOrEmpty(PasswordXmlRpc))
+                    return false;
+            }
+
+            return true;
         }
 
         public void AddSelectedAndCloseCommand_Execute()
@@ -677,8 +839,20 @@ namespace BlogWrite.ViewModels
             if (SelectedLinkItem == null)
                 return;
 
+            if (IsXmlRpc)
+            {
+                if (string.IsNullOrEmpty(UserIdXmlRpc))
+                    return;
+
+                if (string.IsNullOrEmpty(PasswordXmlRpc))
+                    return;
+            }
+
             if (SelectedLinkItem is FeedLinkItem)
             {
+                if (!string.IsNullOrEmpty(SelectedItemTitleLabel))
+                    (SelectedLinkItem as FeedLinkItem).FeedLinkData.Title = SelectedItemTitleLabel;
+
                 RegisterFeedEventArgs arg = new();
                 arg.FeedLinkData = (SelectedLinkItem as FeedLinkItem).FeedLinkData;
 
@@ -686,7 +860,34 @@ namespace BlogWrite.ViewModels
             }
             else if (SelectedLinkItem is ServiceDocumentLinkItem)
             {
-                // TODO:
+                if ((SelectedLinkItem as ServiceDocumentLinkItem).SearviceDocumentLinkData is RsdLink)
+                {
+                    RsdLink sd = (SelectedLinkItem as ServiceDocumentLinkItem).SearviceDocumentLinkData as RsdLink;
+
+                    if (!string.IsNullOrEmpty(SelectedItemTitleLabel))
+                        sd.Title = SelectedItemTitleLabel;
+
+                    RegisterXmlRpcEventArgs arg = new();
+                    arg.RsdLink = sd;
+                    arg.UserIdXmlRpc = UserIdXmlRpc;
+                    arg.PasswordXmlRpc = PasswordXmlRpc;
+
+                    // TODO: check XML-RPC call?
+
+                    RegisterXmlRpc?.Invoke(this, arg);
+                }
+                else if ((SelectedLinkItem as ServiceDocumentLinkItem).SearviceDocumentLinkData is AppLink)
+                {
+                    AppLink sd = (SelectedLinkItem as ServiceDocumentLinkItem).SearviceDocumentLinkData as AppLink;
+
+                    if (!string.IsNullOrEmpty(SelectedItemTitleLabel))
+                        sd.NodeService.Name = SelectedItemTitleLabel;
+
+                    RegisterAtomPubEventArgs arg = new();
+                    arg.NodeService = sd.NodeService;
+
+                    RegisterAtomPub?.Invoke(this, arg);
+                }
             }
 
             if (CloseAction != null)

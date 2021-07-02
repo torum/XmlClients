@@ -87,7 +87,17 @@ namespace BlogWrite.Models
         {
             get
             {
-                int maxLength = 78;
+                int maxLength = 220;
+                if (string.IsNullOrEmpty(_summary)) return _summary;
+                return _summary.Length <= maxLength ? _summary : _summary.Substring(0, maxLength) + " ...";
+            }
+        }
+
+        public string SummaryVeryShort
+        {
+            get
+            {
+                int maxLength = 100;
                 if (string.IsNullOrEmpty(_summary)) return _summary;
                 return _summary.Length <= maxLength ? _summary : _summary.Substring(0, maxLength) + " ...";
             }

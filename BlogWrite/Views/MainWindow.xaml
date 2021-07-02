@@ -243,11 +243,9 @@
                     </TreeView.ContextMenu>
                     <TreeView.Resources>
                         <ContextMenu x:Key="TreeviewMenuItemContextMenu">
-                            <MenuItem Header="Feed">
-                                <MenuItem Name="TreeViewMenuItemUpdate" Header="Update" Command="{Binding Path=DataContext.ServiceUpdateCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}"></MenuItem>
-                                <Separator/>
-                                <MenuItem Name="TreeViewMenuItemArchive" Header="Archive all" Command="{Binding Path=DataContext.ArchiveAllCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}"></MenuItem>
-                            </MenuItem>
+                            <MenuItem Name="TreeViewMenuItemArchive" Header="Archive all" Command="{Binding Path=DataContext.ArchiveAllCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}"></MenuItem>
+                            <Separator/>
+                            <MenuItem Name="TreeViewMenuItemUpdate" Header="Update" Command="{Binding Path=DataContext.ServiceUpdateCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}"></MenuItem>
                             <Separator/>
                             <MenuItem Name="TreeViewMenuItemRename" Header="Rename" Click="TreeViewMenuItemRename_Click"></MenuItem>
                             <Separator/>
@@ -925,16 +923,16 @@
 
                                             <Grid Grid.Row="1" Grid.Column="0">
                                                 <StackPanel>
-                                                    <TextBlock x:Name="EntryTitle" Text="{Binding Name}" FontSize="13.5" TextWrapping="Wrap" Padding="6 0 3 0" Foreground="{DynamicResource NormalTextColorBrush}"></TextBlock>
+                                                    <TextBlock x:Name="EntryTitle" Text="{Binding Name}" FontSize="14.5" FontWeight="Bold" FontFamily="Bookman Old Style" TextWrapping="Wrap" Padding="6 1 3 0" Foreground="{DynamicResource NormalTextColorBrush}"></TextBlock>
                                                     <Border x:Name="EntrySummaryBackground" Background="Transparent" CornerRadius="3" Margin="9 9 9 6">
-                                                        <TextBlock x:Name="EntrySummary" Text="{Binding SummaryShort}" TextWrapping="Wrap" Foreground="#555"></TextBlock>
+                                                        <TextBlock x:Name="EntrySummary" Text="{Binding SummaryVeryShort}" FontFamily="Bookman Old Style" TextWrapping="Wrap" Foreground="#555"></TextBlock>
                                                     </Border>
                                                 </StackPanel>
                                             </Grid>
 
-                                            <TextBlock x:Name="EntryAuthor" Grid.Row="2" Grid.Column="0" Margin="3 3 6 1" Text="{Binding Author}" Foreground="#444" HorizontalAlignment="Right" VerticalAlignment="Bottom"></TextBlock>
+                                            <TextBlock x:Name="EntryAuthor" Grid.Row="2" Grid.Column="0" Margin="3 3 6 1" Text="{Binding Author}" FontFamily="Bookman Old Style" Foreground="#444" HorizontalAlignment="Right" VerticalAlignment="Bottom"></TextBlock>
 
-                                            <TextBlock x:Name="EntryPublished" Grid.Row="3" Grid.Column="0" Margin="3 1 6 3" Text="{Binding PublishedDateTimeFormated}" Foreground="#444" HorizontalAlignment="Right" VerticalAlignment="Bottom"></TextBlock>
+                                            <TextBlock x:Name="EntryPublished" Grid.Row="3" Grid.Column="0" Margin="3 1 6 3" Text="{Binding PublishedDateTimeFormated}" FontFamily="Bookman Old Style" Foreground="#444" HorizontalAlignment="Right" VerticalAlignment="Bottom"></TextBlock>
 
                                         </Grid>
                                     </Border>
@@ -1006,7 +1004,7 @@
                                 <Grid x:Name="mwidth0" Grid.Column="0" />
                             </Grid>
 
-                            <!-- Entries listview -->
+                            <!-- Magazine listview -->
                             <ListView x:Name="MagazineListView" Grid.Row="1" Grid.Column="0" MinHeight="80" BorderThickness="0" Padding="0" Foreground="LightGray" IsSynchronizedWithCurrentItem="True" Background="{DynamicResource WindowBackgroundBaseColorBrush}" Margin="0" ItemsSource="{Binding Entries, NotifyOnTargetUpdated=True}" SelectedItem="{Binding Mode=TwoWay,Path=SelectedItem}" SelectionMode="Single" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" AlternationCount="2" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
                                 <ListView.InputBindings>
                                     <KeyBinding Key="Enter"
@@ -1014,6 +1012,17 @@
                                 CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" />
                                 </ListView.InputBindings>
                                 <ListView.Resources>
+                                    <Style x:Key="ListviewItemFocusVisual">
+                                        <Setter Property="Control.Template">
+                                            <Setter.Value>
+                                                <ControlTemplate>
+                                                    <Border CornerRadius="3">
+                                                        <Rectangle Margin="2 2 2 -6" StrokeThickness="1" Stroke="#CCCCCC" StrokeDashArray="1 2" />
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
                                     <ContextMenu x:Key="ItemContextMenu">
                                         <MenuItem Header="Open In App Browser" Command="{Binding Path=DataContext.OpenInAppBrowserCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}">
                                             <MenuItem.Resources>
@@ -1255,7 +1264,7 @@
 
                                                         </Grid>
                                                         
-                                                        <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Margin="12 0 12 0">
+                                                        <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Margin="12 3 12 0">
                                                             <Grid.RowDefinitions>
                                                                 <RowDefinition Height="Auto"/>
                                                                 <RowDefinition Height="Auto"/>
@@ -1266,13 +1275,13 @@
                                                                 <ColumnDefinition Width="*"/>
                                                             </Grid.ColumnDefinitions>
 
-                                                            <TextBlock x:Name="EntryTitle" Grid.Row="0" Text="{Binding Name}" FontSize="16" FontWeight="Bold" TextWrapping="Wrap" Padding="6 2 6 0" Foreground="{DynamicResource NormalTextColorBrush}"></TextBlock>
+                                                            <TextBlock x:Name="EntryTitle" Grid.Row="0" Text="{Binding Name}" FontSize="15.5" FontWeight="Bold" FontFamily="Bookman Old Style" TextWrapping="Wrap" Padding="6 2 6 0" Foreground="{DynamicResource NormalTextColorBrush}"></TextBlock>
 
-                                                            <TextBlock x:Name="EntryAuthor" Grid.Row="1" Margin="6 6 6 0" Foreground="#444" HorizontalAlignment="Left" VerticalAlignment="Bottom"><Run Text="by "/><Run Text="{Binding Author}"/></TextBlock>
+                                                            <TextBlock x:Name="EntryAuthor" Grid.Row="1" Margin="6 6 6 0" Foreground="#444" FontFamily="Bookman Old Style" HorizontalAlignment="Left" VerticalAlignment="Bottom"><Run Text="by "/><Run Text="{Binding Author}"/></TextBlock>
 
-                                                            <TextBlock x:Name="EntrySummary" Grid.Row="2" Margin="6 6 6 0" Text="{Binding Summary}" TextWrapping="Wrap" Foreground="#999"></TextBlock>
+                                                            <TextBlock x:Name="EntrySummary" Grid.Row="2" Margin="6 6 6 0" Text="{Binding SummaryShort}" FontFamily="Bookman Old Style" TextWrapping="Wrap" Foreground="#999"></TextBlock>
 
-                                                            <TextBlock x:Name="EntryPublished" Grid.Row="3" Margin="6 6 6 3" Text="{Binding PublishedDateTimeFormated}" Foreground="#444" HorizontalAlignment="Right" VerticalAlignment="Bottom"></TextBlock>
+                                                            <TextBlock x:Name="EntryPublished" Grid.Row="3" Margin="6 6 6 3" Text="{Binding PublishedDateTimeFormated}" FontFamily="Bookman Old Style" Foreground="#444" HorizontalAlignment="Right" VerticalAlignment="Bottom"></TextBlock>
 
                                                         </Grid>
 
@@ -1311,14 +1320,16 @@
                                     <Style TargetType="ListViewItem">
                                         <Setter Property="Padding" Value="0"/>
                                         <Setter Property="Margin" Value="6 6 6 0"/>
+                                        <Setter Property="Background" Value="#252525"/>
                                         <Setter Property="BorderBrush" Value="#FF2F2B2B"/>
                                         <Setter Property="ContextMenu" Value="{StaticResource ItemContextMenu}" />
+                                        <Setter Property="FocusVisualStyle" Value="{StaticResource ListviewItemFocusVisual}"/>
                                         <Setter Property="HorizontalContentAlignment" Value="Left" />
                                         <Setter Property="VerticalContentAlignment" Value="Top" />
                                         <Setter Property="Template">
                                             <Setter.Value>
                                                 <ControlTemplate TargetType="{x:Type ContentControl}">
-                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0 0 0 0.5" CornerRadius="0" Margin="{TemplateBinding Margin}">
+                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0.5" CornerRadius="3" Margin="{TemplateBinding Margin}">
                                                         <Border.InputBindings>
                                                             <MouseBinding Command="{Binding Path=DataContext.ListviewLeftDoubleClickCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" CommandParameter="{Binding Path=SelectedItem, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListView}}" Gesture="LeftDoubleClick" />
                                                         </Border.InputBindings>
@@ -1329,10 +1340,10 @@
                                         </Setter>
                                         <Style.Triggers>
                                             <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="BorderBrush" Value="#FF1D1C1C"/>
+                                                <Setter Property="BorderBrush" Value="#333"/>
                                             </Trigger>
                                             <Trigger Property="IsSelected" Value="True">
-                                                <Setter Property="BorderBrush" Value="#FF1D1C1C" />
+                                                <Setter Property="BorderBrush" Value="#555" />
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>

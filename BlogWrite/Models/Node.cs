@@ -8,29 +8,24 @@ using System.Collections.Generic;
 
 namespace BlogWrite.Models
 {
-    // TODO:
     public enum ServiceTypes
     {
         Feed,
-        AtomPub,
-        AtomPub_Hatena,
         XmlRpc,
-        XmlRpc_WordPress,
-        XmlRpc_MovableType,
+        AtomPub,
         AtomApi,
         Unknown
     }
 
-    // TODO:
     public enum ApiTypes
     {
         atFeed,
         atAtomPub,
-        //atXMLRPC,
+        //AtomPub_Hatena,
         atXMLRPC_MovableType,
         atXMLRPC_WordPress,
         //atWPJson,
-        //atAtomAPI,
+        atAtomApi,
         atUnknown
     }
 
@@ -424,11 +419,11 @@ namespace BlogWrite.Models
                     Client = new AtomPubClient(UserName, UserPassword, EndPoint);
                     break;
                 case ApiTypes.atXMLRPC_MovableType:
-                    Client = new XmlRpcMTClient(UserName, UserPassword, EndPoint);
+                    Client = new XmlRpcClient(UserName, UserPassword, EndPoint);
                     break;
-                //case ApiTypes.atXMLRPC_WordPress:
-                //    Client = new XmlRpcWPClient(UserName, UserPassword, EndPoint);
-                //    break;
+                case ApiTypes.atXMLRPC_WordPress:
+                    Client = new XmlRpcClient(UserName, UserPassword, EndPoint);
+                    break;
                     //TODO: WP, AtomAPI
             }
 
@@ -454,11 +449,11 @@ namespace BlogWrite.Models
                     Client = new AtomPubClient(UserName, UserPassword, EndPoint);
                     break;
                 case ApiTypes.atXMLRPC_MovableType:
-                    Client = new XmlRpcMTClient(UserName, UserPassword, EndPoint);
+                    Client = new XmlRpcClient(UserName, UserPassword, EndPoint);
                     break;
-                //case ApiTypes.atXMLRPC_WordPress:
-                //    Client = new XmlRpcWPClient(UserName, UserPassword, EndPoint);
-                //    break;
+                case ApiTypes.atXMLRPC_WordPress:
+                    Client = new XmlRpcClient(UserName, UserPassword, EndPoint);
+                    break;
                 case ApiTypes.atFeed:
                     Client = new FeedClient();
                     break;
@@ -556,47 +551,35 @@ namespace BlogWrite.Models
         }
     }
 
-    // Workspaces Node (Node/NodeTree)
-    public class NodeWorkspaces : NodeTree
-    {
-        public NodeWorkspaces() { }
-    }
-
     // Workspace Node (Node/NodeTree)
     public class NodeWorkspace : NodeTree
     {
-
-        public Uri Uri { get; set; }
-        public string Accept { get; set; }
-
         public NodeWorkspace(string name) : base(name)
-        {
-            PathIcon = "M20,18H4V8H20M20,6H12L10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6Z";
-        }
-
+        { }
     }
 
-    // Base EntryNode (for treeview). (Node/NodeTree)
-    public class NodeEntries : NodeTree
-    {
-        public NodeEntries() { }
-    }
-
-    // 
-    public class NodeEntryCollection : NodeTree
+    // Base class for Entry Collection (Node/NodeTree) 
+    public abstract class NodeEntryCollection : NodeTree
     {
         /// <summary>
         /// entries resource URI or xml-rpc URL for a blog.
         /// </summary>
-        public Uri Uri { get; set; }
+        public Uri Uri { get; private set; }
+
+        /// <summary>
+        /// entries resource URI or xml-rpc blogId for a blog.
+        /// </summary>
+        public string Id { get; private set; }
 
         // Constructor.
-        public NodeEntryCollection(string name, Uri uri) : base(name)
+        public NodeEntryCollection(string name, Uri uri, string id) : base(name)
         {
             Uri = uri;
+            Id = id;
             PathIcon = "M4,5V7H21V5M4,11H21V9H4M4,19H21V17H4M4,15H21V13H4V15Z";
         }
 
+        // TODO:
         public ObservableCollection<EntryItem> List { get; } = new ObservableCollection<EntryItem>();
 
         public BaseClient Client
@@ -622,16 +605,16 @@ namespace BlogWrite.Models
         }
     }
 
-    public class NodeAtomPubCollection : NodeEntryCollection
+    // AtomPub Entry Collection (Node/NodeTree/NodeEntryCollection) 
+    public class NodeAtomPubEntryCollection : NodeEntryCollection
     {
         public Uri CategoriesUri { get; set; }
 
-        //public List CategoriesList { get; set; }
-
+        public bool IsCategoryFixed { get; set; }
 
         public bool IsAcceptEntry { get; set; }
 
-        public string CategoryScheme { get; set; }
+        //public string CategoryScheme { get; set; }
 
         //TODO: enum supported AcceptTypes
         // "application/atom+xml"
@@ -642,14 +625,21 @@ namespace BlogWrite.Models
         //image/gif
         public Collection<string> AcceptTypes = new Collection<string>();
 
-        // Constructor.
-        public NodeAtomPubCollection(string name, Uri uri) : base(name, uri)
+        public NodeAtomPubEntryCollection(string name, Uri uri, string id) : base(name, uri, id)
         {
-            Uri = uri;
             PathIcon = "M4,5V7H21V5M4,11H21V9H4M4,19H21V17H4M4,15H21V13H4V15Z";
         }
     }
 
+    // XML-RPC Entry Collection (Node/NodeTree/NodeEntryCollection) 
+    public class NodeXmlRpcEntryCollection : NodeEntryCollection
+    {
+        public NodeXmlRpcEntryCollection(string name, Uri uri, string id) : base(name, uri, id)
+        {
+            PathIcon = "M4,5V7H21V5M4,11H21V9H4M4,19H21V17H4M4,15H21V13H4V15Z";
+        }
+    }
+    /*
     public class NodeXmlRpcMTEntryCollection : NodeEntryCollection
     {
         // Constructor.
@@ -658,7 +648,7 @@ namespace BlogWrite.Models
             PathIcon = "M4,5V7H21V5M4,11H21V9H4M4,19H21V17H4M4,15H21V13H4V15Z";
         }
     }
-
+    
     public class NodeXmlRpcWPEntryCollection : NodeEntryCollection
     {
         // Constructor.
@@ -667,12 +657,15 @@ namespace BlogWrite.Models
             PathIcon = "M4,5V7H21V5M4,11H21V9H4M4,19H21V17H4M4,15H21V13H4V15Z";
         }
     }
+    */
 
     public class NodeAtomPubCatetories : NodeTree
     {
         public Uri Href { get; set; }
 
         public bool IsCategoryFixed { get; set; }
+
+        public string Scheme { get; set; }
 
         public List<NodeAtomPubCategory> CategoryList = new();
 

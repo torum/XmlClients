@@ -26,7 +26,7 @@ namespace BlogWrite.Models.Clients
 
         public abstract Task<NodeService> GetAccount(string accountName);
 
-        public abstract Task<NodeWorkspaces> GetBlogs();
+        public abstract Task<List<NodeWorkspace>> GetBlogs();
 
         public abstract Task<EntryFull> GetFullEntry(Uri entryUri, string serviceId, string postid = "");
 

@@ -69,14 +69,16 @@ namespace BlogWrite.Models
         public Uri ApiLink { get; set; }
     }
 
+    // RsdLink: extends SearviceDocumentLink
     public class RsdLink : SearviceDocumentLink
     {
-        public string engineName { get; set; }
+        public string Title { get; set; }
 
-        public Uri homePageLink { get; set; }
+        public string EngineName { get; set; }
+
+        public Uri HomePageLink { get; set; }
 
         public List<RsdApi> Apis { get; set; } = new();
-
 
         public RsdLink()
         {
@@ -84,6 +86,16 @@ namespace BlogWrite.Models
         }
     }
 
+    // AppLink: extends SearviceDocumentLink
+    public class AppLink : SearviceDocumentLink
+    {
+        public NodeService NodeService { get; set; }
+
+        public AppLink()
+        {
+
+        }
+    }
 
     // Base class for Result.
     abstract class ServiceResultBase
@@ -173,7 +185,6 @@ namespace BlogWrite.Models
         }
     }
 
-
     // Base Class for Service Result That Holds Feed link info. (BasedOn ServiceResultBase)
     abstract class ServiceResult : ServiceResultBase
     {
@@ -224,10 +235,6 @@ namespace BlogWrite.Models
             EndpointUri = endpointUri;
         }
     }
-
-    // TODO:
-    // ServiceResultXmlRpc_MT
-    // ServiceResultXmlRpc_WP
 
     #endregion
 
@@ -777,7 +784,7 @@ namespace BlogWrite.Models
                             }
                             else
                             {
-                                Debug.WriteLine("rel type: " + ty);
+                                //Debug.WriteLine("rel type: " + ty);
                             }
                         }
                     }
@@ -1066,7 +1073,7 @@ namespace BlogWrite.Models
                                     }
                                 }
 
-                                NodeAtomPubCollection collection = new NodeAtomPubCollection("Collection Name", colHrefUri);
+                                NodeAtomPubEntryCollection collection = new NodeAtomPubEntryCollection("Collection Name", colHrefUri, colHrefUri.AbsoluteUri);
                                 collection.IsExpanded = true;
                                 collection.Parent = workspace;
 
@@ -1142,7 +1149,7 @@ namespace BlogWrite.Models
                                             }
                                         }
 
-                                        XmlNodeList categoryList = cats.SelectNodes("app:category", atomNsMgr);
+                                        XmlNodeList categoryList = cats.SelectNodes("atom:category", atomNsMgr);
                                         if (categoryList != null)
                                         {
                                             foreach (XmlNode cat in categoryList)
@@ -1250,14 +1257,14 @@ namespace BlogWrite.Models
                 {
                     if (document.DocumentElement != null)
                     {
-                        rsdDoc.engineName = document.DocumentElement.QuerySelector("service > engineName").TextContent;
+                        rsdDoc.EngineName = document.DocumentElement.QuerySelector("service > engineName").TextContent;
 
                         var homePageLink = document.DocumentElement.QuerySelector("service > homePageLink").TextContent;
                         if (!string.IsNullOrEmpty(homePageLink))
                         {
                             try
                             {
-                                rsdDoc.homePageLink = new Uri(homePageLink);
+                                rsdDoc.HomePageLink = new Uri(homePageLink);
                             }
                             catch { }
                         }
@@ -1442,4 +1449,5 @@ namespace BlogWrite.Models
     */
 
     #endregion
+
 }

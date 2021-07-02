@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using BlogWrite.Models;
 using BlogWrite.Models.Clients;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace BlogWrite.Models.Clients
 { 
@@ -27,8 +28,8 @@ namespace BlogWrite.Models.Clients
         {
             NodeService account = new NodeService(accountName, _userName, _userPassword, _endpoint, ApiTypes.atAtomPub, ServiceTypes.AtomPub);
 
-            NodeWorkspaces blogs = await GetBlogs();
-            foreach (var item in blogs.Children)
+            List<NodeWorkspace> blogs = await GetBlogs();
+            foreach (var item in blogs)
             {
                 item.Parent = account;
                 account.Children.Add(item);
@@ -38,9 +39,9 @@ namespace BlogWrite.Models.Clients
             return account;
         }
 
-        public override async Task<NodeWorkspaces> GetBlogs()
+        public override async Task<List<NodeWorkspace>> GetBlogs()
         {
-            NodeWorkspaces blogs = new NodeWorkspaces();
+            List<NodeWorkspace> blogs = new();
 
             // TODO try exception
             var HTTPResponseMessage = await _HTTPConn.Client.GetAsync(_endpoint);
@@ -59,42 +60,11 @@ namespace BlogWrite.Models.Clients
                     + Environment.NewLine
                     + s + Environment.NewLine);
 
-                /*
-				    <?xml version="1.0" encoding="utf-8"?>
-				    <service xmlns="http://www.w3.org/2007/app">
-				      <workspace>
-				        <atom:title xmlns:atom="http://www.w3.org/2005/Atom">hoge</atom:title>
-				        <collection href="https://127.0.0.1/atom/entry">
-				          <atom:title xmlns:atom="http://www.w3.org/2005/Atom">fuga</atom:title>
-				          <accept>application/atom+xml;type=entry</accept>
-				        </collection>
-				      </workspace>
-				    </service>
-                 */
-
-                /*
-<?xml version="1.0" encoding="utf-8"?>
-<service xmlns="http://www.w3.org/2007/app" xmlns:atom="http://www.w3.org/2005/Atom">
- <workspace>
-   <atom:title>hoge Workspace</atom:title>
-   <collection href="http://torum.jp/en/wp-app.php/service/posts">
-     <atom:title>hoge Posts</atom:title>
-     <accept>application/atom+xml;type=entry</accept>
-     <categories href="http://hoge.jp/wp-app.php/service/categories" />
-   </collection>
-   <collection href="http://hoge.jp/wp-app.php/service/attachments">
-     <atom:title>hoge Media</atom:title>
-     <accept>image/*</accept><accept>audio/*</accept><accept>video/*</accept>
-   </collection>
- </workspace>
-</service>
-                */
-
                 string contenTypeString = HTTPResponseMessage.Content.Headers.GetValues("Content-Type").FirstOrDefault();
 
                 if (!contenTypeString.StartsWith("application/atomsvc+xml"))
                 {
-                    System.Diagnostics.Debug.WriteLine("Content-Type is invalid: " + contenTypeString);
+                    Debug.WriteLine("Content-Type is invalid: " + contenTypeString);
 
                     ToDebugWindow("<< Content-Type is invalid: " + contenTypeString
                         + Environment.NewLine
@@ -133,15 +103,12 @@ namespace BlogWrite.Models.Clients
                 {
                     XmlNode accountTitle = n.SelectSingleNode("atom:title", atomNsMgr);
                     if (accountTitle == null)
-                    {
-                        System.Diagnostics.Debug.WriteLine("atom:title is null. ");
                         continue;
-                    }
 
                     NodeWorkspace blog = new NodeWorkspace(accountTitle.InnerText);
 
-                    NodeEntries entries = await GetEntryNodesFromXML(n, atomNsMgr);
-                    foreach (var item in entries.Children)
+                    List<NodeAtomPubEntryCollection> entries = await GetEntryNodesFromXML(n, atomNsMgr);
+                    foreach (var item in entries)
                     {
                         item.Parent = blog;
                         blog.Children.Add(item);
@@ -149,8 +116,7 @@ namespace BlogWrite.Models.Clients
 
                     blog.IsExpanded = true;
 
-                    blogs.Children.Add(blog);
-                    blogs.IsExpanded = true;
+                    blogs.Add(blog);
                 }
 
             }
@@ -175,58 +141,105 @@ namespace BlogWrite.Models.Clients
             return blogs;
         }
 
-        private async Task<NodeEntries> GetEntryNodesFromXML(XmlNode w, XmlNamespaceManager atomNsMgr)
+        private async Task<List<NodeAtomPubEntryCollection>> GetEntryNodesFromXML(XmlNode w, XmlNamespaceManager atomNsMgr)
         {
-            NodeEntries entries = new NodeEntries();
+            List<NodeAtomPubEntryCollection> cols = new List<NodeAtomPubEntryCollection>();
+
+            /*
+<?xml version="1.0" encoding="utf-8"?>
+<service xmlns="http://www.w3.org/2007/app">
+<workspace>
+    <atom:title xmlns:atom="http://www.w3.org/2005/Atom">hoge</atom:title>
+    <collection href="https://127.0.0.1/atom/entry">
+        <atom:title xmlns:atom="http://www.w3.org/2005/Atom">fuga</atom:title>
+        <accept>application/atom+xml;type=entry</accept>
+    </collection>
+</workspace>
+</service>
+            */
+
+            /*
+<?xml version="1.0" encoding="utf-8"?>
+<service xmlns="http://www.w3.org/2007/app" xmlns:atom="http://www.w3.org/2005/Atom">
+<workspace>
+    <atom:title>hoge Workspace</atom:title>
+    <collection href="http://torum.jp/en/wp-app.php/service/posts">
+        <atom:title>hoge Posts</atom:title>
+        <accept>application/atom+xml;type=entry</accept>
+    <categories href="http://hoge.jp/wp-app.php/service/categories" />
+    </collection>
+    <collection href="http://hoge.jp/wp-app.php/service/attachments">
+        <atom:title>hoge Media</atom:title>
+        <accept>image/*</accept><accept>audio/*</accept><accept>video/*</accept>
+    </collection>
+</workspace>
+</service>
+            */
+
+            /*
+            <?xml version="1.0" encoding="UTF-8"?>
+            <service xmlns="http://www.w3.org/2007/app" xmlns:atom="http://www.w3.org/2005/Atom">
+                <workspace>
+                    <atom:title>BlogTitle</atom:title>
+                    <collection href="https://livedoor.blogcms.jp/atompub/userid/article">
+                        <atom:title>BlogTitle - Entries</atom:title>
+                        <accept>application/atom+xml;type=entry</accept>
+
+                        <categories fixed="no" scheme="https://livedoor.blogcms.jp/atompub/userid/category">
+                        </categories>
+                    </collection>
+                    <collection href="https://livedoor.blogcms.jp/atompub/userid/image">
+                        <atom:title>BlogTitle - Images</atom:title>
+                        <accept>image/png</accept>
+                        <accept>image/jpeg</accept>
+                        <accept>image/gif</accept>
+                    </collection>
+                </workspace>
+            </service>
+            */
 
             XmlNodeList collectionList = w.SelectNodes("app:collection", atomNsMgr);
             if (collectionList == null)
-            {
-                System.Diagnostics.Debug.WriteLine("app:collection is null.");
-                return entries;
-            }
+                return cols;
 
             foreach (XmlNode n in collectionList)
             {
                 var hrefAttr = n.Attributes["href"].Value;
                 if (hrefAttr == null)
-                {
-                    System.Diagnostics.Debug.WriteLine("href Attr is null.");
                     continue;
-                }
+
                 XmlNode title = n.SelectSingleNode("atom:title", atomNsMgr);
                 if (title == null)
-                {
-                    System.Diagnostics.Debug.WriteLine("atom:title is null.");
                     continue;
-                }
+
+                NodeAtomPubEntryCollection entries = new NodeAtomPubEntryCollection(title.InnerText, new Uri(hrefAttr), hrefAttr);
+
+
                 XmlNodeList acceptList = n.SelectNodes("app:accept", atomNsMgr);
-                if (acceptList == null)
+                if (acceptList != null)
                 {
-                    System.Diagnostics.Debug.WriteLine("app:accept is null.");
-                    continue;
+                    foreach (XmlNode a in acceptList)
+                    {
+                        string acpt = a.InnerText;
+                        if (!string.IsNullOrEmpty(acpt))
+                        {
+                            entries.AcceptTypes.Add(acpt);
+
+                            if ((acpt == "application/atom+xml;type=entry")
+                                || (acpt == "application/atom+xml"))
+                            {
+                                entries.IsAcceptEntry = true;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // default entry
+                    entries.IsAcceptEntry = true;
                 }
 
-                NodeAtomPubCollection entry = new NodeAtomPubCollection(title.InnerText, new Uri(hrefAttr));
-
-                foreach (XmlNode a in acceptList)
-                {
-                    entry.AcceptTypes.Add(a.InnerText);
-
-                    if (a.InnerText == "application/atom+xml;type=entry")
-                    {
-                        //
-                    }
-                    else
-                    {
-                        // TODO:
-                        // application/atomcat+xml
-
-                        System.Diagnostics.Debug.WriteLine("app:accept type " + a.InnerText + " not implemented (yet).");
-                    }
-
-                }
-
+                /*
                 XmlNode cats = n.SelectSingleNode("app:categories", atomNsMgr);
                 if (cats != null)
                 {
@@ -236,7 +249,7 @@ namespace BlogWrite.Models.Clients
                         var hrefCat = cats.Attributes["href"];
                         try
                         {
-                            entry.CategoriesUri = new Uri(hrefCat.Value);
+                            entries.CategoriesUri = new Uri(hrefCat.Value);
                         }
                         catch { }
                     }
@@ -248,35 +261,158 @@ namespace BlogWrite.Models.Clients
                         if (c.Attributes["term"] != null)
                         {
                             NodeCategory category = new NodeCategory(c.Attributes["term"].Value);
-                            entry.Children.Add(category);
+                            entries.Children.Add(category);
                         }
                     }
+                }
+                */
+                XmlNodeList categoriesList = n.SelectNodes("app:categories", atomNsMgr);
+                if (categoriesList != null)
+                {
+                    foreach (XmlNode cats in categoriesList)
+                    {
+                        NodeAtomPubCatetories categories = new NodeAtomPubCatetories("Categories");
+                        categories.IsExpanded = true;
+                        categories.Parent = entries;
 
+                        Uri catHrefUri = null;
+                        if (cats.Attributes["href"] != null)
+                        {
+                            string cathref = cats.Attributes["href"].Value;
+                            if (!string.IsNullOrEmpty(cathref))
+                            {
+                                try
+                                {
+                                    catHrefUri = new Uri(cathref);
+
+                                    categories.Href = catHrefUri;
+
+                                }
+                                catch { }
+                            }
+                        }
+
+                        if (cats.Attributes["fixed"] != null)
+                        {
+                            string catFix = cats.Attributes["fixed"].Value;
+                            if (!string.IsNullOrEmpty(catFix))
+                            {
+                                if (catFix == "yes")
+                                {
+                                    categories.IsCategoryFixed = true;
+                                }
+                                else
+                                {
+                                    categories.IsCategoryFixed = false;
+                                }
+                            }
+                        }
+
+                        if (cats.Attributes["scheme"] != null)
+                        {
+                            string catScheme = cats.Attributes["scheme"].Value;
+                            if (!string.IsNullOrEmpty(catScheme))
+                            {
+                                categories.Scheme = catScheme;
+                            }
+                        }
+                        // scheme
+
+                        XmlNodeList categoryList = cats.SelectNodes("atom:category", atomNsMgr);
+                        if (categoryList != null)
+                        {
+                            foreach (XmlNode cat in categoryList)
+                            {
+                                NodeAtomPubCategory category = new NodeAtomPubCategory("Category");
+                                category.IsExpanded = true;
+                                category.Parent = categories;
+
+                                if (cat.Attributes["term"] != null)
+                                {
+                                    string term = cat.Attributes["term"].Value;
+                                    if (!string.IsNullOrEmpty(term))
+                                    {
+                                        category.Term = term;
+                                    }
+                                }
+
+                                if (cat.Attributes["scheme"] != null)
+                                {
+                                    string scheme = cat.Attributes["scheme"].Value;
+                                    if (!string.IsNullOrEmpty(scheme))
+                                    {
+                                        category.Scheme = scheme;
+                                    }
+                                }
+
+                                category.Name = category.Term;
+
+                                if (string.IsNullOrEmpty(category.Scheme))
+                                    category.Scheme = categories.Scheme;
+
+                                categories.Children.Add(category);
+                            }
+                        }
+
+                        entries.CategoriesUri = catHrefUri;
+
+                        entries.IsCategoryFixed = categories.IsCategoryFixed;
+
+                        if (categories.Children.Count > 0)
+                        {
+                            //entries.Children.Add(categories);
+
+                            foreach (NodeAtomPubCategory c in categories.Children)
+                            {
+                                c.Parent = entries;
+                                entries.Children.Add(c);
+                            }
+                        }
+                    }
                 }
 
                 // Get category document.
-                if (entry.CategoriesUri != null)
+                if (entries.CategoriesUri != null)
                 {
-                    List<NodeCategory> nc = await GetCategiries(entry.CategoriesUri);
-                    foreach (NodeCategory c in nc)
+                    NodeAtomPubCatetories nc = await GetCategiries(entries.CategoriesUri);
+
+                    entries.IsCategoryFixed = nc.IsCategoryFixed;
+
+                    foreach (NodeAtomPubCategory c in nc.Children)
                     {
-                        entry.Children.Add(c);
+                        bool isExists = false;
+
+                        // check if exists
+                        foreach (var hoge in entries.Children)
+                        {
+                            if (hoge is NodeAtomPubCategory)
+                            {
+                                if ((hoge as NodeAtomPubCategory).Term.Equals(c.Term))
+                                {
+                                    isExists = true;
+                                    
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (!isExists)
+                        {
+                            c.Parent = entries;
+                            entries.Children.Add(c);
+                        }
                     }
                 }
 
-                entries.Children.Add(entry);
-
+                cols.Add(entries);
             }
 
-            if (entries.Children.Count > 0)
-                entries.IsExpanded = true;
-
-            return entries;
+            return cols;
         }
 
-        public async Task<List<NodeCategory>> GetCategiries(Uri categoriesUrl)
+        public async Task<NodeAtomPubCatetories> GetCategiries(Uri categoriesUrl)
         {
-            List<NodeCategory> cats = new List<NodeCategory>();
+            NodeAtomPubCatetories cats = new NodeAtomPubCatetories("AtomPub Categories");
 
             var HTTPResponseMessage = await _HTTPConn.Client.GetAsync(categoriesUrl);
 
@@ -336,6 +472,30 @@ namespace BlogWrite.Models.Clients
                 atomNsMgr.AddNamespace("atom", "http://www.w3.org/2005/Atom");
                 atomNsMgr.AddNamespace("app", "http://www.w3.org/2007/app");
 
+                if (xdoc.DocumentElement.Attributes["fixed"] != null)
+                {
+                    string catFix = xdoc.DocumentElement.Attributes["fixed"].Value;
+                    if (!string.IsNullOrEmpty(catFix))
+                    {
+                        if (catFix == "yes")
+                        {
+                            cats.IsCategoryFixed = true;
+                        }
+                        else
+                        {
+                            cats.IsCategoryFixed = false;
+                        }
+                    }
+                }
+
+                if (xdoc.DocumentElement.Attributes["scheme"] != null)
+                {
+                    string catScheme = xdoc.DocumentElement.Attributes["scheme"].Value;
+                    if (!string.IsNullOrEmpty(catScheme))
+                    {
+                        cats.Scheme = catScheme;
+                    }
+                }
 
                 XmlNodeList categoryList;
                 categoryList = xdoc.SelectNodes("//app:categories/atom:category", atomNsMgr);
@@ -346,8 +506,17 @@ namespace BlogWrite.Models.Clients
                 {
                     if (c.Attributes["term"] != null)
                     {
-                        NodeCategory category = new NodeCategory(c.Attributes["term"].Value);
-                        cats.Add(category);
+                        NodeAtomPubCategory category = new NodeAtomPubCategory(c.Attributes["term"].Value);
+
+                        if (c.Attributes["scheme"] != null)
+                        {
+                            category.Scheme = c.Attributes["scheme"].Value;
+                        }
+
+                        if (string.IsNullOrEmpty(category.Scheme))
+                            category.Scheme = cats.Scheme;
+
+                        cats.Children.Add(category);
                     }
                 }
             }
