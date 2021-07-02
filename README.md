@@ -44,14 +44,14 @@ The Feed Reading functionality.
 - [x] Download and display "eye catching" images. 
 - [ ] Options (text configuration, etc)
 
-*additionaly, Search, Star/Pin/ReadItLator, Favicon, Wide view (three vertical columns) and more.
+*Additionaly, Search, Star/Pin/ReadItLator, Favicon, Wide view (three vertical columns) and more.
 
 #### CRUD API and protocol implementations
 
 The Editing functionality.
 
-- [x] Service Auto Discovery (Atom Publishing protocol, ~~RSD, XML-RPC~~)
-- [ ] Display and manage service or blog infomation (~~Atom Publishing protocol,~~ WordPress, Movable Type, etc)
+- [x] Service Auto Discovery (Atom Service Document, Really Simple Discovery)
+- [x] Display and manage service/blog infomation (Atom Publishing protocol, WordPress, Movable Type, etc)
 - [ ] Display and manage list of entries for editing.
 
 ##### Editor
