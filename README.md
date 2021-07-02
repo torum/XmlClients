@@ -33,7 +33,7 @@ or progress so far...
 
 The Feed Reading functionality.
 
-- [x] Feed Auto Discovery (Parse a HTML Web page and find RSS and Atom links)
+- [x] Feed Auto Discovery (Parse HTML Web pages and find RSS and Atom links)
 - [x] Parse feeds (Atom 1.0, 0.3, RSS 2.0, 1.0)
 - [x] Display and manage feeds and entries. 
 - [x] Display contents in various views (Cards, Magazine, ThereePane)
@@ -52,7 +52,7 @@ The Editing functionality.
 
 - [x] Service Auto Discovery (Atom Service Document, Really Simple Discovery)
 - [x] Display and manage service/blog infomation (Atom Publishing protocol, WordPress, Movable Type, etc)
-- [ ] Display and manage list of entries for editing.
+- [ ] Display and manage list of entries for editing with SQLite database.
 
 ##### Editor
 
