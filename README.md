@@ -2,7 +2,7 @@
 
 ### - Under developement -
   
-A blog editing (web publishing) client with a full-featured feed reading functionality - C#/WPF rewrite of "BlogWrite" originaly developed in Delphi.
+A blog editing (web publishing) client with a full-featured feed reading functionality - C#/WPF port of "BlogWrite" originaly developed in Delphi.
 
 
 ### Implements following formats, protocols & APIs:  
