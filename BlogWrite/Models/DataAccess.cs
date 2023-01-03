@@ -7,9 +7,10 @@ using System.Data;
 using Microsoft.Data.Sqlite;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Windows.Media.Imaging;
+using Windows.Graphics.Imaging;
 using System.IO;
 using System.Windows;
+using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace BlogWrite.Models
 {
@@ -488,7 +489,7 @@ namespace BlogWrite.Models
                                 if (reader["Image"] != DBNull.Value)
                                 {
                                     byte[] bi = (byte[])reader["Image"];
-
+                                    /*
                                     if (Application.Current != null)
                                     {
                                         Application.Current.Dispatcher.Invoke(() =>
@@ -496,6 +497,7 @@ namespace BlogWrite.Models
                                             res.Image = BitmapImageFromBytes(bi);
                                         });
                                     }
+                                    */
                                 }
 
                                 res.AffectedCount++;
@@ -1329,7 +1331,7 @@ namespace BlogWrite.Models
             try
             {
                 byte[] data = Array.Empty<byte>();
-
+                /*
                 PngBitmapEncoder encoder = new PngBitmapEncoder();
                 encoder.Frames.Add(BitmapFrame.Create(bitmapImage));
                 using (MemoryStream ms = new MemoryStream())
@@ -1337,7 +1339,7 @@ namespace BlogWrite.Models
                     encoder.Save(ms);
                     data = ms.ToArray();
                 }
-
+                */
                 return data;
             }
             catch (Exception e)
@@ -1354,12 +1356,14 @@ namespace BlogWrite.Models
             {
                 using (var stream = new MemoryStream(bytes))
                 {
+
                     BitmapImage bmimage = new BitmapImage();
+                    /*
                     bmimage.BeginInit();
                     bmimage.CacheOption = BitmapCacheOption.OnLoad;
                     bmimage.StreamSource = stream;
                     bmimage.EndInit();
-
+                    */
                     return bmimage;
                 }
             }

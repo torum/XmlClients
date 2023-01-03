@@ -407,3 +407,5 @@ BlogWrite/obj/Debug/Styles/Colors.baml
 .vs/BlogWrite/v15/Server/sqlite3/storage.ide-wal
 /.vs
 
+.editorconfig
+.vsconfig

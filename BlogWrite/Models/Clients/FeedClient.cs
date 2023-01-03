@@ -8,7 +8,7 @@ using System.IO;
 using System.Diagnostics;
 using AngleSharp;
 using BlogWrite.Common;
-using System.Windows.Media.Imaging;
+using Windows.Graphics.Imaging;
 using System.Windows;
 using System.Collections.ObjectModel;
 
@@ -37,21 +37,28 @@ namespace BlogWrite.Models.Clients
                 return res;
             }
 
+            Debug.WriteLine("FeedClient>GetEntries");
+
             try
             {
                 var HTTPResponseMessage = await _HTTPConn.Client.GetAsync(entriesUrl);
 
                 if (HTTPResponseMessage.IsSuccessStatusCode)
                 {
-                    //string s = await HTTPResponseMessage.Content.ReadAsStringAsync();
                     /*
+                    var s = await HTTPResponseMessage.Content.ReadAsStringAsync();
                     ToDebugWindow(">> HTTP Request: GET "
                         + entriesUrl.AbsoluteUri
                         + Environment.NewLine
                         + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
-                        //+ Environment.NewLine + s + Environment.NewLine);
+                        + Environment.NewLine + s + Environment.NewLine
                         + Environment.NewLine);
                     */
+                    ToDebugWindow(">> HTTP Request: GET "
+                        + entriesUrl.AbsoluteUri
+                        + Environment.NewLine
+                        + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
+                        + Environment.NewLine);
 
                     var source = await HTTPResponseMessage.Content.ReadAsStreamAsync();
                     

@@ -2,9 +2,10 @@
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
-using System.Windows.Media.Imaging;
+using Windows.Graphics.Imaging;
 using System.Xml;
 using BlogWrite.Models.Clients;
+using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace BlogWrite.Models
 {

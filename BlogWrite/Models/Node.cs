@@ -1,10 +1,10 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows;
-using System.Windows.Data;
 using BlogWrite.Models.Clients;
 using System;
 using System.Collections.Generic;
+using BlogWrite.ViewModels;
 
 namespace BlogWrite.Models
 {
@@ -43,7 +43,7 @@ namespace BlogWrite.Models
     }
 
     // Base class for Treeview Node and Listview Item.
-    public abstract class Node : INotifyPropertyChanged
+    public abstract class Node : ViewModelBase
     {
         private string _name;
 
@@ -74,23 +74,6 @@ namespace BlogWrite.Models
             Name = name;
         }
 
-        #region == INotifyPropertyChanged ==
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void NotifyPropertyChanged(string propertyName)
-        {
-            //this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            if (Application.Current != null)
-            {
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-                });
-            }
-        }
-
-        #endregion
     }
 
     // Base class for Treeview Node. (Node)
@@ -311,7 +294,7 @@ namespace BlogWrite.Models
         // TODO: Parent should be ....
         protected NodeTree(string name): base(name)
         {
-            BindingOperations.EnableCollectionSynchronization(_children, new object());
+            //BindingOperations.EnableCollectionSynchronization(_children, new object());
         }
 
         public bool ContainsChild(NodeTree nt)
@@ -543,7 +526,7 @@ namespace BlogWrite.Models
             }
         }
 
-        //public ObservableCollection<EntryItem> List = new ObservableCollection<EntryItem>();
+        public ObservableCollection<EntryItem> List { get; set; } = new ObservableCollection<EntryItem>();
 
         public NodeFeed(string name, Uri feedUrl) : base(name, feedUrl, ApiTypes.atFeed, ServiceTypes.Feed)
         {

@@ -9,13 +9,12 @@ using System.Threading.Tasks;
 using BlogWrite.Models;
 using AngleSharp;
 using BlogWrite.Common;
-using System.Windows.Media.Imaging;
+using Windows.Graphics.Imaging;
 using System.IO;
 using System.Diagnostics;
 using System.Windows;
-using System.Collections.ObjectModel;
-using System.Windows.Media;
 using System.Reflection;
+using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace BlogWrite.Models.Clients
 {
@@ -48,13 +47,13 @@ namespace BlogWrite.Models.Clients
                 if (entItem.ImageUri != null)
                 {
                     //Debug.WriteLine("Gettting Image: " + entItem.ImageUri.AbsoluteUri);
-
+                    /*
                     // 
                     Byte[] bytes = await this.GetImage(entItem.ImageUri);
 
                     if (bytes != Array.Empty<byte>())
                     {
-                        var imageSource = (BitmapSource)new ImageSourceConverter().ConvertFrom(bytes);
+                        var imageSource = (BitmapSource)new ImageSourceConverter().ConvertFrom(bytes);  
                         var width = 220d;
                         var scale = width / imageSource.PixelWidth;
                         //var height = 127d;
@@ -72,6 +71,7 @@ namespace BlogWrite.Models.Clients
                             });
                         }
                     }
+                    */
                 }
             }
 
@@ -83,7 +83,7 @@ namespace BlogWrite.Models.Clients
             try
             {
                 byte[] data = Array.Empty<byte>();
-
+                /*
                 BitmapEncoder encoder = new BmpBitmapEncoder();
                 encoder.Frames.Add(BitmapFrame.Create((BitmapSource)writableBitmapImage));
                 using (MemoryStream ms = new MemoryStream())
@@ -91,7 +91,7 @@ namespace BlogWrite.Models.Clients
                     encoder.Save(ms);
                     data = ms.ToArray();
                 }
-
+                */
                 return data;
             }
             catch (Exception e)
@@ -324,11 +324,12 @@ namespace BlogWrite.Models.Clients
                 using (var stream = new MemoryStream(bytes))
                 {
                     BitmapImage bmimage = new BitmapImage();
+                    /*
                     bmimage.BeginInit();
                     bmimage.CacheOption = BitmapCacheOption.OnLoad;
                     bmimage.StreamSource = stream;
                     bmimage.EndInit();
-
+                    */
                     return bmimage;
                 }
             }
@@ -351,32 +352,5 @@ namespace BlogWrite.Models.Clients
 
     }
 }
-
-    /*
-    // Singleton.
-    // https://qiita.com/laughter/items/e6be52db15d7326b46b9
-
-    public class HTTPConnection
-    {
-        public HttpClient Client { get; }
-
-        public static HTTPConnection Instance
-        {
-            get { return SingletonHolder._Instance; }
-        }
-
-        private static class SingletonHolder
-        {
-            static SingletonHolder() { }
-            internal static readonly HTTPConnection _Instance = new HTTPConnection();
-        }
-
-        private HTTPConnection()
-        {
-            Client = new HttpClient();
-        }
-
-    }
-    */
 
 

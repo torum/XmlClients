@@ -24,7 +24,7 @@ namespace BlogWrite.ViewModels
 
     public class OpenDialogService// : IOpenDialogService
     {
-
+        /*
         public string GetOpenOpmlFileDialog(string title, bool multi = false)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
@@ -55,6 +55,7 @@ namespace BlogWrite.ViewModels
             }
             return null;
         }
+        */
     }
 
     #endregion
