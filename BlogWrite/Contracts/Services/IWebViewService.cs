@@ -10,6 +10,8 @@ public interface IWebViewService
         get;
     }
 
+    void NavigateToString(string str);
+
     bool CanGoBack
     {
         get;
@@ -21,6 +23,7 @@ public interface IWebViewService
     }
 
     event EventHandler<CoreWebView2WebErrorStatus>? NavigationCompleted;
+    event EventHandler<CoreWebView2InitializedEventArgs>? CoreWebView2Initialized;
 
     void Initialize(WebView2 webView);
 

@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="Views\AddFeedPage.xaml" />
+    <None Remove="Views\EntryDetailsPage.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -55,6 +56,9 @@
     <None Update="Assets\Icons\rss.svg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <Page Update="Views\EntryDetailsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Update="Views\AddFeedPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>

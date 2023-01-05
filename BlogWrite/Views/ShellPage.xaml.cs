@@ -30,18 +30,14 @@ public sealed partial class ShellPage : Page
 
         ViewModel.NavigationService.Frame = NavigationFrame;
 
-        ViewModel.NavigationViewService.Initialize(NavigationViewControl);
+        // 
+        //ViewModel.NavigationViewService.Initialize(NavigationViewControl);
 
-
-        // TODO: Set the title bar icon by updating /Assets/WindowIcon.ico.
-        // A custom title bar is required for full window theme and Mica support.
-        // https://docs.microsoft.com/windows/apps/develop/title-bar?tabs=winui3#full-customization
         App.MainWindow.ExtendsContentIntoTitleBar = true;
         App.MainWindow.SetTitleBar(AppTitleBar);
         App.MainWindow.Activated += MainWindow_Activated;
         App.MainWindow.Closed += MainWindow_Closed;
         AppTitleBarText.Text = "AppDisplayName".GetLocalized();
-
 
     }
 
@@ -264,10 +260,9 @@ public sealed partial class ShellPage : Page
 
     private void NavigationViewControl_Loaded(object sender, RoutedEventArgs e)
     {
-
-        // Any other way?
-        var settings = (Microsoft.UI.Xaml.Controls.NavigationViewItem)NavigationViewControl.SettingsItem;
-        settings.Content = "";//"Setting".GetLocalized();
+        // 
+        //var settings = (Microsoft.UI.Xaml.Controls.NavigationViewItem)NavigationViewControl.SettingsItem;
+        //settings.Content = "";//"Setting".GetLocalized();
     }
 
     private void NavigationViewControl_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)

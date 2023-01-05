@@ -6,9 +6,105 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="using:BlogWrite.Models"
      Background="Transparent"
+    NavigationCacheMode="Required"
     mc:Ignorable="d">
+    <Page.Resources>
 
+        <DataTemplate x:Key="FolderTemplate" x:DataType="model:NodeTree">
+            <TreeViewItem ItemsSource="{x:Bind Children}" Padding="3" Margin="0,0,6,0">
+                <StackPanel>
+                    <Border x:Name="PanelBackground" Background="Transparent" CornerRadius="0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="34"/>
+                            </Grid.ColumnDefinitions>
+
+                            <PathIcon Grid.Row="0" Grid.Column="0" Data="{x:Bind PathIcon, Mode=OneWay}"></PathIcon>
+
+                            <TextBlock Grid.Row="0" Grid.Column="1" x:Name="NodeTextBlock" Text="{x:Bind Name, Mode=OneWay}" Padding="3" IsHitTestVisible="False" Margin="6,0,0,0"/>
+                            <!--
+                            <TextBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" x:Name="RenameTextBox" Text="{x:Bind Name, Mode=TwoWay}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="-5 0 3 0" Width="Auto" Visibility="Collapsed" LostFocus="RenameTextBox_LostFocus" KeyUp="RenameTextBox_KeyUp">
+
+                            </TextBox>
+                            -->
+
+                            <TextBlock Grid.Column="2" Text="{x:Bind SubNodeText, Mode=OneWay}" Margin="9 3 3 3" HorizontalAlignment="Right"></TextBlock>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </TreeViewItem>
+        </DataTemplate>
+
+        <DataTemplate x:Key="FileTemplate" x:DataType="model:NodeTree">
+
+            <TreeViewItem ItemsSource="{x:Bind Children}" Padding="3" Margin="0,0,6,0">
+                <StackPanel>
+                    <Border x:Name="PanelBackground" Background="Transparent" CornerRadius="0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="34"/>
+                            </Grid.ColumnDefinitions>
+
+                            <PathIcon Grid.Row="0" Grid.Column="0" Data="{x:Bind PathIcon, Mode=OneWay}"></PathIcon>
+
+                            <TextBlock Grid.Row="0" Grid.Column="1" x:Name="NodeTextBlock" Text="{x:Bind Name, Mode=OneWay}" Padding="3" IsHitTestVisible="False" Margin="6,0,0,0"/>
+                            <!--
+                            <TextBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" x:Name="RenameTextBox" Text="{x:Bind Name, Mode=TwoWay}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="-5 0 3 0" Width="Auto" Visibility="Collapsed" LostFocus="RenameTextBox_LostFocus" KeyUp="RenameTextBox_KeyUp">
+
+                            </TextBox>
+                            -->
+
+                            <TextBlock Grid.Column="2" Text="{x:Bind SubNodeText, Mode=OneWay}" Margin="9 3 3 3" HorizontalAlignment="Right"></TextBlock>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </TreeViewItem>
+
+        </DataTemplate>
+
+        <model:ExplorerItemTemplateSelector x:Key="ExplorerItemTemplateSelector" FolderTemplate="{StaticResource FolderTemplate}" FileTemplate="{StaticResource FileTemplate}" />
+
+    </Page.Resources>
     <Grid x:Name="ContentArea" Background="{ThemeResource NavigationViewDefaultPaneBackground}">
+        
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+                <VisualState>
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="640" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState>
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+            <VisualStateGroup>
+                <VisualState x:Name="test">
+                    <VisualState.StateTriggers>
+                        <StateTrigger IsActive="{x:Bind Path=ViewModel.IsEntryDetailPaneVisible, Mode=TwoWay}" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="PanelOpenClose.Icon" Value="OpenPane" />
+                        <Setter Target="PanelOpenClose.Label" Value="Hide" />
+                        <Setter Target="col1.Width" Value="3*" />
+                        <Setter Target="col2.Width" Value="4*" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+        
         <Grid.RowDefinitions>
             <RowDefinition Height="0" />
             <RowDefinition Height="*" />
@@ -19,22 +115,60 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         
+        <!-- Left pane -->
         <Grid Grid.Row="1" Grid.Column="0" Margin="6,0,0,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0" Orientation="Horizontal">
+            <!-- TreeView app buttons -->
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-                <AppBarButton Icon="Add" Label="Add" Command="{x:Bind ViewModel.FeedAddCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+
+                    <AppBarButton Icon="Add" Label="Add" Command="{x:Bind ViewModel.FeedAddCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
+
+                    </AppBarButton>
+
+                    <AppBarButton Icon="Remove" Label="Remove" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
+
+                    </AppBarButton>
+
+                    <AppBarButton Icon="More" Label="" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
+                        <!--
+                    <AppBarButton.Flyout>
+                        <MenuFlyout>
+                            <MenuFlyoutItem x:Uid="1min" Command="{x:Bind PairVM.ChangeCandleTypeCommand}" CommandParameter="{x:Bind model:CandleTypes.OneMin}"/>
+                            <MenuFlyoutItem x:Uid="5min" Command="{x:Bind PairVM.ChangeCandleTypeCommand}" CommandParameter="{x:Bind model:CandleTypes.FiveMin}"/>
+                            <MenuFlyoutItem x:Uid="15min" Command="{x:Bind PairVM.ChangeCandleTypeCommand}" CommandParameter="{x:Bind model:CandleTypes.FifteenMin}"/>
+                            <MenuFlyoutItem x:Uid="30min" Command="{x:Bind PairVM.ChangeCandleTypeCommand}" CommandParameter="{x:Bind model:CandleTypes.ThirtyMin}"/>
+                            <MenuFlyoutSeparator/>
+
+                            <MenuFlyoutItem x:Uid="1hour" Command="{x:Bind PairVM.ChangeCandleTypeCommand}" CommandParameter="{x:Bind model:CandleTypes.OneHour}"/>
+                            <MenuFlyoutItem x:Uid="4hour" Command="{x:Bind PairVM.ChangeCandleTypeCommand}" CommandParameter="{x:Bind model:CandleTypes.FourHour}"/>
+                            <MenuFlyoutItem x:Uid="8hour" Command="{x:Bind PairVM.ChangeCandleTypeCommand}" CommandParameter="{x:Bind model:CandleTypes.EightHour}"/>
+                            <MenuFlyoutItem x:Uid="12hour" Command="{x:Bind PairVM.ChangeCandleTypeCommand}" CommandParameter="{x:Bind model:CandleTypes.TwelveHour}"/>
+                            <MenuFlyoutSeparator/>
+
+                            <MenuFlyoutItem x:Uid="1day" Command="{x:Bind PairVM.ChangeCandleTypeCommand}" CommandParameter="{x:Bind model:CandleTypes.OneDay}"/>
+                            <MenuFlyoutItem x:Uid="1week" Command="{x:Bind PairVM.ChangeCandleTypeCommand}" CommandParameter="{x:Bind model:CandleTypes.OneWeek}"/>
+                            <MenuFlyoutItem x:Uid="1month" Command="{x:Bind PairVM.ChangeCandleTypeCommand}" CommandParameter="{x:Bind model:CandleTypes.OneMonth}"/>
+                        </MenuFlyout>
+                    </AppBarButton.Flyout>
+                    -->
+                    </AppBarButton>
+
+                    <!--
+
+                <AppBarButton Icon="Up" Label="Up" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
 
                 </AppBarButton>
-
-                <AppBarButton Icon="Remove" Label="Remove" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
-
-                </AppBarButton>
-
+                
                 <AppBarButton Icon="Import" Label="Import" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
 
                 </AppBarButton>
@@ -42,45 +176,48 @@
                 <AppBarButton Icon="Save" Label="Export" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
 
                 </AppBarButton>
+                -->
+                </StackPanel>
 
-            </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
 
+                </StackPanel>
+
+            </Grid>
+
+            <!-- TreeView -->
             <Border Grid.Row="1" Margin="0,0,6,6" Background="{ThemeResource NavigationViewContentBackground}" CornerRadius="{ThemeResource NavigationViewContentChildGridCornerRadius}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
 
-                <TreeView Grid.Column="0" MinWidth="300" Width="350" MaxWidth="400" ItemsSource="{x:Bind ViewModel.Services, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedTreeViewItem, Mode=TwoWay}" SelectedNode="{x:Bind ViewModel.SelectedTreeViewNode, Mode=OneWay}" Margin="3,6,3,6">
+                <TreeView Grid.Column="0" MinWidth="300" Width="300" MaxWidth="400" SelectionMode="Single" ItemTemplateSelector="{StaticResource ExplorerItemTemplateSelector}" ItemsSource="{x:Bind ViewModel.Services, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedTreeViewItem, Mode=TwoWay}" SelectedNode="{x:Bind ViewModel.SelectedTreeViewNode, Mode=OneWay}" Margin="3,6,3,6">
                     <TreeView.ItemTemplate>
-
                         <DataTemplate x:DataType="model:NodeTree">
-                            <TreeViewItem ItemsSource="{x:Bind Children}" Content="{x:Bind Name}" Padding="3"/>
-                            <!--
-                        <StackPanel>
-                            <Border x:Name="PanelBackground" Background="Transparent" CornerRadius="0">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="34"/>
-                                    </Grid.ColumnDefinitions>
 
-                                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        
-                                        <Viewbox Width="12" Height="12" Margin="0 0 4 2" IsHitTestVisible="False">
-                                            <Canvas Width="18" Height="18">
-                                                <Path Data="{Binding PathIcon}" Fill="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}" />
-                                            </Canvas>
-                                        </Viewbox>
-                                        
-                                        <TextBlock x:Name="NodeTextBlock" Text="{Binding Path=Name}" Padding="4" IsHitTestVisible="False"/>
-                                    </StackPanel>
+                            <TreeViewItem ItemsSource="{x:Bind Children}" Padding="3" Margin="0,0,6,0">
+                                <StackPanel>
+                                    <Border x:Name="PanelBackground" Background="Transparent" CornerRadius="0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="48"/>
+                                            </Grid.ColumnDefinitions>
 
-                                    <TextBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" x:Name="RenameTextBox" Text="{Binding Name, Mode=TwoWay}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="-5 0 3 0" Width="Auto" Visibility="Collapsed" LostFocus="RenameTextBox_LostFocus" KeyUp="RenameTextBox_KeyUp">
+                                            <PathIcon Grid.Row="0" Grid.Column="0" Data="{x:Bind PathIcon, Mode=OneWay}"></PathIcon>
 
-                                    </TextBox>
+                                            <TextBlock Grid.Row="0" Grid.Column="1" x:Name="NodeTextBlock" Text="{x:Bind Name, Mode=OneWay}" Padding="3" IsHitTestVisible="False" Margin="6,0,0,0"/>
+                                            <!--
+                            <TextBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" x:Name="RenameTextBox" Text="{x:Bind Name, Mode=TwoWay}" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="-5 0 3 0" Width="Auto" Visibility="Collapsed" LostFocus="RenameTextBox_LostFocus" KeyUp="RenameTextBox_KeyUp">
 
-                                    <TextBlock Grid.Column="2" Text="{Binding SubNodeText}" Margin="9 3 3 3" HorizontalAlignment="Right"></TextBlock>
-                                </Grid>
-                            </Border>
-                        </StackPanel>-->
+                            </TextBox>
+                            -->
+
+                                            <TextBlock Grid.Column="2" Text="{x:Bind SubNodeText, Mode=OneWay}" Margin="9 3 3 3" HorizontalAlignment="Right"></TextBlock>
+                                            
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </TreeViewItem>
+
                         </DataTemplate>
                     </TreeView.ItemTemplate>
                 </TreeView>
@@ -89,14 +226,20 @@
 
         </Grid>
 
+        <!-- Right pane -->
         <Grid Grid.Row="1" Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             
-            <StackPanel Grid.Row="0" Orientation="Horizontal">
-<!--
+            <!-- Right pane app buttons -->
+            <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <!--
                 <AppBarButton Label="Archive" ToolTipService.ToolTip="View in internal browser" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1">
                     <AppBarButton.Icon>
                         <PathIcon>
@@ -107,76 +250,243 @@
                     </AppBarButton.Icon>
                 </AppBarButton>
 -->
-                <AppBarButton Label="View" ToolTipService.ToolTip="View in internal browser" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
+                    <!--
+                <AppBarButton Label="New" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
                     <AppBarButton.Icon>
                         <PathIcon>
                             <PathIcon.Data>
-                                M12,10L8,14H11V20H13V14H16M19,4H5C3.89,4 3,4.9 3,6V18A2,2 0 0,0 5,20H9V18H5V8H19V18H15V20H19A2,2 0 0,0 21,18V6A2,2 0 0,0 19,4Z
-                            </PathIcon.Data>
+                                M23 18H20V15H18V18H15V20H18V23H20V20H23M6 2C4.89 2 4 2.9 4 4V20C4 21.11 4.89 22 6 22H13.81C13.45 21.38 13.2 20.7 13.08 20H6V4H13V9H18V13.08C18.33 13.03 18.67 13 19 13C19.34 13 19.67 13.03 20 13.08V8L14 2M8 12V14H16V12M8 16V18H13V16Z</PathIcon.Data>
                         </PathIcon>
                     </AppBarButton.Icon>
                 </AppBarButton>
 
-                <AppBarButton Label="Open" ToolTipService.ToolTip="Open in external browser" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
+                <AppBarButton Label="Edit" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
                     <AppBarButton.Icon>
                         <PathIcon>
                             <PathIcon.Data>
-                                M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z
-                            </PathIcon.Data>
+                                M10 21H5C3.89 21 3 20.11 3 19V5C3 3.89 3.89 3 5 3H19C20.11 3 21 3.89 21 5V10.33C20.7 10.21 20.37 10.14 20.04 10.14C19.67 10.14 19.32 10.22 19 10.37V5H5V19H10.11L10 19.11V21M7 9H17V7H7V9M7 17H12.11L14 15.12V15H7V17M7 13H16.12L17 12.12V11H7V13M21.7 13.58L20.42 12.3C20.21 12.09 19.86 12.09 19.65 12.3L18.65 13.3L20.7 15.35L21.7 14.35C21.91 14.14 21.91 13.79 21.7 13.58M12 22H14.06L20.11 15.93L18.06 13.88L12 19.94V22Z</PathIcon.Data>
                         </PathIcon>
                     </AppBarButton.Icon>
                 </AppBarButton>
+                -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
 
-            </StackPanel>
-            
-            <Border Grid.Row="1" Margin="0,0,6,6" Background="{ThemeResource NavigationViewContentBackground}" CornerRadius="{ThemeResource NavigationViewContentChildGridCornerRadius}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
-                <Grid>
+                        <AppBarButton Label="View" Command="{x:Bind ViewModel.EntryViewInternalCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
+                            <AppBarButton.Icon>
+                                <PathIcon>
+                                    <PathIcon.Data>
+                                        M12,10L8,14H11V20H13V14H16M19,4H5C3.89,4 3,4.9 3,6V18A2,2 0 0,0 5,20H9V18H5V8H19V18H15V20H19A2,2 0 0,0 21,18V6A2,2 0 0,0 19,4Z
+                                    </PathIcon.Data>
+                                </PathIcon>
+                            </AppBarButton.Icon>
+                        </AppBarButton>
 
-                    <ListView ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedListViewItem, Mode=OneWay}" SelectionMode="Single" Margin="3,6,3,6">
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="model:EntryItem">
+                        <AppBarButton Label="Open" Command="{x:Bind ViewModel.EntryViewExternalCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
+                            <AppBarButton.Icon>
+                                <PathIcon>
+                                    <PathIcon.Data>
+                                        M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z
+                                    </PathIcon.Data>
+                                </PathIcon>
+                            </AppBarButton.Icon>
+                        </AppBarButton>
+                    </StackPanel>
 
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="*"/>
-                                        <RowDefinition Height="*"/>
-                                    </Grid.RowDefinitions>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Ellipse x:Name="Ellipse"
-                    Grid.RowSpan="2"
-                    Width ="32"
-                    Height="32"
-                    Margin="6"
-                    VerticalAlignment="Center"
-                    HorizontalAlignment="Center"
-                    Fill="{ThemeResource SystemControlBackgroundBaseMediumBrush}"/>
-                                    <TextBlock Grid.Column="1"
-                    Text="{x:Bind Name}"
-                    x:Phase="1"
-                    Style="{ThemeResource BaseTextBlockStyle}"
-                    Margin="12,6,0,0"/>
-                                    <TextBlock  Grid.Column="1"
-                    Grid.Row="1"
-                    Text="{x:Bind Author}"
-                    x:Phase="2"
-                    Style="{ThemeResource BodyTextBlockStyle}"
-                    Margin="12,0,0,6"/>
-                                </Grid>
+                    <StackPanel Grid.Column="1" HorizontalAlignment="Right">
 
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+                        <AppBarButton x:Name="PanelOpenClose" Command="{x:Bind ViewModel.DetailsPaneShowHideCommand}" Icon="ClosePane" Label="Show" IsCompact="False" VerticalAlignment="Bottom" Margin="0" Padding="0" Opacity="1">
+
+                        </AppBarButton>
+                    </StackPanel>
+
+            </Grid>
+
+            <!-- Right pane content list and details pane -->
+            <Grid Grid.Row="1">
+
+                <!-- HTTP error -->
+                <Border Visibility="{x:Bind ViewModel.IsShowHttpClientError,Mode=OneWay}">
+                    <ScrollViewer>
+                        <Grid Margin="12">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="48"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="48"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Row="0" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Viewbox Width="18" Height="18" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Canvas Width="18" Height="18">
+                                        <Path Fill="Red" Data="M11,15H13V17H11V15M11,7H13V13H11V7M12,2C6.47,2 2,6.5 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20Z" />
+                                    </Canvas>
+                                </Viewbox>
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="1" Grid.Column="1" MinWidth="200" Width="600" MaxWidth="600" HorizontalAlignment="Left">
+
+                                <TextBox Header="Error Type" Text="{x:Bind ViewModel.HttpError.ErrType, Mode=OneWay}" Background="Transparent" Margin="0,6,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
+                                <TextBox Header="Error Text" Text="{x:Bind ViewModel.HttpError.ErrText, Mode=OneWay}" Background="Transparent" Margin="0,24,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="Stretch"></TextBox>
+                                <TextBox Header="Error Description" Text="{x:Bind ViewModel.HttpError.ErrDescription, Mode=OneWay}" Background="Transparent" Margin="0,24,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
+
+                                <TextBox Header="Location 1"  Text="{x:Bind ViewModel.HttpError.ErrPlaceParent, Mode=OneWay}" Background="Transparent" Margin="0,24,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
+                                <TextBox Header="Location 2" Text="{x:Bind ViewModel.HttpError.ErrPlace, Mode=OneWay}" Background="Transparent" Margin="0,24,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
+
+
+                                <TextBox Header="Date and Time" Text="{x:Bind ViewModel.HttpError.ErrDatetime, Mode=OneWay}" Background="Transparent" Margin="0,24,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
+
+                            </StackPanel>
+
+                        </Grid>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- ListView and details pane -->
+                <Grid Visibility="{x:Bind ViewModel.IsShowHttpClientErrorInverse,Mode=OneWay}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" x:Name="col1"/>
+                        <ColumnDefinition Width="Auto" x:Name="col2" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- ListView -->
+                    <Border Grid.Row="0" Grid.Column="0" Margin="0,0,6,6" Background="{ThemeResource NavigationViewContentBackground}" CornerRadius="{ThemeResource NavigationViewContentChildGridCornerRadius}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
+
+                        <ListView ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedListViewItem, Mode=TwoWay}" SelectionMode="Single" Margin="3,6,3,6" Padding="0,0,6,0">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="model:EntryItem">
+                                    <Grid x:Name="itemThumbnail">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <PathIcon Grid.RowSpan="3" Data="{x:Bind PathIcon, Mode=OneWay}" Width ="32" Height="32" Margin="6" VerticalAlignment="Center" HorizontalAlignment="Center"></PathIcon>
+                                        <!--
+                                        <Ellipse Grid.RowSpan="3" x:Name="Ellipse" Width ="32" Height="32" Margin="6" VerticalAlignment="Center" HorizontalAlignment="Center" Fill="{ThemeResource SystemControlBackgroundBaseMediumBrush}"/>
+                                        -->
+                                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind Name}" x:Phase="1" Style="{ThemeResource BaseTextBlockStyle}" Margin="12,6,0,0"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind Author}" x:Phase="2" Style="{ThemeResource BodyTextBlockStyle}" Margin="12,0,0,0" Opacity=".8"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind PublishedDateTimeFormated}" x:Phase="2" Style="{ThemeResource CaptionTextBlockStyle}" Margin="12,0,0,6" Opacity=".6"/>
+
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
                     
+                    </Border>
+
+                    <!-- Details pane -->
+                    <Border x:Name="DetailsPane" Grid.Row="0" Grid.Column="1" Visibility="{x:Bind ViewModel.IsEntryDetailPaneVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}" Margin="0,0,6,6" Background="{ThemeResource NavigationViewContentBackground}" CornerRadius="{ThemeResource NavigationViewContentChildGridCornerRadius}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
+                        <ScrollViewer>
+
+                            <StackPanel Margin="24,12,24,24" Visibility="{x:Bind ViewModel.IsEntryDetailVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
+
+                                <RelativePanel HorizontalAlignment="Left" VerticalAlignment="Top" RelativePanel.AlignTopWithPanel="True" RelativePanel.AlignLeftWithPanel="True">
+
+                                    <Viewbox Margin="0" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                                        <Canvas Width="23.5" Height="23.5">
+                                            <Path Fill="#333" Opacity="0" Data="M19,19H5V5H19M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M13.96,12.29L11.21,15.83L9.25,13.47L6.5,17H17.5L13.96,12.29Z" />
+                                        </Canvas>
+                                    </Viewbox>
+
+                                    <StackPanel x:Name="title">
+
+
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Name, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" Style="{ThemeResource TitleTextBlockStyle}" />
+<!--
+                                        <TextBlock Text="Status" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
+                                        <TextBlock Text="-" Style="{StaticResource DetailBodyBaseMediumStyle}" />
+-->
+                                        <TextBlock Text="Author" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Author, Mode=OneWay}" Style="{StaticResource DetailBodyBaseMediumStyle}" />
+
+                                        <TextBlock Text="Publisher" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
+                                        <TextBlock Text="-" Style="{StaticResource DetailBodyBaseMediumStyle}" />
+
+                                        <TextBlock Text="Published date" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.PublishedDateTimeFormated, Mode=OneWay}" Style="{StaticResource DetailBodyBaseMediumStyle}" />
+
+                                        <TextBlock Text="Category" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
+                                        <TextBlock Text="-" Style="{StaticResource DetailBodyBaseMediumStyle}" />
+
+
+
+
+                                        <TextBlock
+                    Margin="{StaticResource SmallTopMargin}"
+                    Style="{ThemeResource SubtitleTextBlockStyle}"
+                    Text="Summary" />
+                                        <TextBlock
+                    Style="{ThemeResource BodyTextBlockStyle}"
+                    Text="{x:Bind ViewModel.SelectedListViewItem.Summary, Mode=OneWay}" />
+
+                                        <TextBlock
+                    Margin="{StaticResource SmallTopMargin}"
+                    Style="{ThemeResource SubtitleTextBlockStyle}"
+                    Text="Content" />
+                                        <TextBlock Visibility="{x:Bind ViewModel.IsContentText, Mode=OneWay}"
+                    Margin="{StaticResource MediumBottomMargin}"
+                    Style="{ThemeResource BodyTextBlockStyle}"
+                    Text="{x:Bind ViewModel.SelectedListViewItem.Content, Mode=OneWay}" />
+
+                                        <StackPanel Visibility="{x:Bind ViewModel.IsContentHTML, Mode=OneWay}">
+
+                                            <TextBlock Text="(The content type is HTML)"></TextBlock>
+
+                                            <StackPanel Orientation="Horizontal">
+
+                                                <AppBarButton Label="View" Command="{x:Bind ViewModel.EntryViewInternalCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
+                                                    <AppBarButton.Icon>
+                                                        <PathIcon>
+                                                            <PathIcon.Data>
+                                                                M12,10L8,14H11V20H13V14H16M19,4H5C3.89,4 3,4.9 3,6V18A2,2 0 0,0 5,20H9V18H5V8H19V18H15V20H19A2,2 0 0,0 21,18V6A2,2 0 0,0 19,4Z
+                                                            </PathIcon.Data>
+                                                        </PathIcon>
+                                                    </AppBarButton.Icon>
+                                                </AppBarButton>
+
+                                                <AppBarButton Label="Open" Command="{x:Bind ViewModel.EntryViewExternalCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
+                                                    <AppBarButton.Icon>
+                                                        <PathIcon>
+                                                            <PathIcon.Data>
+                                                                M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z
+                                                            </PathIcon.Data>
+                                                        </PathIcon>
+                                                    </AppBarButton.Icon>
+                                                </AppBarButton>
+
+                                            </StackPanel>
+
+
+                                        </StackPanel>
+
+                                    </StackPanel>
+                                </RelativePanel>
+                            </StackPanel>
+
+                        </ScrollViewer>
+                    </Border>
+                
                 </Grid>
-            </Border>
+
+            </Grid>
 
         </Grid>
 
+        <!-- Debug pane -->
         <Grid Grid.Row="2" Grid.ColumnSpan="2" Margin="6,0,6,6" Visibility="Collapsed">
-            <TextBox x:Name="DebugTextBox" HorizontalAlignment="Stretch" TextWrapping="Wrap" Padding="6 6 24 6" VerticalAlignment="Stretch" Margin="0" MinHeight="240" MaxHeight="240" ScrollViewer.VerticalScrollBarVisibility="Visible">
+            <TextBox x:Name="DebugTextBox" HorizontalAlignment="Stretch" TextWrapping="Wrap" Padding="6 6 24 6" VerticalAlignment="Stretch" Margin="0" MinHeight="120" MaxHeight="240" ScrollViewer.VerticalScrollBarVisibility="Visible">
 
             </TextBox>
         </Grid>

@@ -21,19 +21,18 @@
             <Button Margin="6" VerticalAlignment="Top" Background="Transparent" BorderThickness="0" Padding="{StaticResource XSmallLeftTopRightBottomMargin}" Command="{x:Bind ViewModel.GoBackCommand}">
                 <SymbolIcon Symbol="Back" />
             </Button>
-
         </StackPanel>
 
 
         <Grid Grid.Row="1">
-            <Pivot Title="New feed or API" Margin="48,0,0,0" SelectedIndex="{x:Bind ViewModel.SelectedTabIndex, Mode=TwoWay}">
+            <Pivot Title="Add New Feed or API" Margin="48,0,0,0" SelectedIndex="{x:Bind ViewModel.SelectedTabIndex, Mode=TwoWay}" MaxWidth="800">
                 
                 <PivotItem Header="1. Input URL">
                     <StackPanel Margin="0,12,0,0">
                         
                         <TextBlock Text="Enter a URL of a feed, a website or an API endpoint." />
 
-                        <StackPanel MinWidth="300" MaxWidth="600" HorizontalAlignment="Stretch" Margin="12,24,12,12">
+                        <StackPanel MinWidth="300" HorizontalAlignment="Stretch" Margin="12,24,12,12">
 
                             <TextBox Header="URL:" PlaceholderText="https://www.example.com/feed.xml" Text="{x:Bind ViewModel.WebsiteOrEndpointUrl, Mode=TwoWay}" Margin="12,24,12,12" HorizontalAlignment="Stretch"/>
                             

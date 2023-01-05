@@ -3,6 +3,7 @@ using System.Windows.Input;
 using System.Xml;
 using BlogWrite.Contracts.Services;
 using BlogWrite.Models;
+using BlogWrite.Services;
 using BlogWrite.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -25,25 +26,6 @@ public class ShellViewModel : ObservableRecipient
         get;
     }
 
-    public ICommand MenuViewsDataGridCommand
-    {
-        get;
-    }
-
-    public ICommand MenuViewsContentGridCommand
-    {
-        get;
-    }
-
-    public ICommand MenuViewsListDetailsCommand
-    {
-        get;
-    }
-
-    public ICommand MenuViewsWebViewCommand
-    {
-        get;
-    }
 
     public ICommand MenuViewsMainCommand
     {
@@ -72,16 +54,6 @@ public class ShellViewModel : ObservableRecipient
     {
         get => _isBackEnabled;
         set => SetProperty(ref _isBackEnabled, value);
-        /*set
-        {
-            if (_isBackEnabled == value)
-                return;
-
-            _isBackEnabled = value;
-
-            NotifyPropertyChanged(nameof(IsBackEnabled));
-        }
-        */
     }
 
     public ShellViewModel(INavigationService navigationService, INavigationViewService navigationViewService)
@@ -92,10 +64,6 @@ public class ShellViewModel : ObservableRecipient
 
         MenuFileExitCommand = new RelayCommand(OnMenuFileExit);
         MenuSettingsCommand = new RelayCommand(OnMenuSettings);
-        MenuViewsDataGridCommand = new RelayCommand(OnMenuViewsDataGrid);
-        MenuViewsContentGridCommand = new RelayCommand(OnMenuViewsContentGrid);
-        MenuViewsListDetailsCommand = new RelayCommand(OnMenuViewsListDetails);
-        MenuViewsWebViewCommand = new RelayCommand(OnMenuViewsWebView);
         MenuViewsMainCommand = new RelayCommand(OnMenuViewsMain);
 
     }
@@ -121,13 +89,6 @@ public class ShellViewModel : ObservableRecipient
 
     private void OnMenuSettings() => NavigationService.NavigateTo(typeof(SettingsViewModel).FullName!);
 
-    private void OnMenuViewsDataGrid() => NavigationService.NavigateTo(typeof(DataGridViewModel).FullName!);
-
-    private void OnMenuViewsContentGrid() => NavigationService.NavigateTo(typeof(ContentGridViewModel).FullName!);
-
-    private void OnMenuViewsListDetails() => NavigationService.NavigateTo(typeof(ListDetailsViewModel).FullName!);
-
-    private void OnMenuViewsWebView() => NavigationService.NavigateTo(typeof(WebViewViewModel).FullName!);
 
     private void OnMenuViewsMain() => NavigationService.NavigateTo(typeof(MainViewModel).FullName!);
 

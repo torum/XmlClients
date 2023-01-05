@@ -15,12 +15,8 @@ public class PageService : IPageService
     public PageService()
     {
         Configure<MainViewModel, MainPage>();
-        Configure<WebViewViewModel, WebViewPage>();
+        Configure<EntryDetailsViewModel, EntryDetailsPage>();
         Configure<AddFeedViewModel, AddFeedPage>();
-        Configure<ListDetailsViewModel, ListDetailsPage>();
-        Configure<ContentGridViewModel, ContentGridPage>();
-        Configure<ContentGridDetailViewModel, ContentGridDetailPage>();
-        Configure<DataGridViewModel, DataGridPage>();
         Configure<SettingsViewModel, SettingsPage>();
     }
 

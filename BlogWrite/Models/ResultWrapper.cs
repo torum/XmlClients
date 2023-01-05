@@ -8,7 +8,7 @@ namespace BlogWrite.Models
     {
         public enum ErrTypes
         {
-            DB, API, HTTP, Other
+            DB, API, HTTP, XML, Other
         };
 
         public ErrTypes ErrType { get; set; } 

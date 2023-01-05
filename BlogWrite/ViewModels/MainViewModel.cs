@@ -24,6 +24,21 @@ public class MainViewModel : ObservableRecipient, INavigationAware
         get;
     }
 
+    public ICommand EntryViewInternalCommand
+    {
+        get;
+    }
+
+    public ICommand EntryViewExternalCommand
+    {
+        get;
+    }
+
+    public ICommand DetailsPaneShowHideCommand
+    {
+        get;
+    }
+
     #region == Service Treeview ==
 
     private ServiceTreeBuilder _services = new ServiceTreeBuilder();
@@ -59,8 +74,8 @@ public class MainViewModel : ObservableRecipient, INavigationAware
             SelectedListViewItem = null;
 
             // Clear HTTP error if shown.
-            //HttpError = null;
-            //IsShowHttpClientErrorMessage = false;
+            HttpError = null;
+            IsShowHttpClientError = false;
 
             // Clear DB error if shown.
             //DatabaseError = null;
@@ -126,9 +141,11 @@ public class MainViewModel : ObservableRecipient, INavigationAware
                     else
                     {
                         Entries = new ObservableCollection<EntryItem>();
-                        GetEntriesAsync(_selectedTreeViewItem);
+                        //GetEntriesAsync(_selectedTreeViewItem);
+                        //Task.Run(() => GetEntriesAsync(_selectedTreeViewItem)).ConfigureAwait(false);
+                        Task nowait = Task.Run(() => GetEntriesAsync(_selectedTreeViewItem));
                     }
-                    
+
                 }
                 else
                 {
@@ -163,19 +180,8 @@ public class MainViewModel : ObservableRecipient, INavigationAware
     private string _selectedServiceName;
     public string SelectedServiceName
     {
-        get
-        {
-            return _selectedServiceName;
-        }
-        set
-        {
-            if (_selectedServiceName == value)
-                return;
-
-            _selectedServiceName = value;
-
-            //NotifyPropertyChanged(nameof(SelectedServiceName));
-        }
+        get => _selectedServiceName;
+        set => SetProperty(ref _selectedServiceName, value);
     }
 
     #endregion
@@ -193,122 +199,90 @@ public class MainViewModel : ObservableRecipient, INavigationAware
     private EntryItem _selectedListViewItem = null;
     public EntryItem SelectedListViewItem
     {
-        get
-        {
-            return _selectedListViewItem;
-        }
+        get => _selectedListViewItem;
         set
         {
-            if (_selectedListViewItem == value)
-                return;
+            SetProperty(ref _selectedListViewItem, value);
 
-            _selectedListViewItem = value;
-
-            //NotifyPropertyChanged(nameof(SelectedListViewItem));
-            /*
             if (_selectedListViewItem == null)
             {
-                WriteHtmlToContentPreviewBrowser?.Invoke(this, "");
+                //WriteHtmlToContentPreviewBrowser?.Invoke(this, "");
 
-                NotifyPropertyChanged(nameof(EntryContentText));
+                //NotifyPropertyChanged(nameof(EntryContentText));
+
+                IsEntryDetailVisible = false;
 
                 return;
             }
-
-            if (IsContentHTML)
+            else
             {
-                // This updates the view contents.
-                NotifyPropertyChanged(nameof(EntryContentHTML));
-
-                // Bring the browser to front.
-                IsContentBrowserVisible = true;
-
-                string s = EntryContentHTML;
-                WriteHtmlToContentPreviewBrowser?.Invoke(this, s);
+                IsEntryDetailVisible = true;
             }
-            else// if (IsContentText)
+
+            SelectedEntrySummary = _selectedListViewItem.Summary;
+
+            if ((_selectedListViewItem as EntryItem).ContentType == EntryItem.ContentTypes.text)
             {
-                NotifyPropertyChanged(nameof(EntryContentText));
-
-                IsContentBrowserVisible = false;
+                IsContentText = true;
+                SelectedEntryContentText = (_selectedListViewItem as EntryItem).Content;
             }
-            */
-            //NotifyPropertyChanged(nameof(Entries));
+            else
+            {
+                IsContentText = false;
+                SelectedEntryContentText = "";
+            }
+
+            if ((_selectedListViewItem as EntryItem).ContentType == EntryItem.ContentTypes.textHtml)
+            {
+                IsContentHTML = true;
+                SelectedEntryContentHTML = (_selectedListViewItem as EntryItem).Content;
+            }
+            else
+            {
+                IsContentHTML = false;
+                SelectedEntryContentHTML = "";
+            }
+
+            //NavigationService.SetListDataItemForNextConnectedAnimation(_selectedListViewItem);
+            //NavigationService.NavigateTo(typeof(EntryDetailsViewModel).FullName!, _selectedListViewItem);
         }
     }
 
-    private int _selectedViewTabIndex = 0;
-    public int SelectedViewTabIndex
+    private string _selectedEntrySummary;
+    public string SelectedEntrySummary
     {
-        get
-        {
-            return _selectedViewTabIndex;
-        }
-        set
-        {
-            if (_selectedViewTabIndex == value)
-                return;
-
-            _selectedViewTabIndex = value;
-            
-            //NotifyPropertyChanged(nameof(SelectedViewTabIndex));
-            /*
-            if (SelectedNode is not null)
-            {
-                if (_selectedViewTabIndex == 0)
-                    SelectedNode.ViewType = ViewTypes.vtCards;
-                else if (_selectedViewTabIndex == 1)
-                    SelectedNode.ViewType = ViewTypes.vtMagazine;
-                else if (_selectedViewTabIndex == 2)
-                    SelectedNode.ViewType = ViewTypes.vtThreePanes;
-            }
-            */
-        }
+        get => _selectedEntrySummary;
+        set => SetProperty(ref _selectedEntrySummary, value);
     }
-    /*
+
+    private string _selectedEntryContentText;
+    public string SelectedEntryContentText
+    {
+        get => _selectedEntryContentText;
+        set => SetProperty(ref _selectedEntryContentText, value);
+    }
+
+    private string _selectedEntryContentHTML;
+    public string SelectedEntryContentHTML
+    {
+        get => _selectedEntryContentHTML;
+        set => SetProperty(ref _selectedEntryContentHTML, value);
+    }
+
+    private bool _isContentText;
     public bool IsContentText
     {
-        get
-        {
-            if (_selectedItem == null)
-                return false;
-
-            if (!(_selectedItem is EntryItem))
-                return false;
-
-            if ((_selectedItem as EntryItem).ContentType == EntryItem.ContentTypes.text)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
+        get => _isContentText;
+        set => SetProperty(ref _isContentText, value);
     }
-    */
-    /*
+
+    private bool _isContentHTML;
     public bool IsContentHTML
     {
-        get
-        {
-            if (_selectedItem == null)
-                return false;
-
-            if (!(_selectedItem is EntryItem))
-                return false;
-
-            if ((_selectedItem as EntryItem).ContentType == EntryItem.ContentTypes.textHtml)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
+        get => _isContentHTML;
+        set => SetProperty(ref _isContentHTML, value);
     }
-    */
+
     /*
     private bool _isContentBrowserVisible;
     public bool IsContentBrowserVisible
@@ -375,6 +349,47 @@ public class MainViewModel : ObservableRecipient, INavigationAware
         set => SetProperty(ref _isDebugWindowEnabled, value);
     }
 
+    private bool _isShowHttpClientError = false;
+    public bool IsShowHttpClientError
+    {
+        get => _isShowHttpClientError;
+        set
+        {
+            SetProperty(ref _isShowHttpClientError, value);
+            IsShowHttpClientErrorInverse = !value;
+        }
+    }
+
+    private bool _isShowHttpClientErrorInverse = true;
+    public bool IsShowHttpClientErrorInverse
+    {
+        get => _isShowHttpClientErrorInverse;
+        set => SetProperty(ref _isShowHttpClientErrorInverse, value);
+    }
+
+    private ErrorObject _httpError;
+    public ErrorObject HttpError
+    {
+        get => _httpError;
+        set => SetProperty(ref _httpError, value);
+    }
+
+    private bool _isEntryDetaileVisible = false;
+    public bool IsEntryDetailVisible
+    {
+        get => _isEntryDetaileVisible;
+        set => SetProperty(ref _isEntryDetaileVisible, value);
+    }
+
+    private bool _isEntryDetailPaneVisible = true;
+    public bool IsEntryDetailPaneVisible
+    {
+        get => _isEntryDetailPaneVisible;
+        set => SetProperty(ref _isEntryDetailPaneVisible, value);
+    }
+
+    //
+
     public INavigationService NavigationService
     {
         get;
@@ -391,6 +406,9 @@ public class MainViewModel : ObservableRecipient, INavigationAware
         NavigationService.Navigated += OnNavigated;
 
         FeedAddCommand = new RelayCommand(OnFeedAdd);
+        EntryViewInternalCommand = new RelayCommand(OnEntryViewInternal);
+        EntryViewExternalCommand = new RelayCommand(OnEntryViewExternal);
+        DetailsPaneShowHideCommand = new RelayCommand(OnDetailsPaneShowHide);
 
         // Load searvice tree
         if (File.Exists(App.AppDataFolder + System.IO.Path.DirectorySeparatorChar + "Searvies.xml"))
@@ -405,7 +423,9 @@ public class MainViewModel : ObservableRecipient, INavigationAware
 
             InitClients();
 
-            IsDebugWindowEnabled = true; 
+#if DEBUG
+            IsDebugWindowEnabled = true;
+#endif
         }
     }
 
@@ -422,14 +442,14 @@ public class MainViewModel : ObservableRecipient, INavigationAware
             {
                 if (uithread == true)
                 {
-                    Debug.WriteLine(data);
+                    //Debug.WriteLine(data);
                     DebugOutput?.Invoke(this, Environment.NewLine + data + Environment.NewLine + Environment.NewLine);
                 }
                 else
                 {
                     App.CurrentDispatcherQueue?.TryEnqueue(() =>
                     {
-                        Debug.WriteLine(data);
+                        //Debug.WriteLine(data);
                         DebugOutput?.Invoke(this, Environment.NewLine + data + Environment.NewLine + Environment.NewLine);
                     });
                 }
@@ -464,16 +484,39 @@ public class MainViewModel : ObservableRecipient, INavigationAware
 
     private void OnFeedAdd() => NavigationService.NavigateTo(typeof(AddFeedViewModel).FullName!, null);
 
+    private void OnEntryViewInternal()
+    {
+        if (SelectedListViewItem != null)
+            NavigationService.NavigateTo(typeof(EntryDetailsViewModel).FullName!, SelectedListViewItem);
+    }
+
+    private async void OnEntryViewExternal()
+    {
+        if (SelectedListViewItem != null)
+        {
+            if (SelectedListViewItem.AltHtmlUri != null)
+            {
+                await Windows.System.Launcher.LaunchUriAsync(SelectedListViewItem.AltHtmlUri);
+                //OpenCurrentUrlInExternalBrowser?.Invoke(this, SelectedListViewItem.AltHtmlUri);
+                //NavigateUrlToContentPreviewBrowser?.Invoke(this, selectedEntry.AltHtmlUri);
+            }
+        }
+    }
+
+    //
+    private void OnDetailsPaneShowHide()
+    {
+        IsEntryDetailPaneVisible = !IsEntryDetailPaneVisible;
+    }
+
     private void OnNavigated(object sender, NavigationEventArgs e) => IsBackEnabled = NavigationService.CanGoBack;
 
     public async void OnNavigatedTo(object parameter)
     {
-
     }
 
     public void OnNavigatedFrom()
     {
-
     }
 
     private async Task GetEntriesAsync(NodeTree nd)
@@ -517,8 +560,8 @@ public class MainViewModel : ObservableRecipient, INavigationAware
                     // If Node is selected, show the Error.
                     if (fnd == SelectedTreeViewItem)
                     {
-                        //HttpError = fnd.ErrorHttp;
-                        //IsShowHttpClientErrorMessage = true;
+                        HttpError = fnd.ErrorHttp;
+                        IsShowHttpClientError = true;
                     }
 
                     // Update Node Downloading Status
@@ -537,18 +580,23 @@ public class MainViewModel : ObservableRecipient, INavigationAware
                     if (fnd == SelectedTreeViewItem)
                     {
                         // Hide any Error Message
-                        //HttpError = null;
-                        //IsShowHttpClientErrorMessage = false;
+                        HttpError = null;
+                        IsShowHttpClientError = false;
                     }
 
-                    fnd.Status = NodeFeed.DownloadStatus.saving;
+                    //fnd.Status = NodeFeed.DownloadStatus.saving;
+                    fnd.Status = NodeFeed.DownloadStatus.normal;
                 });
 
                 if (resEntries.Entries.Count > 0){
 
-                    fnd.List = new ObservableCollection<EntryItem>(resEntries.Entries);
-                    
-                    Entries = fnd.List;
+                    App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                    {
+                        fnd.List = new ObservableCollection<EntryItem>(resEntries.Entries);
+
+                        if (fnd == SelectedTreeViewItem)
+                            Entries = fnd.List;
+                    });
                 }
                 /*
                 // 
@@ -643,7 +691,7 @@ public class MainViewModel : ObservableRecipient, INavigationAware
                 App.CurrentDispatcherQueue?.TryEnqueue(() =>
                 {
                     // Update Node Downloading Status
-                    fnd.Status = NodeFeed.DownloadStatus.normal;
+                    //fnd.Status = NodeFeed.DownloadStatus.normal;
                 });
             }
         }
@@ -675,7 +723,6 @@ public class MainViewModel : ObservableRecipient, INavigationAware
             }
         }
     }
-
 
     private async Task LoadEntriesAsync(NodeTree nd, bool forceUnread = false)
     {   
@@ -834,7 +881,5 @@ public class MainViewModel : ObservableRecipient, INavigationAware
 
         */
     }
-
-
 
 }

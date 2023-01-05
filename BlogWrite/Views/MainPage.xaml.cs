@@ -9,6 +9,9 @@ using System.IO;
 using System.ComponentModel;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
+using Windows.Storage;
+using BlogWrite.Models;
+using AngleSharp.Dom;
 
 namespace BlogWrite.Views;
 
@@ -24,10 +27,8 @@ public sealed partial class MainPage : Page
         ViewModel = App.GetService<MainViewModel>();
         InitializeComponent();
 
-
-        ViewModel.DebugOutput += (sender, arg) => { this.OnDebugOutput(arg); };
-
-        ViewModel.DebugClear += () => this.OnDebugClear();
+        ViewModel.DebugOutput += (sender, arg) => { OnDebugOutput(arg); };
+        ViewModel.DebugClear += () => OnDebugClear();
     }
 
     public void OnDebugOutput(string arg)
@@ -40,21 +41,28 @@ public sealed partial class MainPage : Page
         */
 
         DebugTextBox.Text = DebugTextBox.Text + arg;
-
-
-        /*
-        var paragraph = new Paragraph();
-        var run = new Run();
-
-        run.Text = arg;
-
-        paragraph.Inlines.Add(run);
-        DebugTextBox.Blocks.Add(paragraph);
-        */
     }
 
     public void OnDebugClear()
     {
         DebugTextBox.Text = string.Empty;    
+    }
+
+    private void TreeView_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
+    {
+        var node = args.InvokedItem as TreeViewNode;
+
+        if (node is null)
+        {
+            Debug.WriteLine("node is null...");
+            return;
+        }
+
+        if (node.Content is NodeFeed item)
+        {
+            item.IsExpanded = !item.IsExpanded;
+        }
+
+        //node.IsExpanded = !node.IsExpanded;
     }
 }

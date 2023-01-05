@@ -158,8 +158,8 @@ namespace BlogWrite.Models.Clients
         {
             err.ErrCode = "";
             err.ErrType = ErrorObject.ErrTypes.HTTP;
-            err.ErrText = "Invalid URI scheme";
-            err.ErrDescription = "URI scheme should be http or https : " + scheme;
+            err.ErrText = "URI scheme should be http or https : " + scheme;
+            err.ErrDescription = "Invalid URI scheme";
             err.ErrPlace = "";
             err.ErrPlaceParent = errPlaceParent;
             err.ErrDatetime = DateTime.Now;
@@ -169,9 +169,9 @@ namespace BlogWrite.Models.Clients
         protected ErrorObject InvalidContentType(ErrorObject err, string errText, string errPlace, string errPlaceParent)
         {
             err.ErrCode = "";
-            err.ErrType = ErrorObject.ErrTypes.API;
-            err.ErrText = "Invalid Content-Type returned";
-            err.ErrDescription = errText;
+            err.ErrType = ErrorObject.ErrTypes.HTTP;
+            err.ErrText = errText; 
+            err.ErrDescription = "Invalid Content-Type returned";
             err.ErrPlace = errPlace;
             err.ErrPlaceParent = errPlaceParent;
             err.ErrDatetime = DateTime.Now;
@@ -182,9 +182,9 @@ namespace BlogWrite.Models.Clients
         protected ErrorObject InvalidXml(ErrorObject err, string eMessage, string errPlaceParent)
         {
             err.ErrCode = "";
-            err.ErrType = ErrorObject.ErrTypes.API;
-            err.ErrText = "Invalid XML document returned";
-            err.ErrDescription = eMessage;
+            err.ErrType = ErrorObject.ErrTypes.XML;
+            err.ErrText = eMessage; 
+            err.ErrDescription = "Invalid XML document returned";
             err.ErrPlace = "xdoc.Load()";
             err.ErrPlaceParent = errPlaceParent;
             err.ErrDatetime = DateTime.Now;
@@ -196,8 +196,8 @@ namespace BlogWrite.Models.Clients
         {
             err.ErrCode = "";
             err.ErrType = ErrorObject.ErrTypes.API;
-            err.ErrText = "Document parse failed";
-            err.ErrDescription = "Unknown format";
+            err.ErrText = "Unknown format";
+            err.ErrDescription = "Document parse failed";
             err.ErrPlace = "xdoc.DocumentElement.LocalName/NamespaceURI";
             err.ErrPlaceParent = errPlaceParent;
             err.ErrDatetime = DateTime.Now;
@@ -209,8 +209,8 @@ namespace BlogWrite.Models.Clients
         {
             err.ErrCode = "";
             err.ErrType = ErrorObject.ErrTypes.HTTP;
-            err.ErrText = "HTTP request failed";
-            err.ErrDescription = statusCode;
+            err.ErrText = statusCode;
+            err.ErrDescription = "HTTP request failed";
             err.ErrPlace = errPlace;
             err.ErrPlaceParent = errPlaceParent;
             err.ErrDatetime = DateTime.Now;
@@ -222,8 +222,8 @@ namespace BlogWrite.Models.Clients
         {
             err.ErrCode = "";
             err.ErrType = ErrorObject.ErrTypes.HTTP;
-            err.ErrText = "HTTP request error (HttpRequestException)";
-            err.ErrDescription = eMessage;
+            err.ErrText = eMessage;
+            err.ErrDescription = "HTTP request error (HttpRequestException)";
             err.ErrPlace = errPlace;
             err.ErrPlaceParent = errPlaceParent;
             err.ErrDatetime = DateTime.Now;

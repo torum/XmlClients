@@ -37,8 +37,6 @@ namespace BlogWrite.Models.Clients
                 return res;
             }
 
-            Debug.WriteLine("FeedClient>GetEntries");
-
             try
             {
                 var HTTPResponseMessage = await _HTTPConn.Client.GetAsync(entriesUrl);
@@ -66,7 +64,11 @@ namespace BlogWrite.Models.Clients
                     XmlDocument xdoc = new XmlDocument();
                     try
                     {
-                        XmlReader reader = XmlReader.Create(source);
+                        XmlReaderSettings settings = new XmlReaderSettings();
+                        settings.DtdProcessing = DtdProcessing.Parse;
+
+                        XmlReader reader = XmlReader.Create(source, settings);
+                        
                         xdoc.Load(reader);
                     }
                     catch (Exception e)
@@ -74,7 +76,7 @@ namespace BlogWrite.Models.Clients
                         ToDebugWindow("<< Invalid XML document returned: " + entriesUrl.AbsoluteUri
                             + Environment.NewLine
                             + e.Message
-                            + Environment.NewLine); ;
+                            + Environment.NewLine); 
 
                         InvalidXml(res.Error, e.Message, "FeedClient: GetEntries");
                         res.IsError = true;
@@ -237,8 +239,17 @@ namespace BlogWrite.Models.Clients
                             + entriesUrl.AbsoluteUri
                             + Environment.NewLine
                             + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
+                            + Environment.NewLine);
+                            //+ contents + Environment.NewLine);
+                    }
+                    else
+                    {
+                        ToDebugWindow(">> HTTP Request: GET "
+                            + entriesUrl.AbsoluteUri
                             + Environment.NewLine
-                            + contents + Environment.NewLine);
+                            + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
+                            + Environment.NewLine);
+                            //+ contents + Environment.NewLine);
                     }
 
                     NonSuccessStatusCode(res.Error, HTTPResponseMessage.StatusCode.ToString(), "_HTTPConn.Client.GetAsync", "FeedClient:GetEntries");

@@ -10,19 +10,35 @@
     <Page.Resources>
         <helpers:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
     </Page.Resources>
-    <Grid Margin="48,24,0,0">
+
+    <Grid x:Name="ContentArea">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="48" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <TextBlock
-            Grid.Row="0"
+        <Button Grid.Row="0" Grid.Column="0"
+            x:Name="closeButton" 
+            Margin="6"
+            VerticalAlignment="Top"
+            Background="Transparent"
+            BorderThickness="0"
+            Padding="{StaticResource XSmallLeftTopRightBottomMargin}"
+            Command="{x:Bind ViewModel.GoBackCommand}">
+            <SymbolIcon Symbol="Back" />
+        </Button>
+
+        <TextBlock Grid.Row="1" Grid.Column="1"
+            Margin="0,0,0,0"
             x:Uid="Settings_Title"
             Style="{StaticResource PageTitleStyle}" />
-        <StackPanel
-            Grid.Row="1" 
-            x:Name="ContentArea">
+        
+        <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,12,0,0">
             <TextBlock x:Uid="Settings_Personalization" Style="{ThemeResource SubtitleTextBlockStyle}" />
             <StackPanel Margin="{StaticResource SmallTopBottomMargin}">
                 <TextBlock x:Uid="Settings_Theme" />

@@ -5,6 +5,8 @@ using BlogWrite.Models.Clients;
 using System;
 using System.Collections.Generic;
 using BlogWrite.ViewModels;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml;
 
 namespace BlogWrite.Models
 {
@@ -326,6 +328,56 @@ namespace BlogWrite.Models
         }
 
     }
+
+    // Data tempalate selector for NodeTree
+    public class ExplorerItemTemplateSelector : DataTemplateSelector
+    {
+        public DataTemplate FolderTemplate
+        {
+            get; set;
+        }
+        public DataTemplate FileTemplate
+        {
+            get; set;
+        }
+        protected override DataTemplate SelectTemplateCore(object item)
+        {
+            //return base.SelectTemplateCore(item, null);
+
+            if (item is null) return base.SelectTemplateCore(item);
+
+            if (item is not NodeTree) return base.SelectTemplateCore(item);
+
+            var explorerItem = (NodeTree)item;
+
+            if (explorerItem is NodeFeed)
+            {
+                return FileTemplate;
+            }
+            else
+            {
+                return FolderTemplate;
+            }
+        }
+        /*
+        protected override DataTemplate SelectTemplateCore(object item, DependencyObject container)
+        {
+            var explorerItem = (NodeTree)item;
+            
+            if (explorerItem is NodeFeed)
+            {
+                return FileTemplate;
+            }
+            else
+            {
+                return FolderTemplate;
+            }
+        }
+        */
+    }
+
+
+
 
     // NodeFolder for NodeFeeds (Node/NodeTree)
     public class NodeFolder : NodeTree
