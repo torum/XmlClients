@@ -47,7 +47,7 @@ namespace BlogWrite.Models
     // Base class for Treeview Node and Listview Item.
     public abstract class Node : ViewModelBase
     {
-        private string _name;
+        private string _name ="";
 
         public string Name
         {
@@ -170,6 +170,7 @@ namespace BlogWrite.Models
 
                 if (_entryCount > 0)
                 {
+                    IsEntryCountMoreThanZero = true;
                     if (_entryCount > 99)
                     {
                         SubNodeText = "99+";
@@ -181,8 +182,27 @@ namespace BlogWrite.Models
                 }
                 else
                 {
+                    IsEntryCountMoreThanZero = false;
                     SubNodeText = "";
                 }
+            }
+        }
+
+        private bool _isEntryCountMoreThanZero;
+        public bool IsEntryCountMoreThanZero
+        {
+            get
+            {
+                return _isEntryCountMoreThanZero;
+            }
+            set
+            {
+                if (_isEntryCountMoreThanZero == value)
+                    return;
+
+                _isEntryCountMoreThanZero = value;
+
+                NotifyPropertyChanged(nameof(IsEntryCountMoreThanZero));
             }
         }
 
@@ -304,8 +324,9 @@ namespace BlogWrite.Models
             if (ContainsChildLoop(this.Children, nt))
                 return true;
             else
+            {
                 return false;
-
+            }
         }
 
         private bool ContainsChildLoop(ObservableCollection<NodeTree> childList, NodeTree ntc)
@@ -349,7 +370,7 @@ namespace BlogWrite.Models
             if (item is not NodeTree) return base.SelectTemplateCore(item);
 
             var explorerItem = (NodeTree)item;
-
+            /*
             if (explorerItem is NodeFeed)
             {
                 return FileTemplate;
@@ -358,6 +379,10 @@ namespace BlogWrite.Models
             {
                 return FolderTemplate;
             }
+            */
+
+            return null;
+
         }
         /*
         protected override DataTemplate SelectTemplateCore(object item, DependencyObject container)
@@ -374,10 +399,13 @@ namespace BlogWrite.Models
             }
         }
         */
+
     }
 
-
-
+    public class NodeRoot : NodeTree
+    {
+    
+    }
 
     // NodeFolder for NodeFeeds (Node/NodeTree)
     public class NodeFolder : NodeTree
@@ -411,9 +439,9 @@ namespace BlogWrite.Models
 
         public Uri EndPoint { get; set; }
 
-        public string UserName { get; set; }
+        public string UserName { get; set; } = "";
 
-        public string UserPassword { get; set; }
+        public string UserPassword { get; set; } = "";
 
         public AuthTypes AuthType { get; set; }
 

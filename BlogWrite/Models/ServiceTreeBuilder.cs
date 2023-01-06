@@ -6,7 +6,7 @@ using System.Xml;
 namespace BlogWrite.Models
 {
     // Container class for Treeview.
-    public class ServiceTreeBuilder : NodeTree
+    public class ServiceTreeBuilder : NodeRoot
     {
         public ServiceTreeBuilder() { }
 

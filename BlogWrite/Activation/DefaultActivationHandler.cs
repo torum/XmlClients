@@ -1,4 +1,5 @@
 ﻿using System.Xml.Linq;
+using AngleSharp.Dom;
 using BlogWrite.Contracts.Services;
 using BlogWrite.ViewModels;
 
@@ -23,8 +24,7 @@ public class DefaultActivationHandler : ActivationHandler<LaunchActivatedEventAr
 
     protected async override Task HandleInternalAsync(LaunchActivatedEventArgs args)
     {
-        _navigationService.NavigateTo(typeof(MainViewModel).FullName!, args.Arguments);
-
+        _navigationService.NavigateTo(typeof(FeedsViewModel).FullName!, args.Arguments);
 
         #region == Load settings ==
 
@@ -124,6 +124,12 @@ public class DefaultActivationHandler : ActivationHandler<LaunchActivatedEventAr
 
         //
         //App.MainWindow.CenterOnScreen();
+
+
+        var manager = WinUIEx.WindowManager.Get(App.MainWindow);
+        //manager.PersistenceId = "MainWindowPersistanceId";
+        manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
+        //manager.Backdrop = new WinUIEx.MicaSystemBackdrop();
 
         await Task.CompletedTask;
     }

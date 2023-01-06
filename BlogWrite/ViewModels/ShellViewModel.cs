@@ -90,6 +90,6 @@ public class ShellViewModel : ObservableRecipient
     private void OnMenuSettings() => NavigationService.NavigateTo(typeof(SettingsViewModel).FullName!);
 
 
-    private void OnMenuViewsMain() => NavigationService.NavigateTo(typeof(MainViewModel).FullName!);
+    private void OnMenuViewsMain() => NavigationService.NavigateTo(typeof(FeedsViewModel).FullName!);
 
 }

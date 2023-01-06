@@ -10,6 +10,7 @@
 - [ ] Reorder Treeview and save data.
 
 #### Feed reader
+- [ ] Grouping display of feed for Folder view.
 - [ ] Import feed list from OPML and export feed list as OPML. 
 - [ ] Download and display "eye catching" images. 
 - [ ] Just use a few http client instances.

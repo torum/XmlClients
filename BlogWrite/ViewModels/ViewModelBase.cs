@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace BlogWrite.ViewModels;
 
-public abstract class ViewModelBase : INotifyPropertyChanged, IDataErrorInfo
+public abstract class ViewModelBase : INotifyPropertyChanged//, IDataErrorInfo
 {
     public ViewModelBase() { }
 
@@ -17,8 +17,13 @@ public abstract class ViewModelBase : INotifyPropertyChanged, IDataErrorInfo
     protected void NotifyPropertyChanged(string propertyName)
     {
         //this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        /*
+        (App.Current as App)?.TheSynchronizationContext?.Post(d => {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }, null);
+        */
 
-        bool? uithread = App.CurrentDispatcherQueue?.HasThreadAccess;
+        var uithread = App.CurrentDispatcherQueue?.HasThreadAccess;
 
         if (uithread != null)
         {
@@ -34,12 +39,6 @@ public abstract class ViewModelBase : INotifyPropertyChanged, IDataErrorInfo
                 });
             }
         }
-
-        /*
-        (App.Current as App)?.TheSynchronizationContext?.Post(d => {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }, null);
-        */
     }
 
     private void DoNotifyPropertyChanged(string propertyName)
@@ -57,7 +56,8 @@ public abstract class ViewModelBase : INotifyPropertyChanged, IDataErrorInfo
     }
 
     #endregion
-
+    
+    /*
     #region == IDataErrorInfo ==
 
     private Dictionary<string, string> _ErrorMessages = new Dictionary<string, string>();
@@ -95,5 +95,5 @@ public abstract class ViewModelBase : INotifyPropertyChanged, IDataErrorInfo
 
 
     #endregion
-
+    */
 }

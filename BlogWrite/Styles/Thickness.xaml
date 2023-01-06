@@ -27,8 +27,8 @@
     <CornerRadius x:Key="NavigationViewContentGridCornerRadius">8,0,0,0</CornerRadius>
     <Thickness x:Key="NavigationViewContentMargin">0,0,0,0</Thickness>
 
-    <CornerRadius x:Key="NavigationViewContentChildGridCornerRadius">8,8,8,8</CornerRadius>
-    <Thickness x:Key="NavigationViewContentChildGridBorderThickness">1,1,1,1</Thickness>
+    <Thickness x:Key="NavigationViewContentChildGridBorderThickness">1,1,0,0</Thickness>
+    <CornerRadius x:Key="NavigationViewContentChildGridCornerRadius">8,0,0,0</CornerRadius>
 
     <Thickness x:Key="NavigationViewHeaderMargin">0</Thickness>
     <Thickness x:Key="NavigationViewPageContentMargin">0</Thickness>

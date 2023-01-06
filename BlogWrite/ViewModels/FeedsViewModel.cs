@@ -17,9 +17,15 @@ using Microsoft.UI.Xaml.Navigation;
 
 namespace BlogWrite.ViewModels;
 
-public class MainViewModel : ObservableRecipient, INavigationAware
+public class FeedsViewModel : ObservableRecipient, INavigationAware
 {
+    #region == Commands ==
+
     public ICommand FeedAddCommand
+    {
+        get;
+    }
+    public ICommand FeedRemoveCommand
     {
         get;
     }
@@ -39,9 +45,12 @@ public class MainViewModel : ObservableRecipient, INavigationAware
         get;
     }
 
-    #region == Service Treeview ==
+    #endregion
 
+    #region == Service Treeview ==
+    
     private ServiceTreeBuilder _services = new ServiceTreeBuilder();
+
     public ObservableCollection<NodeTree> Services
     {
         get
@@ -51,11 +60,19 @@ public class MainViewModel : ObservableRecipient, INavigationAware
         set
         {
             _services.Children = value;
-            //NotifyPropertyChanged(nameof(Services));
+            OnPropertyChanged(nameof(Services));
         }
     }
+    /*
+    private ObservableCollection<NodeTree> _services = new() { new NodeFeed("asdf", new Uri("http://127.0.0.1")) };
+    public ObservableCollection<NodeTree> Services
+    {
+        get => _services;
+        set => SetProperty(ref _services, value);
+    }
+    */
 
-    private NodeTree _selectedTreeViewItem = new NodeService("", "", "", new Uri("http://127.0.0.1"), ApiTypes.atUnknown, ServiceTypes.Unknown);
+    private NodeTree _selectedTreeViewItem;// = new NodeService("", "", "", new Uri("http://127.0.0.1"), ApiTypes.atUnknown, ServiceTypes.Unknown);
     public NodeTree SelectedTreeViewItem
     {
         get
@@ -169,13 +186,14 @@ public class MainViewModel : ObservableRecipient, INavigationAware
 
         }
     }
-
+    
     private TreeViewNode _selectedTreeViewNode;
     public TreeViewNode SelectedTreeViewNode
     {
         get => _selectedTreeViewNode;
         set => SetProperty(ref _selectedTreeViewNode, value);
     }
+    
 
     private string _selectedServiceName;
     public string SelectedServiceName
@@ -335,6 +353,8 @@ public class MainViewModel : ObservableRecipient, INavigationAware
     */
     #endregion
 
+    #region == Flags ==
+
     private bool _isBackEnabled;
     public bool IsBackEnabled
     {
@@ -367,13 +387,6 @@ public class MainViewModel : ObservableRecipient, INavigationAware
         set => SetProperty(ref _isShowHttpClientErrorInverse, value);
     }
 
-    private ErrorObject _httpError;
-    public ErrorObject HttpError
-    {
-        get => _httpError;
-        set => SetProperty(ref _httpError, value);
-    }
-
     private bool _isEntryDetaileVisible = false;
     public bool IsEntryDetailVisible
     {
@@ -388,7 +401,15 @@ public class MainViewModel : ObservableRecipient, INavigationAware
         set => SetProperty(ref _isEntryDetailPaneVisible, value);
     }
 
+    #endregion
     //
+
+    private ErrorObject _httpError;
+    public ErrorObject HttpError
+    {
+        get => _httpError;
+        set => SetProperty(ref _httpError, value);
+    }
 
     public INavigationService NavigationService
     {
@@ -396,16 +417,16 @@ public class MainViewModel : ObservableRecipient, INavigationAware
     }
 
     public event EventHandler<string> DebugOutput;
-
     public delegate void DebugClearEventHandler();
     public event DebugClearEventHandler DebugClear;
 
-    public MainViewModel(INavigationService navigationService)
+    public FeedsViewModel(INavigationService navigationService)
     {
         NavigationService = navigationService;
         NavigationService.Navigated += OnNavigated;
 
         FeedAddCommand = new RelayCommand(OnFeedAdd);
+        FeedRemoveCommand = new RelayCommand(OnFeedRemove);
         EntryViewInternalCommand = new RelayCommand(OnEntryViewInternal);
         EntryViewExternalCommand = new RelayCommand(OnEntryViewExternal);
         DetailsPaneShowHideCommand = new RelayCommand(OnDetailsPaneShowHide);
@@ -415,18 +436,28 @@ public class MainViewModel : ObservableRecipient, INavigationAware
         {
             System.Xml.XmlDocument doc = new System.Xml.XmlDocument();
 
-            // TODO: try catch?
+            try
+            {
+                doc.Load(App.AppDataFolder + System.IO.Path.DirectorySeparatorChar + "Searvies.xml");
 
-            doc.Load(App.AppDataFolder + System.IO.Path.DirectorySeparatorChar + "Searvies.xml");
+                _services.LoadXmlDoc(doc);
+            }
+            catch(Exception ex) 
+            {
+                Debug.WriteLine("Exception while loading service.xml:" + ex);
+            }
+        }
+        else
+        {
+            Services = _services.Children;
+        }
+        
+        InitClients();
 
-            _services.LoadXmlDoc(doc);
-
-            InitClients();
 
 #if DEBUG
-            IsDebugWindowEnabled = true;
+        IsDebugWindowEnabled = true;
 #endif
-        }
     }
 
     public void OnDebugOutput(BaseClient sender, string data)
@@ -482,7 +513,7 @@ public class MainViewModel : ObservableRecipient, INavigationAware
         }
     }
 
-    private void OnFeedAdd() => NavigationService.NavigateTo(typeof(AddFeedViewModel).FullName!, null);
+    private void OnFeedAdd() => NavigationService.NavigateTo(typeof(FeedAddViewModel).FullName!, null);
 
     private void OnEntryViewInternal()
     {
@@ -497,8 +528,6 @@ public class MainViewModel : ObservableRecipient, INavigationAware
             if (SelectedListViewItem.AltHtmlUri != null)
             {
                 await Windows.System.Launcher.LaunchUriAsync(SelectedListViewItem.AltHtmlUri);
-                //OpenCurrentUrlInExternalBrowser?.Invoke(this, SelectedListViewItem.AltHtmlUri);
-                //NavigateUrlToContentPreviewBrowser?.Invoke(this, selectedEntry.AltHtmlUri);
             }
         }
     }
@@ -513,6 +542,11 @@ public class MainViewModel : ObservableRecipient, INavigationAware
 
     public async void OnNavigatedTo(object parameter)
     {
+        if (parameter is RegisterFeedEventArgs)
+        {
+            AddFeed(((RegisterFeedEventArgs)parameter).FeedLinkData);
+        }
+
     }
 
     public void OnNavigatedFrom()
@@ -563,6 +597,8 @@ public class MainViewModel : ObservableRecipient, INavigationAware
                         HttpError = fnd.ErrorHttp;
                         IsShowHttpClientError = true;
                     }
+                    
+                    fnd.EntryCount = 0; 
 
                     // Update Node Downloading Status
                     fnd.Status = NodeFeed.DownloadStatus.error;
@@ -593,6 +629,8 @@ public class MainViewModel : ObservableRecipient, INavigationAware
                     App.CurrentDispatcherQueue?.TryEnqueue(() =>
                     {
                         fnd.List = new ObservableCollection<EntryItem>(resEntries.Entries);
+
+                        fnd.EntryCount = fnd.List.Count;
 
                         if (fnd == SelectedTreeViewItem)
                             Entries = fnd.List;
@@ -882,4 +920,94 @@ public class MainViewModel : ObservableRecipient, INavigationAware
         */
     }
 
+    public void AddFeed(FeedLink feedlink)
+    {
+        if (feedlink == null) return;
+
+        if (FeedDupeCheck(feedlink.FeedUri.AbsoluteUri))
+        {
+            Debug.WriteLine("FeedDupeCheck:" + feedlink.FeedUri.AbsoluteUri);
+
+
+            // TODO: alart user
+            return;
+        }
+
+        NodeFeed a = new(feedlink.Title, feedlink.FeedUri);
+        a.IsSelected = true;
+
+        a.SiteTitle = feedlink.SiteTitle;
+        a.SiteUri = feedlink.SiteUri;
+
+        a.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
+        /*
+
+        */
+
+        if (SelectedTreeViewItem is NodeFolder)
+        {
+            a.Parent = SelectedTreeViewItem;
+            SelectedTreeViewItem.Children.Add(a);
+            SelectedTreeViewItem.IsExpanded = true;
+        }
+        else
+        {
+            a.Parent = _services;
+            Services.Add(a);
+        }
+
+
+        SaveServiceXml();
+
+        //Task.Run(() => GetEntriesAsync(a));
+    }
+
+    private bool FeedDupeCheck(string feedUri)
+    {
+        return FeedDupeCheckRecursiveLoop(Services, feedUri);
+    }
+
+    private bool FeedDupeCheckRecursiveLoop(ObservableCollection<NodeTree> nt, string feedUri)
+    {
+        foreach (NodeTree c in nt)
+        {
+            if (c is NodeFeed)
+            {
+                if ((c as NodeFeed).EndPoint.AbsoluteUri.Equals(feedUri))
+                {
+                    return true;
+                }
+            }
+
+            if (c.Children.Count > 0)
+                if (FeedDupeCheckRecursiveLoop(c.Children, feedUri))
+                    return true;
+        }
+
+        return false;
+    }
+
+    private void SaveServiceXml()
+    {
+        XmlDocument xdoc = _services.AsXmlDoc();
+
+        xdoc.Save(System.IO.Path.Combine(App.AppDataFolder, "Searvies.xml"));
+    }
+
+    private void OnFeedRemove()
+    {
+        if (SelectedTreeViewItem != null)
+        {
+            if (SelectedTreeViewItem.Parent != null)
+            {
+                SelectedTreeViewItem.Parent.Children.Remove(SelectedTreeViewItem);
+            }
+            else
+            {
+                Services.Remove(SelectedTreeViewItem);
+            }
+
+            SaveServiceXml();
+        }
+    }
 }

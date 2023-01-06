@@ -88,10 +88,10 @@ public partial class App : Application
             services.AddTransient<SettingsPage>();
             services.AddTransient<EntryDetailsViewModel>();
             services.AddTransient<EntryDetailsPage>();
-            services.AddTransient<AddFeedViewModel>();
-            services.AddTransient<AddFeedPage>();
-            services.AddTransient<MainViewModel>();
-            services.AddTransient<MainPage>();
+            services.AddTransient<FeedAddViewModel>();
+            services.AddTransient<FeedAddPage>();
+            services.AddTransient<FeedsViewModel>();
+            services.AddTransient<FeedsPage>();
             services.AddTransient<ShellPage>();
             services.AddTransient<ShellViewModel>();
 

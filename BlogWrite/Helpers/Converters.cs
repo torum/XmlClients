@@ -4,10 +4,6 @@ using Microsoft.UI.Xaml.Data;
 
 namespace BlogWrite.Helpers
 {
-
-    /// <summary>
-    /// BooleanToVisibilityConverterの、 Collapsed 版
-    /// </summary>
     public class BooleanToVisibilityCollapsedConverter : IValueConverter
     {
         public Visibility TrueValue { get; set; }

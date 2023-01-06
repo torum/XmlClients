@@ -31,7 +31,7 @@ public sealed partial class ShellPage : Page
         ViewModel.NavigationService.Frame = NavigationFrame;
 
         // 
-        //ViewModel.NavigationViewService.Initialize(NavigationViewControl);
+        ViewModel.NavigationViewService.Initialize(NavigationViewControl);
 
         App.MainWindow.ExtendsContentIntoTitleBar = true;
         App.MainWindow.SetTitleBar(AppTitleBar);
@@ -261,8 +261,8 @@ public sealed partial class ShellPage : Page
     private void NavigationViewControl_Loaded(object sender, RoutedEventArgs e)
     {
         // 
-        //var settings = (Microsoft.UI.Xaml.Controls.NavigationViewItem)NavigationViewControl.SettingsItem;
-        //settings.Content = "";//"Setting".GetLocalized();
+        var settings = (Microsoft.UI.Xaml.Controls.NavigationViewItem)NavigationViewControl.SettingsItem;
+        settings.Content = "";//"Setting".GetLocalized();
     }
 
     private void NavigationViewControl_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
@@ -271,7 +271,7 @@ public sealed partial class ShellPage : Page
         {
             // pass mainviewmodel for setting page.
             //NavigationFrame.Navigate(typeof(SettingsPage), MainVM, new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo());
-            //NavigationFrame.Navigate(typeof(SettingsPage), null, args.RecommendedNavigationTransitionInfo);
+            NavigationFrame.Navigate(typeof(SettingsPage), null, args.RecommendedNavigationTransitionInfo);
         }
         else if (args.InvokedItemContainer != null && (args.InvokedItemContainer?.Tag != null))
         {

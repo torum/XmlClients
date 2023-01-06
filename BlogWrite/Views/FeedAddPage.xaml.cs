@@ -16,16 +16,16 @@ using BlogWrite.ViewModels;
 
 namespace BlogWrite.Views
 {
-    public sealed partial class AddFeedPage : Page
+    public sealed partial class FeedAddPage : Page
     {
-        public AddFeedViewModel ViewModel
+        public FeedAddViewModel ViewModel
         {
             get;
         }
 
-        public AddFeedPage()
+        public FeedAddPage()
         {
-            ViewModel = App.GetService<AddFeedViewModel>();
+            ViewModel = App.GetService<FeedAddViewModel>();
             this.InitializeComponent();
         }
     }

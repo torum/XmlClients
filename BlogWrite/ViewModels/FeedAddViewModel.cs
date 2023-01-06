@@ -11,7 +11,7 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace BlogWrite.ViewModels;
 
-public class AddFeedViewModel : ObservableRecipient, INavigationAware
+public class FeedAddViewModel : ObservableRecipient, INavigationAware
 {
     private readonly INavigationService _navigationService;
     private readonly ISampleDataService _sampleDataService;
@@ -182,11 +182,32 @@ public class AddFeedViewModel : ObservableRecipient, INavigationAware
         get;
     }
 
+
+    public ICommand GoToFirstTabCommand
+    {
+        get;
+    }
+
+    public ICommand GoToSecondTabCommand
+    {
+        get;
+    }
+
+    public ICommand GoToThirdTabCommand
+    {
+        get;
+    }
+
+    public ICommand GoToFourthTabCommand
+    {
+        get;
+    }
+
     #endregion
 
     public ObservableCollection<SampleOrder> Source { get; } = new ObservableCollection<SampleOrder>();
 
-    public AddFeedViewModel(INavigationService navigationService, ISampleDataService sampleDataService)
+    public FeedAddViewModel(INavigationService navigationService, ISampleDataService sampleDataService)
     {
         _navigationService = navigationService;
         _sampleDataService = sampleDataService;
@@ -199,6 +220,13 @@ public class AddFeedViewModel : ObservableRecipient, INavigationAware
         GoCommand = new RelayCommand(OnGo);
         GoSelectedCommand = new RelayCommand(OnGoSelected);
         AddSelectedAndCloseCommand = new RelayCommand(OnAddSelectedAndClose);
+
+
+
+        GoToFirstTabCommand = new RelayCommand(OnGoToFirstTab);
+        GoToSecondTabCommand = new RelayCommand(OnGoToSecondTab);
+        GoToThirdTabCommand = new RelayCommand(OnGoToThirdTab);
+        GoToFourthTabCommand = new RelayCommand(OnGoToFourthTab);
     }
 
     public async void OnNavigatedTo(object parameter)
@@ -225,6 +253,34 @@ public class AddFeedViewModel : ObservableRecipient, INavigationAware
             _navigationService.GoBack();
         }
     }
+
+    private void OnGoToFirstTab()
+    {
+        GoToFirstPage();
+    }
+
+    private void OnGoToSecondTab()
+    {
+        GoToSelectFeedOrServicePage();
+    }
+
+    private void OnGoToThirdTab()
+    {
+        if (SelectedLinkItem is FeedLinkItem)
+        {
+            GoToSelectFeedOrServicePage();
+        }
+        else if (SelectedLinkItem is ServiceDocumentLinkItem)
+        {
+            GoToAuthInputPage();
+        }
+    }
+
+    private void OnGoToFourthTab()
+    {
+        GoToServiceFoundPage();
+    }
+
 
     #region == Methods ==
 
@@ -548,8 +604,11 @@ public class AddFeedViewModel : ObservableRecipient, INavigationAware
             RegisterFeedEventArgs arg = new();
             arg.FeedLinkData = (SelectedLinkItem as FeedLinkItem).FeedLinkData;
 
-            // TODO
             //RegisterFeed?.Invoke(this, arg);
+
+            _navigationService.NavigateTo(typeof(FeedsViewModel).FullName!, arg);
+
+
         }
         else if (SelectedLinkItem is ServiceDocumentLinkItem)
         {
