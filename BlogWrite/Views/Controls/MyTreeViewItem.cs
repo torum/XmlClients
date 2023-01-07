@@ -17,7 +17,7 @@ namespace BlogWrite.Views
 
             if ((draggedItem is NodeFolder) && (draggedOverItem is NodeFolder) || (draggedItem is NodeFeed) && (draggedOverItem is NodeFolder))
             {
-                e.Handled = true;
+                //e.Handled = true;
             }
 
             base.OnDragEnter(e);
@@ -65,6 +65,25 @@ namespace BlogWrite.Views
                     e.AcceptedOperation = DataPackageOperation.Move;
                 }
             }
+            else if ((draggedItem is NodeFolder) && (draggedOverItem is NodeFolder))
+            {
+                // same place is meaningless
+                if (draggedItem.Parent == draggedOverItem)
+                {
+                    // Deny
+
+                    e.Handled = true;
+                    base.OnDragOver(e);
+                    e.AcceptedOperation = DataPackageOperation.None;
+                }
+                else
+                {
+                    // Accept
+
+                    base.OnDragOver(e);
+                    e.AcceptedOperation = DataPackageOperation.Move;
+                }
+            }
             else
             {
                 // Deny
@@ -82,6 +101,10 @@ namespace BlogWrite.Views
             if ((draggedItem is NodeFeed) && (draggedOverItem is NodeFolder))
             {
                 // ok
+            }
+            else if ((draggedItem is NodeFolder) && (draggedOverItem is NodeFolder)) 
+            { 
+                // OK
             }
             else
             {

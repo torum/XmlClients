@@ -115,7 +115,7 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
-                <NavigationViewItem x:Uid="ShellNavigationItem_Blogs" helpers:NavigationHelper.NavigateTo="BlogWrite.ViewModels.FeedsViewModel">
+                <NavigationViewItem x:Uid="ShellNavigationItem_Blogs">
                     <NavigationViewItem.Icon>
                         <IconSourceElement>
                             <IconSourceElement.IconSource>

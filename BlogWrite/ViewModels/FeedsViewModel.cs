@@ -446,7 +446,6 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         
         InitClients();
 
-        Debug.WriteLine("feeds viewmodel init");
 
 #if DEBUG
         IsDebugWindowEnabled = true;
