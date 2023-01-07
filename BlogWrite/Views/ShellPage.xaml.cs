@@ -29,8 +29,6 @@ public sealed partial class ShellPage : Page
         InitializeComponent();
 
         ViewModel.NavigationService.Frame = NavigationFrame;
-
-        // 
         ViewModel.NavigationViewService.Initialize(NavigationViewControl);
 
         App.MainWindow.ExtendsContentIntoTitleBar = true;
@@ -200,6 +198,9 @@ public sealed partial class ShellPage : Page
 
         #endregion
 
+
+        var hoge = App.GetService<FeedsViewModel>();
+        hoge.SaveServiceXml();
     }
 
     private static KeyboardAccelerator BuildKeyboardAccelerator(VirtualKey key, VirtualKeyModifiers? modifiers = null)

@@ -9,11 +9,12 @@
     xmlns:controls="using:Microsoft.UI.Xaml.Controls"
      Background="Transparent"
     NavigationCacheMode="Required"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    Unloaded="Page_Unloaded">
     <Page.Resources>
 
         <DataTemplate x:Key="FolderTemplate" x:DataType="model:NodeTree">
-            <TreeViewItem ItemsSource="{x:Bind Children}" Padding="1" Margin="0,0,6,0">
+            <TreeViewItem ItemsSource="{x:Bind Children, Mode=TwoWay}" Padding="1" Margin="0,0,6,0" IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}" IsSelected="{x:Bind IsSelected, Mode=TwoWay}">
                 <StackPanel>
                     <Border x:Name="PanelBackground" Background="Transparent" CornerRadius="0">
                         <Grid>
@@ -41,7 +42,7 @@
 
         <DataTemplate x:Key="FileTemplate" x:DataType="model:NodeTree">
 
-            <TreeViewItem ItemsSource="{x:Bind Children}" Padding="1" Margin="0,0,6,0">
+            <TreeViewItem ItemsSource="{x:Bind Children, Mode=TwoWay}" Padding="1" Margin="0,0,6,0" IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}" IsSelected="{x:Bind IsSelected, Mode=TwoWay}">
                 <StackPanel>
                     <Border x:Name="PanelBackground" Background="Transparent" CornerRadius="0">
                         <Grid>
@@ -160,17 +161,12 @@
                     </CommandBar>
                 </Border>
 
-                <TreeView Grid.Row="1" VerticalAlignment="Stretch" Background="{ThemeResource NavigationViewContentBackground}" x:Name="TreeViewControl" MinWidth="300" Width="300" MaxWidth="400" SelectionMode="Single" AllowDrop="False" CanReorderItems="False" CanDragItems="True" DragItemsStarting="TreeView_DragItemsStarting" DragItemsCompleted="TreeView_DragItemsCompleted" 
+                <TreeView Grid.Row="1" VerticalAlignment="Stretch" Background="{ThemeResource NavigationViewContentBackground}" x:Name="TreeViewControl" MinWidth="300" Width="300" MaxWidth="400" SelectionMode="Single" 
+                          AllowDrop="True" CanReorderItems="True" CanDragItems="True" DragItemsStarting="TreeView_DragItemsStarting" DragItemsCompleted="TreeView_DragItemsCompleted" 
                                   IsRightTapEnabled="True"
                                   IsDoubleTapEnabled="True" 
                           ItemInvoked="TreeView_ItemInvoked" ItemsSource="{x:Bind ViewModel.Services, Mode=OneWay}" ItemTemplateSelector="{StaticResource ExplorerItemTemplateSelector}" SelectedItem="{x:Bind ViewModel.SelectedTreeViewItem, Mode=TwoWay}" SelectedNode="{x:Bind ViewModel.SelectedTreeViewNode, Mode=OneWay}" Margin="0,0,0,0">
-                    <!--
-                    <TreeView.ContextFlyout>
-                        <MenuFlyout>
-                            <MenuFlyoutItem Text="Favorite" Command="{StaticResource favoriteCommand}" CommandParameter="{x:Bind PodcastObject, Mode=OneWay}" />
-                        </MenuFlyout>
-                    </TreeView.ContextFlyout>
-                    -->
+
                     <TreeView.Resources>
                         <MenuFlyout x:Key="TreeItemContextMenu">
                             <MenuFlyoutItem Text="Move Up">
@@ -205,8 +201,7 @@
                     <TreeView.ItemTemplate>
                         <DataTemplate x:DataType="model:NodeTree">
 
-                            <local:MyTreeViewItem ItemsSource="{x:Bind Children, Mode=OneWay}" IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}" 
-                             RightTapped="TreeViewItem_RightTapped" DoubleTapped="TreeViewItem_DoubleTapped" Padding="0" Margin="0,0,0,0">
+                            <local:MyTreeViewItem ItemsSource="{x:Bind Children, Mode=TwoWay}" IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}" IsSelected="{x:Bind IsSelected, Mode=TwoWay}" RightTapped="TreeViewItem_RightTapped" DoubleTapped="TreeViewItem_DoubleTapped" Padding="0" Margin="0,0,0,0">
                                 <StackPanel>
                                     <Border x:Name="PanelBackground" Background="Transparent" CornerRadius="0">
                                         <Grid>

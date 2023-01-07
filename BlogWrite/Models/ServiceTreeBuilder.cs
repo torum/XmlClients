@@ -272,66 +272,15 @@ namespace BlogWrite.Models
                     }
                     else if (s.LocalName.Equals("Folder"))
                     {
-                        var folderName = s.Attributes["Name"].Value;
 
-                        if (!string.IsNullOrEmpty(folderName))
-                        {
-                            var selecteds = string.IsNullOrEmpty(s.Attributes["Selected"].Value) ? "" : s.Attributes["Selected"].Value;
-                            var expandeds = string.IsNullOrEmpty(s.Attributes["Expanded"].Value) ? "" : s.Attributes["Expanded"].Value;
-                            bool isSelecteds = (selecteds == "true") ? true : false;
-                            bool isExpandeds = (expandeds == "true") ? true : false;
+                        NodeFolder folder = LoadXmlChildFolder(s);
+                        if (folder == null)
+                            continue;
 
-                            NodeFolder folder = new NodeFolder(folderName);
-                            folder.IsSelected = isSelecteds;
-                            folder.IsExpanded = isExpandeds;
-                            folder.Parent = this;
+                        folder.Parent = this;
 
-                            int unreadCount = 0;
-                            var attr = s.Attributes["UnreadCount"];
-                            if (attr != null)
-                            {
-                                if (!string.IsNullOrEmpty(s.Attributes["UnreadCount"].Value))
-                                    unreadCount = int.Parse(s.Attributes["UnreadCount"].Value);
-                            }
-                            folder.EntryCount = unreadCount;
-
-                            string viewType = (s.Attributes["ViewType"] != null) ? s.Attributes["ViewType"].Value : "Cards";
-                            ViewTypes vt;
-                            switch (viewType)
-                            {
-                                case "Cards":
-                                    vt = ViewTypes.vtCards;
-                                    break;
-                                case "Magazine":
-                                    vt = ViewTypes.vtMagazine;
-                                    break;
-                                case "ThreePanes":
-                                    vt = ViewTypes.vtThreePanes;
-                                    break;
-                                default:
-                                    vt = ViewTypes.vtCards;
-                                    break;
-                            }
-                            folder.ViewType = vt;
-
-
-
-                            XmlNodeList feedList = s.SelectNodes("Feed");
-                            foreach (XmlNode f in feedList)
-                            {
-                                NodeFeed feed = LoadXmlChildFeed(f);
-                                if (feed == null)
-                                    continue;
-
-                                feed.Parent = folder;
-
-                                if (feed != null)
-                                    folder.Children.Add(feed);
-
-                            }
-
+                        if (folder != null)
                             this.Children.Add(folder);
-                        }
                     }
                 }
 
@@ -339,14 +288,93 @@ namespace BlogWrite.Models
             }
         }
 
+        private NodeFolder LoadXmlChildFolder(XmlNode node)
+        {
+            var folderName = node.Attributes["Name"].Value;
+
+            if (!string.IsNullOrEmpty(folderName))
+            {
+                var selecteds = string.IsNullOrEmpty(node.Attributes["Selected"].Value) ? "" : node.Attributes["Selected"].Value;
+                var expandeds = string.IsNullOrEmpty(node.Attributes["Expanded"].Value) ? "" : node.Attributes["Expanded"].Value;
+                bool isSelecteds = (selecteds == "true") ? true : false;
+                bool isExpandeds = (expandeds == "true") ? true : false;
+
+                NodeFolder folder = new NodeFolder(folderName);
+                folder.IsSelected = isSelecteds;
+                folder.IsExpanded = isExpandeds;
+                folder.Parent = this;
+
+                int unreadCount = 0;
+                var attr = node.Attributes["UnreadCount"];
+                if (attr != null)
+                {
+                    if (!string.IsNullOrEmpty(node.Attributes["UnreadCount"].Value))
+                        unreadCount = int.Parse(node.Attributes["UnreadCount"].Value);
+                }
+                folder.EntryCount = unreadCount;
+
+                string viewType = (node.Attributes["ViewType"] != null) ? node.Attributes["ViewType"].Value : "Cards";
+                ViewTypes vt;
+                switch (viewType)
+                {
+                    case "Cards":
+                        vt = ViewTypes.vtCards;
+                        break;
+                    case "Magazine":
+                        vt = ViewTypes.vtMagazine;
+                        break;
+                    case "ThreePanes":
+                        vt = ViewTypes.vtThreePanes;
+                        break;
+                    default:
+                        vt = ViewTypes.vtCards;
+                        break;
+                }
+                folder.ViewType = vt;
+
+
+                XmlNodeList folderList = node.SelectNodes("Folder");
+                foreach (XmlNode f in folderList)
+                {
+                    NodeFolder fd = LoadXmlChildFolder(f);
+                    if (fd == null)
+                        continue;
+
+                    fd.Parent = folder;
+
+                    if (fd != null)
+                        folder.Children.Add(fd);
+
+                }
+
+                XmlNodeList feedList = node.SelectNodes("Feed");
+                foreach (XmlNode f in feedList)
+                {
+                    NodeFeed feed = LoadXmlChildFeed(f);
+                    if (feed == null)
+                        continue;
+
+                    feed.Parent = folder;
+
+                    if (feed != null)
+                        folder.Children.Add(feed);
+
+                }
+
+                return folder;
+            }
+
+            return null;
+        }
+
         private NodeFeed LoadXmlChildFeed(XmlNode node)
         {
             var feedName = node.Attributes["Name"].Value;
 
             var selecteds = string.IsNullOrEmpty(node.Attributes["Selected"].Value) ? "" : node.Attributes["Selected"].Value;
-            var expandeds = string.IsNullOrEmpty(node.Attributes["Expanded"].Value) ? "" : node.Attributes["Expanded"].Value;
+            //var expandeds = string.IsNullOrEmpty(node.Attributes["Expanded"].Value) ? "" : node.Attributes["Expanded"].Value;
             bool isSelectedf = (selecteds == "true") ? true : false;
-            bool isExpandedf = (expandeds == "true") ? true : false;
+            //bool isExpandedf = (expandeds == "true") ? true : false;
 
             var endpoint = node.Attributes["EndPoint"].Value;
             string api = (node.Attributes["Api"] != null) ? node.Attributes["Api"].Value : "Unknown";
@@ -424,7 +452,7 @@ namespace BlogWrite.Models
             {
                 NodeFeed feed = new NodeFeed(feedName, new Uri(endpoint));
                 feed.IsSelected = isSelectedf;
-                feed.IsExpanded = isExpandedf;
+                //feed.IsExpanded = isExpandedf;
                 feed.Parent = this;
 
                 feed.SiteTitle = siteTitle;
@@ -668,56 +696,69 @@ namespace BlogWrite.Models
                 }
                 else if (s is NodeFolder)
                 {
-                    XmlElement folder = doc.CreateElement(string.Empty, "Folder", string.Empty);
-
-                    XmlAttribute attrd = doc.CreateAttribute("Name");
-                    attrd.Value = (s).Name;
-                    folder.SetAttributeNode(attrd);
-
-                    attrd = doc.CreateAttribute("Expanded");
-                    attrd.Value = (s).IsExpanded ? "true" : "false";
-                    folder.SetAttributeNode(attrd);
-
-                    attrd = doc.CreateAttribute("Selected");
-                    attrd.Value = (s).IsSelected ? "true" : "false";
-                    folder.SetAttributeNode(attrd);
-
-                    attrd = doc.CreateAttribute("UnreadCount");
-                    attrd.Value = s.EntryCount.ToString();
-                    folder.SetAttributeNode(attrd);
-
-                    attrd = doc.CreateAttribute("ViewType");
-                    switch (s.ViewType)
-                    {
-                        case ViewTypes.vtCards:
-                            attrd.Value = "Cards";
-                            folder.SetAttributeNode(attrd);
-                            break;
-                        case ViewTypes.vtMagazine:
-                            attrd.Value = "Magazine";
-                            folder.SetAttributeNode(attrd);
-                            break;
-                        case ViewTypes.vtThreePanes:
-                            attrd.Value = "ThreePanes";
-                            folder.SetAttributeNode(attrd);
-                            break;
-                    }
+                    XmlElement folder = AsXmlFolderElement(doc, s as NodeFolder);
 
                     root.AppendChild(folder);
-
-                    foreach (var fd in s.Children)
-                    {
-                        if (!(fd is NodeFeed)) continue;
-
-                        XmlElement feed = AsXmlFeedElement(doc, (fd as NodeFeed));
-
-                        folder.AppendChild(feed);
-                    }
                 }
-
             }
 
             return doc;
+        }
+
+        private XmlElement AsXmlFolderElement(XmlDocument doc, NodeFolder fd)
+        {
+            XmlElement folder = doc.CreateElement(string.Empty, "Folder", string.Empty);
+
+            XmlAttribute attrd = doc.CreateAttribute("Name");
+            attrd.Value = fd.Name;
+            folder.SetAttributeNode(attrd);
+
+            attrd = doc.CreateAttribute("Expanded");
+            attrd.Value = fd.IsExpanded ? "true" : "false";
+            folder.SetAttributeNode(attrd);
+
+            attrd = doc.CreateAttribute("Selected");
+            attrd.Value = fd.IsSelected ? "true" : "false";
+            folder.SetAttributeNode(attrd);
+
+            attrd = doc.CreateAttribute("UnreadCount");
+            attrd.Value = fd.EntryCount.ToString();
+            folder.SetAttributeNode(attrd);
+
+            attrd = doc.CreateAttribute("ViewType");
+            switch (fd.ViewType)
+            {
+                case ViewTypes.vtCards:
+                    attrd.Value = "Cards";
+                    folder.SetAttributeNode(attrd);
+                    break;
+                case ViewTypes.vtMagazine:
+                    attrd.Value = "Magazine";
+                    folder.SetAttributeNode(attrd);
+                    break;
+                case ViewTypes.vtThreePanes:
+                    attrd.Value = "ThreePanes";
+                    folder.SetAttributeNode(attrd);
+                    break;
+            }
+
+            foreach (var hoge in fd.Children)
+            {
+                if (hoge is NodeFeed)
+                {
+                    XmlElement feed = AsXmlFeedElement(doc, (hoge as NodeFeed));
+
+                    folder.AppendChild(feed);
+                }
+                else if (hoge is NodeFolder)
+                {
+                    XmlElement folderChild = AsXmlFolderElement(doc, hoge as NodeFolder);
+
+                    folder.AppendChild(folderChild);
+                }
+            }
+
+            return folder;
         }
 
         private XmlElement AsXmlFeedElement(XmlDocument doc, NodeFeed fd)
@@ -728,9 +769,11 @@ namespace BlogWrite.Models
             attrf.Value = fd.Name;
             feed.SetAttributeNode(attrf);
 
+            /*
             attrf = doc.CreateAttribute("Expanded");
             attrf.Value = fd.IsExpanded ? "true" : "false";
             feed.SetAttributeNode(attrf);
+            */
 
             attrf = doc.CreateAttribute("Selected");
             attrf.Value = fd.IsSelected ? "true" : "false";

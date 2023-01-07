@@ -143,6 +143,8 @@ public sealed partial class FeedsPage : Page
         }
 
         DraggedItems.Clear();
+
+        ViewModel.SaveServiceXml();
     }
 
     private void TreeViewItem_RightTapped(object sender, Microsoft.UI.Xaml.Input.RightTappedRoutedEventArgs e)
@@ -153,4 +155,8 @@ public sealed partial class FeedsPage : Page
         }
     }
 
+    private void Page_Unloaded(object sender, RoutedEventArgs e)
+    {
+
+    }
 }

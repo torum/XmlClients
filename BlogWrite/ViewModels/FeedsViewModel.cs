@@ -63,14 +63,6 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
             OnPropertyChanged(nameof(Services));
         }
     }
-    /*
-    private ObservableCollection<NodeTree> _services = new() { new NodeFeed("asdf", new Uri("http://127.0.0.1")) };
-    public ObservableCollection<NodeTree> Services
-    {
-        get => _services;
-        set => SetProperty(ref _services, value);
-    }
-    */
 
     private NodeTree _selectedTreeViewItem;// = new NodeService("", "", "", new Uri("http://127.0.0.1"), ApiTypes.atUnknown, ServiceTypes.Unknown);
     public NodeTree SelectedTreeViewItem
@@ -454,6 +446,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         
         InitClients();
 
+        Debug.WriteLine("feeds viewmodel init");
 
 #if DEBUG
         IsDebugWindowEnabled = true;
@@ -987,7 +980,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         return false;
     }
 
-    private void SaveServiceXml()
+    public void SaveServiceXml()
     {
         XmlDocument xdoc = _services.AsXmlDoc();
 

@@ -84,16 +84,16 @@ public partial class App : Application
             services.AddSingleton<IFileService, FileService>();
 
             // Views and ViewModels
-            services.AddTransient<SettingsViewModel>();
-            services.AddTransient<SettingsPage>();
+            services.AddSingleton<SettingsViewModel>();
+            services.AddSingleton<SettingsPage>();
             services.AddTransient<EntryDetailsViewModel>();
             services.AddTransient<EntryDetailsPage>();
             services.AddTransient<FeedAddViewModel>();
             services.AddTransient<FeedAddPage>();
-            services.AddTransient<FeedsViewModel>();
-            services.AddTransient<FeedsPage>();
-            services.AddTransient<ShellPage>();
-            services.AddTransient<ShellViewModel>();
+            services.AddSingleton<FeedsViewModel>();
+            services.AddSingleton<FeedsPage>();
+            services.AddSingleton<ShellPage>();
+            services.AddSingleton<ShellViewModel>();
 
             // Configuration
             services.Configure<LocalSettingsOptions>(context.Configuration.GetSection(nameof(LocalSettingsOptions)));
