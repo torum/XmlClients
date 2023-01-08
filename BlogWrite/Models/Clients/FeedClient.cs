@@ -17,11 +17,11 @@ namespace BlogWrite.Models.Clients
     // Feed Client - reads Atom 1.0. 0.3, RSS 2.0 and 1.0.
     public class FeedClient : BaseClient
     {
-        public override async Task<HttpClientEntryItemCollectionResultWrapper> GetEntries(Uri entriesUrl, string feedId)
+        public async override Task<HttpClientEntryItemCollectionResultWrapper> GetEntries(Uri entriesUrl, string feedId)
         {
-            HttpClientEntryItemCollectionResultWrapper res = new HttpClientEntryItemCollectionResultWrapper();
+            var res = new HttpClientEntryItemCollectionResultWrapper();
             
-            List<EntryItem> list = new List<EntryItem>();
+            var list = new List<EntryItem>();
             res.Entries = list;
 
             if (!(entriesUrl.Scheme.Equals("http") || entriesUrl.Scheme.Equals("https")))
@@ -39,7 +39,7 @@ namespace BlogWrite.Models.Clients
 
             try
             {
-                var HTTPResponseMessage = await _HTTPConn.Client.GetAsync(entriesUrl);
+                var HTTPResponseMessage = await Client.GetAsync(entriesUrl);
 
                 if (HTTPResponseMessage.IsSuccessStatusCode)
                 {
@@ -61,7 +61,7 @@ namespace BlogWrite.Models.Clients
                     var source = await HTTPResponseMessage.Content.ReadAsStreamAsync();
                     
                     // Load XML
-                    XmlDocument xdoc = new XmlDocument();
+                    var xdoc = new XmlDocument();
                     try
                     {
                         XmlReaderSettings settings = new XmlReaderSettings();

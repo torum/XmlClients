@@ -18,22 +18,48 @@ using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace BlogWrite.Models.Clients
 {
-    // Plain HTTP client wrapped as HTTP Connection.
-    public class HTTPConnection
+    public abstract class BaseClient : IDisposable
     {
-        public HttpClient Client { get; }
+        private static object _locker = new object();
+        private static volatile HttpClient _client;
 
-        public HTTPConnection()
+        protected static HttpClient Client
         {
-            Client = new HttpClient();
-            Client.DefaultRequestHeaders.UserAgent.TryParseAdd("BlogWrite" + "/" + Assembly.GetExecutingAssembly().GetName().Version.ToString());
-        }
-    }
+            get
+            {
+                if (_client == null)
+                {
+                    lock (_locker)
+                    {
+                        if (_client == null)
+                        {
+                            _client = new HttpClient();
+                        }
+                    }
+                }
 
-    // Base HTTP client.
-    public abstract class BaseClient
-    {
-        protected HTTPConnection _HTTPConn;
+                return _client;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        public virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (_client != null)
+                {
+                    _client.Dispose();
+                }
+
+                _client = null;
+            }
+        }
 
         public abstract Task<HttpClientEntryItemCollectionResultWrapper> GetEntries(Uri entriesUrl, string feedId);
 
@@ -104,7 +130,6 @@ namespace BlogWrite.Models.Clients
             }
         }
 
-
         #region == Events ==
 
         public delegate void ClientDebugOutput(BaseClient sender, string data);
@@ -112,12 +137,6 @@ namespace BlogWrite.Models.Clients
         public event ClientDebugOutput DebugOutput;
 
         #endregion
-
-        public BaseClient()
-        {
-            //_HTTPConn = HTTPConnection.Instance;
-            _HTTPConn = new HTTPConnection();
-        }
 
         // Writes to Debug (raises event)
         protected void ToDebugWindow(string data)
@@ -131,7 +150,7 @@ namespace BlogWrite.Models.Clients
 
             try
             {
-                res = await _HTTPConn.Client.GetByteArrayAsync(imageUri);
+                res = await _client.GetByteArrayAsync(imageUri);
             }
             catch (Exception e)
             {
@@ -170,7 +189,7 @@ namespace BlogWrite.Models.Clients
         {
             err.ErrCode = "";
             err.ErrType = ErrorObject.ErrTypes.HTTP;
-            err.ErrText = errText; 
+            err.ErrText = errText;
             err.ErrDescription = "Invalid Content-Type returned";
             err.ErrPlace = errPlace;
             err.ErrPlaceParent = errPlaceParent;
@@ -183,7 +202,7 @@ namespace BlogWrite.Models.Clients
         {
             err.ErrCode = "";
             err.ErrType = ErrorObject.ErrTypes.XML;
-            err.ErrText = eMessage; 
+            err.ErrText = eMessage;
             err.ErrDescription = "Invalid XML document returned";
             err.ErrPlace = "xdoc.Load()";
             err.ErrPlaceParent = errPlaceParent;
@@ -266,9 +285,9 @@ namespace BlogWrite.Models.Clients
                 return document.DocumentElement.InnerHtml;
 
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                Debug.WriteLine("Exception@StripStyleAttributes: "+e.Message);
+                Debug.WriteLine("Exception@StripStyleAttributes: " + e.Message);
 
                 return "";
             }

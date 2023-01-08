@@ -8,6 +8,8 @@
     xmlns:windowex="using:WinUIEx"
     MinWidth="500"
     MinHeight="500"
+     Width="1024" Height="768"
+    PersistenceId="MainWindowPersistanceId"
     mc:Ignorable="d">
     <windowex:WindowEx.Backdrop>
         <windowex:MicaSystemBackdrop/>

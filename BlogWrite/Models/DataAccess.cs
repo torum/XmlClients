@@ -4,140 +4,136 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Data;
-using Microsoft.Data.Sqlite;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Windows.Graphics.Imaging;
 using System.IO;
 using System.Windows;
 using Microsoft.UI.Xaml.Media.Imaging;
+using System.Data.SQLite;
 
 namespace BlogWrite.Models
 {
     // SQLite Database Access module
     public class DataAccess
     {
-        private SqliteConnectionStringBuilder connectionStringBuilder;
+        private readonly SQLiteConnectionStringBuilder connectionStringBuilder = new();
 
         public SqliteDataAccessResultWrapper InitializeDatabase(string dataBaseFilePath)
         {
-            SqliteDataAccessResultWrapper res = new SqliteDataAccessResultWrapper();
+            var res = new SqliteDataAccessResultWrapper();
 
             // Create a table if not exists.
-            connectionStringBuilder = new SqliteConnectionStringBuilder
-            {
-                DataSource = dataBaseFilePath,
-               
-            };
+            connectionStringBuilder.DataSource = dataBaseFilePath;
 
-            using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
+            try
             {
-                try
+                using (var connection = new SQLiteConnection(connectionStringBuilder.ConnectionString))
                 {
-                    connection.Open();
-
-                    using (var tableCmd = connection.CreateCommand())
+                    try
                     {
-                        tableCmd.Transaction = connection.BeginTransaction();
-                        try
+                        connection.Open();
+
+                        using (var tableCmd = connection.CreateCommand())
                         {
-                            tableCmd.CommandText = "CREATE TABLE IF NOT EXISTS Entry (" +
-                                "ID TEXT NOT NULL PRIMARY KEY," +
-                                "Feed_ID TEXT NOT NULL," +
-                                "Entry_ID TEXT NOT NULL," +
-                                "Url TEXT NOT NULL," +
-                                "Title TEXT," +
-                                "Published TEXT NOT NULL," +
-                                "Author TEXT," +
-                                "Summary TEXT," +
-                                "Content TEXT," +
-                                "ContentType TEXT," +
-                                "ImageUrl TEXT," +
-                                "IsImageDownloaded TEXT," +
-                                "Image_ID TEXT," +
-                                //"Image BLOB," + // TODO reamove.
-                                "Status TEXT," +
-                                "IsArchived TEXT)";
+                            tableCmd.Transaction = connection.BeginTransaction();
+                            try
+                            {
+                                tableCmd.CommandText = "CREATE TABLE IF NOT EXISTS Entry (" +
+                                    "ID TEXT NOT NULL PRIMARY KEY," +
+                                    "Feed_ID TEXT NOT NULL," +
+                                    "Entry_ID TEXT NOT NULL," +
+                                    "Url TEXT NOT NULL," +
+                                    "Title TEXT," +
+                                    "Published TEXT NOT NULL," +
+                                    "Author TEXT," +
+                                    "Summary TEXT," +
+                                    "Content TEXT," +
+                                    "ContentType TEXT," +
+                                    "ImageUrl TEXT," +
+                                    "IsImageDownloaded TEXT," +
+                                    "Image_ID TEXT," +
+                                    "Status TEXT," +
+                                    "IsArchived TEXT)";
 
-                            tableCmd.ExecuteNonQuery();
+                                tableCmd.ExecuteNonQuery();
 
-                            tableCmd.CommandText = "CREATE TABLE IF NOT EXISTS Image (" +
-                                "Image_ID TEXT NOT NULL PRIMARY KEY," +
-                                "ID TEXT NOT NULL," +
-                                "Image BLOB," +
-                                //"FOREIGN KEY (ID) REFERENCES Entry(ID)" +
-                                "CONSTRAINT fk_Entry FOREIGN KEY (ID) REFERENCES Entry (ID) ON DELETE CASCADE" +
-                                ")";
+                                tableCmd.Transaction.Commit();
+                            }
+                            catch (Exception e)
+                            {
+                                tableCmd.Transaction.Rollback();
 
-                            tableCmd.ExecuteNonQuery();
+                                res.IsError = true;
+                                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                                res.Error.ErrCode = "";
+                                res.Error.ErrText = "Exception";
+                                res.Error.ErrDescription = e.Message;
+                                res.Error.ErrDatetime = DateTime.Now;
+                                res.Error.ErrPlace = "Transaction.Commit";
+                                res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
 
-                            tableCmd.Transaction.Commit();
+                                Debug.WriteLine("fuck");
+                                return res;
+                            }
                         }
-                        catch (Exception e)
-                        {
-                            tableCmd.Transaction.Rollback();
+                    }
+                    catch (System.Reflection.TargetInvocationException ex)
+                    {
+                        res.IsError = true;
+                        res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                        res.Error.ErrCode = "";
+                        res.Error.ErrText = "TargetInvocationException";
+                        res.Error.ErrDescription = ex.Message;
+                        res.Error.ErrDatetime = DateTime.Now;
+                        res.Error.ErrPlace = "connection.Open";
+                        res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
 
-                            res.IsError = true;
-                            res.Error.ErrType = ErrorObject.ErrTypes.DB;
-                            res.Error.ErrCode = "";
+                        Debug.WriteLine("fuck");
+                        return res;
+                    }
+                    catch (System.InvalidOperationException ex)
+                    {
+                        res.IsError = true;
+                        res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                        res.Error.ErrCode = "";
+                        res.Error.ErrText = "InvalidOperationException"; ;
+                        res.Error.ErrDescription = ex.Message;
+                        res.Error.ErrDatetime = DateTime.Now;
+                        res.Error.ErrPlace = "connection.Open";
+                        res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
+
+                        Debug.WriteLine("fuck");
+                        return res;
+                    }
+                    catch (Exception e)
+                    {
+                        res.IsError = true;
+                        res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                        res.Error.ErrCode = "";
+
+                        if (e.InnerException != null)
+                        {
+                            res.Error.ErrText = "InnerException";
+                            res.Error.ErrDescription = e.InnerException.Message;
+                        }
+                        else
+                        {
                             res.Error.ErrText = "Exception";
                             res.Error.ErrDescription = e.Message;
-                            res.Error.ErrDatetime = DateTime.Now;
-                            res.Error.ErrPlace = "Transaction.Commit";
-                            res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
-
-                            return res;
                         }
+                        res.Error.ErrDatetime = DateTime.Now;
+                        res.Error.ErrPlace = "connection.Open";
+                        res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
+
+                        Debug.WriteLine("fuck");
+                        return res;
                     }
                 }
-                catch (System.Reflection.TargetInvocationException ex)
-                {
-                    res.IsError = true;
-                    res.Error.ErrType = ErrorObject.ErrTypes.DB;
-                    res.Error.ErrCode = "";
-                    res.Error.ErrText = "TargetInvocationException";
-                    res.Error.ErrDescription = ex.Message;
-                    res.Error.ErrDatetime = DateTime.Now;
-                    res.Error.ErrPlace = "connection.Open";
-                    res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
-
-                    return res;
-                }
-                catch (System.InvalidOperationException ex)
-                {
-                    res.IsError = true;
-                    res.Error.ErrType = ErrorObject.ErrTypes.DB;
-                    res.Error.ErrCode = "";
-                    res.Error.ErrText = "InvalidOperationException";;
-                    res.Error.ErrDescription = ex.Message;
-                    res.Error.ErrDatetime = DateTime.Now;
-                    res.Error.ErrPlace = "connection.Open";
-                    res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
-
-                    return res;
-                }
-                catch (Exception e)
-                {
-                    res.IsError = true;
-                    res.Error.ErrType = ErrorObject.ErrTypes.DB;
-                    res.Error.ErrCode = "";
-
-                    if (e.InnerException != null)
-                    {
-                        res.Error.ErrText = "InnerException";
-                        res.Error.ErrDescription = e.InnerException.Message;
-                    }
-                    else
-                    {
-                        res.Error.ErrText = "Exception";
-                        res.Error.ErrDescription = e.Message;
-                    }
-                    res.Error.ErrDatetime = DateTime.Now;
-                    res.Error.ErrPlace = "connection.Open";
-                    res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
-
-                    return res;
-                }
+            }
+            catch
+            {
+                Debug.WriteLine("fuck");
             }
 
             return res;
@@ -154,7 +150,7 @@ namespace BlogWrite.Models
 
             try
             {
-                using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
+                using (var connection = new SQLiteConnection(connectionStringBuilder.ConnectionString))
                 {
                     connection.Open();
 
@@ -162,11 +158,11 @@ namespace BlogWrite.Models
                     {
                         if (IsUnreadOnly)
                         {
-                            cmd.CommandText = String.Format("SELECT * FROM Entry WHERE Feed_ID = '{0}' AND IsArchived = '{1}' ORDER BY Published DESC LIMIT 100", feedId, bool.FalseString);
+                            cmd.CommandText = String.Format("SELECT * FROM Entry WHERE Feed_ID = '{0}' AND IsArchived = '{1}' ORDER BY Published DESC LIMIT 1000", feedId, bool.FalseString);
                         }
                         else
                         {
-                            cmd.CommandText = String.Format("SELECT * FROM Entry WHERE Feed_ID = '{0}' ORDER BY Published DESC LIMIT 100", feedId);
+                            cmd.CommandText = String.Format("SELECT * FROM Entry WHERE Feed_ID = '{0}' ORDER BY Published DESC LIMIT 1000", feedId);
                         }
 
                         using (var reader = cmd.ExecuteReader())
@@ -310,8 +306,8 @@ namespace BlogWrite.Models
 
         public SqliteDataAccessSelectResultWrapper SelectEntriesByFeedIds(List<string> feedIds)
         {
-            SqliteDataAccessSelectResultWrapper res = new SqliteDataAccessSelectResultWrapper();
-
+            var res = new SqliteDataAccessSelectResultWrapper();
+            
             if (feedIds is null)
                 return res;
 
@@ -330,13 +326,13 @@ namespace BlogWrite.Models
                 middle = middle + String.Format("Feed_ID = '{0}' ", asdf);
             }
 
-            string after = string.Format(") AND IsArchived = '{0}' ORDER BY Published DESC LIMIT 100", bool.FalseString);
+            string after = string.Format(") AND IsArchived = '{0}' ORDER BY Published DESC LIMIT 1000", bool.FalseString);
 
             //Debug.WriteLine(before + middle + after);
 
             try
             {
-                using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
+                using (var connection = new SQLiteConnection(connectionStringBuilder.ConnectionString))
                 {
                     connection.Open();
 
@@ -474,20 +470,20 @@ namespace BlogWrite.Models
 
             try
             {
-                using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
+                using (var connection = new SQLiteConnection(connectionStringBuilder.ConnectionString))
                 {
                     connection.Open();
 
                     using (var cmd = connection.CreateCommand())
                     {
-                        cmd.CommandText = String.Format("SELECT * FROM Image WHERE Image_ID = '{0}'", imageId);
+                        cmd.CommandText = String.Format("SELECT * FROM ImageUrl WHERE Image_ID = '{0}'", imageId);
 
                         using (var reader = cmd.ExecuteReader())
                         {
                             while (reader.Read())
                             {
-                                if (reader["Image"] != DBNull.Value)
-                                {
+                                //if (reader["Image"] != DBNull.Value)
+                                //{
                                     byte[] bi = (byte[])reader["Image"];
                                     /*
                                     if (Application.Current != null)
@@ -498,7 +494,7 @@ namespace BlogWrite.Models
                                         });
                                     }
                                     */
-                                }
+                                //}
 
                                 res.AffectedCount++;
                             }
@@ -554,7 +550,7 @@ namespace BlogWrite.Models
 
             try
             {
-                using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
+                using (var connection = new SQLiteConnection(connectionStringBuilder.ConnectionString))
                 {
                     connection.Open();
 
@@ -571,7 +567,7 @@ namespace BlogWrite.Models
                                     continue;
 
                                 string sqlInsert = "INSERT OR IGNORE INTO Entry (ID, Feed_ID, Entry_ID, Url, Title, Published, Author, Summary, Content, ContentType, ImageUrl, IsImageDownloaded, Image_ID, Status, IsArchived) VALUES (@Id, @feedId, @EntryId, @AltHtmlUri, @Title, @Published, @Author, @Summary, @Content, @ContentType, @ImageUri, @IsImageDownloaded, @ImageId, @Status, @IsArchived)";
-                                    
+
                                 cmd.CommandText = sqlInsert;
 
                                 cmd.CommandType = CommandType.Text;
@@ -579,11 +575,11 @@ namespace BlogWrite.Models
                                 cmd.Parameters.Clear();
 
                                 cmd.Parameters.AddWithValue("@Id", entry.Id);
-                                
+
                                 cmd.Parameters.AddWithValue("@feedId", entry.ServiceId);//feedId
 
                                 cmd.Parameters.AddWithValue("@EntryId", entry.EntryId);
-                                
+
                                 cmd.Parameters.AddWithValue("@AltHtmlUri", entry.AltHtmlUri.AbsoluteUri);
 
                                 if (entry.Title != null)
@@ -624,19 +620,6 @@ namespace BlogWrite.Models
                                     cmd.Parameters.AddWithValue("@ImageId", entry.ImageId);
                                 else
                                     cmd.Parameters.AddWithValue("@ImageId", string.Empty);
-
-                                /*
-                                if ((entry.ImageByteArray == Array.Empty<byte>()) || entry.ImageByteArray == null)
-                                {
-                                    cmd.Parameters.AddWithValue("@Image", DBNull.Value);
-                                }
-                                else
-                                {
-                                    SqliteParameter parameter1 = new("@Image", System.Data.DbType.Binary);
-                                    parameter1.Value = entry.ImageByteArray;
-                                    cmd.Parameters.Add(parameter1);
-                                }
-                                */
 
                                 if (entry is FeedEntryItem)
                                 {
@@ -727,7 +710,7 @@ namespace BlogWrite.Models
                 return res;
             }
 
-            Debug.WriteLine(string.Format("{0} Entries Inserted to DB", res.AffectedCount.ToString()));
+            //Debug.WriteLine(string.Format("{0} Entries Inserted to DB", res.AffectedCount.ToString()));
 
             return res;
         }
@@ -741,7 +724,7 @@ namespace BlogWrite.Models
 
             try
             {
-                using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
+                using (var connection = new SQLiteConnection(connectionStringBuilder.ConnectionString))
                 {
                     connection.Open();
 
@@ -772,7 +755,7 @@ namespace BlogWrite.Models
                                 cmd.Parameters.AddWithValue("@ImageId", entry.Id+':'+entry.ImageUri.AbsoluteUri);
 
                                 cmd.Parameters.AddWithValue("@Id", entry.Id);
-
+                                /*
                                 if ((entry.ImageByteArray == Array.Empty<byte>()) || entry.ImageByteArray == null)
                                 {
                                     cmd.Parameters.AddWithValue("@Image", DBNull.Value);
@@ -783,6 +766,7 @@ namespace BlogWrite.Models
                                     parameter1.Value = entry.ImageByteArray;
                                     cmd.Parameters.Add(parameter1);
                                 }
+                                */
 
                                 var r = cmd.ExecuteNonQuery();
 
@@ -896,7 +880,7 @@ namespace BlogWrite.Models
 
             try
             {
-                using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
+                using (var connection = new SQLiteConnection(connectionStringBuilder.ConnectionString))
                 {
                     connection.Open();
 
@@ -1031,7 +1015,7 @@ namespace BlogWrite.Models
 
             try
             {
-                using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
+                using (var connection = new SQLiteConnection(connectionStringBuilder.ConnectionString))
                 {
                     connection.Open();
 
@@ -1119,7 +1103,7 @@ namespace BlogWrite.Models
 
             try
             {
-                using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
+                using (var connection = new SQLiteConnection(connectionStringBuilder.ConnectionString))
                 {
                     connection.Open();
 
@@ -1256,7 +1240,7 @@ namespace BlogWrite.Models
 
             try
             {
-                using (var connection = new SqliteConnection(connectionStringBuilder.ConnectionString))
+                using (var connection = new SQLiteConnection(connectionStringBuilder.ConnectionString))
                 {
                     connection.Open();
 

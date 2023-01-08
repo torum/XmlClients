@@ -198,7 +198,7 @@ public sealed partial class ShellPage : Page
 
         #endregion
 
-
+        // Save service tree.
         var hoge = App.GetService<FeedsViewModel>();
         hoge.SaveServiceXml();
     }
@@ -264,6 +264,7 @@ public sealed partial class ShellPage : Page
         // 
         var settings = (Microsoft.UI.Xaml.Controls.NavigationViewItem)NavigationViewControl.SettingsItem;
         settings.Content = "";//"Setting".GetLocalized();
+
     }
 
     private void NavigationViewControl_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)

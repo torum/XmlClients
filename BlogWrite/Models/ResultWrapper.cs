@@ -34,14 +34,14 @@ namespace BlogWrite.Models
 
     public class SqliteDataAccessInsertResultWrapper: SqliteDataAccessResultWrapper
     {
-        public ObservableCollection<EntryItem> InsertedEntries = new();
+        public List<EntryItem> InsertedEntries = new();
     }
 
     public class SqliteDataAccessSelectResultWrapper: SqliteDataAccessResultWrapper
     {
         public int UnreadCount;
 
-        public ObservableCollection<EntryItem> SelectedEntries = new();
+        public List<EntryItem> SelectedEntries = new();
     }
 
     public class SqliteDataAccessSelectImageResultWrapper : SqliteDataAccessResultWrapper

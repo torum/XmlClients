@@ -1,4 +1,5 @@
-﻿using BlogWrite.Activation;
+﻿using AngleSharp.Html.Dom.Events;
+using BlogWrite.Activation;
 using BlogWrite.Contracts.Services;
 using BlogWrite.Views;
 
@@ -41,7 +42,7 @@ public class ActivationService : IActivationService
         App.MainWindow.Activate();
 
         //
-        App.MainWindow.CenterOnScreen(App.MainWindow.Width, App.MainWindow.Height);
+        //App.MainWindow.CenterOnScreen(App.MainWindow.Width, App.MainWindow.Height);
 
         // Execute tasks after activation.
         await StartupAsync();

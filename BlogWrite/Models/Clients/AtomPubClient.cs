@@ -19,7 +19,7 @@ namespace BlogWrite.Models.Clients
         public AtomPubClient(string userName, string userPassword, Uri endpoint) : base(userName, userPassword, endpoint)
         {
             //TODO:
-            _HTTPConn.Client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+            Client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
                 "Basic",
                 Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", userName, userPassword))));
         }
@@ -44,7 +44,7 @@ namespace BlogWrite.Models.Clients
             List<NodeWorkspace> blogs = new();
 
             // TODO try exception
-            var HTTPResponseMessage = await _HTTPConn.Client.GetAsync(_endpoint);
+            var HTTPResponseMessage = await Client.GetAsync(_endpoint);
 
             if (HTTPResponseMessage.IsSuccessStatusCode)
             {
@@ -414,7 +414,7 @@ namespace BlogWrite.Models.Clients
         {
             NodeAtomPubCatetories cats = new NodeAtomPubCatetories("AtomPub Categories");
 
-            var HTTPResponseMessage = await _HTTPConn.Client.GetAsync(categoriesUrl);
+            var HTTPResponseMessage = await Client.GetAsync(categoriesUrl);
 
             if (HTTPResponseMessage.IsSuccessStatusCode)
             {
@@ -547,7 +547,7 @@ namespace BlogWrite.Models.Clients
             res.Entries = list;
 
             //System.Diagnostics.Debug.WriteLine("GetEntries Uri: " + entriesUrl.AbsoluteUri);
-            var HTTPResponseMessage = await _HTTPConn.Client.GetAsync(entriesUrl);
+            var HTTPResponseMessage = await Client.GetAsync(entriesUrl);
 
             if (HTTPResponseMessage.IsSuccessStatusCode)
             {
@@ -711,7 +711,7 @@ namespace BlogWrite.Models.Clients
             // TODO: 
             // HTTP Head, if_modified_since or If-None-Match etag or something... then  Get;
 
-            var HTTPResponseMessage = await _HTTPConn.Client.GetAsync(entryUri);
+            var HTTPResponseMessage = await Client.GetAsync(entryUri);
 
             if (HTTPResponseMessage.IsSuccessStatusCode)
             {
@@ -1014,7 +1014,7 @@ namespace BlogWrite.Models.Clients
                 Content = new StringContent((entry as AtomEntry).AsUTF8Xml(), Encoding.UTF8, "application/atom+xml")
             };
 
-            var response = await _HTTPConn.Client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             ToDebugWindow(">> HTTP Request PUT "
                 + Environment.NewLine
@@ -1064,7 +1064,7 @@ namespace BlogWrite.Models.Clients
                 Content = new StringContent((entry as AtomEntry).AsUTF8Xml(), Encoding.UTF8, "application/atom+xml")
             };
 
-            var response = await _HTTPConn.Client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             ToDebugWindow(">> HTTP Request POST "
                 + Environment.NewLine
@@ -1172,7 +1172,7 @@ namespace BlogWrite.Models.Clients
                 RequestUri = editUri
             };
 
-            var response = await _HTTPConn.Client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             ToDebugWindow(">> HTTP Request DELETE "
                 + Environment.NewLine

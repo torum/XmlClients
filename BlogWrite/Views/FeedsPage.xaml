@@ -114,7 +114,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="330"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         
@@ -129,20 +129,31 @@
 
                 <Border Grid.Row="0" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}">
                     <CommandBar IsOpen="False" DefaultLabelPosition="Right" HorizontalAlignment="Stretch" Margin="1">
-                        <AppBarButton Icon="Add" Label="Add" Command="{x:Bind ViewModel.FeedAddCommand}"/>
+
+                        <AppBarButton Label="Update All" Command="{x:Bind ViewModel.FeedUpdateAllCommand}">
+                            <AppBarButton.Icon>
+                                <PathIcon Margin="0,-2,0,0">
+                                    <PathIcon.Data>
+                                        M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z</PathIcon.Data>
+                                </PathIcon>
+                            </AppBarButton.Icon>
+                        </AppBarButton>
+
+                        <AppBarButton Label="Add" Command="{x:Bind ViewModel.FeedAddCommand}">
+                            <AppBarButton.Icon>
+                                <PathIcon Margin="0,-2,0,0">
+                                    <PathIcon.Data>
+                                        M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z
+                                    </PathIcon.Data>
+                                </PathIcon>
+                            </AppBarButton.Icon>
+                        </AppBarButton>
+                        
                         <AppBarButton Icon="Edit" Label="Edit"/>
+
                         <CommandBar.SecondaryCommands>
 
-                            <AppBarButton Icon="Up" Label="Up">
-                                <AppBarButton.KeyboardAccelerators>
-                                    <KeyboardAccelerator Modifiers="Control" Key="U" />
-                                </AppBarButton.KeyboardAccelerators>
-                            </AppBarButton>
-                            <AppBarButton Icon="Download" Label="Down">
-                                <AppBarButton.KeyboardAccelerators>
-                                    <KeyboardAccelerator Modifiers="Control" Key="D" />
-                                </AppBarButton.KeyboardAccelerators>
-                            </AppBarButton>
+                            <!--
 
                             <AppBarSeparator/>
                             
@@ -150,6 +161,7 @@
                             </AppBarButton>
 
                             <AppBarSeparator/>
+                            -->
 
                             <AppBarButton Icon="Import" Label="Import" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
                             </AppBarButton>
@@ -161,14 +173,14 @@
                     </CommandBar>
                 </Border>
 
-                <TreeView Grid.Row="1" VerticalAlignment="Stretch" Background="{ThemeResource NavigationViewContentBackground}" x:Name="TreeViewControl" MinWidth="300" Width="300" MaxWidth="400" SelectionMode="Single" 
+                <TreeView Grid.Row="1" VerticalAlignment="Stretch" Background="{ThemeResource NavigationViewContentBackground}" x:Name="TreeViewControl" MinWidth="300" Width="330" MaxWidth="400" SelectionMode="Single" 
                           AllowDrop="True" CanReorderItems="True" CanDragItems="True" DragItemsStarting="TreeView_DragItemsStarting" DragItemsCompleted="TreeView_DragItemsCompleted" 
                                   IsRightTapEnabled="True"
                                   IsDoubleTapEnabled="True" 
-                          ItemInvoked="TreeView_ItemInvoked" ItemsSource="{x:Bind ViewModel.Services, Mode=OneWay}" ItemTemplateSelector="{StaticResource ExplorerItemTemplateSelector}" SelectedItem="{x:Bind ViewModel.SelectedTreeViewItem, Mode=TwoWay}" SelectedNode="{x:Bind ViewModel.SelectedTreeViewNode, Mode=OneWay}" Margin="0,0,0,0">
-
+                          ItemInvoked="TreeView_ItemInvoked" ItemsSource="{x:Bind ViewModel.Services, Mode=OneWay}" ItemTemplateSelector="{StaticResource ExplorerItemTemplateSelector}" SelectedItem="{x:Bind ViewModel.SelectedTreeViewItem, Mode=TwoWay}" SelectedNode="{x:Bind ViewModel.SelectedTreeViewNode, Mode=OneWay}" Margin="0,0,0,6">
                     <TreeView.Resources>
                         <MenuFlyout x:Key="TreeItemContextMenu">
+                            <!--
                             <MenuFlyoutItem Text="Move Up">
                                 <MenuFlyoutItem.KeyboardAccelerators>
                                     <KeyboardAccelerator Key="U" Modifiers="Control"/>
@@ -179,19 +191,19 @@
                                     <KeyboardAccelerator Key="D" Modifiers="Control"/>
                                 </MenuFlyoutItem.KeyboardAccelerators>
                             </MenuFlyoutItem>
+                            -->
                             <MenuFlyoutSeparator/>
-                            <MenuFlyoutItem Text="Remove">
+                            <MenuFlyoutItem Text="Remove" Icon="Remove" Command="{x:Bind ViewModel.FeedRemoveCommand}">
                                 <MenuFlyoutItem.KeyboardAccelerators>
                                     <KeyboardAccelerator Key="Delete" />
                                 </MenuFlyoutItem.KeyboardAccelerators>
 
                             </MenuFlyoutItem>
                             <MenuFlyoutSeparator/>
-                            <MenuFlyoutItem Text="Property"/>
+                            <MenuFlyoutItem Text="Edit" Icon="Edit"/>
                         </MenuFlyout>
 
                     </TreeView.Resources>
-
                     <TreeView.ItemContainerStyle>
                         <Style TargetType="controls:TreeViewItem">
                             <Setter Property="ContextFlyout" Value="{StaticResource TreeItemContextMenu}"/>
@@ -211,7 +223,7 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
 
-                                            <PathIcon Grid.Row="0" Grid.Column="0" Data="{x:Bind PathIcon, Mode=OneWay}" Opacity="0.4"></PathIcon>
+                                            <PathIcon Grid.Row="0" Grid.Column="0" Margin="-4,0,0,0" Data="{x:Bind PathIcon, Mode=OneWay}" Opacity="0.4"></PathIcon>
 
                                             <TextBlock Grid.Row="0" Grid.Column="1" x:Name="NodeTextBlock" Text="{x:Bind Name, Mode=OneWay}" Padding="3" IsHitTestVisible="False" Margin="6,0,0,0"/>
 
@@ -243,7 +255,7 @@
             <Grid Grid.Row="0">
 
                 <!-- HTTP error -->
-                <Border Visibility="{x:Bind ViewModel.IsShowHttpClientError,Mode=OneWay}">
+                <Border Visibility="{x:Bind ViewModel.IsShowFeedError,Mode=OneWay}">
                     <ScrollViewer>
                         <Grid Margin="12">
                             <Grid.RowDefinitions>
@@ -266,15 +278,15 @@
 
                             <StackPanel Grid.Row="1" Grid.Column="1" MinWidth="200" Width="600" MaxWidth="600" HorizontalAlignment="Left">
 
-                                <TextBox Header="Error Type" Text="{x:Bind ViewModel.HttpError.ErrType, Mode=OneWay}" Background="Transparent" Margin="0,6,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
-                                <TextBox Header="Error Text" Text="{x:Bind ViewModel.HttpError.ErrText, Mode=OneWay}" Background="Transparent" Margin="0,24,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="Stretch"></TextBox>
-                                <TextBox Header="Error Description" Text="{x:Bind ViewModel.HttpError.ErrDescription, Mode=OneWay}" Background="Transparent" Margin="0,24,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
+                                <TextBox Header="Error Type" Text="{x:Bind ViewModel.ErrorObj.ErrType, Mode=OneWay}" Background="Transparent" Margin="0,6,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
+                                <TextBox Header="Error Text" Text="{x:Bind ViewModel.ErrorObj.ErrText, Mode=OneWay}" Background="Transparent" Margin="0,24,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="Stretch"></TextBox>
+                                <TextBox Header="Error Description" Text="{x:Bind ViewModel.ErrorObj.ErrDescription, Mode=OneWay}" Background="Transparent" Margin="0,24,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
 
-                                <TextBox Header="Location 1"  Text="{x:Bind ViewModel.HttpError.ErrPlaceParent, Mode=OneWay}" Background="Transparent" Margin="0,24,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
-                                <TextBox Header="Location 2" Text="{x:Bind ViewModel.HttpError.ErrPlace, Mode=OneWay}" Background="Transparent" Margin="0,24,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
+                                <TextBox Header="Location 1"  Text="{x:Bind ViewModel.ErrorObj.ErrPlaceParent, Mode=OneWay}" Background="Transparent" Margin="0,24,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
+                                <TextBox Header="Location 2" Text="{x:Bind ViewModel.ErrorObj.ErrPlace, Mode=OneWay}" Background="Transparent" Margin="0,24,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
 
 
-                                <TextBox Header="Date and Time" Text="{x:Bind ViewModel.HttpError.ErrDatetime, Mode=OneWay}" Background="Transparent" Margin="0,24,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
+                                <TextBox Header="Date and Time" Text="{x:Bind ViewModel.ErrorObj.ErrDatetime, Mode=OneWay}" Background="Transparent" Margin="0,24,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
 
                             </StackPanel>
 
@@ -283,7 +295,7 @@
                 </Border>
 
                 <!-- ListView and details pane -->
-                <Grid Visibility="{x:Bind ViewModel.IsShowHttpClientErrorInverse,Mode=OneWay}">
+                <Grid Visibility="{x:Bind ViewModel.IsShowFeedErrorInverse,Mode=OneWay}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
@@ -304,17 +316,15 @@
                             <Border Grid.Row="0" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}">
                                 <CommandBar IsOpen="False" DefaultLabelPosition="Right" HorizontalAlignment="Stretch" Margin="1">
 
+                                    <AppBarButton Label="Archive All" Command="{x:Bind ViewModel.EntryArchiveAllCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1">
+                                        <AppBarButton.Icon>
+                                            <PathIcon>
+                                                <PathIcon.Data>
+                                                    M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M5 5V7H19V5M10.5 11V14H8L12 18L16 14H13.5V11</PathIcon.Data>
+                                            </PathIcon>
+                                        </AppBarButton.Icon>
+                                    </AppBarButton>
                                     <!--
-                <AppBarButton Label="Archive" ToolTipService.ToolTip="View in internal browser" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1">
-                    <AppBarButton.Icon>
-                        <PathIcon>
-                            <PathIcon.Data>
-                                M5.12,5L5.93,4H17.93L18.87,5M12,17.5L6.5,12H10V10H14V12H17.5L12,17.5M20.54,5.23L19.15,3.55C18.88,3.21 18.47,3 18,3H6C5.53,3 5.12,3.21 4.84,3.55L3.46,5.23C3.17,5.57 3,6 3,6.5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V6.5C21,6 20.83,5.57 20.54,5.23Z
-                            </PathIcon.Data>
-                        </PathIcon>
-                    </AppBarButton.Icon>
-                </AppBarButton>
--->
                                     <AppBarButton Label="View" Command="{x:Bind ViewModel.EntryViewInternalCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
                                         <AppBarButton.Icon>
                                             <PathIcon>
@@ -324,7 +334,7 @@
                                             </PathIcon>
                                         </AppBarButton.Icon>
                                     </AppBarButton>
-
+-->
                                     <AppBarButton Label="Open" Command="{x:Bind ViewModel.EntryViewExternalCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
                                         <AppBarButton.Icon>
                                             <PathIcon>
@@ -345,7 +355,7 @@
                                 </CommandBar>
                             </Border>
 
-                            <ListView Grid.Row="1" Background="{ThemeResource NavigationViewContentBackground}" x:Name="ListViewEntryItem" ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedListViewItem, Mode=TwoWay}" IsDoubleTapEnabled="True" SelectionMode="Single" Margin="0" Padding="0,0,0,0">
+                            <ListView Grid.Row="1" Background="{ThemeResource NavigationViewContentBackground}" x:Name="ListViewEntryItem" ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedListViewItem, Mode=TwoWay}" IsDoubleTapEnabled="True" SelectionMode="Single" Margin="0,0,0,6" Padding="0,0,0,0">
                                 <ListView.ItemTemplate>
                                     <DataTemplate x:DataType="model:EntryItem">
                                         <Grid x:Name="itemThumbnail" DoubleTapped="ListViewEntryItem_DoubleTappedAsync">
@@ -467,7 +477,7 @@
         </Grid>
 
         <!-- Debug pane -->
-        <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="6,0,6,6" Visibility="Collapsed">
+        <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="6,0,6,6" Visibility="{x:Bind ViewModel.IsDebugWindowEnabled, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
             <TextBox x:Name="DebugTextBox" HorizontalAlignment="Stretch" TextWrapping="Wrap" Padding="6 6 24 6" VerticalAlignment="Stretch" Margin="0" MinHeight="120" MaxHeight="240" ScrollViewer.VerticalScrollBarVisibility="Visible">
 
             </TextBox>

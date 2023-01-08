@@ -128,7 +128,7 @@ namespace BlogWrite.Models.Clients
             };
 
             // TODO try exception
-            var response = await _HTTPConn.Client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
@@ -418,7 +418,7 @@ namespace BlogWrite.Models.Clients
                 Content = new StringContent(AsUTF8Xml(xdoc), Encoding.UTF8, "text/xml")
             };
 
-            var response = await _HTTPConn.Client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
@@ -656,7 +656,7 @@ namespace BlogWrite.Models.Clients
 
             try
             {
-                var response = await _HTTPConn.Client.SendAsync(request);
+                var response = await Client.SendAsync(request);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -848,7 +848,7 @@ namespace BlogWrite.Models.Clients
                 Content = new StringContent(AsUTF8Xml(xdoc), Encoding.UTF8, "text/xml")
             };
 
-            var response = await _HTTPConn.Client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
@@ -1130,7 +1130,7 @@ name: wp_post_thumbnail - value:
                 Content = new StringContent(AsUTF8Xml(xdoc), Encoding.UTF8, "text/xml")
             };
 
-            var response = await _HTTPConn.Client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             if (response.IsSuccessStatusCode)
             {

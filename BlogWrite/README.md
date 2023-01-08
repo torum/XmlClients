@@ -7,7 +7,26 @@
 ## TODO
 
 #### General
-- [ ] Reorder Treeview and save data.
+エラー情報の保存と復帰
+
+Folder以下のchild feedのUnreadCountを親に伝播
+
+Newステータス
+show unread(archived)
+
+Edit画面
+Folder追加
+
+update 中にドラッグドロップできないようにする。
+DBエラーまわり表示確認。
+
+
+
+Feedアップデートタイマー
+アップデートステータスプログレスバー
+画像
+
+
 
 #### Feed reader
 - [ ] Grouping display of feed for Folder view.

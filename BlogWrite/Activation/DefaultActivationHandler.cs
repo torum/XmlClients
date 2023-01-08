@@ -123,13 +123,14 @@ public class DefaultActivationHandler : ActivationHandler<LaunchActivatedEventAr
         App.MainWindow.Height= height;
 
         //
-        //App.MainWindow.CenterOnScreen();
+        App.MainWindow.CenterOnScreen();
 
 
-        var manager = WinUIEx.WindowManager.Get(App.MainWindow);
+        //var manager = WinUIEx.WindowManager.Get(App.MainWindow);
         //manager.PersistenceId = "MainWindowPersistanceId";
-        manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
+        //manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
         //manager.Backdrop = new WinUIEx.MicaSystemBackdrop();
+
 
         await Task.CompletedTask;
     }

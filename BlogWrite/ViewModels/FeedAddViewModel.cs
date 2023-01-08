@@ -53,7 +53,7 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
         private set=> SetProperty(ref _isButtonEnabled, value);
     }
 
-    private string _websiteOrEndpointUrl = "http://blog.livedoor.jp/torumyax/";
+    private string _websiteOrEndpointUrl = "";
     public string WebsiteOrEndpointUrl
     {
         get => _websiteOrEndpointUrl;

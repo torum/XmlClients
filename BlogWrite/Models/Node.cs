@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using BlogWrite.ViewModels;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml;
+using Windows.Media.Protection.PlayReady;
 
 namespace BlogWrite.Models
 {
@@ -449,7 +450,13 @@ namespace BlogWrite.Models
 
         public ServiceTypes ServiceType { get; set; }
 
-        public BaseClient Client { get; }
+        private BaseClient _client { get; set;}
+        public BaseClient Client => _client;
+
+        public BaseClient SetClient
+        {
+            set => _client = value;
+        }
 
         public ErrorObject ErrorHttp { get; set; }
 
@@ -479,13 +486,16 @@ namespace BlogWrite.Models
             switch (api)
             {
                 case ApiTypes.atAtomPub:
-                    Client = new AtomPubClient(UserName, UserPassword, EndPoint);
+                    _client = new AtomPubClient(UserName, UserPassword, EndPoint);
                     break;
                 case ApiTypes.atXMLRPC_MovableType:
-                    Client = new XmlRpcClient(UserName, UserPassword, EndPoint);
+                    _client = new XmlRpcClient(UserName, UserPassword, EndPoint);
                     break;
                 case ApiTypes.atXMLRPC_WordPress:
-                    Client = new XmlRpcClient(UserName, UserPassword, EndPoint);
+                    _client = new XmlRpcClient(UserName, UserPassword, EndPoint);
+                    break;
+                case ApiTypes.atFeed:
+                    _client = new FeedClient();
                     break;
                     //TODO: WP, AtomAPI
             }
@@ -509,16 +519,16 @@ namespace BlogWrite.Models
             switch (api)
             {
                 case ApiTypes.atAtomPub:
-                    Client = new AtomPubClient(UserName, UserPassword, EndPoint);
+                    _client = new AtomPubClient(UserName, UserPassword, EndPoint);
                     break;
                 case ApiTypes.atXMLRPC_MovableType:
-                    Client = new XmlRpcClient(UserName, UserPassword, EndPoint);
+                    _client = new XmlRpcClient(UserName, UserPassword, EndPoint);
                     break;
                 case ApiTypes.atXMLRPC_WordPress:
-                    Client = new XmlRpcClient(UserName, UserPassword, EndPoint);
+                    _client = new XmlRpcClient(UserName, UserPassword, EndPoint);
                     break;
                 case ApiTypes.atFeed:
-                    Client = new FeedClient();
+                    _client = new FeedClient();
                     break;
 
                     //TODO: WP, AtomAPI
