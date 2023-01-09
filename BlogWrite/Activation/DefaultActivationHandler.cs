@@ -119,11 +119,11 @@ public class DefaultActivationHandler : ActivationHandler<LaunchActivatedEventAr
 
         #endregion
         
-        App.MainWindow.Width = width;
-        App.MainWindow.Height= height;
+        //App.MainWindow.Width = width;
+        //App.MainWindow.Height= height;
 
         //
-        App.MainWindow.CenterOnScreen();
+        //App.MainWindow.CenterOnScreen();
 
 
         //var manager = WinUIEx.WindowManager.Get(App.MainWindow);

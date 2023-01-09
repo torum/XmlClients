@@ -1,41 +1,69 @@
-﻿
+﻿# BlogWrite
+
+## Under developement
+  
+A blog editing (web publishing) client with a feed reading functionality - C# port of "BlogWrite" originaly developed in Delphi.
 
 
+## Implements following standards  
+
+* [The Atom Syndication Format](https://tools.ietf.org/html/rfc4287) (Atom 1.0) and Atom 0.3
+* [RDF Site Summary](https://www.w3.org/2001/09/rdfprimer/rss.html) (RSS 1.0) and [Really Simple Syndication](https://validator.w3.org/feed/docs/rss2.html) (RSS 2.0)
+* [Atom Publishing Protocol](https://tools.ietf.org/html/rfc5023)
+* [XML-RPC API](https://codex.wordpress.org/XML-RPC_Support)
+([Blogger API](https://codex.wordpress.org/XML-RPC_Blogger_API),
+[MetaWeblog API](https://codex.wordpress.org/XML-RPC_MetaWeblog_API),
+[MovableType API](https://codex.wordpress.org/XML-RPC_MovableType_API), and
+[WordPress API](https://codex.wordpress.org/XML-RPC_WordPress_API))
 
 
+## Done
+### Things that are implimented
+- [x] Feed Auto Discovery. (gets & parses HTML pages and find RSS and Atom links)
+- [x] Parse feeds. (Atom 1.0, 0.3, RSS 2.0, 1.0)
+- [x] Manage feeds list.
+- [x] Display feeds and entries. (treeview and listview)
+- [x] Display contents as text.
+- [x] Save entries in a  SQLite database.
+- [x] Display contents in an embeded browser. 
+
+
+## Change log
+* v1.0.0.2 (2023/1/8) 
+ Updated WinUIEx and now uses local persistence file. Now, the MainWindow remembers its size and pos. (previous ver did not support unpackaged app)
+* v1.0.0.1 (2023/1/8) 
+ Very basic feed reader functionality. 
+* v1.0.0.0 (2023/1/1) 
+ Moved to WinUI3 from a WPF project. 
 
 ## TODO
 
-#### General
-エラー情報の保存と復帰
+### Things that currentry working on
 
-Folder以下のchild feedのUnreadCountを親に伝播
+- [ ] Folder以下のchild feedのUnreadCountを親に伝播
+- [ ] 削除した時データも
+- [ ] Edit画面
+- [ ] Folder追加
+- [ ] OPML
+- [ ] Dupecheckとかの結果やデータベース接続エラーを通知する
+- [ ] 特定Feedだけの更新メニューの追加
+- [ ] Newステータス(SQLでロードと同時に既読にする)
+- [ ] Manage entries read/unread status with SQLite database.
+- [ ] show unread(archived)
 
-Newステータス
-show unread(archived)
-
-Edit画面
-Folder追加
-
-update 中にドラッグドロップできないようにする。
-DBエラーまわり表示確認。
+- [ ] update 中にドラッグドロップできないようにする。
+- [ ] DBエラーまわり表示確認。
+- [ ] Feedアップデートタイマー
+- [ ] アップデートステータスプログレスバー
+- [ ] Check "category" and "publisher"
 
 
-
-Feedアップデートタイマー
-アップデートステータスプログレスバー
-画像
-
-
+### Planning
 
 #### Feed reader
-- [ ] Grouping display of feed for Folder view.
-- [ ] Import feed list from OPML and export feed list as OPML. 
+- [ ] Grouping display of feed for Folder view. 
 - [ ] Download and display "eye catching" images. 
-- [ ] Just use a few http client instances.
-- [ ] Check "category" and "publisher"
-- [ ] Manage entries read/unread status with SQLite database.
-- [ ] Auto update feed entries.
+- [ ] Auto update feed entries safely.
 
 
 #### API
@@ -58,13 +86,5 @@ Feedアップデートタイマー
 - [ ] Settings
 - [ ] Themes
 
-## Done
-- [x] Feed Auto Discovery (Parse HTML Web pages and find RSS and Atom links)
-- [x] Parse feeds (Atom 1.0, 0.3, RSS 2.0, 1.0)
-- [x] Display and manage feeds and entries. 
-- [x] Display contents.
-- [x] View webpages in a embeded browser. 
-
-## Changelog
 
 

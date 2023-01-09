@@ -8,55 +8,54 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using BlogWrite.Models;
 
-namespace BlogWrite.Models.Clients
+namespace BlogWrite.Models.Clients;
+
+// Base HTTP Blog client 
+public abstract class BlogClient : BaseClient
 {
-    // Base HTTP Blog client 
-    public abstract class BlogClient : BaseClient
+    protected string _userName = "";
+    protected string _userPassword = "";
+    protected Uri _endpoint;
+
+    public BlogClient(string userName, string userPassword, Uri endpoint)
     {
-        protected string _userName = "";
-        protected string _userPassword = "";
-        protected Uri _endpoint;
+        _userName = userName;
+        _userPassword = userPassword;
+        _endpoint = endpoint;
+    }
 
-        public BlogClient(string userName, string userPassword, Uri endpoint)
+    public abstract Task<NodeService> GetAccount(string accountName);
+
+    public abstract Task<List<NodeWorkspace>> GetBlogs();
+
+    public abstract Task<EntryFull> GetFullEntry(Uri entryUri, string serviceId, string postid = "");
+
+    public abstract Task<bool> UpdateEntry(EntryFull entry);
+
+    public abstract Task<bool> PostEntry(EntryFull entry);
+
+    public abstract Task<bool> DeleteEntry(Uri editUri);
+
+    public string AsUTF8Xml(XmlDocument xdoc)
+    {
+        var sb = new StringBuilder();
+        using (var stringWriter = new StringWriterWithEncoding(sb, Encoding.UTF8))
+        using (var xmlTextWriter = XmlWriter.Create(stringWriter))
         {
-            _userName = userName;
-            _userPassword = userPassword;
-            _endpoint = endpoint;
+            xdoc.WriteTo(xmlTextWriter);
+            xmlTextWriter.Flush();
+            return stringWriter.GetStringBuilder().ToString();
         }
+    }
 
-        public abstract Task<NodeService> GetAccount(string accountName);
-
-        public abstract Task<List<NodeWorkspace>> GetBlogs();
-
-        public abstract Task<EntryFull> GetFullEntry(Uri entryUri, string serviceId, string postid = "");
-
-        public abstract Task<bool> UpdateEntry(EntryFull entry);
-
-        public abstract Task<bool> PostEntry(EntryFull entry);
-
-        public abstract Task<bool> DeleteEntry(Uri editUri);
-
-        public string AsUTF8Xml(XmlDocument xdoc)
+    public string AsUTF16Xml(XmlDocument xdoc)
+    {
+        using (var stringWriter = new System.IO.StringWriter())
+        using (var xmlTextWriter = XmlWriter.Create(stringWriter))
         {
-            var sb = new StringBuilder();
-            using (var stringWriter = new StringWriterWithEncoding(sb, Encoding.UTF8))
-            using (var xmlTextWriter = XmlWriter.Create(stringWriter))
-            {
-                xdoc.WriteTo(xmlTextWriter);
-                xmlTextWriter.Flush();
-                return stringWriter.GetStringBuilder().ToString();
-            }
-        }
-
-        public string AsUTF16Xml(XmlDocument xdoc)
-        {
-            using (var stringWriter = new System.IO.StringWriter())
-            using (var xmlTextWriter = XmlWriter.Create(stringWriter))
-            {
-                xdoc.WriteTo(xmlTextWriter);
-                xmlTextWriter.Flush();
-                return stringWriter.GetStringBuilder().ToString();
-            }
+            xdoc.WriteTo(xmlTextWriter);
+            xmlTextWriter.Flush();
+            return stringWriter.GetStringBuilder().ToString();
         }
     }
 }

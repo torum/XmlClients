@@ -11,809 +11,809 @@ using BlogWrite.Models.Clients;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 
-namespace BlogWrite.Models.Clients
-{ 
-    // AtomPubClient - Implements Atom Publishing protocol 
-    class AtomPubClient : BlogClient
+namespace BlogWrite.Models.Clients;
+
+// AtomPubClient - Implements Atom Publishing protocol 
+class AtomPubClient : BlogClient
+{
+    public AtomPubClient(string userName, string userPassword, Uri endpoint) : base(userName, userPassword, endpoint)
     {
-        public AtomPubClient(string userName, string userPassword, Uri endpoint) : base(userName, userPassword, endpoint)
+        //TODO:
+        Client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+            "Basic",
+            Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", userName, userPassword))));
+    }
+
+    public override async Task<NodeService> GetAccount(string accountName)
+    {
+        NodeService account = new NodeService(accountName, _userName, _userPassword, _endpoint, ApiTypes.atAtomPub, ServiceTypes.AtomPub);
+
+        List<NodeWorkspace> blogs = await GetBlogs();
+        foreach (var item in blogs)
         {
-            //TODO:
-            Client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
-                "Basic",
-                Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", userName, userPassword))));
+            item.Parent = account;
+            account.Children.Add(item);
         }
 
-        public override async Task<NodeService> GetAccount(string accountName)
-        {
-            NodeService account = new NodeService(accountName, _userName, _userPassword, _endpoint, ApiTypes.atAtomPub, ServiceTypes.AtomPub);
+        account.IsExpanded = true;
+        return account;
+    }
 
-            List<NodeWorkspace> blogs = await GetBlogs();
-            foreach (var item in blogs)
+    public override async Task<List<NodeWorkspace>> GetBlogs()
+    {
+        List<NodeWorkspace> blogs = new();
+
+        // TODO try exception
+        var HTTPResponseMessage = await Client.GetAsync(_endpoint);
+
+        if (HTTPResponseMessage.IsSuccessStatusCode)
+        {
+            string s = await HTTPResponseMessage.Content.ReadAsStringAsync();
+
+            //System.Diagnostics.Debug.WriteLine("GET blogs(collection): " + s);
+
+            ToDebugWindow(">> HTTP Request GET "
+                //+ Environment.NewLine
+                + _endpoint.AbsoluteUri
+                + Environment.NewLine + Environment.NewLine
+                + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
+                + Environment.NewLine
+                + s + Environment.NewLine);
+
+            string contenTypeString = HTTPResponseMessage.Content.Headers.GetValues("Content-Type").FirstOrDefault();
+
+            if (!contenTypeString.StartsWith("application/atomsvc+xml"))
             {
-                item.Parent = account;
-                account.Children.Add(item);
+                Debug.WriteLine("Content-Type is invalid: " + contenTypeString);
+
+                ToDebugWindow("<< Content-Type is invalid: " + contenTypeString
+                    + Environment.NewLine
+                    + "expecting " + "application/atomsvc+xml"
+                    + Environment.NewLine);
+
+                return blogs;
             }
 
-            account.IsExpanded = true;
-            return account;
-        }
-
-        public override async Task<List<NodeWorkspace>> GetBlogs()
-        {
-            List<NodeWorkspace> blogs = new();
-
-            // TODO try exception
-            var HTTPResponseMessage = await Client.GetAsync(_endpoint);
-
-            if (HTTPResponseMessage.IsSuccessStatusCode)
+            XmlDocument xdoc = new XmlDocument();
+            try
             {
-                string s = await HTTPResponseMessage.Content.ReadAsStringAsync();
+                xdoc.LoadXml(s);
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine("LoadXml failed: " + e.Message);
 
-                //System.Diagnostics.Debug.WriteLine("GET blogs(collection): " + s);
+                ToDebugWindow("<< Invalid XML returned:"
+                    + Environment.NewLine
+                    + e.Message
+                    + Environment.NewLine);
 
-                ToDebugWindow(">> HTTP Request GET "
-                    //+ Environment.NewLine
+                return blogs;
+            }
+
+            XmlNamespaceManager atomNsMgr = new XmlNamespaceManager(xdoc.NameTable);
+            atomNsMgr.AddNamespace("atom", "http://www.w3.org/2005/Atom");
+            atomNsMgr.AddNamespace("app", "http://www.w3.org/2007/app");
+
+            XmlNodeList workspaceList;
+            workspaceList = xdoc.SelectNodes("//app:service/app:workspace", atomNsMgr);
+            if (workspaceList == null) return blogs;
+
+            foreach (XmlNode n in workspaceList)
+            {
+                XmlNode accountTitle = n.SelectSingleNode("atom:title", atomNsMgr);
+                if (accountTitle == null)
+                    continue;
+
+                NodeWorkspace blog = new NodeWorkspace(accountTitle.InnerText);
+
+                List<NodeAtomPubEntryCollection> entries = await GetEntryNodesFromXML(n, atomNsMgr);
+                foreach (var item in entries)
+                {
+                    item.Parent = blog;
+                    blog.Children.Add(item);
+                }
+
+                blog.IsExpanded = true;
+
+                blogs.Add(blog);
+            }
+
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("GET Error blogs(collection): " + HTTPResponseMessage.StatusCode.ToString());
+
+            var contents = await HTTPResponseMessage.Content.ReadAsStringAsync();
+
+            if (contents != null)
+            {
+                ToDebugWindow(">> HTTP Request GET (Failed)"
+                    + Environment.NewLine
                     + _endpoint.AbsoluteUri
                     + Environment.NewLine + Environment.NewLine
                     + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
                     + Environment.NewLine
-                    + s + Environment.NewLine);
-
-                string contenTypeString = HTTPResponseMessage.Content.Headers.GetValues("Content-Type").FirstOrDefault();
-
-                if (!contenTypeString.StartsWith("application/atomsvc+xml"))
-                {
-                    Debug.WriteLine("Content-Type is invalid: " + contenTypeString);
-
-                    ToDebugWindow("<< Content-Type is invalid: " + contenTypeString
-                        + Environment.NewLine
-                        + "expecting " + "application/atomsvc+xml"
-                        + Environment.NewLine);
-
-                    return blogs;
-                }
-
-                XmlDocument xdoc = new XmlDocument();
-                try
-                {
-                    xdoc.LoadXml(s);
-                }
-                catch (Exception e)
-                {
-                    System.Diagnostics.Debug.WriteLine("LoadXml failed: " + e.Message);
-
-                    ToDebugWindow("<< Invalid XML returned:"
-                        + Environment.NewLine
-                        + e.Message
-                        + Environment.NewLine);
-
-                    return blogs;
-                }
-
-                XmlNamespaceManager atomNsMgr = new XmlNamespaceManager(xdoc.NameTable);
-                atomNsMgr.AddNamespace("atom", "http://www.w3.org/2005/Atom");
-                atomNsMgr.AddNamespace("app", "http://www.w3.org/2007/app");
-
-                XmlNodeList workspaceList;
-                workspaceList = xdoc.SelectNodes("//app:service/app:workspace", atomNsMgr);
-                if (workspaceList == null) return blogs;
-
-                foreach (XmlNode n in workspaceList)
-                {
-                    XmlNode accountTitle = n.SelectSingleNode("atom:title", atomNsMgr);
-                    if (accountTitle == null)
-                        continue;
-
-                    NodeWorkspace blog = new NodeWorkspace(accountTitle.InnerText);
-
-                    List<NodeAtomPubEntryCollection> entries = await GetEntryNodesFromXML(n, atomNsMgr);
-                    foreach (var item in entries)
-                    {
-                        item.Parent = blog;
-                        blog.Children.Add(item);
-                    }
-
-                    blog.IsExpanded = true;
-
-                    blogs.Add(blog);
-                }
-
+                    + contents + Environment.NewLine);
             }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("GET Error blogs(collection): " + HTTPResponseMessage.StatusCode.ToString());
-
-                var contents = await HTTPResponseMessage.Content.ReadAsStringAsync();
-
-                if (contents != null)
-                {
-                    ToDebugWindow(">> HTTP Request GET (Failed)"
-                        + Environment.NewLine
-                        + _endpoint.AbsoluteUri
-                        + Environment.NewLine + Environment.NewLine
-                        + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
-                        + Environment.NewLine
-                        + contents + Environment.NewLine);
-                }
-            }
-
-            return blogs;
         }
 
-        private async Task<List<NodeAtomPubEntryCollection>> GetEntryNodesFromXML(XmlNode w, XmlNamespaceManager atomNsMgr)
-        {
-            List<NodeAtomPubEntryCollection> cols = new List<NodeAtomPubEntryCollection>();
+        return blogs;
+    }
 
-            /*
+    private async Task<List<NodeAtomPubEntryCollection>> GetEntryNodesFromXML(XmlNode w, XmlNamespaceManager atomNsMgr)
+    {
+        List<NodeAtomPubEntryCollection> cols = new List<NodeAtomPubEntryCollection>();
+
+        /*
 <?xml version="1.0" encoding="utf-8"?>
 <service xmlns="http://www.w3.org/2007/app">
 <workspace>
-    <atom:title xmlns:atom="http://www.w3.org/2005/Atom">hoge</atom:title>
-    <collection href="https://127.0.0.1/atom/entry">
-        <atom:title xmlns:atom="http://www.w3.org/2005/Atom">fuga</atom:title>
-        <accept>application/atom+xml;type=entry</accept>
-    </collection>
+<atom:title xmlns:atom="http://www.w3.org/2005/Atom">hoge</atom:title>
+<collection href="https://127.0.0.1/atom/entry">
+    <atom:title xmlns:atom="http://www.w3.org/2005/Atom">fuga</atom:title>
+    <accept>application/atom+xml;type=entry</accept>
+</collection>
 </workspace>
 </service>
-            */
+        */
 
-            /*
+        /*
 <?xml version="1.0" encoding="utf-8"?>
 <service xmlns="http://www.w3.org/2007/app" xmlns:atom="http://www.w3.org/2005/Atom">
 <workspace>
-    <atom:title>hoge Workspace</atom:title>
-    <collection href="http://torum.jp/en/wp-app.php/service/posts">
-        <atom:title>hoge Posts</atom:title>
-        <accept>application/atom+xml;type=entry</accept>
-    <categories href="http://hoge.jp/wp-app.php/service/categories" />
-    </collection>
-    <collection href="http://hoge.jp/wp-app.php/service/attachments">
-        <atom:title>hoge Media</atom:title>
-        <accept>image/*</accept><accept>audio/*</accept><accept>video/*</accept>
-    </collection>
+<atom:title>hoge Workspace</atom:title>
+<collection href="http://torum.jp/en/wp-app.php/service/posts">
+    <atom:title>hoge Posts</atom:title>
+    <accept>application/atom+xml;type=entry</accept>
+<categories href="http://hoge.jp/wp-app.php/service/categories" />
+</collection>
+<collection href="http://hoge.jp/wp-app.php/service/attachments">
+    <atom:title>hoge Media</atom:title>
+    <accept>image/*</accept><accept>audio/*</accept><accept>video/*</accept>
+</collection>
 </workspace>
 </service>
-            */
+        */
+
+        /*
+        <?xml version="1.0" encoding="UTF-8"?>
+        <service xmlns="http://www.w3.org/2007/app" xmlns:atom="http://www.w3.org/2005/Atom">
+            <workspace>
+                <atom:title>BlogTitle</atom:title>
+                <collection href="https://livedoor.blogcms.jp/atompub/userid/article">
+                    <atom:title>BlogTitle - Entries</atom:title>
+                    <accept>application/atom+xml;type=entry</accept>
+
+                    <categories fixed="no" scheme="https://livedoor.blogcms.jp/atompub/userid/category">
+                    </categories>
+                </collection>
+                <collection href="https://livedoor.blogcms.jp/atompub/userid/image">
+                    <atom:title>BlogTitle - Images</atom:title>
+                    <accept>image/png</accept>
+                    <accept>image/jpeg</accept>
+                    <accept>image/gif</accept>
+                </collection>
+            </workspace>
+        </service>
+        */
+
+        XmlNodeList collectionList = w.SelectNodes("app:collection", atomNsMgr);
+        if (collectionList == null)
+            return cols;
+
+        foreach (XmlNode n in collectionList)
+        {
+            var hrefAttr = n.Attributes["href"].Value;
+            if (hrefAttr == null)
+                continue;
+
+            XmlNode title = n.SelectSingleNode("atom:title", atomNsMgr);
+            if (title == null)
+                continue;
+
+            NodeAtomPubEntryCollection entries = new NodeAtomPubEntryCollection(title.InnerText, new Uri(hrefAttr), hrefAttr);
+
+
+            XmlNodeList acceptList = n.SelectNodes("app:accept", atomNsMgr);
+            if (acceptList != null)
+            {
+                foreach (XmlNode a in acceptList)
+                {
+                    string acpt = a.InnerText;
+                    if (!string.IsNullOrEmpty(acpt))
+                    {
+                        entries.AcceptTypes.Add(acpt);
+
+                        if ((acpt == "application/atom+xml;type=entry")
+                            || (acpt == "application/atom+xml"))
+                        {
+                            entries.IsAcceptEntry = true;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // default entry
+                entries.IsAcceptEntry = true;
+            }
 
             /*
-            <?xml version="1.0" encoding="UTF-8"?>
-            <service xmlns="http://www.w3.org/2007/app" xmlns:atom="http://www.w3.org/2005/Atom">
-                <workspace>
-                    <atom:title>BlogTitle</atom:title>
-                    <collection href="https://livedoor.blogcms.jp/atompub/userid/article">
-                        <atom:title>BlogTitle - Entries</atom:title>
-                        <accept>application/atom+xml;type=entry</accept>
-
-                        <categories fixed="no" scheme="https://livedoor.blogcms.jp/atompub/userid/category">
-                        </categories>
-                    </collection>
-                    <collection href="https://livedoor.blogcms.jp/atompub/userid/image">
-                        <atom:title>BlogTitle - Images</atom:title>
-                        <accept>image/png</accept>
-                        <accept>image/jpeg</accept>
-                        <accept>image/gif</accept>
-                    </collection>
-                </workspace>
-            </service>
-            */
-
-            XmlNodeList collectionList = w.SelectNodes("app:collection", atomNsMgr);
-            if (collectionList == null)
-                return cols;
-
-            foreach (XmlNode n in collectionList)
+            XmlNode cats = n.SelectSingleNode("app:categories", atomNsMgr);
+            if (cats != null)
             {
-                var hrefAttr = n.Attributes["href"].Value;
-                if (hrefAttr == null)
-                    continue;
-
-                XmlNode title = n.SelectSingleNode("atom:title", atomNsMgr);
-                if (title == null)
-                    continue;
-
-                NodeAtomPubEntryCollection entries = new NodeAtomPubEntryCollection(title.InnerText, new Uri(hrefAttr), hrefAttr);
-
-
-                XmlNodeList acceptList = n.SelectNodes("app:accept", atomNsMgr);
-                if (acceptList != null)
+                // Look for category document.
+                if (cats.Attributes["href"] != null)
                 {
-                    foreach (XmlNode a in acceptList)
+                    var hrefCat = cats.Attributes["href"];
+                    try
                     {
-                        string acpt = a.InnerText;
-                        if (!string.IsNullOrEmpty(acpt))
-                        {
-                            entries.AcceptTypes.Add(acpt);
+                        entries.CategoriesUri = new Uri(hrefCat.Value);
+                    }
+                    catch { }
+                }
 
-                            if ((acpt == "application/atom+xml;type=entry")
-                                || (acpt == "application/atom+xml"))
-                            {
-                                entries.IsAcceptEntry = true;
-                            }
-                        }
+                // Inline categories
+                XmlNodeList catList = cats.SelectNodes("atom:category", atomNsMgr);
+                foreach (XmlNode c in catList)
+                {
+                    if (c.Attributes["term"] != null)
+                    {
+                        NodeCategory category = new NodeCategory(c.Attributes["term"].Value);
+                        entries.Children.Add(category);
                     }
                 }
-                else
+            }
+            */
+            XmlNodeList categoriesList = n.SelectNodes("app:categories", atomNsMgr);
+            if (categoriesList != null)
+            {
+                foreach (XmlNode cats in categoriesList)
                 {
-                    // default entry
-                    entries.IsAcceptEntry = true;
-                }
+                    NodeAtomPubCatetories categories = new NodeAtomPubCatetories("Categories");
+                    categories.IsExpanded = true;
+                    categories.Parent = entries;
 
-                /*
-                XmlNode cats = n.SelectSingleNode("app:categories", atomNsMgr);
-                if (cats != null)
-                {
-                    // Look for category document.
+                    Uri catHrefUri = null;
                     if (cats.Attributes["href"] != null)
                     {
-                        var hrefCat = cats.Attributes["href"];
-                        try
+                        string cathref = cats.Attributes["href"].Value;
+                        if (!string.IsNullOrEmpty(cathref))
                         {
-                            entries.CategoriesUri = new Uri(hrefCat.Value);
+                            try
+                            {
+                                catHrefUri = new Uri(cathref);
+
+                                categories.Href = catHrefUri;
+
+                            }
+                            catch { }
                         }
-                        catch { }
                     }
 
-                    // Inline categories
-                    XmlNodeList catList = cats.SelectNodes("atom:category", atomNsMgr);
-                    foreach (XmlNode c in catList)
+                    if (cats.Attributes["fixed"] != null)
                     {
-                        if (c.Attributes["term"] != null)
+                        string catFix = cats.Attributes["fixed"].Value;
+                        if (!string.IsNullOrEmpty(catFix))
                         {
-                            NodeCategory category = new NodeCategory(c.Attributes["term"].Value);
-                            entries.Children.Add(category);
-                        }
-                    }
-                }
-                */
-                XmlNodeList categoriesList = n.SelectNodes("app:categories", atomNsMgr);
-                if (categoriesList != null)
-                {
-                    foreach (XmlNode cats in categoriesList)
-                    {
-                        NodeAtomPubCatetories categories = new NodeAtomPubCatetories("Categories");
-                        categories.IsExpanded = true;
-                        categories.Parent = entries;
-
-                        Uri catHrefUri = null;
-                        if (cats.Attributes["href"] != null)
-                        {
-                            string cathref = cats.Attributes["href"].Value;
-                            if (!string.IsNullOrEmpty(cathref))
+                            if (catFix == "yes")
                             {
-                                try
-                                {
-                                    catHrefUri = new Uri(cathref);
-
-                                    categories.Href = catHrefUri;
-
-                                }
-                                catch { }
+                                categories.IsCategoryFixed = true;
                             }
-                        }
-
-                        if (cats.Attributes["fixed"] != null)
-                        {
-                            string catFix = cats.Attributes["fixed"].Value;
-                            if (!string.IsNullOrEmpty(catFix))
+                            else
                             {
-                                if (catFix == "yes")
-                                {
-                                    categories.IsCategoryFixed = true;
-                                }
-                                else
-                                {
-                                    categories.IsCategoryFixed = false;
-                                }
-                            }
-                        }
-
-                        if (cats.Attributes["scheme"] != null)
-                        {
-                            string catScheme = cats.Attributes["scheme"].Value;
-                            if (!string.IsNullOrEmpty(catScheme))
-                            {
-                                categories.Scheme = catScheme;
-                            }
-                        }
-                        // scheme
-
-                        XmlNodeList categoryList = cats.SelectNodes("atom:category", atomNsMgr);
-                        if (categoryList != null)
-                        {
-                            foreach (XmlNode cat in categoryList)
-                            {
-                                NodeAtomPubCategory category = new NodeAtomPubCategory("Category");
-                                category.IsExpanded = true;
-                                category.Parent = categories;
-
-                                if (cat.Attributes["term"] != null)
-                                {
-                                    string term = cat.Attributes["term"].Value;
-                                    if (!string.IsNullOrEmpty(term))
-                                    {
-                                        category.Term = term;
-                                    }
-                                }
-
-                                if (cat.Attributes["scheme"] != null)
-                                {
-                                    string scheme = cat.Attributes["scheme"].Value;
-                                    if (!string.IsNullOrEmpty(scheme))
-                                    {
-                                        category.Scheme = scheme;
-                                    }
-                                }
-
-                                category.Name = category.Term;
-
-                                if (string.IsNullOrEmpty(category.Scheme))
-                                    category.Scheme = categories.Scheme;
-
-                                categories.Children.Add(category);
-                            }
-                        }
-
-                        entries.CategoriesUri = catHrefUri;
-
-                        entries.IsCategoryFixed = categories.IsCategoryFixed;
-
-                        if (categories.Children.Count > 0)
-                        {
-                            //entries.Children.Add(categories);
-
-                            foreach (NodeAtomPubCategory c in categories.Children)
-                            {
-                                c.Parent = entries;
-                                entries.Children.Add(c);
+                                categories.IsCategoryFixed = false;
                             }
                         }
                     }
-                }
 
-                // Get category document.
-                if (entries.CategoriesUri != null)
-                {
-                    NodeAtomPubCatetories nc = await GetCategiries(entries.CategoriesUri);
-
-                    entries.IsCategoryFixed = nc.IsCategoryFixed;
-
-                    foreach (NodeAtomPubCategory c in nc.Children)
+                    if (cats.Attributes["scheme"] != null)
                     {
-                        bool isExists = false;
-
-                        // check if exists
-                        foreach (var hoge in entries.Children)
+                        string catScheme = cats.Attributes["scheme"].Value;
+                        if (!string.IsNullOrEmpty(catScheme))
                         {
-                            if (hoge is NodeAtomPubCategory)
+                            categories.Scheme = catScheme;
+                        }
+                    }
+                    // scheme
+
+                    XmlNodeList categoryList = cats.SelectNodes("atom:category", atomNsMgr);
+                    if (categoryList != null)
+                    {
+                        foreach (XmlNode cat in categoryList)
+                        {
+                            NodeAtomPubCategory category = new NodeAtomPubCategory("Category");
+                            category.IsExpanded = true;
+                            category.Parent = categories;
+
+                            if (cat.Attributes["term"] != null)
                             {
-                                if ((hoge as NodeAtomPubCategory).Term.Equals(c.Term))
+                                string term = cat.Attributes["term"].Value;
+                                if (!string.IsNullOrEmpty(term))
                                 {
-                                    isExists = true;
-                                    
-                                    break;
+                                    category.Term = term;
                                 }
                             }
-                        }
 
-                        if (!isExists)
+                            if (cat.Attributes["scheme"] != null)
+                            {
+                                string scheme = cat.Attributes["scheme"].Value;
+                                if (!string.IsNullOrEmpty(scheme))
+                                {
+                                    category.Scheme = scheme;
+                                }
+                            }
+
+                            category.Name = category.Term;
+
+                            if (string.IsNullOrEmpty(category.Scheme))
+                                category.Scheme = categories.Scheme;
+
+                            categories.Children.Add(category);
+                        }
+                    }
+
+                    entries.CategoriesUri = catHrefUri;
+
+                    entries.IsCategoryFixed = categories.IsCategoryFixed;
+
+                    if (categories.Children.Count > 0)
+                    {
+                        //entries.Children.Add(categories);
+
+                        foreach (NodeAtomPubCategory c in categories.Children)
                         {
                             c.Parent = entries;
                             entries.Children.Add(c);
                         }
                     }
                 }
-
-                cols.Add(entries);
             }
 
-            return cols;
+            // Get category document.
+            if (entries.CategoriesUri != null)
+            {
+                NodeAtomPubCatetories nc = await GetCategiries(entries.CategoriesUri);
+
+                entries.IsCategoryFixed = nc.IsCategoryFixed;
+
+                foreach (NodeAtomPubCategory c in nc.Children)
+                {
+                    bool isExists = false;
+
+                    // check if exists
+                    foreach (var hoge in entries.Children)
+                    {
+                        if (hoge is NodeAtomPubCategory)
+                        {
+                            if ((hoge as NodeAtomPubCategory).Term.Equals(c.Term))
+                            {
+                                isExists = true;
+                                
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!isExists)
+                    {
+                        c.Parent = entries;
+                        entries.Children.Add(c);
+                    }
+                }
+            }
+
+            cols.Add(entries);
         }
 
-        public async Task<NodeAtomPubCatetories> GetCategiries(Uri categoriesUrl)
+        return cols;
+    }
+
+    public async Task<NodeAtomPubCatetories> GetCategiries(Uri categoriesUrl)
+    {
+        NodeAtomPubCatetories cats = new NodeAtomPubCatetories("AtomPub Categories");
+
+        var HTTPResponseMessage = await Client.GetAsync(categoriesUrl);
+
+        if (HTTPResponseMessage.IsSuccessStatusCode)
         {
-            NodeAtomPubCatetories cats = new NodeAtomPubCatetories("AtomPub Categories");
+            string s = await HTTPResponseMessage.Content.ReadAsStringAsync();
 
-            var HTTPResponseMessage = await Client.GetAsync(categoriesUrl);
+            ToDebugWindow(">> HTTP Request GET "
+                + Environment.NewLine
+                + categoriesUrl.AbsoluteUri
+                + Environment.NewLine + Environment.NewLine
+                + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
+                + Environment.NewLine
+                + s + Environment.NewLine);
 
-            if (HTTPResponseMessage.IsSuccessStatusCode)
+            /*
+    <app:categories xmlns:app="http://www.w3.org/2007/app" xmlns="http://www.w3.org/2005/Atom" fixed="yes" scheme="http://torum.jp/en">
+        <category term="Blogroll" />
+        <category term="Software" />
+        <category term="testCat" />
+        <category term="Uncategorized" />
+    </app:categories>
+             */
+
+            string contenTypeString = HTTPResponseMessage.Content.Headers.GetValues("Content-Type").FirstOrDefault();
+
+            if (!contenTypeString.StartsWith("application/atomcat+xml"))
             {
-                string s = await HTTPResponseMessage.Content.ReadAsStringAsync();
+                System.Diagnostics.Debug.WriteLine("Content-Type is invalid: " + contenTypeString);
 
-                ToDebugWindow(">> HTTP Request GET "
+                ToDebugWindow("<< Content-Type is invalid: " + contenTypeString
+                    + Environment.NewLine
+                    + "expecting " + "application/atomcat+xml"
+                    + Environment.NewLine);
+
+                return cats;
+            }
+
+            XmlDocument xdoc = new XmlDocument();
+            try
+            {
+                xdoc.LoadXml(s);
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine("LoadXml failed: " + e.Message);
+
+                ToDebugWindow("<< Invalid XML returned:"
+                    + Environment.NewLine
+                    + e.Message
+                    + Environment.NewLine);
+
+                return cats;
+            }
+
+            XmlNamespaceManager atomNsMgr = new XmlNamespaceManager(xdoc.NameTable);
+            atomNsMgr.AddNamespace("atom", "http://www.w3.org/2005/Atom");
+            atomNsMgr.AddNamespace("app", "http://www.w3.org/2007/app");
+
+            if (xdoc.DocumentElement.Attributes["fixed"] != null)
+            {
+                string catFix = xdoc.DocumentElement.Attributes["fixed"].Value;
+                if (!string.IsNullOrEmpty(catFix))
+                {
+                    if (catFix == "yes")
+                    {
+                        cats.IsCategoryFixed = true;
+                    }
+                    else
+                    {
+                        cats.IsCategoryFixed = false;
+                    }
+                }
+            }
+
+            if (xdoc.DocumentElement.Attributes["scheme"] != null)
+            {
+                string catScheme = xdoc.DocumentElement.Attributes["scheme"].Value;
+                if (!string.IsNullOrEmpty(catScheme))
+                {
+                    cats.Scheme = catScheme;
+                }
+            }
+
+            XmlNodeList categoryList;
+            categoryList = xdoc.SelectNodes("//app:categories/atom:category", atomNsMgr);
+            if (categoryList == null)
+                return cats;
+
+            foreach (XmlNode c in categoryList)
+            {
+                if (c.Attributes["term"] != null)
+                {
+                    NodeAtomPubCategory category = new NodeAtomPubCategory(c.Attributes["term"].Value);
+
+                    if (c.Attributes["scheme"] != null)
+                    {
+                        category.Scheme = c.Attributes["scheme"].Value;
+                    }
+
+                    if (string.IsNullOrEmpty(category.Scheme))
+                        category.Scheme = cats.Scheme;
+
+                    cats.Children.Add(category);
+                }
+            }
+        }
+        else
+        {
+            var contents = await HTTPResponseMessage.Content.ReadAsStringAsync();
+
+            if (contents != null)
+            {
+                ToDebugWindow(">> HTTP Request GET (Failed)"
                     + Environment.NewLine
                     + categoriesUrl.AbsoluteUri
                     + Environment.NewLine + Environment.NewLine
                     + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
                     + Environment.NewLine
-                    + s + Environment.NewLine);
-
-                /*
-        <app:categories xmlns:app="http://www.w3.org/2007/app" xmlns="http://www.w3.org/2005/Atom" fixed="yes" scheme="http://torum.jp/en">
-            <category term="Blogroll" />
-            <category term="Software" />
-            <category term="testCat" />
-            <category term="Uncategorized" />
-        </app:categories>
-                 */
-
-                string contenTypeString = HTTPResponseMessage.Content.Headers.GetValues("Content-Type").FirstOrDefault();
-
-                if (!contenTypeString.StartsWith("application/atomcat+xml"))
-                {
-                    System.Diagnostics.Debug.WriteLine("Content-Type is invalid: " + contenTypeString);
-
-                    ToDebugWindow("<< Content-Type is invalid: " + contenTypeString
-                        + Environment.NewLine
-                        + "expecting " + "application/atomcat+xml"
-                        + Environment.NewLine);
-
-                    return cats;
-                }
-
-                XmlDocument xdoc = new XmlDocument();
-                try
-                {
-                    xdoc.LoadXml(s);
-                }
-                catch (Exception e)
-                {
-                    System.Diagnostics.Debug.WriteLine("LoadXml failed: " + e.Message);
-
-                    ToDebugWindow("<< Invalid XML returned:"
-                        + Environment.NewLine
-                        + e.Message
-                        + Environment.NewLine);
-
-                    return cats;
-                }
-
-                XmlNamespaceManager atomNsMgr = new XmlNamespaceManager(xdoc.NameTable);
-                atomNsMgr.AddNamespace("atom", "http://www.w3.org/2005/Atom");
-                atomNsMgr.AddNamespace("app", "http://www.w3.org/2007/app");
-
-                if (xdoc.DocumentElement.Attributes["fixed"] != null)
-                {
-                    string catFix = xdoc.DocumentElement.Attributes["fixed"].Value;
-                    if (!string.IsNullOrEmpty(catFix))
-                    {
-                        if (catFix == "yes")
-                        {
-                            cats.IsCategoryFixed = true;
-                        }
-                        else
-                        {
-                            cats.IsCategoryFixed = false;
-                        }
-                    }
-                }
-
-                if (xdoc.DocumentElement.Attributes["scheme"] != null)
-                {
-                    string catScheme = xdoc.DocumentElement.Attributes["scheme"].Value;
-                    if (!string.IsNullOrEmpty(catScheme))
-                    {
-                        cats.Scheme = catScheme;
-                    }
-                }
-
-                XmlNodeList categoryList;
-                categoryList = xdoc.SelectNodes("//app:categories/atom:category", atomNsMgr);
-                if (categoryList == null)
-                    return cats;
-
-                foreach (XmlNode c in categoryList)
-                {
-                    if (c.Attributes["term"] != null)
-                    {
-                        NodeAtomPubCategory category = new NodeAtomPubCategory(c.Attributes["term"].Value);
-
-                        if (c.Attributes["scheme"] != null)
-                        {
-                            category.Scheme = c.Attributes["scheme"].Value;
-                        }
-
-                        if (string.IsNullOrEmpty(category.Scheme))
-                            category.Scheme = cats.Scheme;
-
-                        cats.Children.Add(category);
-                    }
-                }
+                    + contents + Environment.NewLine);
             }
-            else
-            {
-                var contents = await HTTPResponseMessage.Content.ReadAsStringAsync();
-
-                if (contents != null)
-                {
-                    ToDebugWindow(">> HTTP Request GET (Failed)"
-                        + Environment.NewLine
-                        + categoriesUrl.AbsoluteUri
-                        + Environment.NewLine + Environment.NewLine
-                        + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
-                        + Environment.NewLine
-                        + contents + Environment.NewLine);
-                }
-            }
-
-            return cats;
         }
 
-        public override async Task<HttpClientEntryItemCollectionResultWrapper> GetEntries(Uri entriesUrl, string serviceId)
+        return cats;
+    }
+
+    public override async Task<HttpClientEntryItemCollectionResultWrapper> GetEntries(Uri entriesUrl, string serviceId)
+    {
+        HttpClientEntryItemCollectionResultWrapper res = new HttpClientEntryItemCollectionResultWrapper();
+
+        List<EntryItem> list = new List<EntryItem>();
+        res.Entries = list;
+
+        //System.Diagnostics.Debug.WriteLine("GetEntries Uri: " + entriesUrl.AbsoluteUri);
+        var HTTPResponseMessage = await Client.GetAsync(entriesUrl);
+
+        if (HTTPResponseMessage.IsSuccessStatusCode)
         {
-            HttpClientEntryItemCollectionResultWrapper res = new HttpClientEntryItemCollectionResultWrapper();
+            string s = await HTTPResponseMessage.Content.ReadAsStringAsync();
 
-            List<EntryItem> list = new List<EntryItem>();
-            res.Entries = list;
+            ToDebugWindow(">> HTTP Request GET "
+                + Environment.NewLine
+                + entriesUrl.AbsoluteUri
+                + Environment.NewLine + Environment.NewLine
+                + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
+                + Environment.NewLine
+                + s + Environment.NewLine);
 
-            //System.Diagnostics.Debug.WriteLine("GetEntries Uri: " + entriesUrl.AbsoluteUri);
-            var HTTPResponseMessage = await Client.GetAsync(entriesUrl);
+            //System.Diagnostics.Debug.WriteLine("GET entries response: " + s);
+            /*
+   <?xml version="1.0" encoding="utf-8"?>
+   <feed xmlns="http://www.w3.org/2005/Atom">
+     <title type="text">dive into mark</title>
+     <subtitle type="html">
+       A &lt;em&gt;lot&lt;/em&gt; of effort
+       went into making this effortless
+     </subtitle>
+     <updated>2005-07-31T12:29:29Z</updated>
+     <id>tag:example.org,2003:3</id>
+     <link rel="alternate" type="text/html"
+      hreflang="en" href="http://example.org/"/>
+     <link rel="self" type="application/atom+xml"
+      href="http://example.org/feed.atom"/>
+     <rights>Copyright (c) 2003, Mark Pilgrim</rights>
+     <generator uri="http://www.example.com/" version="1.0">
+       Example Toolkit
+     </generator>
+     <entry>
+       <title>Atom draft-07 snapshot</title>
+       <link rel="alternate" type="text/html"
+        href="http://example.org/2005/04/02/atom"/>
+       <link rel="enclosure" type="audio/mpeg" length="1337"
+        href="http://example.org/audio/ph34r_my_podcast.mp3"/>
+       <id>tag:example.org,2003:3.2397</id>
+       <updated>2005-07-31T12:29:29Z</updated>
+       <published>2003-12-13T08:29:29-04:00</published>
+       <author>
+         <name>Mark Pilgrim</name>
+         <uri>http://example.org/</uri>
+         <email>f8dy@example.com</email>
+       </author>
+       <contributor>
+         <name>Sam Ruby</name>
+       </contributor>
+       <contributor>
+         <name>Joe Gregorio</name>
+       </contributor>
+       <content type="xhtml" xml:lang="en"
+        xml:base="http://diveintomark.org/">
+         <div xmlns="http://www.w3.org/1999/xhtml">
+           <p><i>[Update: The Atom draft is finished.]</i></p>
+         </div>
+       </content>
+     </entry>
+   </feed>
+            */
 
-            if (HTTPResponseMessage.IsSuccessStatusCode)
+            string contenTypeString = HTTPResponseMessage.Content.Headers.GetValues("Content-Type").FirstOrDefault();
+
+            if (!contenTypeString.StartsWith("application/atom+xml"))
             {
-                string s = await HTTPResponseMessage.Content.ReadAsStringAsync();
+                System.Diagnostics.Debug.WriteLine("Content-Type is invalid: " + contenTypeString);
 
-                ToDebugWindow(">> HTTP Request GET "
+                ToDebugWindow("<< Content-Type is invalid: " + contenTypeString
+                    + Environment.NewLine
+                    + "expecting " + "application/atom+xml"
+                    + Environment.NewLine);
+
+                InvalidContentType(res.Error, "Content-Type is invalid", "HttpResponse.Content.Headers.GetValues", "AtomPubClient: GetEntries");
+                res.IsError = true;
+
+                return (res as HttpClientEntryItemCollectionResultWrapper);
+            }
+
+            XmlDocument xdoc = new XmlDocument();
+            try
+            {
+                xdoc.LoadXml(s);
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine("LoadXml failed: " + e.Message);
+
+                ToDebugWindow("<< Invalid XML returned:"
+                    + Environment.NewLine
+                    + e.Message
+                    + Environment.NewLine);
+
+                InvalidXml(res.Error, e.Message, "AtomPubClient: GetEntries");
+                res.IsError = true;
+
+                return res;
+            }
+
+            XmlNamespaceManager atomNsMgr = new XmlNamespaceManager(xdoc.NameTable);
+            atomNsMgr.AddNamespace("atom", "http://www.w3.org/2005/Atom");
+            atomNsMgr.AddNamespace("app", "http://www.w3.org/2007/app");
+
+            XmlNodeList entryList;
+            entryList = xdoc.SelectNodes("//atom:feed/atom:entry", atomNsMgr);
+            if (entryList == null)
+                if (entryList == null)
+                {
+                    res.Entries = list;
+
+                    return res;
+                }
+
+            foreach (XmlNode l in entryList)
+            {
+                AtomEntry ent = new AtomEntry("", serviceId, this);
+
+                FillEntryItemFromXML(ent, l, atomNsMgr, serviceId);
+
+                list.Add(ent);
+            }
+        }
+        else
+        {
+            var contents = await HTTPResponseMessage.Content.ReadAsStringAsync();
+
+            if (contents != null)
+            {
+                ToDebugWindow(">> HTTP Request GET (Failed)"
                     + Environment.NewLine
                     + entriesUrl.AbsoluteUri
                     + Environment.NewLine + Environment.NewLine
                     + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
                     + Environment.NewLine
-                    + s + Environment.NewLine);
-
-                //System.Diagnostics.Debug.WriteLine("GET entries response: " + s);
-                /*
-       <?xml version="1.0" encoding="utf-8"?>
-       <feed xmlns="http://www.w3.org/2005/Atom">
-         <title type="text">dive into mark</title>
-         <subtitle type="html">
-           A &lt;em&gt;lot&lt;/em&gt; of effort
-           went into making this effortless
-         </subtitle>
-         <updated>2005-07-31T12:29:29Z</updated>
-         <id>tag:example.org,2003:3</id>
-         <link rel="alternate" type="text/html"
-          hreflang="en" href="http://example.org/"/>
-         <link rel="self" type="application/atom+xml"
-          href="http://example.org/feed.atom"/>
-         <rights>Copyright (c) 2003, Mark Pilgrim</rights>
-         <generator uri="http://www.example.com/" version="1.0">
-           Example Toolkit
-         </generator>
-         <entry>
-           <title>Atom draft-07 snapshot</title>
-           <link rel="alternate" type="text/html"
-            href="http://example.org/2005/04/02/atom"/>
-           <link rel="enclosure" type="audio/mpeg" length="1337"
-            href="http://example.org/audio/ph34r_my_podcast.mp3"/>
-           <id>tag:example.org,2003:3.2397</id>
-           <updated>2005-07-31T12:29:29Z</updated>
-           <published>2003-12-13T08:29:29-04:00</published>
-           <author>
-             <name>Mark Pilgrim</name>
-             <uri>http://example.org/</uri>
-             <email>f8dy@example.com</email>
-           </author>
-           <contributor>
-             <name>Sam Ruby</name>
-           </contributor>
-           <contributor>
-             <name>Joe Gregorio</name>
-           </contributor>
-           <content type="xhtml" xml:lang="en"
-            xml:base="http://diveintomark.org/">
-             <div xmlns="http://www.w3.org/1999/xhtml">
-               <p><i>[Update: The Atom draft is finished.]</i></p>
-             </div>
-           </content>
-         </entry>
-       </feed>
-                */
-
-                string contenTypeString = HTTPResponseMessage.Content.Headers.GetValues("Content-Type").FirstOrDefault();
-
-                if (!contenTypeString.StartsWith("application/atom+xml"))
-                {
-                    System.Diagnostics.Debug.WriteLine("Content-Type is invalid: " + contenTypeString);
-
-                    ToDebugWindow("<< Content-Type is invalid: " + contenTypeString
-                        + Environment.NewLine
-                        + "expecting " + "application/atom+xml"
-                        + Environment.NewLine);
-
-                    InvalidContentType(res.Error, "Content-Type is invalid", "HttpResponse.Content.Headers.GetValues", "AtomPubClient: GetEntries");
-                    res.IsError = true;
-
-                    return (res as HttpClientEntryItemCollectionResultWrapper);
-                }
-
-                XmlDocument xdoc = new XmlDocument();
-                try
-                {
-                    xdoc.LoadXml(s);
-                }
-                catch (Exception e)
-                {
-                    System.Diagnostics.Debug.WriteLine("LoadXml failed: " + e.Message);
-
-                    ToDebugWindow("<< Invalid XML returned:"
-                        + Environment.NewLine
-                        + e.Message
-                        + Environment.NewLine);
-
-                    InvalidXml(res.Error, e.Message, "AtomPubClient: GetEntries");
-                    res.IsError = true;
-
-                    return res;
-                }
-
-                XmlNamespaceManager atomNsMgr = new XmlNamespaceManager(xdoc.NameTable);
-                atomNsMgr.AddNamespace("atom", "http://www.w3.org/2005/Atom");
-                atomNsMgr.AddNamespace("app", "http://www.w3.org/2007/app");
-
-                XmlNodeList entryList;
-                entryList = xdoc.SelectNodes("//atom:feed/atom:entry", atomNsMgr);
-                if (entryList == null)
-                    if (entryList == null)
-                    {
-                        res.Entries = list;
-
-                        return res;
-                    }
-
-                foreach (XmlNode l in entryList)
-                {
-                    AtomEntry ent = new AtomEntry("", serviceId, this);
-
-                    FillEntryItemFromXML(ent, l, atomNsMgr, serviceId);
-
-                    list.Add(ent);
-                }
+                    + contents + Environment.NewLine);
             }
-            else
-            {
-                var contents = await HTTPResponseMessage.Content.ReadAsStringAsync();
-
-                if (contents != null)
-                {
-                    ToDebugWindow(">> HTTP Request GET (Failed)"
-                        + Environment.NewLine
-                        + entriesUrl.AbsoluteUri
-                        + Environment.NewLine + Environment.NewLine
-                        + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
-                        + Environment.NewLine
-                        + contents + Environment.NewLine);
-                }
-            }
-
-            return res;
         }
 
-        private void FillEntryItemFromXML(AtomEntry entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr, string serviceId)
+        return res;
+    }
+
+    private void FillEntryItemFromXML(AtomEntry entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr, string serviceId)
+    {
+        AtomEntry entry = CreateAtomEntryFromXML(entryNode, atomNsMgr, serviceId);
+
+        if (entry == null)
+            return;
+
+        entItem.Name = entry.Name;
+        //entItem.ID = entry.ID;
+        entItem.EntryId = entry.EntryId;
+        entItem.EditUri = entry.EditUri;
+        entItem.AltHtmlUri = entry.AltHtmlUri;
+        entItem.EntryBody = entry;
+
+        entItem.Status = entry.Status;
+    }
+
+    public override async Task<EntryFull> GetFullEntry(Uri entryUri, string serviceId, string nil)
+    {
+        // TODO: 
+        // HTTP Head, if_modified_since or If-None-Match etag or something... then  Get;
+
+        var HTTPResponseMessage = await Client.GetAsync(entryUri);
+
+        if (HTTPResponseMessage.IsSuccessStatusCode)
         {
-            AtomEntry entry = CreateAtomEntryFromXML(entryNode, atomNsMgr, serviceId);
+            string s = await HTTPResponseMessage.Content.ReadAsStringAsync();
 
-            if (entry == null)
-                return;
+            ToDebugWindow(">> HTTP Request GET "
+                + Environment.NewLine
+                + entryUri.AbsoluteUri
+                + Environment.NewLine + Environment.NewLine
+                + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
+                + Environment.NewLine
+                + s + Environment.NewLine);
 
-            entItem.Name = entry.Name;
-            //entItem.ID = entry.ID;
-            entItem.EntryId = entry.EntryId;
-            entItem.EditUri = entry.EditUri;
-            entItem.AltHtmlUri = entry.AltHtmlUri;
-            entItem.EntryBody = entry;
+            string contenTypeString = HTTPResponseMessage.Content.Headers.GetValues("Content-Type").FirstOrDefault();
 
-            entItem.Status = entry.Status;
-        }
-
-        public override async Task<EntryFull> GetFullEntry(Uri entryUri, string serviceId, string nil)
-        {
-            // TODO: 
-            // HTTP Head, if_modified_since or If-None-Match etag or something... then  Get;
-
-            var HTTPResponseMessage = await Client.GetAsync(entryUri);
-
-            if (HTTPResponseMessage.IsSuccessStatusCode)
+            if (!contenTypeString.StartsWith("application/atom+xml"))
             {
-                string s = await HTTPResponseMessage.Content.ReadAsStringAsync();
+                System.Diagnostics.Debug.WriteLine("Content-Type is invalid: " + contenTypeString);
 
-                ToDebugWindow(">> HTTP Request GET "
+                ToDebugWindow("<< Content-Type is invalid: " + contenTypeString
                     + Environment.NewLine
-                    + entryUri.AbsoluteUri
-                    + Environment.NewLine + Environment.NewLine
-                    + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
-                    + Environment.NewLine
-                    + s + Environment.NewLine);
-
-                string contenTypeString = HTTPResponseMessage.Content.Headers.GetValues("Content-Type").FirstOrDefault();
-
-                if (!contenTypeString.StartsWith("application/atom+xml"))
-                {
-                    System.Diagnostics.Debug.WriteLine("Content-Type is invalid: " + contenTypeString);
-
-                    ToDebugWindow("<< Content-Type is invalid: " + contenTypeString
-                        + Environment.NewLine
-                        + "expecting " + "application/atom+xml"
-                        + Environment.NewLine);
-
-                    return null;
-                }
-
-                XmlDocument xdoc = new XmlDocument();
-                try
-                {
-                    xdoc.LoadXml(s);
-                }
-                catch (Exception e)
-                {
-                    System.Diagnostics.Debug.WriteLine("LoadXml failed: " + e.Message);
-
-                    ToDebugWindow("<< Invalid XML returned:"
-                        + Environment.NewLine
-                        + e.Message
-                        + Environment.NewLine);
-
-                    return null;
-                }
-
-                XmlNamespaceManager atomNsMgr = new XmlNamespaceManager(xdoc.NameTable);
-                atomNsMgr.AddNamespace("atom", "http://www.w3.org/2005/Atom");
-                atomNsMgr.AddNamespace("app", "http://www.w3.org/2007/app");
-                atomNsMgr.AddNamespace("hatena", "http://www.hatena.ne.jp/info/xmlns#");
-
-                XmlNode entryNode = xdoc.SelectSingleNode("//atom:entry", atomNsMgr);
-                if (entryNode == null)
-                {
-                    System.Diagnostics.Debug.WriteLine("//atom:entry is null.");
-                    return null;
-                }
-
-                XmlNode cont = entryNode.SelectSingleNode("atom:content", atomNsMgr);
-                if (cont == null)
-                {
-                    System.Diagnostics.Debug.WriteLine("//atom:content is null.");
-                    return null;
-                }
-
-                AtomEntry entry = CreateAtomEntryFromXML(entryNode, atomNsMgr, serviceId);
-
-
-
-                //TODO: Save ETag
-                //HTTPResponseMessage.Content
-
-
-                return entry;
-            }
-            else
-            {
-                var contents = await HTTPResponseMessage.Content.ReadAsStringAsync();
-
-                if (contents != null)
-                {
-                    ToDebugWindow(">> HTTP Request GET (Failed)"
-                        + Environment.NewLine
-                        + _endpoint.AbsoluteUri
-                        + Environment.NewLine + Environment.NewLine
-                        + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
-                        + Environment.NewLine
-                        + contents + Environment.NewLine);
-                }
+                    + "expecting " + "application/atom+xml"
+                    + Environment.NewLine);
 
                 return null;
             }
-        }
 
-        private AtomEntry CreateAtomEntryFromXML(XmlNode entryNode, XmlNamespaceManager atomNsMgr, string serviceId)
+            XmlDocument xdoc = new XmlDocument();
+            try
+            {
+                xdoc.LoadXml(s);
+            }
+            catch (Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine("LoadXml failed: " + e.Message);
+
+                ToDebugWindow("<< Invalid XML returned:"
+                    + Environment.NewLine
+                    + e.Message
+                    + Environment.NewLine);
+
+                return null;
+            }
+
+            XmlNamespaceManager atomNsMgr = new XmlNamespaceManager(xdoc.NameTable);
+            atomNsMgr.AddNamespace("atom", "http://www.w3.org/2005/Atom");
+            atomNsMgr.AddNamespace("app", "http://www.w3.org/2007/app");
+            atomNsMgr.AddNamespace("hatena", "http://www.hatena.ne.jp/info/xmlns#");
+
+            XmlNode entryNode = xdoc.SelectSingleNode("//atom:entry", atomNsMgr);
+            if (entryNode == null)
+            {
+                System.Diagnostics.Debug.WriteLine("//atom:entry is null.");
+                return null;
+            }
+
+            XmlNode cont = entryNode.SelectSingleNode("atom:content", atomNsMgr);
+            if (cont == null)
+            {
+                System.Diagnostics.Debug.WriteLine("//atom:content is null.");
+                return null;
+            }
+
+            AtomEntry entry = CreateAtomEntryFromXML(entryNode, atomNsMgr, serviceId);
+
+
+
+            //TODO: Save ETag
+            //HTTPResponseMessage.Content
+
+
+            return entry;
+        }
+        else
         {
-            /*
+            var contents = await HTTPResponseMessage.Content.ReadAsStringAsync();
+
+            if (contents != null)
+            {
+                ToDebugWindow(">> HTTP Request GET (Failed)"
+                    + Environment.NewLine
+                    + _endpoint.AbsoluteUri
+                    + Environment.NewLine + Environment.NewLine
+                    + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
+                    + Environment.NewLine
+                    + contents + Environment.NewLine);
+            }
+
+            return null;
+        }
+    }
+
+    private AtomEntry CreateAtomEntryFromXML(XmlNode entryNode, XmlNamespaceManager atomNsMgr, string serviceId)
+    {
+        /*
 			<entry>
 				<id>hoge</id>
 				<link rel="edit" href="https://127.0.0.1/app/entry/17391345971628358314"/>
 				<link rel="alternate" type="text/html" href="https://127.0.0.1/htm/entry/2018/03/22/221846"/>
 				<author>
-                    <name>hoge</name>
-                </author>
+                <name>hoge</name>
+            </author>
 				<title>test title</title>
 				<updated>2018-03-22T22:18:46+09:00</updated>
 				<published>2018-03-22T22:18:46+09:00</published>
@@ -826,384 +826,382 @@ namespace BlogWrite.Models.Clients
 					<app:draft>yes</app:draft>
 				</app:control>
 			  </entry>
-             */
+         */
 
-            XmlNode entryTitle = entryNode.SelectSingleNode("atom:title", atomNsMgr);
-            if (entryTitle == null)
-            {
-                System.Diagnostics.Debug.WriteLine("atom:title: is null. ");
-                //return;
-            }
+        XmlNode entryTitle = entryNode.SelectSingleNode("atom:title", atomNsMgr);
+        if (entryTitle == null)
+        {
+            System.Diagnostics.Debug.WriteLine("atom:title: is null. ");
+            //return;
+        }
 
-            XmlNode entryID = entryNode.SelectSingleNode("atom:id", atomNsMgr);
-            if (entryID == null)
-            {
-                System.Diagnostics.Debug.WriteLine("atom:id: is null. ");
-                //return;
-            }
+        XmlNode entryID = entryNode.SelectSingleNode("atom:id", atomNsMgr);
+        if (entryID == null)
+        {
+            System.Diagnostics.Debug.WriteLine("atom:id: is null. ");
+            //return;
+        }
 
-            XmlNodeList entryLinkUris = entryNode.SelectNodes("atom:link", atomNsMgr);
-            string relAttr;
-            string hrefAttr;
-            string typeAttr;
-            Uri editUri = null;
-            Uri altUri = null;
-            if (entryLinkUris == null)
+        XmlNodeList entryLinkUris = entryNode.SelectNodes("atom:link", atomNsMgr);
+        string relAttr;
+        string hrefAttr;
+        string typeAttr;
+        Uri editUri = null;
+        Uri altUri = null;
+        if (entryLinkUris == null)
+        {
+            System.Diagnostics.Debug.WriteLine("atom:link: is null. ");
+            //continue;
+        }
+        else
+        {
+            foreach (XmlNode u in entryLinkUris)
             {
-                System.Diagnostics.Debug.WriteLine("atom:link: is null. ");
-                //continue;
-            }
-            else
-            {
-                foreach (XmlNode u in entryLinkUris)
+                relAttr = (u.Attributes["rel"] != null) ? u.Attributes["rel"].Value : "";
+                hrefAttr = (u.Attributes["href"] != null) ? u.Attributes["href"].Value : "";
+                typeAttr = (u.Attributes["type"] != null) ? u.Attributes["type"].Value : "";
+
+                if ((!string.IsNullOrEmpty(relAttr)) && (!string.IsNullOrEmpty(hrefAttr)))
                 {
-                    relAttr = (u.Attributes["rel"] != null) ? u.Attributes["rel"].Value : "";
-                    hrefAttr = (u.Attributes["href"] != null) ? u.Attributes["href"].Value : "";
-                    typeAttr = (u.Attributes["type"] != null) ? u.Attributes["type"].Value : "";
 
-                    if ((!string.IsNullOrEmpty(relAttr)) && (!string.IsNullOrEmpty(hrefAttr)))
+                    switch (relAttr)
                     {
-
-                        switch (relAttr)
-                        {
-                            case "edit":
-                                try
+                        case "edit":
+                            try
+                            {
+                                editUri = new Uri(hrefAttr);
+                                break;
+                            }
+                            catch
+                            {
+                                break;
+                            }
+                        case "alternate":
+                            try
+                            {
+                                if (!string.IsNullOrEmpty(typeAttr))
                                 {
-                                    editUri = new Uri(hrefAttr);
-                                    break;
-                                }
-                                catch
-                                {
-                                    break;
-                                }
-                            case "alternate":
-                                try
-                                {
-                                    if (!string.IsNullOrEmpty(typeAttr))
+                                    if (typeAttr == "text/html")
                                     {
-                                        if (typeAttr == "text/html")
-                                        {
-                                            altUri = new Uri(hrefAttr);
-                                        }
-                                    }
-                                    break;
-                                }
-                                catch
-                                {
-                                    break;
-                                }
-                            case "": //same as alternate
-                                try
-                                {
-                                    if (!string.IsNullOrEmpty(typeAttr))
-                                    {
-                                        if (typeAttr == "text/html")
-                                        {
-                                            altUri = new Uri(hrefAttr);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        // I am not happy but let's assume it is html.
                                         altUri = new Uri(hrefAttr);
                                     }
-                                    break;
                                 }
-                                catch
+                                break;
+                            }
+                            catch
+                            {
+                                break;
+                            }
+                        case "": //same as alternate
+                            try
+                            {
+                                if (!string.IsNullOrEmpty(typeAttr))
                                 {
-                                    break;
+                                    if (typeAttr == "text/html")
+                                    {
+                                        altUri = new Uri(hrefAttr);
+                                    }
                                 }
-                        }
+                                else
+                                {
+                                    // I am not happy but let's assume it is html.
+                                    altUri = new Uri(hrefAttr);
+                                }
+                                break;
+                            }
+                            catch
+                            {
+                                break;
+                            }
                     }
                 }
             }
+        }
 
-            // TODO:
-            //updated
-            //published
-            //app:edited
-            //summary
-            //category
+        // TODO:
+        //updated
+        //published
+        //app:edited
+        //summary
+        //category
 
-            AtomEntry entry = new AtomEntry("", serviceId, this);
-            // TODO:
-            //AtomEntryHatena
-            /*
-            // Hatena's formatted-content
-            XmlNode formattedContent = entryNode.SelectSingleNode("hatena:formatted-content", atomNsMgr);
-            if (formattedContent != null)
+        AtomEntry entry = new AtomEntry("", serviceId, this);
+        // TODO:
+        //AtomEntryHatena
+        /*
+        // Hatena's formatted-content
+        XmlNode formattedContent = entryNode.SelectSingleNode("hatena:formatted-content", atomNsMgr);
+        if (formattedContent != null)
+        {
+            entry.FormattedContent = formattedContent.InnerText;
+        }
+        */
+
+
+        entry.Name = (entryTitle != null) ? entryTitle.InnerText : "";
+        entry.EntryId = (entryID != null) ? entryID.InnerText : "";
+        entry.EditUri = editUri;
+        entry.AltHtmlUri = altUri;
+
+        XmlNode cont = entryNode.SelectSingleNode("atom:content", atomNsMgr);
+        if (cont == null)
+        {
+            System.Diagnostics.Debug.WriteLine("//atom:content is null.");
+        }
+        else
+        {
+
+            string contype = cont.Attributes["type"].Value;
+            if (!string.IsNullOrEmpty(contype))
             {
-                entry.FormattedContent = formattedContent.InnerText;
+                entry.ContentTypeString = contype;
+
+                switch (contype)
+                {
+                    case "text":
+                        entry.ContentType = EntryFull.ContentTypes.text;
+                        break;
+                    case "html":
+                        entry.ContentType = EntryFull.ContentTypes.textHtml;
+                        break;
+                    case "xhtml":
+                        entry.ContentType = EntryFull.ContentTypes.textHtml;
+                        break;
+                    case "text/plain":
+                        entry.ContentType = EntryFull.ContentTypes.text;
+                        break;
+                    case "text/html":
+                        entry.ContentType = EntryFull.ContentTypes.textHtml;
+                        break;
+                    case "text/x-markdown":
+                        entry.ContentType = EntryFull.ContentTypes.markdown;
+                        break;
+                    case "text/x-hatena-syntax":
+                        entry.ContentType = EntryFull.ContentTypes.hatena;
+                        break;
+                    default:
+                        entry.ContentType = EntryFull.ContentTypes.text;
+                        break;
+                }
             }
+
+            entry.Content = cont.InnerText;
+
+        }
+
+        //app:control/app:draft(yes/no)
+        XmlNode entryDraft = entryNode.SelectSingleNode("app:control/app:draft", atomNsMgr);
+        if (entryDraft == null) System.Diagnostics.Debug.WriteLine("app:draft: is null.");
+
+        string draft = entryDraft?.InnerText;
+        entry.IsDraft = (String.Compare(draft, "yes", true) == 0) ? true : false;
+
+        entry.Status = entry.IsDraft ? EditEntryItem.EditStatus.esDraft : EditEntryItem.EditStatus.esNormal;
+
+
+        return entry;
+    }
+
+    public override async Task<bool> UpdateEntry(EntryFull entry)
+    {
+        if (!(entry is AtomEntry))
+            return false;
+
+        var request = new HttpRequestMessage
+        {
+            Method = HttpMethod.Put,
+            RequestUri = entry.EditUri,
+            Content = new StringContent((entry as AtomEntry).AsUTF8Xml(), Encoding.UTF8, "application/atom+xml")
+        };
+
+        var response = await Client.SendAsync(request);
+
+        ToDebugWindow(">> HTTP Request PUT "
+            + Environment.NewLine
+            + entry.EditUri.AbsoluteUri
+            + Environment.NewLine
+            + (entry as AtomEntry).AsUTF16Xml()
+            + Environment.NewLine + Environment.NewLine
+            + "<< HTTP Response " + response.StatusCode.ToString()
+            + Environment.NewLine);
+
+        if (response.IsSuccessStatusCode)
+        {
+            return true;
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("Put failed. Status code is " + response.StatusCode.ToString());
+
+            var contents = await response.Content.ReadAsStringAsync();
+
+            /* 
+             * Hatena AtomPub returns this.
+             BadRequest 400 Cannot Change into Draft
             */
 
+            if (contents != null) {
 
-            entry.Name = (entryTitle != null) ? entryTitle.InnerText : "";
-            entry.EntryId = (entryID != null) ? entryID.InnerText : "";
-            entry.EditUri = editUri;
-            entry.AltHtmlUri = altUri;
+                System.Diagnostics.Debug.WriteLine(contents);
 
-            XmlNode cont = entryNode.SelectSingleNode("atom:content", atomNsMgr);
-            if (cont == null)
-            {
-                System.Diagnostics.Debug.WriteLine("//atom:content is null.");
-            }
-            else
-            {
-
-                string contype = cont.Attributes["type"].Value;
-                if (!string.IsNullOrEmpty(contype))
-                {
-                    entry.ContentTypeString = contype;
-
-                    switch (contype)
-                    {
-                        case "text":
-                            entry.ContentType = EntryFull.ContentTypes.text;
-                            break;
-                        case "html":
-                            entry.ContentType = EntryFull.ContentTypes.textHtml;
-                            break;
-                        case "xhtml":
-                            entry.ContentType = EntryFull.ContentTypes.textHtml;
-                            break;
-                        case "text/plain":
-                            entry.ContentType = EntryFull.ContentTypes.text;
-                            break;
-                        case "text/html":
-                            entry.ContentType = EntryFull.ContentTypes.textHtml;
-                            break;
-                        case "text/x-markdown":
-                            entry.ContentType = EntryFull.ContentTypes.markdown;
-                            break;
-                        case "text/x-hatena-syntax":
-                            entry.ContentType = EntryFull.ContentTypes.hatena;
-                            break;
-                        default:
-                            entry.ContentType = EntryFull.ContentTypes.text;
-                            break;
-                    }
-                }
-
-                entry.Content = cont.InnerText;
-
+                ToDebugWindow("<< HTTP Request PUT failed. HTTP Response content is:"
+                + Environment.NewLine
+                + contents
+                + Environment.NewLine);
             }
 
-            //app:control/app:draft(yes/no)
-            XmlNode entryDraft = entryNode.SelectSingleNode("app:control/app:draft", atomNsMgr);
-            if (entryDraft == null) System.Diagnostics.Debug.WriteLine("app:draft: is null.");
-
-            string draft = entryDraft?.InnerText;
-            entry.IsDraft = (String.Compare(draft, "yes", true) == 0) ? true : false;
-
-            entry.Status = entry.IsDraft ? EditEntryItem.EditStatus.esDraft : EditEntryItem.EditStatus.esNormal;
-
-
-            return entry;
+            return false;
         }
 
-        public override async Task<bool> UpdateEntry(EntryFull entry)
+    }
+
+    public override async Task<bool> PostEntry(EntryFull entry)
+    {
+        var request = new HttpRequestMessage
         {
-            if (!(entry is AtomEntry))
-                return false;
+            Method = HttpMethod.Post,
+            RequestUri = entry.PostUri,
+            Content = new StringContent((entry as AtomEntry).AsUTF8Xml(), Encoding.UTF8, "application/atom+xml")
+        };
 
-            var request = new HttpRequestMessage
-            {
-                Method = HttpMethod.Put,
-                RequestUri = entry.EditUri,
-                Content = new StringContent((entry as AtomEntry).AsUTF8Xml(), Encoding.UTF8, "application/atom+xml")
-            };
+        var response = await Client.SendAsync(request);
 
-            var response = await Client.SendAsync(request);
+        ToDebugWindow(">> HTTP Request POST "
+            + Environment.NewLine
+            + entry.EditUri.AbsoluteUri
+            + Environment.NewLine
+            + (entry as AtomEntry).AsUTF16Xml()
+            + Environment.NewLine + Environment.NewLine
+            + "<< HTTP Response " + response.StatusCode.ToString()
+            + Environment.NewLine);
 
-            ToDebugWindow(">> HTTP Request PUT "
-                + Environment.NewLine
-                + entry.EditUri.AbsoluteUri
-                + Environment.NewLine
-                + (entry as AtomEntry).AsUTF16Xml()
-                + Environment.NewLine + Environment.NewLine
-                + "<< HTTP Response " + response.StatusCode.ToString()
-                + Environment.NewLine);
+        /*
+        XNamespace atom = "http://www.w3.org/2005/Atom";
+        XNamespace app = "http://www.w3.org/2007/app";
 
-            if (response.IsSuccessStatusCode)
-            {
-                return true;
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("Put failed. Status code is " + response.StatusCode.ToString());
-
-                var contents = await response.Content.ReadAsStringAsync();
-
-                /* 
-                 * Hatena AtomPub returns this.
-                 BadRequest 400 Cannot Change into Draft
-                */
-
-                if (contents != null) {
-
-                    System.Diagnostics.Debug.WriteLine(contents);
-
-                    ToDebugWindow("<< HTTP Request PUT failed. HTTP Response content is:"
-                    + Environment.NewLine
-                    + contents
-                    + Environment.NewLine);
-                }
-
-                return false;
-            }
-
-        }
-
-        public override async Task<bool> PostEntry(EntryFull entry)
-        {
-            var request = new HttpRequestMessage
-            {
-                Method = HttpMethod.Post,
-                RequestUri = entry.PostUri,
-                Content = new StringContent((entry as AtomEntry).AsUTF8Xml(), Encoding.UTF8, "application/atom+xml")
-            };
-
-            var response = await Client.SendAsync(request);
-
-            ToDebugWindow(">> HTTP Request POST "
-                + Environment.NewLine
-                + entry.EditUri.AbsoluteUri
-                + Environment.NewLine
-                + (entry as AtomEntry).AsUTF16Xml()
-                + Environment.NewLine + Environment.NewLine
-                + "<< HTTP Response " + response.StatusCode.ToString()
-                + Environment.NewLine);
-
-            /*
-            XNamespace atom = "http://www.w3.org/2005/Atom";
-            XNamespace app = "http://www.w3.org/2007/app";
-
-            XDocument doc = new XDocument(new XElement(atom + "entry",
-                                                    new XAttribute(XNamespace.Xmlns + "app", app.NamespaceName),
-                                                    new XElement(atom + "title", "test title"),
-                                                    new XElement(atom + "author",
-                                                        new XElement(atom + "name", "me")),
-                                                    new XElement(atom + "content",
-                                                        new XAttribute("type", "text/plain"),
-                                                        new XText("asdf")),
-                                                    new XElement(atom + "category",
-                                                        new XAttribute("term", "test categ")
-                                                        ),
-                                                    new XElement(app + "control",
-                                                        new XElement(app + "draft", "yes")
-                                                        )
+        XDocument doc = new XDocument(new XElement(atom + "entry",
+                                                new XAttribute(XNamespace.Xmlns + "app", app.NamespaceName),
+                                                new XElement(atom + "title", "test title"),
+                                                new XElement(atom + "author",
+                                                    new XElement(atom + "name", "me")),
+                                                new XElement(atom + "content",
+                                                    new XAttribute("type", "text/plain"),
+                                                    new XText("asdf")),
+                                                new XElement(atom + "category",
+                                                    new XAttribute("term", "test categ")
+                                                    ),
+                                                new XElement(app + "control",
+                                                    new XElement(app + "draft", "yes")
                                                     )
-                                         );
+                                                )
+                                     );
 
-            System.Diagnostics.Debug.WriteLine("content xml: " + doc.ToString());
-            */
+        System.Diagnostics.Debug.WriteLine("content xml: " + doc.ToString());
+        */
 
-            if (response.IsSuccessStatusCode)
+        if (response.IsSuccessStatusCode)
+        {
+            Uri entryUrl = response.Headers.Location;
+
+            if (entryUrl != null)
             {
-                Uri entryUrl = response.Headers.Location;
+                entry.EditUri = entryUrl;
 
-                if (entryUrl != null)
+                string contenTypeString = response.Content.Headers.GetValues("Content-Type").FirstOrDefault();
+
+                if (!contenTypeString.StartsWith("application/atom+xml"))
                 {
-                    entry.EditUri = entryUrl;
+                    System.Diagnostics.Debug.WriteLine("Content-Type is invalid: " + contenTypeString);
 
-                    string contenTypeString = response.Content.Headers.GetValues("Content-Type").FirstOrDefault();
-
-                    if (!contenTypeString.StartsWith("application/atom+xml"))
-                    {
-                        System.Diagnostics.Debug.WriteLine("Content-Type is invalid: " + contenTypeString);
-
-                        ToDebugWindow("<< Content-Type is invalid: " + contenTypeString
-                            + Environment.NewLine
-                            + "expecting " + "application/atom+xml"
-                            + Environment.NewLine);
-                    }
-                    else
-                    {
-                        // TODO: load content body xml entry and get id and rel alt and such.
-                    }
-
-                    //System.Diagnostics.Debug.WriteLine("created: " + entryUrl);
-
-                    ToDebugWindow("<< HTTP Response Header - Location: " 
+                    ToDebugWindow("<< Content-Type is invalid: " + contenTypeString
                         + Environment.NewLine
-                        + entryUrl
+                        + "expecting " + "application/atom+xml"
                         + Environment.NewLine);
-
-                    return true;
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("Post IsSuccess, but Location header is null. ");
-
-                    ToDebugWindow("POST is successfull, but Location header is missing. "
-                        + Environment.NewLine
-                        + Environment.NewLine);
-
-                    return false;
+                    // TODO: load content body xml entry and get id and rel alt and such.
                 }
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("Post failed. Status code is " + response.StatusCode.ToString());
 
-                var contents = await response.Content.ReadAsStringAsync();
+                //System.Diagnostics.Debug.WriteLine("created: " + entryUrl);
 
-                if (contents != null)
-                {
-                    System.Diagnostics.Debug.WriteLine(contents);
-
-                    ToDebugWindow("POST failed. HTTP Response content is:"
+                ToDebugWindow("<< HTTP Response Header - Location: " 
                     + Environment.NewLine
-                    + contents
+                    + entryUrl
                     + Environment.NewLine);
-                }
 
-                return false;
-            }
-
-        }
-
-        public override async Task<bool> DeleteEntry(Uri editUri)
-        {
-            var request = new HttpRequestMessage
-            {
-                Method = HttpMethod.Delete,
-                RequestUri = editUri
-            };
-
-            var response = await Client.SendAsync(request);
-
-            ToDebugWindow(">> HTTP Request DELETE "
-                + Environment.NewLine
-                + editUri.AbsoluteUri
-                + Environment.NewLine + Environment.NewLine
-                + "<< HTTP Response " + response.StatusCode.ToString()
-                + Environment.NewLine);
-
-            if (response.IsSuccessStatusCode)
-            {
                 return true;
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("Delete failed. Status code is " + response.StatusCode.ToString());
+                System.Diagnostics.Debug.WriteLine("Post IsSuccess, but Location header is null. ");
 
-                var contents = await response.Content.ReadAsStringAsync();
-
-                if (contents != null)
-                {
-                    System.Diagnostics.Debug.WriteLine(contents);
-
-                    ToDebugWindow("DELETE failed. HTTP Response content is:"
+                ToDebugWindow("POST is successfull, but Location header is missing. "
                     + Environment.NewLine
-                    + contents
                     + Environment.NewLine);
-                }
 
                 return false;
             }
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("Post failed. Status code is " + response.StatusCode.ToString());
 
+            var contents = await response.Content.ReadAsStringAsync();
+
+            if (contents != null)
+            {
+                System.Diagnostics.Debug.WriteLine(contents);
+
+                ToDebugWindow("POST failed. HTTP Response content is:"
+                + Environment.NewLine
+                + contents
+                + Environment.NewLine);
+            }
+
+            return false;
+        }
+
+    }
+
+    public override async Task<bool> DeleteEntry(Uri editUri)
+    {
+        var request = new HttpRequestMessage
+        {
+            Method = HttpMethod.Delete,
+            RequestUri = editUri
+        };
+
+        var response = await Client.SendAsync(request);
+
+        ToDebugWindow(">> HTTP Request DELETE "
+            + Environment.NewLine
+            + editUri.AbsoluteUri
+            + Environment.NewLine + Environment.NewLine
+            + "<< HTTP Response " + response.StatusCode.ToString()
+            + Environment.NewLine);
+
+        if (response.IsSuccessStatusCode)
+        {
+            return true;
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine("Delete failed. Status code is " + response.StatusCode.ToString());
+
+            var contents = await response.Content.ReadAsStringAsync();
+
+            if (contents != null)
+            {
+                System.Diagnostics.Debug.WriteLine(contents);
+
+                ToDebugWindow("DELETE failed. HTTP Response content is:"
+                + Environment.NewLine
+                + contents
+                + Environment.NewLine);
+            }
+
+            return false;
         }
 
     }

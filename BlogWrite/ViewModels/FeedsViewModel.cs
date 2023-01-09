@@ -23,44 +23,6 @@ namespace BlogWrite.ViewModels;
 
 public class FeedsViewModel : ObservableRecipient, INavigationAware
 {
-    #region == Commands ==
-
-    public ICommand FeedAddCommand
-    {
-        get;
-    }
-
-    public ICommand FeedRemoveCommand
-    {
-        get;
-    }
-
-    public ICommand FeedUpdateAllCommand
-    {
-        get;
-    }
-
-    public ICommand EntryArchiveAllCommand
-    {
-        get;
-    }
-
-    public ICommand EntryViewInternalCommand
-    {
-        get;
-    }
-
-    public ICommand EntryViewExternalCommand
-    {
-        get;
-    }
-
-    public ICommand DetailsPaneShowHideCommand
-    {
-        get;
-    }
-
-    #endregion
 
     #region == Service Treeview ==
     
@@ -76,7 +38,14 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         }
     }
 
-    private NodeTree? _selectedTreeViewItem;// = new NodeService("", "", "", new Uri("http://127.0.0.1"), ApiTypes.atUnknown, ServiceTypes.Unknown);
+    public void SaveServiceXml()
+    {
+        var xdoc = _services.AsXmlDoc();
+
+        xdoc.Save(System.IO.Path.Combine(App.AppDataFolder, "Searvies.xml"));
+    }
+
+    private NodeTree _selectedTreeViewItem = new NodeService("", "", "", new Uri("http://127.0.0.1"), ApiTypes.atUnknown, ServiceTypes.Unknown);
     public NodeTree SelectedTreeViewItem
     {
         get => _selectedTreeViewItem;
@@ -118,7 +87,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                 SelectedViewTabIndex = 2;
             */
 
-            if (_selectedTreeViewItem is NodeService)
+            if (_selectedTreeViewItem is NodeService nds)
             {
                 /*
                 // Show HTTP Error if assigned.
@@ -136,16 +105,16 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                 }
                 */
 
-                if ((_selectedTreeViewItem as NodeService).ErrorHttp != null)
+                if (nds.ErrorHttp != null)
                 {
-                    ErrorObj = (_selectedTreeViewItem as NodeService).ErrorHttp;
+                    ErrorObj = nds.ErrorHttp;
                     IsShowFeedError = true;
                 }
                 else
                 {
-                    if ((_selectedTreeViewItem as NodeService).ErrorDatabase != null)
+                    if (nds.ErrorDatabase != null)
                     {
-                        ErrorObj = (_selectedTreeViewItem as NodeService).ErrorDatabase;
+                        ErrorObj = nds.ErrorDatabase;
                         IsShowFeedError = true;
                     }
                 }
@@ -449,16 +418,90 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
     #region == Events ==
 
     public event EventHandler<string>? DebugOutput;
+
+    public void OnDebugOutput(BaseClient sender, string data)
+    {
+        if (string.IsNullOrEmpty(data))
+            return;
+
+        if (IsDebugWindowEnabled)
+        {
+            var uithread = App.CurrentDispatcherQueue?.HasThreadAccess;
+
+            if (uithread != null)
+            {
+                if (uithread == true)
+                {
+                    //Debug.WriteLine(data);
+                    DebugOutput?.Invoke(this, Environment.NewLine + data + Environment.NewLine + Environment.NewLine);
+                }
+                else
+                {
+                    App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                    {
+                        //Debug.WriteLine(data);
+                        DebugOutput?.Invoke(this, Environment.NewLine + data + Environment.NewLine + Environment.NewLine);
+                    });
+                }
+            }
+        }
+
+        //IsDebugTextHasText = true;
+    }
+
+
     public delegate void DebugClearEventHandler();
     public event DebugClearEventHandler? DebugClear;
 
     #endregion
 
+    #region == Commands ==
 
-    private readonly DataAccess dataAccessModule = new();
-    private readonly ReaderWriterLockSlim _readerWriterLock = new();
+    public ICommand FeedAddCommand
+    {
+        get;
+    }
 
-    readonly FeedClient _feedClient = new();
+    public ICommand FeedRemoveCommand
+    {
+        get;
+    }
+
+    public ICommand FeedUpdateAllCommand
+    {
+        get;
+    }
+
+    public ICommand OpmlImportCommand
+    {
+        get;
+    }
+    public ICommand OpmlExportCommand
+    {
+        get;
+    }
+
+    public ICommand EntryArchiveAllCommand
+    {
+        get;
+    }
+
+    public ICommand EntryViewInternalCommand
+    {
+        get;
+    }
+
+    public ICommand EntryViewExternalCommand
+    {
+        get;
+    }
+
+    public ICommand DetailsPaneShowHideCommand
+    {
+        get;
+    }
+
+    #endregion
 
     public FeedsViewModel(INavigationService navigationService)
     {
@@ -470,6 +513,8 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         FeedAddCommand = new RelayCommand(OnFeedAdd);
         FeedRemoveCommand = new RelayCommand(OnFeedRemove);
         FeedUpdateAllCommand = new RelayCommand(OnFeedUpdateAll);
+        OpmlImportCommand = new RelayCommand(OnOpmlImportCommand);
+        OpmlExportCommand = new RelayCommand(OnOpmlExportCommand);
         EntryArchiveAllCommand = new RelayCommand(OnEntryArchiveAll);
         EntryViewInternalCommand = new RelayCommand(OnEntryViewInternal);
         EntryViewExternalCommand = new RelayCommand(OnEntryViewExternal);
@@ -478,7 +523,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         // Load searvice tree.
         if (File.Exists(App.AppDataFolder + System.IO.Path.DirectorySeparatorChar + "Searvies.xml"))
         {
-            System.Xml.XmlDocument doc = new System.Xml.XmlDocument();
+            var doc = new System.Xml.XmlDocument();
 
             try
             {
@@ -491,10 +536,6 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                 Debug.WriteLine("Exception while loading service.xml:" + ex);
             }
         }
-        else
-        {
-            Services = _services.Children;
-        }
 
         // Init database.
         try
@@ -503,7 +544,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
             System.IO.Directory.CreateDirectory(databaseFileFolerPath);
             var dataBaseFilePath = databaseFileFolerPath + System.IO.Path.DirectorySeparatorChar + "FeedEntries.db";
 
-            SqliteDataAccessResultWrapper res = dataAccessModule.InitializeDatabase(dataBaseFilePath);
+            var res = dataAccessModule.InitializeDatabase(dataBaseFilePath);
             if (res.IsError)
             {
                 //MainError = res.Error;
@@ -523,6 +564,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         }
         catch (Exception e)
         {
+            // TODO:
             /*
             MainError = new ErrorObject();
             MainError.ErrType = ErrorObject.ErrTypes.DB;
@@ -548,7 +590,58 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     }
 
-    // Not used.
+    // db
+    private readonly DataAccess dataAccessModule = new();
+    private readonly ReaderWriterLockSlim _readerWriterLock = new();
+    // http
+    private readonly FeedClient _feedClient = new();
+
+    #region == INavigationService contract ==
+
+    private void OnNavigated(object sender, NavigationEventArgs e) => IsBackEnabled = NavigationService.CanGoBack;
+
+    public void OnNavigatedTo(object parameter)
+    {
+        if (parameter is RegisterFeedEventArgs args)
+        {
+            AddFeed(args.FeedLinkData);
+        }
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    #endregion
+
+    #region == HTTP clinet ==
+
+    private void InitClients()
+    {
+        InitClientsRecursiveLoop(_services.Children);
+    }
+
+    private void InitClientsRecursiveLoop(ObservableCollection<NodeTree> nt)
+    {
+        // subscribe to DebugOutput event.
+        foreach (var c in nt)
+        {
+            if (c is NodeFeed nf)
+            {
+                nf.SetClient = _feedClient;
+                nf.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
+            }
+
+            if (c.Children.Count > 0)
+                InitClientsRecursiveLoop(c.Children);
+        }
+    }
+
+    #endregion
+
+    #region == GetEntries ==
+
+    // Not used. Only for testing purpus.
     // Gets entries from web and updates FeedNode when the FeedNode is selected.
     private async Task GetEntriesAsync(NodeTree nd)
     {
@@ -573,7 +666,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
             Debug.WriteLine("Getting Entries from: " + fnd.Name);
 
             // Get Entries from web.
-            HttpClientEntryItemCollectionResultWrapper resEntries = await fnd.Client.GetEntries(fnd.EndPoint, fnd.Id);
+            var resEntries = await fnd.Client.GetEntries(fnd.EndPoint, fnd.Id);
 
             // Check Node exists. Could have been deleted.
             if (fnd == null)
@@ -594,7 +687,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                         IsShowFeedError = true;
                     }
 
-                    fnd.EntryCount = 0;
+                    fnd.EntryNewCount = 0;
 
                     // Update Node Downloading Status
                     fnd.Status = NodeFeed.DownloadStatus.error;
@@ -629,7 +722,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                     {
                         fnd.List = new ObservableCollection<EntryItem>(resEntries.Entries);
 
-                        fnd.EntryCount = fnd.List.Count;
+                        fnd.EntryNewCount = fnd.List.Count;
 
                         if (fnd == SelectedTreeViewItem)
                             Entries = fnd.List;
@@ -638,11 +731,12 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
             }
         }
     }
+    
+    #endregion
 
-    // Loads entries of all feeds from database recursively.
-    #region == Load entries from database ==
+    #region == Load all entries from database ==
 
-    // load selected node's entries.
+    // Loads node's all (including children) entries from database.
     private async Task<List<EntryItem>> LoadEntriesAsync(NodeTree nd, bool forceUnread = false)
     {
         if (nd == null)
@@ -705,7 +799,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                     feed.ErrorDatabase = null;
 
                     // Update the count
-                    feed.EntryCount = res.UnreadCount;
+                    feed.EntryNewCount = res.UnreadCount;
 
                     if (feed.Status != NodeFeed.DownloadStatus.error)
                         feed.Status = NodeFeed.DownloadStatus.normal;
@@ -748,7 +842,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
             // TODO:
             App.CurrentDispatcherQueue?.TryEnqueue(() =>
             {
-                folder.EntryCount = 0;
+                folder.EntryNewCount = 0;
             });
 
             if (folder.Children.Count > 0)
@@ -800,7 +894,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
     {
         var res = new List<string>();
 
-        foreach (NodeTree nt in list)
+        foreach (var nt in list)
         {
             if (nt is NodeFeed feed)
             {
@@ -827,7 +921,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     private void UpdateAllEntriesRecursiveLoop(ObservableCollection<NodeTree> nt)
     {
-        foreach (NodeTree c in nt)
+        foreach (var c in nt)
         {
             if ((c is NodeEntryCollection) || (c is NodeFeed))
             {
@@ -835,12 +929,13 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                 {
                     Task.Run(async () =>
                     {
+                        // No need to load entry here.
                         //await LoadEntriesAsync(feed).ConfigureAwait(false); ;
                         
                         await Task.Delay(100);
 
-                        DateTime now = DateTime.Now;
-                        DateTime last = feed.LastUpdate;
+                        var now = DateTime.Now;
+                        var last = feed.LastUpdate;
 
                         if ((last > now.AddMinutes(-5)) && (last <= now))
                         {
@@ -889,7 +984,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         });
 
         // Get Entries from web.
-        HttpClientEntryItemCollectionResultWrapper resEntries = await feed.Client.GetEntries(feed.EndPoint, feed.Id);
+        var resEntries = await feed.Client.GetEntries(feed.EndPoint, feed.Id);
 
         // Check Node exists. Could have been deleted.
         if (feed == null)
@@ -964,6 +1059,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         }
     }
 
+    // Save them to database.
     private async Task<List<EntryItem>> SaveEntryListAsync(List<EntryItem> list, NodeFeed feed)
     {
         var res = new List<EntryItem>();
@@ -1025,7 +1121,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                     
                     // TODO: if node is selected...
 
-                    feed.EntryCount = feed.EntryCount + newItems.Count;
+                    feed.EntryNewCount += newItems.Count;
 
                     if (feed.Status != NodeFeed.DownloadStatus.error)
                         feed.Status = NodeFeed.DownloadStatus.normal;
@@ -1044,69 +1140,6 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
             }
             return resInsert.InsertedEntries;
         }
-
-        return res;
-    }
-
-    #endregion
-
-    // TODO:
-    // Gets entries of all feeds from web and save to database recursively.
-    #region == Feed Auto Update ==
-
-    private async void StartUpdateAsync()
-    {
-        //StatusBarMessage = "Updating...";
-
-        await Task.Run(() => StartUpdateRecursiveLoopAsync(_services.Children).ConfigureAwait(false));
-
-        //StatusBarMessage = "";
-    }
-
-    private async Task StartUpdateRecursiveLoopAsync(ObservableCollection<NodeTree> nt)
-    {
-        foreach (NodeTree c in nt)
-        {
-            if ((c is NodeEntryCollection) || (c is NodeFeed))
-            {
-                if (c is NodeFeed feed)
-                {
-                    DateTime now = DateTime.Now;
-                    DateTime last = feed.LastUpdate;
-
-                    // check if lastupdate within...
-                    if (last > now.AddMinutes(-5) && last <= now)
-                    {
-                        //Debug.WriteLine("Skippig " + feed.Name + ": " + last.ToString());
-                    }
-                    else
-                    {
-                        //Debug.WriteLine("Downloading " + feed.Name + ": " + last.ToString());
-
-                        //StatusBarMessage = "Updating " + (c as NodeFeed).Name;
-
-                        //Task nowait = Task.Run(() => GetEntriesAsync(feed));
-
-                        await Task.Run(async () =>
-                        {
-                            var list = await GetEntryListAsync(feed);
-
-                            await SaveEntryListAsync(list, feed);
-
-                        }).ConfigureAwait(false);
-
-                        //await Task.Delay(500);
-                    }
-
-                }
-            }
-
-            if (c.Children.Count > 0)
-            {
-                //await Task.Run(() => StartUpdateRecursiveLoop(c.Children));
-                await StartUpdateRecursiveLoopAsync(c.Children).ConfigureAwait(false);
-            }
-        }
     }
 
     #endregion
@@ -1115,10 +1148,10 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     private SqliteDataAccessInsertResultWrapper InsertEntriesLock(List<EntryItem> list)
     {
-        SqliteDataAccessInsertResultWrapper resInsert = new();
+        //var resInsert = new SqliteDataAccessInsertResultWrapper();
 
         // Insert result to Sqlite database.
-        resInsert = dataAccessModule.InsertEntries(list);
+        var resInsert = dataAccessModule.InsertEntries(list);
         /*
         var isbreaked = false;
 
@@ -1153,9 +1186,9 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     private SqliteDataAccessSelectResultWrapper SelectEntriesByFeedIdLock(string id, bool bln)
     {
-        SqliteDataAccessSelectResultWrapper res = new();
+        //var res = new SqliteDataAccessSelectResultWrapper();
 
-        res = dataAccessModule.SelectEntriesByFeedId(id, bln);
+        var res = dataAccessModule.SelectEntriesByFeedId(id, bln);
         /*
         try
         {
@@ -1173,7 +1206,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     private SqliteDataAccessSelectResultWrapper SelectEntriesByFeedIdsLock(List<string> list)
     {
-        SqliteDataAccessSelectResultWrapper res = new();
+        var res = new SqliteDataAccessSelectResultWrapper();
 
         try
         {
@@ -1191,9 +1224,9 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     private SqliteDataAccessResultWrapper UpdateAllEntriesAsReadLock(List<string> list)
     {
-        SqliteDataAccessResultWrapper res = new();
+        var res = new SqliteDataAccessResultWrapper();
 
-        bool isbreaked = false;
+        var isbreaked = false;
 
         try
         {
@@ -1215,7 +1248,6 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         if (isbreaked)
         {
             Thread.Sleep(10);
-            //await Task.Delay(100);
 
             return UpdateAllEntriesAsReadLock(list);
         }
@@ -1225,9 +1257,9 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     private SqliteDataAccessResultWrapper UpdateEntriesAsReadLock(List<EntryItem> list)
     {
-        SqliteDataAccessResultWrapper res = new();
+        var res = new SqliteDataAccessResultWrapper();
 
-        bool isbreaked = false;
+        var isbreaked = false;
 
         try
         {
@@ -1249,7 +1281,6 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         if (isbreaked)
         {
             Thread.Sleep(10);
-            //await Task.Delay(100);
 
             return UpdateEntriesAsReadLock(list);
         }
@@ -1259,9 +1290,9 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     private SqliteDataAccessResultWrapper UpdateEntryStatusLock(EntryItem entry)
     {
-        SqliteDataAccessResultWrapper res = new();
+        var res = new SqliteDataAccessResultWrapper();
 
-        bool isbreaked = false;
+        var isbreaked = false;
 
         try
         {
@@ -1283,7 +1314,6 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         if (isbreaked)
         {
             Thread.Sleep(10);
-            //await Task.Delay(100);
 
             return UpdateEntryStatusLock(entry);
         }
@@ -1293,9 +1323,9 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     private async Task<SqliteDataAccessResultWrapper> DeleteEntriesByFeedIdsLock(List<string> list)
     {
-        SqliteDataAccessResultWrapper res = new();
+        var res = new SqliteDataAccessResultWrapper();
 
-        bool isbreaked = false;
+        var isbreaked = false;
 
         try
         {
@@ -1317,7 +1347,6 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         if (isbreaked)
         {
             Thread.Sleep(10);
-            //await Task.Delay(100);
 
             return await DeleteEntriesByFeedIdsLock(list);
         }
@@ -1390,7 +1419,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                         }
                         */
                         // reset unread count.
-                        feed.EntryCount = 0;
+                        feed.EntryNewCount = 0;
 
                         if (feed == _selectedTreeViewItem)
                         {
@@ -1432,21 +1461,21 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                     tmpList = GetAllFeedIdsFromChildNodes(folder.Children);
                 }
 
-                SqliteDataAccessResultWrapper res = UpdateAllEntriesAsReadLock(tmpList);
+                var res = UpdateAllEntriesAsReadLock(tmpList);
 
                 if (res.AffectedCount > 0)
                 {
                     App.CurrentDispatcherQueue?.TryEnqueue(() =>
                     {
-                        foreach (NodeTree hoge in folder.Children)
+                        foreach (var hoge in folder.Children)
                         {
                             if (hoge is NodeFeed)
                             {
-                                folder.EntryCount = 0;
+                                folder.EntryNewCount = 0;
                             }
                         }
 
-                        folder.EntryCount = 0;
+                        folder.EntryNewCount = 0;
                         ResetAllEntryCountAtChildNodes(folder.Children);
 
                         if (folder == _selectedTreeViewItem)
@@ -1463,15 +1492,15 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     private void ResetAllEntryCountAtChildNodes(ObservableCollection<NodeTree> list)
     {
-        foreach (NodeTree nt in list)
+        foreach (var nt in list)
         {
             if (nt is NodeFeed feed)
             {
-                feed.EntryCount = 0;
+                feed.EntryNewCount = 0;
             }
             else if (nt is NodeFolder folder)
             {
-                folder.EntryCount = 0;
+                folder.EntryNewCount = 0;
 
                 if (folder.Children.Count > 0)
                     ResetAllEntryCountAtChildNodes(folder.Children);
@@ -1629,106 +1658,9 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    public void OnDebugOutput(BaseClient sender, string data)
-    {
-        if (string.IsNullOrEmpty(data))
-            return;
-
-        if (IsDebugWindowEnabled)
-        {
-            var uithread = App.CurrentDispatcherQueue?.HasThreadAccess;
-
-            if (uithread != null)
-            {
-                if (uithread == true)
-                {
-                    //Debug.WriteLine(data);
-                    DebugOutput?.Invoke(this, Environment.NewLine + data + Environment.NewLine + Environment.NewLine);
-                }
-                else
-                {
-                    App.CurrentDispatcherQueue?.TryEnqueue(() =>
-                    {
-                        //Debug.WriteLine(data);
-                        DebugOutput?.Invoke(this, Environment.NewLine + data + Environment.NewLine + Environment.NewLine);
-                    });
-                }
-            }
-        }
-
-        //IsDebugTextHasText = true;
-    }
-
-    private void InitClients()
-    {
-        InitClientsRecursiveLoop(_services.Children);
-    }
-
-    private void InitClientsRecursiveLoop(ObservableCollection<NodeTree> nt)
-    {
-        // subscribe to DebugOutput event.
-        foreach (NodeTree c in nt)
-        {
-            if (c is NodeFeed nf)
-            {
-                nf.SetClient = _feedClient;
-                nf.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
-            }
-
-            if (c.Children.Count > 0)
-                InitClientsRecursiveLoop(c.Children);
-        }
-    }
+    #region == Feed add command methods ==
 
     private void OnFeedAdd() => NavigationService.NavigateTo(typeof(FeedAddViewModel).FullName!, null);
-
-    private void OnEntryArchiveAll()
-    {
-        if (SelectedTreeViewItem == null)
-            return;
-
-        if (!((SelectedTreeViewItem is NodeFeed) || (SelectedTreeViewItem is NodeFolder)))
-            return;
-
-        Task.Run(() => ArchiveAllAsync(SelectedTreeViewItem));
-    }
-
-    private void OnEntryViewInternal()
-    {
-        if (SelectedListViewItem != null)
-            NavigationService.NavigateTo(typeof(EntryDetailsViewModel).FullName!, SelectedListViewItem);
-    }
-
-    private async void OnEntryViewExternal()
-    {
-        if (SelectedListViewItem != null)
-        {
-            if (SelectedListViewItem.AltHtmlUri != null)
-            {
-                await Windows.System.Launcher.LaunchUriAsync(SelectedListViewItem.AltHtmlUri);
-            }
-        }
-    }
-
-    private void OnDetailsPaneShowHide()
-    {
-        IsEntryDetailPaneVisible = !IsEntryDetailPaneVisible;
-    }
-
-    private void OnNavigated(object sender, NavigationEventArgs e) => IsBackEnabled = NavigationService.CanGoBack;
-
-    public void OnNavigatedTo(object parameter)
-    {
-        if (parameter is RegisterFeedEventArgs)
-        {
-            AddFeed(((RegisterFeedEventArgs)parameter).FeedLinkData);
-        }
-
-    }
-
-    public void OnNavigatedFrom()
-    {
-    }
 
     public void AddFeed(FeedLink feedlink)
     {
@@ -1764,7 +1696,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         else
         {
             a.Parent = _services;
-            Services.Add(a);
+            Services.Insert(0,a);//.Add(a);
         }
 
 
@@ -1780,11 +1712,11 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     private bool FeedDupeCheckRecursiveLoop(ObservableCollection<NodeTree> nt, string feedUri)
     {
-        foreach (NodeTree c in nt)
+        foreach (var c in nt)
         {
-            if (c is NodeFeed)
+            if (c is NodeFeed nf)
             {
-                if ((c as NodeFeed).EndPoint.AbsoluteUri.Equals(feedUri))
+                if (nf.EndPoint.AbsoluteUri.Equals(feedUri))
                 {
                     return true;
                 }
@@ -1798,48 +1730,11 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         return false;
     }
 
-    public void SaveServiceXml()
-    {
-        XmlDocument xdoc = _services.AsXmlDoc();
+    #endregion
 
-        xdoc.Save(System.IO.Path.Combine(App.AppDataFolder, "Searvies.xml"));
-    }
+    #region == Feed OPML ex/import command methods ==
 
-    private void OnFeedRemove()
-    {
-        if (SelectedTreeViewItem != null)
-        {
-            if (SelectedTreeViewItem.Parent != null)
-            {
-                SelectedTreeViewItem.Parent.Children.Remove(SelectedTreeViewItem);
-            }
-            else
-            {
-                Services.Remove(SelectedTreeViewItem);
-            }
-
-            SaveServiceXml();
-        }
-    }
-
-    private void OnFeedUpdateAll()
-    {
-        UpdateAllEntries();
-    }
-
-    #region == OPML ==
-
-    public ICommand OpmlImportCommand
-    {
-        get;
-    }
-
-    public bool OpmlImportCommand_CanExecute()
-    {
-        return true;
-    }
-
-    public void OpmlImportCommand_Execute()
+    public void OnOpmlImportCommand()
     {
         /*
         var filepath = _openDialogService.GetOpenOpmlFileDialog("Import OPML");
@@ -1893,17 +1788,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         */
     }
 
-    public ICommand OpmlExportCommand
-    {
-        get;
-    }
-
-    public bool OpmlExportCommand_CanExecute()
-    {
-        return true;
-    }
-
-    public void OpmlExportCommand_Execute()
+    public void OnOpmlExportCommand()
     {
         /*
         Opml opmlWriter = new();
@@ -1923,4 +1808,70 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
+    #region == Feed other command methods ==
+
+    private void OnFeedRemove()
+    {
+        if (SelectedTreeViewItem != null)
+        {
+            if (SelectedTreeViewItem.Parent != null)
+            {
+                SelectedTreeViewItem.Parent.Children.Remove(SelectedTreeViewItem);
+            }
+            else
+            {
+                Services.Remove(SelectedTreeViewItem);
+            }
+
+            SaveServiceXml();
+        }
+    }
+
+    private void OnFeedUpdateAll()
+    {
+        UpdateAllEntries();
+    }
+
+    #endregion
+
+    #region == Entry command methods  ==
+
+    private void OnEntryArchiveAll()
+    {
+        if (SelectedTreeViewItem == null)
+            return;
+
+        if (!((SelectedTreeViewItem is NodeFeed) || (SelectedTreeViewItem is NodeFolder)))
+            return;
+
+        Task.Run(() => ArchiveAllAsync(SelectedTreeViewItem));
+    }
+
+    private void OnEntryViewInternal()
+    {
+        if (SelectedListViewItem != null)
+            NavigationService.NavigateTo(typeof(EntryDetailsViewModel).FullName!, SelectedListViewItem);
+    }
+
+    private async void OnEntryViewExternal()
+    {
+        if (SelectedListViewItem != null)
+        {
+            if (SelectedListViewItem.AltHtmlUri != null)
+            {
+                await Windows.System.Launcher.LaunchUriAsync(SelectedListViewItem.AltHtmlUri);
+            }
+        }
+    }
+
+    #endregion
+
+    #region == Other command methods ==
+
+    private void OnDetailsPaneShowHide()
+    {
+        IsEntryDetailPaneVisible = !IsEntryDetailPaneVisible;
+    }
+
+    #endregion
 }

@@ -14,6 +14,10 @@
 	<UseWinUI>true</UseWinUI>
     <EnableMsixTooling>true</EnableMsixTooling>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+
+	  <AssemblyVersion>1.0.0.2</AssemblyVersion>
+	  <FileVersion>$(AssemblyVersion)</FileVersion>
+	  <Version>$(AssemblyVersion)</Version>
   </PropertyGroup>
   <ItemGroup>
     <Content Remove="Assets\Icons\rss.svg" />
