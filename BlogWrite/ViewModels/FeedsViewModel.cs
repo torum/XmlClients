@@ -461,6 +461,10 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
     {
         get;
     }
+    public ICommand FeedEditCommand
+    {
+        get;
+    }
 
     public ICommand FeedRemoveCommand
     {
@@ -468,6 +472,16 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
     }
 
     public ICommand FeedUpdateAllCommand
+    {
+        get;
+    }
+
+    public ICommand FeedUpdateCommand
+    {
+        get;
+    }
+
+    public ICommand FolderAddCommand
     {
         get;
     }
@@ -511,8 +525,11 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
         // Init commands.
         FeedAddCommand = new RelayCommand(OnFeedAdd);
+        FeedEditCommand = new RelayCommand(OnFeedEdit);
         FeedRemoveCommand = new RelayCommand(OnFeedRemove);
         FeedUpdateAllCommand = new RelayCommand(OnFeedUpdateAll);
+        FeedUpdateCommand = new RelayCommand(OnFeedUpdate);
+        FolderAddCommand = new RelayCommand(OnFolderAdd);
         OpmlImportCommand = new RelayCommand(OnOpmlImportCommand);
         OpmlExportCommand = new RelayCommand(OnOpmlExportCommand);
         EntryArchiveAllCommand = new RelayCommand(OnEntryArchiveAll);
@@ -639,115 +656,22 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    #region == GetEntries ==
-
-    // Not used. Only for testing purpus.
-    // Gets entries from web and updates FeedNode when the FeedNode is selected.
-    private async Task GetEntriesAsync(NodeTree nd)
-    {
-        if (nd == null)
-            return;
-
-        if (nd is NodeFeed fnd)
-        {
-            // check some conditions.
-            if ((fnd.Api != ApiTypes.atFeed) || (fnd.Client == null))
-                return;
-
-            // Update Node Downloading Status
-            App.CurrentDispatcherQueue?.TryEnqueue(() =>
-            {
-                fnd.Status = NodeFeed.DownloadStatus.downloading;
-
-                // TODO: should I be doing this here? or after receiving the data...
-                fnd.LastUpdate = DateTime.Now;
-            });
-
-            Debug.WriteLine("Getting Entries from: " + fnd.Name);
-
-            // Get Entries from web.
-            var resEntries = await fnd.Client.GetEntries(fnd.EndPoint, fnd.Id);
-
-            // Check Node exists. Could have been deleted.
-            if (fnd == null)
-                return;
-
-            // Result is HTTP Error
-            if (resEntries.IsError)
-            {
-                App.CurrentDispatcherQueue?.TryEnqueue(() =>
-                {
-                    // Sets Node Error.
-                    fnd.ErrorHttp = resEntries.Error;
-
-                    // If Node is selected, show the Error.
-                    if (fnd == SelectedTreeViewItem)
-                    {
-                        ErrorObj = fnd.ErrorHttp;
-                        IsShowFeedError = true;
-                    }
-
-                    fnd.EntryNewCount = 0;
-
-                    // Update Node Downloading Status
-                    fnd.Status = NodeFeed.DownloadStatus.error;
-                });
-
-                return;
-            }
-            // Result is success.
-            else
-            {
-                App.CurrentDispatcherQueue?.TryEnqueue(() =>
-                {
-                    // Clear Node Error
-                    fnd.ErrorHttp = null;
-                    if (fnd == SelectedTreeViewItem)
-                    {
-                        // Hide any Error Message
-                        //ErrorObj = null;
-                        //IsShowHttpClientError = false;
-                    }
-
-                    //fnd.Status = NodeFeed.DownloadStatus.saving;
-                    fnd.Status = NodeFeed.DownloadStatus.normal;
-
-                    fnd.LastUpdate = DateTime.Now;
-                });
-
-                if (resEntries.Entries.Count > 0)
-                {
-
-                    App.CurrentDispatcherQueue?.TryEnqueue(() =>
-                    {
-                        fnd.List = new ObservableCollection<EntryItem>(resEntries.Entries);
-
-                        fnd.EntryNewCount = fnd.List.Count;
-
-                        if (fnd == SelectedTreeViewItem)
-                            Entries = fnd.List;
-                    });
-                }
-            }
-        }
-    }
-    
-    #endregion
-
     #region == Load all entries from database ==
 
     // Loads node's all (including children) entries from database.
-    private async Task<List<EntryItem>> LoadEntriesAsync(NodeTree nd, bool forceUnread = false)
+    private async Task<List<EntryItem>> LoadEntriesAsync(NodeTree nt, bool forceUnread = false)
     {
-        if (nd == null)
+        if (nt == null)
             return new List<EntryItem>();
 
         // don't clear Entries here.
 
-        if (nd is NodeFeed feed)
+        if (nt is NodeFeed feed)
         {
             App.CurrentDispatcherQueue?.TryEnqueue(() =>
             {
+                feed.IsBusy = true;
+
                 //Debug.WriteLine("LoadEntries: " + feed.Name);
                 /*
                 IsWorking = true;
@@ -761,6 +685,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                 if (feed.Status != NodeFeed.DownloadStatus.error)
                     feed.Status = NodeFeed.DownloadStatus.loading;
                 */
+
             });
 
             var res = await Task.FromResult(SelectEntriesByFeedIdLock(feed.Id, feed.IsDisplayUnarchivedOnly));
@@ -784,6 +709,9 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                     feed.Status = NodeFeed.DownloadStatus.error;
 
                     Debug.WriteLine(feed.ErrorDatabase.ErrText + ", " + feed.ErrorDatabase.ErrDescription + ", " + feed.ErrorDatabase.ErrPlace);
+
+
+                    feed.IsBusy = false;
                 });
 
                 return new List<EntryItem>();
@@ -823,7 +751,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
                     }
 
-                    //IsWorking = false;
+                    feed.IsBusy = false;
                 });
                 /*
                 if (nd == SelectedNode)
@@ -835,14 +763,13 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
             }
 
         }
-        else if (nd is NodeFolder folder)
+        else if (nt is NodeFolder folder)
         {
             List<string> tmpList = new();
 
-            // TODO:
             App.CurrentDispatcherQueue?.TryEnqueue(() =>
             {
-                folder.EntryNewCount = 0;
+                folder.IsBusy = false;
             });
 
             if (folder.Children.Count > 0)
@@ -851,18 +778,33 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
             }
 
             if (tmpList.Count == 0)
+            {
+                App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                {
+                    folder.IsBusy = false;
+                });
                 return new List<EntryItem>();
+            }
 
             var res = await Task.FromResult(SelectEntriesByFeedIdsLock(tmpList));
 
             if (res.IsError)
             {
-                if (folder == _selectedTreeViewItem)
+                App.CurrentDispatcherQueue?.TryEnqueue(() =>
                 {
+                    // TODO: check this works...
+
                     // show error
-                    ErrorObj = res.Error; ;
-                    IsShowFeedError = true;
-                }
+                    ErrorObj = res.Error;
+
+                    if (folder == _selectedTreeViewItem)
+                    {
+                        IsShowFeedError = true;
+                    }
+
+                    folder.IsBusy = false;
+                });
+
 
                 return new List<EntryItem>();
             }
@@ -878,6 +820,8 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                         Entries = new ObservableCollection<EntryItem>(res.SelectedEntries);
 
                     }
+
+                    folder.IsBusy = false;
                 });
 
                 return res.SelectedEntries;
@@ -911,53 +855,187 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    #region == Update all entries ==
+    #region == Update feed or folder ==
 
-    private void UpdateAllEntries()
+    private async void UpdateFeed()
     {
-        //Task.Run(() => LoadAllEntriesRecursiveLoop(_services.Children));
-        UpdateAllEntriesRecursiveLoop(_services.Children);
+        if (_selectedTreeViewItem is null)
+            return;
+
+        if ((_selectedTreeViewItem is NodeFeed) || _selectedTreeViewItem is NodeFolder)
+        {
+            await GetEntriesAsync(_selectedTreeViewItem);
+        }
     }
 
-    private void UpdateAllEntriesRecursiveLoop(ObservableCollection<NodeTree> nt)
+    private async Task GetEntriesAsync(NodeTree nt)
     {
-        foreach (var c in nt)
+        if (nt == null)
+            return;
+
+        if (nt is NodeFeed feed)
         {
-            if ((c is NodeEntryCollection) || (c is NodeFeed))
+            // check some conditions.
+            if ((feed.Api != ApiTypes.atFeed) || (feed.Client == null))
+                return;
+
+            // Update Node Downloading Status
+            App.CurrentDispatcherQueue?.TryEnqueue(() =>
             {
-                if (c is NodeFeed feed)
+                feed.Status = NodeFeed.DownloadStatus.downloading;
+
+                // TODO: should I be doing this here? or after receiving the data...
+                feed.LastUpdate = DateTime.Now;
+            });
+
+            Debug.WriteLine("Getting Entries from: " + feed.Name);
+
+            // Get Entries from web.
+            var resEntries = await feed.Client.GetEntries(feed.EndPoint, feed.Id);
+
+            // Check Node exists. Could have been deleted.
+            if (feed == null)
+                return;
+
+            // Result is HTTP Error
+            if (resEntries.IsError)
+            {
+                App.CurrentDispatcherQueue?.TryEnqueue(() =>
                 {
-                    Task.Run(async () =>
+                    // Sets Node Error.
+                    feed.ErrorHttp = resEntries.Error;
+
+                    // If Node is selected, show the Error.
+                    if (feed == SelectedTreeViewItem)
                     {
-                        // No need to load entry here.
-                        //await LoadEntriesAsync(feed).ConfigureAwait(false); ;
-                        
-                        await Task.Delay(100);
+                        ErrorObj = feed.ErrorHttp;
+                        IsShowFeedError = true;
+                    }
 
-                        var now = DateTime.Now;
-                        var last = feed.LastUpdate;
+                    if (feed.Parent != null)
+                        if (feed.Parent is NodeFolder parentFolder)
+                            MinusAllParentEntryCount(parentFolder, feed.EntryNewCount);
+                    feed.EntryNewCount = 0;
 
-                        if ((last > now.AddMinutes(-5)) && (last <= now))
-                        {
-                            //Debug.WriteLine("Skippig " + feed.Name + ": " + last.ToString());
-                        }
-                        else
-                        {
-                            var list = await GetEntryListAsync(feed).ConfigureAwait(false);
-                            
-                            await Task.Delay(100);
+                    // Update Node Downloading Status
+                    feed.Status = NodeFeed.DownloadStatus.error;
+                });
 
-                            if (list.Count > 0)
-                                await SaveEntryListAsync(list, feed).ConfigureAwait(false); 
-                        }
+                return;
+            }
+            // Result is success.
+            else
+            {
+                App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                {
+                    // Clear Node Error
+                    feed.ErrorHttp = null;
+                    if (feed == SelectedTreeViewItem)
+                    {
+                        // Hide any Error Message
+                        ErrorObj = null;
+                        IsShowFeedError = false;
+                    }
+
+                    //fnd.Status = NodeFeed.DownloadStatus.saving;
+                    feed.Status = NodeFeed.DownloadStatus.normal;
+
+                    feed.LastUpdate = DateTime.Now;
+                });
+
+                if (resEntries.Entries.Count > 0)
+                {
+                    await SaveEntryListAsync(resEntries.Entries, feed);
+                    /*
+                    App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                    {
+                        feed.List = new ObservableCollection<EntryItem>(resEntries.Entries);
+
+                        //feed.EntryNewCount = feed.List.Count;
+                        UpdateNewEntryCount(feed, feed.List.Count);
+
+                        if (feed == SelectedTreeViewItem)
+                            Entries = feed.List;
                     });
+                    */
                 }
             }
+        }
+        else if (nt is NodeFolder folder)
+        {
+            // TODO:
 
-            if (c.Children.Count > 0)
+
+            //await Task.Run(() => UpdateAllFeedsRecursiveLoop(folder.Children));
+            UpdateAllFeedsRecursiveLoop(folder);
+
+            // If selected
+            if (folder == SelectedTreeViewItem)
             {
-                //Task.Run(() => LoadAllEntriesRecursiveLoop(c.Children));
-                UpdateAllEntriesRecursiveLoop(c.Children);
+                //await LoadEntriesAsync(nt);
+            }
+        }
+    }
+
+    #endregion
+
+    #region == Update all feeds ==
+
+    private void UpdateAllFeeds()
+    {
+        //Task.Run(() => UpdateAllFeedsRecursiveLoop(_services));
+        UpdateAllFeedsRecursiveLoop(_services);
+    }
+
+    private void UpdateAllFeedsRecursiveLoop(NodeTree nt)
+    {
+        if (nt.Children.Count > 0)
+        {
+            foreach (var c in nt.Children)
+            {
+                if ((c is NodeEntryCollection) || (c is NodeFeed))
+                {
+                    if (c is NodeFeed feed)
+                    {
+                        
+                        Task.Run(async () =>
+                        {
+                            await Task.Delay(100);
+
+                            var now = DateTime.Now;
+                            var last = feed.LastUpdate;
+
+                            if ((last > now.AddMinutes(-5)) && (last <= now))
+                            {
+                                //Debug.WriteLine("Skippig " + feed.Name + ": " + last.ToString());
+                            }
+                            else
+                            {
+                                var list = await GetEntryListAsync(feed).ConfigureAwait(false);
+
+                                if (list.Count > 0)
+                                {
+                                    await SaveEntryListAsync(list, feed).ConfigureAwait(false);
+
+
+                                    await Task.Delay(100);
+                                    ////
+                                    CheckParentSelectedAndLoadEntriesIfNotBusy(feed);
+                                }
+                            }
+                        });
+                        
+
+
+                    }
+                }
+
+                if (c.Children.Count > 0)
+                {
+                    //Task.Run(() => LoadAllEntriesRecursiveLoop(c.Children));
+                    UpdateAllFeedsRecursiveLoop(c);
+
+                }
             }
         }
     }
@@ -975,6 +1053,8 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         // Update Node Downloading Status
         App.CurrentDispatcherQueue?.TryEnqueue(() =>
         {
+            feed.IsBusy = true;
+
             //Debug.WriteLine("Getting entries: " + feed.Name);
 
             feed.Status = NodeFeed.DownloadStatus.downloading;
@@ -986,9 +1066,12 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         // Get Entries from web.
         var resEntries = await feed.Client.GetEntries(feed.EndPoint, feed.Id);
 
-        // Check Node exists. Could have been deleted.
+        // Check Node exists. Could have been deleted... but unlikely...
         if (feed == null)
+        {
+            //feed.IsBusy = false;
             return res;
+        }
 
         // Result is HTTP Error
         if (resEntries.IsError)
@@ -1005,10 +1088,15 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                     IsShowFeedError = true;
                 }
 
-                //feed.EntryCount = 0;
+                if (feed.Parent != null)
+                    if (feed.Parent is NodeFolder parentFolder)
+                        MinusAllParentEntryCount(parentFolder, feed.EntryNewCount);
+                feed.EntryNewCount = 0;
 
                 // Update Node Downloading Status
                 feed.Status = NodeFeed.DownloadStatus.error;
+
+                feed.IsBusy = false;
             });
 
             return res;
@@ -1034,6 +1122,8 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                 feed.Status = NodeFeed.DownloadStatus.normal;
 
                 feed.LastUpdate = DateTime.Now;
+
+                feed.IsBusy = false;
             });
 
             if (resEntries.Entries.Count > 0)
@@ -1051,7 +1141,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                         Entries = feed.List;
                 });
                 */
-            }
+    }
             else
             {
                 return res;
@@ -1070,6 +1160,8 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         // Update Node Downloading Status
         App.CurrentDispatcherQueue?.TryEnqueue(() =>
         {
+            feed.IsBusy = true;
+
             //Debug.WriteLine("Saving entries: " + feed.Name);
             feed.Status = NodeFeed.DownloadStatus.saving;
         });
@@ -1094,9 +1186,8 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                 feed.Status = NodeFeed.DownloadStatus.error;
 
                 Debug.WriteLine(feed.ErrorDatabase.ErrText + ", " + feed.ErrorDatabase.ErrDescription + ", " + feed.ErrorDatabase.ErrPlace);
-                //TODO
-                // IsBusy = false;
-                //return res;
+
+                feed.IsBusy = false;
             });
             return res;
         }
@@ -1113,19 +1204,31 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                     feed.List.Insert(0, hoge);
                 }
                 */
+
                 // Update Node Downloading Status
                 App.CurrentDispatcherQueue?.TryEnqueue(() =>
                 {
                     //Debug.WriteLine("Saving entries success: " + feed.Name);
 
-                    
-                    // TODO: if node is selected...
-
-                    feed.EntryNewCount += newItems.Count;
+                    //feed.EntryNewCount += newItems.Count;
+                    UpdateNewEntryCount(feed, newItems.Count);
 
                     if (feed.Status != NodeFeed.DownloadStatus.error)
                         feed.Status = NodeFeed.DownloadStatus.normal;
+
+
+                    feed.IsBusy = false;
                 });
+
+                // If selected
+                if (feed == SelectedTreeViewItem)
+                {
+                    await LoadEntriesAsync(feed);
+                }
+                else
+                {
+                    //CheckParentSelectedAndLoadEntriesIfNotBusy(feed);
+                }
             }
             else
             {
@@ -1136,9 +1239,73 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
                     if (feed.Status != NodeFeed.DownloadStatus.error)
                         feed.Status = NodeFeed.DownloadStatus.normal;
+
+
+                    feed.IsBusy = false;
                 });
             }
+
             return resInsert.InsertedEntries;
+        }
+    }
+
+    private void UpdateNewEntryCount(NodeFeed feed, int newCount)
+    {
+        feed.EntryNewCount = newCount;
+
+        if (newCount > 0)
+        {
+            if (feed.Parent is NodeFolder folder)
+            {
+                UpdateParentNewEntryCount(folder, newCount);
+            }
+        }
+        /*
+        App.CurrentDispatcherQueue?.TryEnqueue(() =>
+        {
+
+        });
+        */
+    }
+
+    private void UpdateParentNewEntryCount(NodeFolder folder, int newCount)
+    {
+        if (folder != null)
+        {
+            folder.EntryNewCount += newCount;
+
+            if (folder.Parent is NodeFolder parentFolder)
+            {
+                UpdateParentNewEntryCount(parentFolder, newCount);
+            }
+        }
+        /*
+        App.CurrentDispatcherQueue?.TryEnqueue(() =>
+        {
+
+        });
+        */
+    }
+
+    private async void CheckParentSelectedAndLoadEntriesIfNotBusy(NodeTree nt)
+    {
+        if (nt != null)
+        {
+            if (nt.Parent is NodeFolder parentFolder)
+            {
+                if (parentFolder == SelectedTreeViewItem)
+                {
+                    if (parentFolder.IsBusyChildrenCount <= 0)
+                    {
+                        await LoadEntriesAsync(parentFolder);
+                    }
+                }
+                else
+                {
+                    CheckParentSelectedAndLoadEntriesIfNotBusy(parentFolder);
+                }
+
+            }
         }
     }
 
@@ -1356,7 +1523,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    #region == TODO ==
+    #region == Entry Archive ==
 
     private async Task ArchiveAllAsync(NodeTree nd)
     {
@@ -1419,6 +1586,11 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                         }
                         */
                         // reset unread count.
+                        if (feed.Parent != null)
+                        {
+                            if (feed.Parent is NodeFolder parentFolder)
+                                MinusAllParentEntryCount(parentFolder, feed.EntryNewCount);
+                        }
                         feed.EntryNewCount = 0;
 
                         if (feed == _selectedTreeViewItem)
@@ -1504,6 +1676,22 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
                 if (folder.Children.Count > 0)
                     ResetAllEntryCountAtChildNodes(folder.Children);
+            }
+        }
+    }
+
+    private void MinusAllParentEntryCount(NodeFolder folder, int minusCount)
+    {
+        if (folder is NodeFolder)
+        {
+            folder.EntryNewCount -= minusCount;
+
+            if (folder.Parent != null)
+            {
+                if (folder.Parent is NodeFolder parentFolder)
+                {
+                    MinusAllParentEntryCount(parentFolder, minusCount);
+                }
             }
         }
     }
@@ -1732,6 +1920,13 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
+    private void OnFeedEdit() => NavigationService.NavigateTo(typeof(FeedEditViewModel).FullName!, null);
+
+    private void OnFolderAdd()
+    {
+        //
+    }
+
     #region == Feed OPML ex/import command methods ==
 
     public void OnOpmlImportCommand()
@@ -1812,6 +2007,9 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     private void OnFeedRemove()
     {
+        // TODO: remove data from database...
+
+
         if (SelectedTreeViewItem != null)
         {
             if (SelectedTreeViewItem.Parent != null)
@@ -1829,7 +2027,12 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     private void OnFeedUpdateAll()
     {
-        UpdateAllEntries();
+        UpdateAllFeeds();
+    }
+
+    private void OnFeedUpdate()
+    {
+        UpdateFeed();
     }
 
     #endregion

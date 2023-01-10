@@ -1,6 +1,3 @@
-// Copyright (c) Microsoft Corporation and Contributors.
-// Licensed under the MIT License.
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,20 +12,20 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
+using BlogWrite.ViewModels;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
+namespace BlogWrite.Views;
 
-namespace BlogWrite.Views
+public sealed partial class FeedEditPage : Page
 {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
-    public sealed partial class BlankPage1 : Page
+    public FeedEditViewModel ViewModel
     {
-        public BlankPage1()
-        {
-            this.InitializeComponent();
-        }
+        get;
+    }
+
+    public FeedEditPage()
+    {
+        ViewModel = App.GetService<FeedEditViewModel>();
+        this.InitializeComponent();
     }
 }

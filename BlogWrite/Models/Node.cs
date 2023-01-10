@@ -157,17 +157,17 @@ public abstract class NodeTree : Node
                 IsEntryCountMoreThanZero = true;
                 if (_entryNewCount > 99)
                 {
-                    SubNodeText = "99+";
+                    //SubNodeText = "99+";
                 }
                 else
                 {
-                    SubNodeText = _entryNewCount.ToString();
+                    //SubNodeText = _entryNewCount.ToString();
                 }
             }
             else
             {
                 IsEntryCountMoreThanZero = false;
-                SubNodeText = "";
+                //SubNodeText = "";
             }
         }
     }
@@ -248,6 +248,99 @@ public abstract class NodeTree : Node
         }
     }
     */
+
+    private bool _isBusy;
+    public bool IsBusy
+    {
+        get => _isBusy;
+        set
+        {
+            if (_isBusy == value)
+                return;
+
+            _isBusy = value;
+
+            if (value)
+            {
+                if (this.Parent != null)
+                {
+                    incIsBusyCount(this.Parent);
+                }
+            }
+            else
+            {
+                if (this.Parent != null)
+                {
+                    decIsBusyCount(this.Parent);
+                }
+            }
+
+            // if this has busy childrenn, make it busy anyway.
+            if (_isBusyChildrenCount > 0)
+            {
+                _isBusy = true;
+            }
+            
+            NotifyPropertyChanged(nameof(IsBusy));
+        }
+    }
+
+
+    private void incIsBusyCount(NodeTree parentNode)
+    {
+        if (parentNode != null)
+        {
+            if ((parentNode is NodeFolder) || (parentNode is NodeRoot) || (parentNode is ServiceTreeBuilder))
+            {
+                parentNode.IsBusyChildrenCount += 1;
+
+                if (parentNode.Parent != null)
+                {
+                    incIsBusyCount(parentNode.Parent);
+                }
+            }
+        }
+    }
+
+    private void decIsBusyCount(NodeTree parentNode)
+    {
+        if (parentNode != null)
+        {
+            if ((parentNode is NodeFolder) || (parentNode is NodeRoot) || (parentNode is ServiceTreeBuilder))
+            {
+                parentNode.IsBusyChildrenCount -= 1;
+
+                if (parentNode.Parent != null)
+                {
+                    decIsBusyCount(parentNode.Parent);
+                }
+            }
+        }
+    }
+
+    protected int _isBusyChildrenCount = 0;
+    public int IsBusyChildrenCount
+    {
+        get => _isBusyChildrenCount;
+        protected set
+        {
+
+            if (_isBusyChildrenCount == value)
+                return;
+
+            _isBusyChildrenCount = value;
+            NotifyPropertyChanged(nameof(IsBusyChildrenCount));
+
+            if (_isBusyChildrenCount > 0)
+            {
+                SubNodeText = $"({_isBusyChildrenCount})";
+            }
+            else
+            {
+                SubNodeText = "";
+            }
+        }
+    }
 
     private NodeTree? _parent;
     public NodeTree? Parent

@@ -693,7 +693,7 @@ class XmlRpcClient : BlogClient
                         + e.Message
                         + Environment.NewLine);
 
-                    InvalidXml(res.Error, e.Message, "XmlRpcMTClient: GetEntries");
+                    InvalidXml(res.Error, e.Message, "XmlDocument.Load", "XmlRpcMTClient: GetEntries");
                     res.IsError = true;
 
                     return res;

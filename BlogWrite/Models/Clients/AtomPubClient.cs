@@ -641,7 +641,7 @@ class AtomPubClient : BlogClient
                     + e.Message
                     + Environment.NewLine);
 
-                InvalidXml(res.Error, e.Message, "AtomPubClient: GetEntries");
+                InvalidXml(res.Error, e.Message, "XmlDocument.Load", "AtomPubClient: GetEntries");
                 res.IsError = true;
 
                 return res;

@@ -31,7 +31,7 @@ public class FeedClient : BaseClient
                 + entriesUrl.Scheme
                 + Environment.NewLine);
 
-            InvalidUriScheme(res.Error, entriesUrl.Scheme, "FeedClient: GetEntries");
+            InvalidUriScheme(res.Error, entriesUrl.Scheme, "FeedHttpClient: GetEntries");
             res.IsError = true;
 
             return res;
@@ -78,7 +78,7 @@ public class FeedClient : BaseClient
                         + e.Message
                         + Environment.NewLine); 
 
-                    InvalidXml(res.Error, e.Message, "FeedClient: GetEntries");
+                    InvalidXml(res.Error, e.Message, "XmlDocument.Load", "FeedHttpClient: GetEntries");
                     res.IsError = true;
 
                     return res;
@@ -211,7 +211,7 @@ public class FeedClient : BaseClient
                         ToDebugWindow("<< FormatUndetermined @FeedClient:GetEntries@xdoc.DocumentElement.NamespaceURI.Equals"
                             + Environment.NewLine);
 
-                        FormatUndetermined(res.Error, "FeedClient:GetEntries");
+                        FormatUndetermined(res.Error, "FeedHttpClient: GetEntries");
                         res.IsError = true;
 
                         return res;
@@ -222,7 +222,7 @@ public class FeedClient : BaseClient
                     ToDebugWindow("<< FormatUndetermined @FeedClient:GetEntries:xdoc.DocumentElement.LocalName/NamespaceURI"
                         + Environment.NewLine);
 
-                    FormatUndetermined(res.Error, "FeedClient:GetEntries");
+                    FormatUndetermined(res.Error, "FeedHttpClient: GetEntries");
                     res.IsError = true;
 
                     return res;
@@ -252,7 +252,7 @@ public class FeedClient : BaseClient
                         //+ contents + Environment.NewLine);
                 }
 
-                NonSuccessStatusCode(res.Error, HTTPResponseMessage.StatusCode.ToString(), "_HTTPConn.Client.GetAsync", "FeedClient:GetEntries");
+                NonSuccessStatusCode(res.Error, HTTPResponseMessage.StatusCode.ToString(), "Client.GetAsync", "FeedHttpClient.GetEntries");
                 res.IsError = true;
 
                 return res;
@@ -269,7 +269,7 @@ public class FeedClient : BaseClient
                 + e.Message
                 + Environment.NewLine);
 
-            HttpReqException(res.Error, e.Message, "_HTTPConn.Client.GetAsync", "FeedClient:GetEntries");
+            HttpReqException(res.Error, e.Message, "Client.GetAsync", "FeedHttpClient:GetEntries");
             res.IsError = true;
 
             return res;
@@ -283,7 +283,7 @@ public class FeedClient : BaseClient
                 + e.Message
                 + Environment.NewLine);
 
-            GenericException(res.Error, "", ErrorObject.ErrTypes.HTTP, "HTTP request error (Exception)", e.Message, "_HTTPConn.Client.GetAsync", "FeedClient:GetEntries");
+            GenericException(res.Error, "", ErrorObject.ErrTypes.HTTP, "HTTP request error (Exception)", e.Message, "Client.GetAsync", "FeedHttpClient.GetEntries");
             res.IsError = true;
 
             return res;

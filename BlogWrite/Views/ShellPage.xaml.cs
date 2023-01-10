@@ -57,8 +57,8 @@ public sealed partial class ShellPage : Page
 
         AppTitleBarText.Foreground = (SolidColorBrush)App.Current.Resources[resource];
         AppTitleBarIcon.Opacity = args.WindowActivationState == WindowActivationState.Deactivated ? 0.5 : 1.0;
-        AppMenuBar.Opacity = args.WindowActivationState == WindowActivationState.Deactivated ? 0.5 : 1.0;
-
+        //AppMenuBar.Opacity = args.WindowActivationState == WindowActivationState.Deactivated ? 0.5 : 1.0;
+        /*
         AppTitleBar.Margin = new Thickness()
         {
             Left = AppMenuBar.ActualWidth + 32,//sender.CompactPaneLength * (sender.DisplayMode == NavigationViewDisplayMode.Minimal ? 2 : 1),
@@ -66,6 +66,7 @@ public sealed partial class ShellPage : Page
             Right = AppTitleBar.Margin.Right,
             Bottom = AppTitleBar.Margin.Bottom
         };
+        */
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -248,22 +249,21 @@ public sealed partial class ShellPage : Page
 
     private void NavigationViewControl_DisplayModeChanged(NavigationView sender, NavigationViewDisplayModeChangedEventArgs args)
     {
-        /*
         AppTitleBar.Margin = new Thickness()
         {
-            Left = sender.CompactPaneLength * (sender.DisplayMode == NavigationViewDisplayMode.Minimal ? 2 : 1),
+            Left = sender.CompactPaneLength * (sender.DisplayMode == NavigationViewDisplayMode.Minimal ? 2 : 1) ,
             Top = AppTitleBar.Margin.Top,
             Right = AppTitleBar.Margin.Right,
             Bottom = AppTitleBar.Margin.Bottom
         };
-        */
     }
 
     private void NavigationViewControl_Loaded(object sender, RoutedEventArgs e)
     {
         // 
         var settings = (Microsoft.UI.Xaml.Controls.NavigationViewItem)NavigationViewControl.SettingsItem;
-        settings.Content = "";//"Setting".GetLocalized();
+        if (settings != null)
+            settings.Content = "Setting".GetLocalized();
 
     }
 

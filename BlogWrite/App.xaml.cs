@@ -98,6 +98,8 @@ public partial class App : Application
             services.AddTransient<EntryDetailsPage>();
             services.AddTransient<FeedAddViewModel>();
             services.AddTransient<FeedAddPage>();
+            services.AddTransient<FeedEditViewModel>();
+            services.AddTransient<FeedEditPage>();
             services.AddSingleton<FeedsViewModel>();
             services.AddSingleton<FeedsPage>();
             services.AddSingleton<ShellPage>();

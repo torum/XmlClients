@@ -453,16 +453,16 @@ public class ServiceTreeBuilder : NodeRoot
         {
             if (ErrorList.Count > 0)
             {
-                XmlNode err = ErrorList[0];
+                XmlNode errNode = ErrorList[0];
                 errHttpObj = new ErrorObject();
 
-                var errAttr = err.Attributes?["ErrCode"];
+                var errAttr = errNode.Attributes?["ErrCode"];
                 if (errAttr != null)
                 {
-                    errHttpObj.ErrCode = string.IsNullOrEmpty(err.Attributes?["ErrCode"]?.Value) ? "" : err.Attributes?["ErrCode"]?.Value;
+                    errHttpObj.ErrCode = string.IsNullOrEmpty(errNode.Attributes?["ErrCode"]?.Value) ? "" : errNode.Attributes?["ErrCode"]?.Value;
                 }
 
-                string eType = (node.Attributes?["ErrType"] != null) ? node.Attributes?["ErrType"]?.Value : "HTTP";
+                string eType = (errNode.Attributes?["ErrType"] != null) ? errNode.Attributes?["ErrType"]?.Value : "HTTP";
                 ErrTypes et;
                 switch (eType)
                 {
@@ -484,35 +484,35 @@ public class ServiceTreeBuilder : NodeRoot
                 }
                 errHttpObj.ErrType = et;
 
-                errAttr = err.Attributes?["ErrDescription"];
+                errAttr = errNode.Attributes?["ErrDescription"];
                 if (errAttr != null)
                 {
-                    errHttpObj.ErrDescription = string.IsNullOrEmpty(err.Attributes?["ErrDescription"]?.Value) ? "" : err.Attributes?["ErrDescription"]?.Value;
+                    errHttpObj.ErrDescription = string.IsNullOrEmpty(errNode.Attributes?["ErrDescription"]?.Value) ? "" : errNode.Attributes?["ErrDescription"]?.Value;
                 }
 
-                errAttr = err.Attributes?["ErrText"];
+                errAttr = errNode.Attributes?["ErrText"];
                 if (errAttr != null)
                 {
-                    errHttpObj.ErrText = string.IsNullOrEmpty(err.Attributes?["ErrText"]?.Value) ? "" : err.Attributes?["ErrText"]?.Value;
+                    errHttpObj.ErrText = string.IsNullOrEmpty(errNode.Attributes?["ErrText"]?.Value) ? "" : errNode.Attributes?["ErrText"]?.Value;
                 }
 
-                errAttr = err.Attributes?["ErrPlace"];
+                errAttr = errNode.Attributes?["ErrPlace"];
                 if (errAttr != null)
                 {
-                    errHttpObj.ErrDescription = string.IsNullOrEmpty(err.Attributes?["ErrPlace"]?.Value) ? "" : err.Attributes?["ErrPlace"]?.Value;
+                    errHttpObj.ErrPlace = string.IsNullOrEmpty(errNode.Attributes?["ErrPlace"]?.Value) ? "" : errNode.Attributes?["ErrPlace"]?.Value;
                 }
 
-                errAttr = err.Attributes?["ErrPlaceParent"];
+                errAttr = errNode.Attributes?["ErrPlaceParent"];
                 if (errAttr != null)
                 {
-                    errHttpObj.ErrDescription = string.IsNullOrEmpty(err.Attributes?["ErrPlaceParent"]?.Value) ? "" : err.Attributes?["ErrPlaceParent"]?.Value;
+                    errHttpObj.ErrPlaceParent = string.IsNullOrEmpty(errNode.Attributes?["ErrPlaceParent"]?.Value) ? "" : errNode.Attributes?["ErrPlaceParent"]?.Value;
                 }
 
-                errAttr = err.Attributes?["ErrDatetime"];
+                errAttr = errNode.Attributes?["ErrDatetime"];
                 if (errAttr != null)
                 {
-                    if (!string.IsNullOrEmpty(err.Attributes?["ErrDatetime"]?.Value))
-                        errHttpObj.ErrDatetime = DateTime.Parse(err.Attributes?["ErrDatetime"]?.Value);
+                    if (!string.IsNullOrEmpty(errNode.Attributes?["ErrDatetime"]?.Value))
+                        errHttpObj.ErrDatetime = DateTime.Parse(errNode.Attributes?["ErrDatetime"]?.Value);
                 }
 
             }
@@ -533,7 +533,7 @@ public class ServiceTreeBuilder : NodeRoot
                     errDbObj.ErrCode = string.IsNullOrEmpty(err.Attributes?["ErrCode"]?.Value) ? "" : err.Attributes?["ErrCode"]?.Value;
                 }
 
-                string eType = (node.Attributes?["ErrType"] != null) ? node.Attributes?["ErrType"]?.Value : "DB";
+                string eType = (err.Attributes?["ErrType"] != null) ? err.Attributes?["ErrType"]?.Value : "DB";
                 ErrTypes et;
                 switch (eType)
                 {
@@ -570,13 +570,13 @@ public class ServiceTreeBuilder : NodeRoot
                 errAttr = err.Attributes?["ErrPlace"];
                 if (errAttr != null)
                 {
-                    errDbObj.ErrDescription = string.IsNullOrEmpty(err.Attributes?["ErrPlace"]?.Value) ? "" : err.Attributes?["ErrPlace"]?.Value;
+                    errDbObj.ErrPlace = string.IsNullOrEmpty(err.Attributes?["ErrPlace"]?.Value) ? "" : err.Attributes?["ErrPlace"]?.Value;
                 }
 
                 errAttr = err.Attributes?["ErrPlaceParent"];
                 if (errAttr != null)
                 {
-                    errDbObj.ErrDescription = string.IsNullOrEmpty(err.Attributes?["ErrPlaceParent"]?.Value) ? "" : err.Attributes?["ErrPlaceParent"]?.Value;
+                    errDbObj.ErrPlaceParent = string.IsNullOrEmpty(err.Attributes?["ErrPlaceParent"]?.Value) ? "" : err.Attributes?["ErrPlaceParent"]?.Value;
                 }
 
                 errAttr = err.Attributes?["ErrDatetime"];
@@ -1009,11 +1009,11 @@ public class ServiceTreeBuilder : NodeRoot
             httpError.SetAttributeNode(attrErr);
 
             attrErr = doc.CreateAttribute("ErrPlace");
-            attrErr.Value = fd.ErrorHttp.ErrDescription;
+            attrErr.Value = fd.ErrorHttp.ErrPlace;
             httpError.SetAttributeNode(attrErr);
 
             attrErr = doc.CreateAttribute("ErrPlaceParent");
-            attrErr.Value = fd.ErrorHttp.ErrDescription;
+            attrErr.Value = fd.ErrorHttp.ErrPlaceParent;
             httpError.SetAttributeNode(attrErr);
 
             attrErr = doc.CreateAttribute("ErrDatetime");
@@ -1044,11 +1044,11 @@ public class ServiceTreeBuilder : NodeRoot
             DatabaseError.SetAttributeNode(attrErr);
 
             attrErr = doc.CreateAttribute("ErrPlace");
-            attrErr.Value = fd.ErrorDatabase.ErrDescription;
+            attrErr.Value = fd.ErrorDatabase.ErrPlace;
             DatabaseError.SetAttributeNode(attrErr);
 
             attrErr = doc.CreateAttribute("ErrPlaceParent");
-            attrErr.Value = fd.ErrorDatabase.ErrDescription;
+            attrErr.Value = fd.ErrorDatabase.ErrPlaceParent;
             DatabaseError.SetAttributeNode(attrErr);
 
             attrErr = doc.CreateAttribute("ErrDatetime");

@@ -12,35 +12,27 @@
     Unloaded="OnUnloaded"
     mc:Ignorable="d">
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="48" />
-            <RowDefinition Height="0" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" x:Name="AppTitleBar" Margin="0,0,0,0" Canvas.ZIndex="1" IsHitTestVisible="True" Height="48" VerticalAlignment="Top" HorizontalAlignment="Stretch">
-
-        </Grid>
-
-        <Grid Grid.Row="0" Canvas.ZIndex="0" IsHitTestVisible="True" Margin="0,0,250,0">
+        <Grid x:Name="AppTitleBar" Margin="0,0,0,0" Canvas.ZIndex="1" IsHitTestVisible="True" Height="29" VerticalAlignment="Top" HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="0" Orientation="Horizontal">
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Visibility="Collapsed">
 
-                <Image  x:Name="AppTitleBarIcon" Source="/Assets/BlogWrite.ico" HorizontalAlignment="Left" Width="20" Height="20" Margin="14,0,0,0"/>
-                <TextBlock x:Name="AppTitleBarText" VerticalAlignment="Center" TextWrapping="NoWrap" Style="{StaticResource CaptionTextBlockStyle}" Margin="8, 0, 0, 0" Visibility="Collapsed"/>
+                <Image x:Name="AppTitleBarIcon" Source="/Assets/BlogWrite.ico" HorizontalAlignment="Left" Width="20" Height="20" Margin="12,0,0,0"  Canvas.ZIndex="0"/>
+                <TextBlock x:Name="AppTitleBarText" VerticalAlignment="Center" TextWrapping="NoWrap" Style="{StaticResource CaptionTextBlockStyle}" Margin="9, 0, 0, 0"/>
 
             </StackPanel>
-
+            
+            <!--
             <MenuBar x:Name="AppMenuBar" Grid.Column="1" Margin="9,0,0,0">
                 <MenuBarItem x:Uid="ShellMenuBarItem_File">
                     <MenuFlyoutItem x:Uid="ShellMenuItem_File_Exit" Command="{x:Bind ViewModel.MenuFileExitCommand}" x:Name="AppMenuBar_File"/>
                 </MenuBarItem>
-                <!--
+                
                 <MenuBarItem x:Uid="ShellMenuBarItem_Views" x:Name="AppMenuBar_Views">
                     <MenuBarItem.Items>
                         <MenuFlyoutItem x:Uid="ShellMenuItem_Views_Main" Command="{x:Bind ViewModel.MenuViewsMainCommand}" />
@@ -52,11 +44,12 @@
                         
                     </MenuBarItem.Items>
                 </MenuBarItem>
-                -->
+                
                 <MenuBarItem x:Uid="ShellMenuBarItem_Options">
                     <MenuFlyoutItem x:Uid="ShellMenuBar_Options_Settings" Command="{x:Bind ViewModel.MenuSettingsCommand}"/>
                 </MenuBarItem>
             </MenuBar>
+            -->
             <!--
             <AppBarButton Grid.Column="2" x:Name="ShellMenuBarSettingsButton" x:Uid="ShellMenuBarSettingsButton"
                           AnimatedIcon.State="Normal"
@@ -81,7 +74,8 @@
 
         </Grid>
         -->
-        <NavigationView Grid.Row="2"
+        <NavigationView
+                         Canvas.ZIndex="0"
                          Margin="0,0,0,0"
             x:Name="NavigationViewControl"
              SelectedItem="{x:Bind ViewModel.Selected, Mode=OneWay}" 
@@ -136,7 +130,7 @@
                 
             </NavigationView.MenuItems>
 
-            <Grid>
+            <Grid Margin="0,29,0,0">
                 <Frame x:Name="NavigationFrame" NavigationFailed="NavigationFrame_NavigationFailed"/>
             </Grid>
 

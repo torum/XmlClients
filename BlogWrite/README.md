@@ -29,6 +29,8 @@ A blog editing (web publishing) client with a feed reading functionality - C# po
 
 
 ## Change log
+* v1.0.0.3 (2023/1/11)
+ Finishing up feed updates.
 * v1.0.0.2 (2023/1/8) 
  Updated WinUIEx and now uses local persistence file. Now, the MainWindow remembers its size and pos. (previous ver did not support unpackaged app)
 * v1.0.0.1 (2023/1/8) 
@@ -40,21 +42,16 @@ A blog editing (web publishing) client with a feed reading functionality - C# po
 
 ### Things that currentry working on
 
-- [ ] Folder以下のchild feedのUnreadCountを親に伝播
-- [ ] 削除した時データも
-- [ ] Edit画面
 - [ ] Folder追加
-- [ ] OPML
-- [ ] Dupecheckとかの結果やデータベース接続エラーを通知する
-- [ ] 特定Feedだけの更新メニューの追加
-- [ ] Newステータス(SQLでロードと同時に既読にする)
-- [ ] Manage entries read/unread status with SQLite database.
+- [ ] Edit画面
+- [ ] Feed削除した時データもDBから削除する。
+- [ ] GoogleNewsのfeedでentry id を確認したほうがよい。
+- [ ] OPMLインポートエクスポート
+- [ ] NewEntryCountをもっと効率よく（上下に伝播させるのではなく）。
+- [ ] Manage entries read/unread status with SQLite database. Newステータス(SQLでロードと同時に既読にする)
 - [ ] show unread(archived)
-
+- [ ] Dupecheckとかの結果や起動時データベース接続エラーを画面内で通知する。
 - [ ] update 中にドラッグドロップできないようにする。
-- [ ] DBエラーまわり表示確認。
-- [ ] Feedアップデートタイマー
-- [ ] アップデートステータスプログレスバー
 - [ ] Check "category" and "publisher"
 
 
@@ -63,7 +60,8 @@ A blog editing (web publishing) client with a feed reading functionality - C# po
 #### Feed reader
 - [ ] Grouping display of feed for Folder view. 
 - [ ] Download and display "eye catching" images. 
-- [ ] Auto update feed entries safely.
+- [ ] Auto update feed entries safely. 
+- [ ] Auto update progressbar or some kind to notify it is on going or not.
 
 
 #### API

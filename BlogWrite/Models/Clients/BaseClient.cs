@@ -184,7 +184,7 @@ public abstract class BaseClient : IDisposable
         err.ErrCode = "";
         err.ErrType = ErrorObject.ErrTypes.HTTP;
         err.ErrText = "URI scheme should be http or https : " + scheme;
-        err.ErrDescription = "Invalid URI scheme";
+        err.ErrDescription = "Invalid URI scheme.";
         err.ErrPlace = "";
         err.ErrPlaceParent = errPlaceParent;
         err.ErrDatetime = DateTime.Now;
@@ -196,7 +196,7 @@ public abstract class BaseClient : IDisposable
         err.ErrCode = "";
         err.ErrType = ErrorObject.ErrTypes.HTTP;
         err.ErrText = errText;
-        err.ErrDescription = "Invalid Content-Type returned";
+        err.ErrDescription = "Invalid Content-Type returned.";
         err.ErrPlace = errPlace;
         err.ErrPlaceParent = errPlaceParent;
         err.ErrDatetime = DateTime.Now;
@@ -204,13 +204,13 @@ public abstract class BaseClient : IDisposable
         return err;
     }
 
-    protected ErrorObject InvalidXml(ErrorObject err, string eMessage, string errPlaceParent)
+    protected ErrorObject InvalidXml(ErrorObject err, string eMessage, string errPlace, string errPlaceParent)
     {
         err.ErrCode = "";
         err.ErrType = ErrorObject.ErrTypes.XML;
         err.ErrText = eMessage;
-        err.ErrDescription = "Invalid XML document returned";
-        err.ErrPlace = "xdoc.Load()";
+        err.ErrDescription = "Invalid XML document returned.";
+        err.ErrPlace = errPlace;
         err.ErrPlaceParent = errPlaceParent;
         err.ErrDatetime = DateTime.Now;
 
@@ -222,7 +222,7 @@ public abstract class BaseClient : IDisposable
         err.ErrCode = "";
         err.ErrType = ErrorObject.ErrTypes.API;
         err.ErrText = "Unknown format";
-        err.ErrDescription = "Document parse failed";
+        err.ErrDescription = "Document parse failed.";
         err.ErrPlace = "xdoc.DocumentElement.LocalName/NamespaceURI";
         err.ErrPlaceParent = errPlaceParent;
         err.ErrDatetime = DateTime.Now;
@@ -235,7 +235,7 @@ public abstract class BaseClient : IDisposable
         err.ErrCode = "";
         err.ErrType = ErrorObject.ErrTypes.HTTP;
         err.ErrText = statusCode;
-        err.ErrDescription = "HTTP request failed";
+        err.ErrDescription = "HTTP request failed.";
         err.ErrPlace = errPlace;
         err.ErrPlaceParent = errPlaceParent;
         err.ErrDatetime = DateTime.Now;
@@ -248,7 +248,7 @@ public abstract class BaseClient : IDisposable
         err.ErrCode = "";
         err.ErrType = ErrorObject.ErrTypes.HTTP;
         err.ErrText = eMessage;
-        err.ErrDescription = "HTTP request error (HttpRequestException)";
+        err.ErrDescription = "HTTP request error (HttpRequestException).";
         err.ErrPlace = errPlace;
         err.ErrPlaceParent = errPlaceParent;
         err.ErrDatetime = DateTime.Now;

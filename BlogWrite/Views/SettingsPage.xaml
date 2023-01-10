@@ -23,14 +23,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Button Grid.Row="0" Grid.Column="0"
-            x:Name="closeButton" 
-            Margin="6"
-            VerticalAlignment="Top"
-            Background="Transparent"
-            BorderThickness="0"
-            Padding="{StaticResource XSmallLeftTopRightBottomMargin}"
-            Command="{x:Bind ViewModel.GoBackCommand}">
+        <Button Margin="18" Padding="24,7,24,7" VerticalAlignment="Top" Background="Transparent" BorderThickness="0" Command="{x:Bind ViewModel.GoBackCommand}">
             <SymbolIcon Symbol="Back" />
         </Button>
 

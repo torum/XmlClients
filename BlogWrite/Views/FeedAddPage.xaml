@@ -19,11 +19,10 @@
         </Grid.RowDefinitions>
         
         <StackPanel Grid.Row="0">
-            <Button Margin="6" VerticalAlignment="Top" Background="Transparent" BorderThickness="0" Padding="{StaticResource XSmallLeftTopRightBottomMargin}" Command="{x:Bind ViewModel.GoBackCommand}">
+            <Button Margin="18" Padding="24,7,24,7" VerticalAlignment="Top" Background="Transparent" BorderThickness="0" Command="{x:Bind ViewModel.GoBackCommand}">
                 <SymbolIcon Symbol="Back" />
             </Button>
         </StackPanel>
-
 
         <Grid Grid.Row="1">
             <Border MaxWidth="800" Margin="0" Background="{ThemeResource NavigationViewContentBackground}" CornerRadius="{ThemeResource NavigationViewContentChildGridCornerRadius}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
@@ -264,7 +263,6 @@
 
             </Border>
         </Grid>
-
 
         <StackPanel Grid.Row="2" HorizontalAlignment="Stretch" Margin="12,12,12,12" MaxWidth="800">
 
