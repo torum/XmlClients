@@ -29,8 +29,8 @@ public class DefaultActivationHandler : ActivationHandler<LaunchActivatedEventAr
         #region == Load settings ==
 
         // set fallback, default
-        double width = 1007;//App.MainWindow.GetAppWindow().Size.Width;
-        double height = 600;//App.MainWindow.GetAppWindow().Size.Height;
+        //double width = 1007;//App.MainWindow.GetAppWindow().Size.Width;
+        //double height = 600;//App.MainWindow.GetAppWindow().Size.Height;
 
         // Create if not exists.
         System.IO.Directory.CreateDirectory(App.AppDataFolder);
@@ -62,6 +62,7 @@ public class DefaultActivationHandler : ActivationHandler<LaunchActivatedEventAr
                         (sender as Window).Left = double.Parse(hoge.Value);
                     }
                     */
+                    /*
                     var hoge = mainWindow.Attribute("height");
                     if (hoge != null)
                     {
@@ -73,6 +74,7 @@ public class DefaultActivationHandler : ActivationHandler<LaunchActivatedEventAr
                     {
                         width = double.Parse(hoge.Value);
                     }
+                    */
                     /*
                     hoge = mainWindow.Attribute("state");
                     if (hoge != null)

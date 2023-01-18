@@ -29,6 +29,8 @@ A blog editing (web publishing) client with a feed reading functionality - C# po
 
 
 ## Change log
+* v1.0.0.4 (2023/1/18)
+ UI update
 * v1.0.0.3 (2023/1/11)
  Finishing up feed updates.
 * v1.0.0.2 (2023/1/8) 
@@ -43,7 +45,6 @@ A blog editing (web publishing) client with a feed reading functionality - C# po
 ### Things that currentry working on
 
 - [ ] Folder追加
-- [ ] Edit画面
 - [ ] Feed削除した時データもDBから削除する。
 - [ ] GoogleNewsのfeedでentry id を確認したほうがよい。
 - [ ] OPMLインポートエクスポート
@@ -52,7 +53,8 @@ A blog editing (web publishing) client with a feed reading functionality - C# po
 - [ ] show unread(archived)
 - [ ] Dupecheckとかの結果や起動時データベース接続エラーを画面内で通知する。
 - [ ] update 中にドラッグドロップできないようにする。
-- [ ] Check "category" and "publisher"
+- [ ] Check "category" and "publisher" etc.
+- [ ] 元記事の内容が更新された場合、それを反映させたい。
 
 
 ### Planning

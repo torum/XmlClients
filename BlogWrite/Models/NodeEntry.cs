@@ -143,7 +143,7 @@ public abstract class EntryItem : Node
         }
     }
 
-    private string _author;
+    private string _author ="";
     public string Author
     {
         get => _author;

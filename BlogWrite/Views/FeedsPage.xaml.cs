@@ -43,7 +43,7 @@ public sealed partial class FeedsPage : Page
         DebugTextBox.ScrollToEnd();
         */
 
-        DebugTextBox.Text = DebugTextBox.Text + arg;
+        DebugTextBox.Text = arg;
     }
 
     public void OnDebugClear()
@@ -94,6 +94,17 @@ public sealed partial class FeedsPage : Page
                 {
                     await Windows.System.Launcher.LaunchUriAsync(item.AltHtmlUri);
                 }
+            }
+        }
+    }
+
+    private void ListViewEntryItem_RightTapped(object sender, Microsoft.UI.Xaml.Input.RightTappedRoutedEventArgs e)
+    {
+        if (e.OriginalSource is FrameworkElement)
+        {
+            if (((FrameworkElement)e.OriginalSource).DataContext is FeedEntryItem item)
+            {
+                ListViewEntryItem.SelectedItem = item;
             }
         }
     }

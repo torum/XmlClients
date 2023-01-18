@@ -7,6 +7,7 @@ using BlogWrite.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Markup;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
@@ -26,13 +27,28 @@ public sealed partial class ShellPage : Page
     public ShellPage(ShellViewModel viewModel)
     {
         ViewModel = viewModel;
-        InitializeComponent();
+
+        try
+        {
+            InitializeComponent();
+        }
+        catch (XamlParseException parseException)
+        {
+            Debug.WriteLine($"Unhandled XamlParseException in ShellPage: {parseException.Message}");
+            foreach (var key in parseException.Data.Keys)
+            {
+                Debug.WriteLine("{Key}:{Value}", key.ToString(), parseException.Data[key]?.ToString());
+            }
+            throw;
+        }
 
         ViewModel.NavigationService.Frame = NavigationFrame;
-        ViewModel.NavigationViewService.Initialize(NavigationViewControl);
+        //ViewModel.NavigationViewService.Initialize(NavigationViewControl);
 
         App.MainWindow.ExtendsContentIntoTitleBar = true;
+
         App.MainWindow.SetTitleBar(AppTitleBar);
+
         App.MainWindow.Activated += MainWindow_Activated;
         App.MainWindow.Closed += MainWindow_Closed;
         AppTitleBarText.Text = "AppDisplayName".GetLocalized();
@@ -56,8 +72,8 @@ public sealed partial class ShellPage : Page
         var resource = args.WindowActivationState == WindowActivationState.Deactivated ? "WindowCaptionForegroundDisabled" : "WindowCaptionForeground";
 
         AppTitleBarText.Foreground = (SolidColorBrush)App.Current.Resources[resource];
-        AppTitleBarIcon.Opacity = args.WindowActivationState == WindowActivationState.Deactivated ? 0.5 : 1.0;
-        //AppMenuBar.Opacity = args.WindowActivationState == WindowActivationState.Deactivated ? 0.5 : 1.0;
+        AppTitleBarIcon.Opacity = args.WindowActivationState == WindowActivationState.Deactivated ? 0.4 : 0.7;
+        AppMenuBar.Opacity = args.WindowActivationState == WindowActivationState.Deactivated ? 0.4 : 0.7;
         /*
         AppTitleBar.Margin = new Thickness()
         {
@@ -78,6 +94,8 @@ public sealed partial class ShellPage : Page
 
     private void MainWindow_Closed(object sender, WindowEventArgs args)
     {
+        // TODO: can't use applifesycle service... 
+
         #region == Save settings ==
 
         XmlDocument doc = new XmlDocument();
@@ -260,11 +278,11 @@ public sealed partial class ShellPage : Page
 
     private void NavigationViewControl_Loaded(object sender, RoutedEventArgs e)
     {
-        // 
+        /* 
         var settings = (Microsoft.UI.Xaml.Controls.NavigationViewItem)NavigationViewControl.SettingsItem;
         if (settings != null)
             settings.Content = "Setting".GetLocalized();
-
+        */
     }
 
     private void NavigationViewControl_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)

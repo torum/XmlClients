@@ -369,8 +369,8 @@ public class FeedClient : BaseClient
 
         if (string.IsNullOrEmpty(entryAuthor))
         {
-            if (entItem.AltHtmlUri != null)
-                entryAuthor = entItem.AltHtmlUri.Host;
+            //if (entItem.AltHtmlUri != null)
+            //    entryAuthor = entItem.AltHtmlUri.Host;
         }
 
         entItem.Author = entryAuthor;
@@ -494,8 +494,9 @@ public class FeedClient : BaseClient
 
         if (string.IsNullOrEmpty(entryAuthor))
         {
-            if (entItem.AltHtmlUri != null)
-                entryAuthor = entItem.AltHtmlUri.Host;
+            //if (entItem.AltHtmlUri != null)
+            //    entryAuthor = entItem.AltHtmlUri.Host;
+
         }
 
         entItem.Author = entryAuthor;
@@ -668,8 +669,8 @@ public class FeedClient : BaseClient
 
         if (string.IsNullOrEmpty(entryAuthor))
         {
-            if (altUri != null)
-                entryAuthor = altUri.Host;
+            //if (altUri != null)
+            //    entryAuthor = altUri.Host;
         }
 
         entItem.Author = entryAuthor;
@@ -1000,8 +1001,8 @@ public class FeedClient : BaseClient
 
         if (string.IsNullOrEmpty(entryAuthor))
         {
-            if (altUri != null)
-                entryAuthor = altUri.Host;
+            //if (altUri != null)
+            //    entryAuthor = altUri.Host;
         }
 
         entry.Author = entryAuthor;

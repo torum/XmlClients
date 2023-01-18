@@ -12,17 +12,17 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace BlogWrite.ViewModels;
 
-public class FeedEditViewModel : ObservableRecipient, INavigationAware
+public class FolderEditViewModel : ObservableRecipient, INavigationAware
 {
     private readonly INavigationService _navigationService;
 
     #region == Properties ==
-
-    private NodeFeed? _feed;
-    public NodeFeed? Feed
+    
+    private NodeFolder? _folder;
+    public NodeFolder? Folder
     {
-        get => _feed;
-        set => SetProperty(ref _feed, value);
+        get => _folder;
+        set => SetProperty(ref _folder, value);
     }
 
     private string? _name = "";
@@ -41,7 +41,7 @@ public class FeedEditViewModel : ObservableRecipient, INavigationAware
         get;
     }
 
-    public ICommand UpdateFeedItemPropertyCommand
+    public ICommand UpdateFolderItemPropertyCommand
     {
         get;
     }
@@ -49,28 +49,28 @@ public class FeedEditViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    public FeedEditViewModel(INavigationService navigationService)
+    public FolderEditViewModel(INavigationService navigationService)
     {
         _navigationService = navigationService;
 
         GoBackCommand = new RelayCommand(OnGoBack);
-        UpdateFeedItemPropertyCommand = new RelayCommand(OnUpdateFeedItemProperty);
+        UpdateFolderItemPropertyCommand = new RelayCommand(OnUpdateFolderItemProperty);
 
-        Feed = null;
         Name = "";
+        Folder = null;
     }
 
     public void OnNavigatedTo(object parameter)
     {
-        Feed = null;
         Name = "";
+        Folder = null;
 
         if (parameter is NodeTree)
         {
-            if (parameter is NodeFeed feed)
+            if (parameter is NodeFolder folder)
             {
-                Feed = feed;
-                Name = feed.Name;
+                Folder = folder;
+                Name = folder.Name;
             }
         }
     }
@@ -88,13 +88,13 @@ public class FeedEditViewModel : ObservableRecipient, INavigationAware
     }
 
 
-    private void OnUpdateFeedItemProperty()
+    private void OnUpdateFolderItemProperty()
     {
         if (!string.IsNullOrEmpty(Name))
         {
-            if (Feed != null)
+            if (Folder != null)
             {
-                Feed.Name = Name;
+                Folder.Name = Name;
                 _navigationService.NavigateTo(typeof(FeedsViewModel).FullName!, null);
             }
         }

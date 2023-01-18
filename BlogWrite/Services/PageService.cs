@@ -18,6 +18,7 @@ public class PageService : IPageService
         Configure<EntryDetailsViewModel, EntryDetailsPage>();
         Configure<FeedAddViewModel, FeedAddPage>();
         Configure<FeedEditViewModel, FeedEditPage>();
+        Configure<FolderEditViewModel, FolderEditPage>();
         Configure<SettingsViewModel, SettingsPage>();
     }
 

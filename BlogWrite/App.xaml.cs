@@ -1,5 +1,7 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Xml.Linq;
+﻿using System.Collections;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Nodes;
 using BlogWrite.Activation;
 using BlogWrite.Contracts.Services;
 using BlogWrite.Core.Contracts.Services;
@@ -10,14 +12,6 @@ using BlogWrite.Notifications;
 using BlogWrite.Services;
 using BlogWrite.ViewModels;
 using BlogWrite.Views;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
-using System.Text.Json.Nodes;
-
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Xaml;
@@ -25,7 +19,6 @@ using Microsoft.Windows.ApplicationModel.Resources;
 
 namespace BlogWrite;
 
-// To learn more about WinUI 3, see https://docs.microsoft.com/windows/apps/winui/winui3/.
 public partial class App : Application
 {
     // The .NET Generic Host provides dependency injection, configuration, logging, and other services.
@@ -49,17 +42,21 @@ public partial class App : Application
         return service;
     }
 
-    public static WindowEx MainWindow { get; } = new MainWindow();
-
+    //
     private static readonly string _appName = "BlogWrite";//_resourceLoader.GetString("AppName");
     private static readonly string _appDeveloper = "torum";
     private static readonly string _envDataFolder = System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
     public static string AppDataFolder { get; } = _envDataFolder + System.IO.Path.DirectorySeparatorChar + _appDeveloper + System.IO.Path.DirectorySeparatorChar + _appName;
     public static string AppConfigFilePath { get; } = AppDataFolder + System.IO.Path.DirectorySeparatorChar + _appName + ".config";
 
+    //
+    public static WindowEx MainWindow { get; } = new MainWindow();
+
+    // 
     private static readonly Microsoft.UI.Dispatching.DispatcherQueue _currentDispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
     public static Microsoft.UI.Dispatching.DispatcherQueue CurrentDispatcherQueue => _currentDispatcherQueue;
 
+    //
     private static readonly ResourceLoader _resourceLoader = new();
 
     public App()
@@ -100,10 +97,13 @@ public partial class App : Application
             services.AddTransient<FeedAddPage>();
             services.AddTransient<FeedEditViewModel>();
             services.AddTransient<FeedEditPage>();
+            services.AddTransient<FolderEditViewModel>();
+            services.AddTransient<FolderEditPage>();
             services.AddSingleton<FeedsViewModel>();
             services.AddSingleton<FeedsPage>();
             services.AddSingleton<ShellPage>();
             services.AddSingleton<ShellViewModel>();
+
 
             // Configuration
             services.Configure<LocalSettingsOptions>(context.Configuration.GetSection(nameof(LocalSettingsOptions)));
@@ -127,18 +127,19 @@ public partial class App : Application
     {
         base.OnLaunched(args);
 
-        WinUIEx.WindowManager.PersistenceStorage = new FilePersistence(Path.Combine(AppDataFolder,"WinUIExPersistence.json"));
+        if (!RuntimeHelper.IsMSIX)
+        {
+            WinUIEx.WindowManager.PersistenceStorage = new FilePersistence(Path.Combine(AppDataFolder, "WinUIExPersistence.json"));
+        }
 
         //App.GetService<IAppNotificationService>().Show(string.Format("AppNotificationSamplePayload".GetLocalized(), AppContext.BaseDirectory));
-
 
         await App.GetService<IActivationService>().ActivateAsync(args);
     }
 
-
     private class FilePersistence : IDictionary<string, object>
     {
-        private readonly Dictionary<string, object> _data = new Dictionary<string, object>();
+        private readonly Dictionary<string, object> _data = new();
         private readonly string _file;
 
         public FilePersistence(string filename)

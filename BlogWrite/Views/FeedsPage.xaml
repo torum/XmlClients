@@ -12,7 +12,9 @@
     mc:Ignorable="d"
     Unloaded="Page_Unloaded">
     <Page.Resources>
-
+        <Style TargetType="Page">
+            <Setter Property="FontSize" Value="{StaticResource NormalFontSize}" />
+        </Style>
         <DataTemplate x:Key="FolderTemplate" x:DataType="model:NodeTree">
             <TreeViewItem ItemsSource="{x:Bind Children, Mode=TwoWay}" Padding="1" Margin="0,0,6,0" IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}" IsSelected="{x:Bind IsSelected, Mode=TwoWay}">
                 <StackPanel>
@@ -129,51 +131,117 @@
 
                 <!-- Feeds menu buttons -->
                 <Border Grid.Row="0" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}">
-                    <CommandBar IsOpen="False" DefaultLabelPosition="Right" HorizontalAlignment="Stretch" Margin="1">
 
-                        <AppBarButton Label="Add" Command="{x:Bind ViewModel.FeedAddCommand}">
-                            <AppBarButton.Icon>
-                                <PathIcon Margin="0,0,0,0">
-                                    <PathIcon.Data>
-                                        M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z
-                                    </PathIcon.Data>
-                                </PathIcon>
-                            </AppBarButton.Icon>
-                        </AppBarButton>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                        <AppBarButton Label="Update" Command="{x:Bind ViewModel.FeedUpdateAllCommand}">
-                            <AppBarButton.Icon>
-                                <PathIcon Margin="0,0,0,0">
-                                    <PathIcon.Data>
-                                        M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z</PathIcon.Data>
-                                </PathIcon>
-                            </AppBarButton.Icon>
-                        </AppBarButton>
+                        <CommandBar Grid.Column="0" IsOpen="False" DefaultLabelPosition="Bottom" Margin="0" OverflowButtonVisibility="Collapsed">
+
+                        </CommandBar>
                         
-                        <CommandBar.SecondaryCommands>
+                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                            
+                            <AppBarButton Label="Add" IsCompact="False"  Opacity="0.9">
+                                
+                                <AppBarButton.Icon>
+                                    <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <PathIcon.Data>
+                                            M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z
+                                        </PathIcon.Data>
+                                    </PathIcon>
+                                </AppBarButton.Icon>
 
-                            <AppBarButton Icon="Folder" Label="New Folder" Command="{x:Bind ViewModel.FolderAddCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
+                                <AppBarButton.KeyboardAccelerators>
+                                    <KeyboardAccelerator Modifiers="Control" Key="N"/>
+                                </AppBarButton.KeyboardAccelerators>
+
+                                <AppBarButton.Flyout>
+                                    <MenuFlyout>
+                                        <MenuFlyoutItem Text="Feed" Command="{x:Bind ViewModel.FeedAddCommand}">
+                                            <MenuFlyoutItem.Icon>
+                                                <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <PathIcon.Data>
+                                                        M6.18,15.64A2.18,2.18 0 0,1 8.36,17.82C8.36,19 7.38,20 6.18,20C5,20 4,19 4,17.82A2.18,2.18 0 0,1 6.18,15.64M4,4.44A15.56,15.56 0 0,1 19.56,20H16.73A12.73,12.73 0 0,0 4,7.27V4.44M4,10.1A9.9,9.9 0 0,1 13.9,20H11.07A7.07,7.07 0 0,0 4,12.93V10.1Z
+                                                    </PathIcon.Data>
+                                                </PathIcon>
+                                                <!--
+                                                <IconSourceElement>
+                                                    <IconSourceElement.IconSource>
+                                                        <PathIconSource>
+                                                            <PathIconSource.Data>
+                                                                M6.18,15.64A2.18,2.18 0 0,1 8.36,17.82C8.36,19 7.38,20 6.18,20C5,20 4,19 4,17.82A2.18,2.18 0 0,1 6.18,15.64M4,4.44A15.56,15.56 0 0,1 19.56,20H16.73A12.73,12.73 0 0,0 4,7.27V4.44M4,10.1A9.9,9.9 0 0,1 13.9,20H11.07A7.07,7.07 0 0,0 4,12.93V10.1Z</PathIconSource.Data>
+                                                        </PathIconSource>
+                                                    </IconSourceElement.IconSource>
+                                                </IconSourceElement>
+                                                -->
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                        <MenuFlyoutItem Text="Folder" Command="{x:Bind ViewModel.FolderAddCommand}">
+                                            <MenuFlyoutItem.Icon>
+                                                <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <PathIcon.Data>
+                                                        M13 19C13 19.34 13.04 19.67 13.09 20H4C2.9 20 2 19.11 2 18V6C2 4.89 2.89 4 4 4H10L12 6H20C21.1 6 22 6.89 22 8V13.81C21.39 13.46 20.72 13.22 20 13.09V8H4V18H13.09C13.04 18.33 13 18.66 13 19M20 18V15H18V18H15V20H18V23H20V20H23V18H20Z</PathIcon.Data>
+                                                </PathIcon>
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+                                    </MenuFlyout>
+                                </AppBarButton.Flyout>
+
+                            </AppBarButton>
+
+                            <AppBarButton Label="Refresh" IsCompact="False" Command="{x:Bind ViewModel.FeedRefreshAllCommand}" Opacity="0.9">
+                                
+                                <AppBarButton.Icon>
+                                    <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <PathIcon.Data>
+                                            M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z</PathIcon.Data>
+                                    </PathIcon>
+                                </AppBarButton.Icon>
+
+                                <AppBarButton.KeyboardAccelerators>
+                                    <KeyboardAccelerator Modifiers="Control" Key="R"/>
+                                </AppBarButton.KeyboardAccelerators>
+                                
+                            </AppBarButton>
+
+                        </StackPanel>
+
+                        <CommandBar Grid.Column="1" IsOpen="False" DefaultLabelPosition="Bottom" Margin="0" Visibility="Collapsed">
+                            
+                            <CommandBar.SecondaryCommands>
+
+                                <AppBarSeparator/>
+
+                                <AppBarButton Icon="Import" Label="Import" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" >
+                                </AppBarButton>
+
+                                <AppBarButton Icon="Save" Label="Export" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" >
+                                </AppBarButton>
+                            </CommandBar.SecondaryCommands>
+                            
+                        </CommandBar>
+
+                        <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+
+                            <AppBarButton Icon="More" Label="" IsCompact="False" HorizontalAlignment="Right" VerticalAlignment="Center" Opacity="0.9">
+                                <AppBarButton.Flyout>
+                                    <MenuFlyout>
+                                        <MenuFlyoutItem Icon="Import" Text="Import" Opacity="0.9"></MenuFlyoutItem>
+                                        <MenuFlyoutItem Icon="Save" Text="Export" Opacity="0.9"></MenuFlyoutItem>
+                                    </MenuFlyout>
+                                </AppBarButton.Flyout>
                             </AppBarButton>
                             
-                            <AppBarSeparator/>
-                            <!--
+                        </StackPanel>
 
-                            <AppBarSeparator/>
-                            
-                            <AppBarButton Icon="Remove" Label="Remove" Command="{x:Bind ViewModel.FeedRemoveCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
-                            </AppBarButton>
+                    </Grid>
 
-                            <AppBarSeparator/>
-                            -->
-
-                            <AppBarButton Icon="Import" Label="Import" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
-                            </AppBarButton>
-
-                            <AppBarButton Icon="Save" Label="Export" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
-                            </AppBarButton>
-                            
-                        </CommandBar.SecondaryCommands>
-                    </CommandBar>
                 </Border>
 
                 <!-- Feeds treeview -->
@@ -181,27 +249,23 @@
                           AllowDrop="True" CanReorderItems="True" CanDragItems="True" DragItemsStarting="TreeView_DragItemsStarting" DragItemsCompleted="TreeView_DragItemsCompleted" 
                                   IsRightTapEnabled="True"
                                   IsDoubleTapEnabled="True" 
-                          ItemInvoked="TreeView_ItemInvoked" ItemsSource="{x:Bind ViewModel.Services, Mode=OneWay}" ItemTemplateSelector="{StaticResource ExplorerItemTemplateSelector}" SelectedItem="{x:Bind ViewModel.SelectedTreeViewItem, Mode=TwoWay}" SelectedNode="{x:Bind ViewModel.SelectedTreeViewNode, Mode=OneWay}" Margin="0,0,0,6">
+                          ItemInvoked="TreeView_ItemInvoked" ItemsSource="{x:Bind ViewModel.Services, Mode=OneWay}" ItemTemplateSelector="{StaticResource ExplorerItemTemplateSelector}" SelectedItem="{x:Bind ViewModel.SelectedTreeViewItem, Mode=TwoWay}" SelectedNode="{x:Bind ViewModel.SelectedTreeViewNode, Mode=OneWay}" Margin="0,0,0,0">
                     <TreeView.Resources>
                         <MenuFlyout x:Key="TreeItemContextMenu">
-                            <!--
-                            <MenuFlyoutItem Text="Move Up">
-                                <MenuFlyoutItem.KeyboardAccelerators>
-                                    <KeyboardAccelerator Key="U" Modifiers="Control"/>
-                                </MenuFlyoutItem.KeyboardAccelerators>
+
+                            <MenuFlyoutItem Text="Refresh" Command="{x:Bind ViewModel.FeedRefreshCommand}" >
+                                <MenuFlyoutItem.Icon>
+                                    <PathIcon Margin="0,0,0,0">
+                                        <PathIcon.Data>
+                                            M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z</PathIcon.Data>
+                                    </PathIcon>
+                                </MenuFlyoutItem.Icon>
                             </MenuFlyoutItem>
-                            <MenuFlyoutItem Text="Move Down">
-                                <MenuFlyoutItem.KeyboardAccelerators>
-                                    <KeyboardAccelerator Key="D" Modifiers="Control"/>
-                                </MenuFlyoutItem.KeyboardAccelerators>
-                            </MenuFlyoutItem>
-                            -->
-                            <MenuFlyoutItem Text="Update" Command="{x:Bind ViewModel.FeedUpdateCommand}" />
 
                             <MenuFlyoutSeparator/>
 
-                            <MenuFlyoutItem Text="Edit" Icon="Edit" Command="{x:Bind ViewModel.FeedEditCommand}"/>
-                            
+                            <MenuFlyoutItem Text="Edit" Icon="Edit" Command="{x:Bind ViewModel.NodeEditCommand}"/>
+
                             <MenuFlyoutSeparator/>
 
                             <MenuFlyoutItem Text="Remove" Icon="Remove" Command="{x:Bind ViewModel.FeedRemoveCommand}">
@@ -209,13 +273,8 @@
                                     <KeyboardAccelerator Key="Delete" />
                                 </MenuFlyoutItem.KeyboardAccelerators>
                             </MenuFlyoutItem>
-                            
-                            <MenuFlyoutSeparator/>
 
-                            <MenuFlyoutItem Text="Go to website"/>
-                            
                         </MenuFlyout>
-
                     </TreeView.Resources>
                     <TreeView.ItemContainerStyle>
                         <Style TargetType="controls:TreeViewItem">
@@ -237,11 +296,13 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
 
-                                            <PathIcon Grid.Row="0" Grid.Column="0" Margin="-4,0,0,0" Data="{x:Bind PathIcon, Mode=OneWay}" Opacity="0.4"></PathIcon>
+                                            <Viewbox Grid.Row="0" Grid.Column="0" Margin="-4,0,0,0" Width="18" Height="18">
+                                                <PathIcon  Data="{x:Bind PathIcon, Mode=OneWay}" Opacity="0.4"></PathIcon>
+                                            </Viewbox>
 
-                                            <TextBlock Grid.Row="0" Grid.Column="1" x:Name="NodeTextBlock" Text="{x:Bind Name, Mode=OneWay}" Padding="3" IsHitTestVisible="False" Margin="6,0,0,0"/>
+                                            <TextBlock Grid.Row="0" Grid.Column="1" x:Name="NodeTextBlock" Text="{x:Bind Name, Mode=OneWay}" Padding="3" FontSize="{StaticResource NormalFontSize}" IsHitTestVisible="False" Margin="6,0,0,0" Opacity="0.9"/>
 
-                                            <TextBlock Grid.Row="0" Grid.Column="2" Text="{x:Bind SubNodeText, Mode=OneWay}" Margin="9 3 3 3" HorizontalAlignment="Right" Visibility="Collapsed"></TextBlock>
+                                            <TextBlock Grid.Row="0" Grid.Column="2" Text="{x:Bind SubNodeText, Mode=OneWay}" FontSize="{StaticResource NormalFontSize}" Margin="9 3 3 3" HorizontalAlignment="Right" Visibility="Collapsed"></TextBlock>
 
                                             <InfoBadge Grid.Column="3" Style="{ThemeResource AttentionValueInfoBadgeStyle}" HorizontalAlignment="Right" VerticalAlignment="Center" Value="{x:Bind EntryNewCount, Mode=OneWay}" Visibility="{x:Bind IsEntryCountMoreThanZero, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}" Margin="0,0,6,0" Opacity="0.5"/>
 
@@ -283,13 +344,13 @@
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                    
+
                                     <Viewbox Width="18" Height="18" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <Canvas Width="18" Height="18">
                                             <Path Fill="Red" Data="M11,15H13V17H11V15M11,7H13V13H11V7M12,2C6.47,2 2,6.5 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20Z" />
                                         </Canvas>
                                     </Viewbox>
-                                    
+
                                     <TextBlock Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Margin="24,0,0,0" Style="{ThemeResource SubtitleTextBlockStyle}"><Run Text="Error"/></TextBlock>
 
                                 </StackPanel>
@@ -311,7 +372,7 @@
 
                             </Grid>
                         </Grid>
-                        
+
                     </ScrollViewer>
                 </Border>
 
@@ -325,63 +386,142 @@
                         <ColumnDefinition Width="4*" x:Name="col2" />
                     </Grid.ColumnDefinitions>
 
-                    <!-- ListView -->
                     <Border Grid.Row="0" Grid.Column="0" Margin="0,0,0,0" CornerRadius="0" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
-
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
 
+                            <!-- Entries menu buttons -->
                             <Border Grid.Row="0" BorderThickness="0,0,0,1" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}">
-                                <CommandBar IsOpen="False" DefaultLabelPosition="Right" HorizontalAlignment="Stretch" Margin="1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
 
-                                    <AppBarButton Label="Archive" Command="{x:Bind ViewModel.EntryArchiveAllCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1">
-                                        <AppBarButton.Icon>
-                                            <PathIcon>
-                                                <PathIcon.Data>
-                                                    M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M5 5V7H19V5M10.5 11V14H8L12 18L16 14H13.5V11</PathIcon.Data>
-                                            </PathIcon>
-                                        </AppBarButton.Icon>
-                                    </AppBarButton>
-                                    <!--
-                                    <AppBarButton Label="View" Command="{x:Bind ViewModel.EntryViewInternalCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
-                                        <AppBarButton.Icon>
-                                            <PathIcon>
-                                                <PathIcon.Data>
-                                                    M12,10L8,14H11V20H13V14H16M19,4H5C3.89,4 3,4.9 3,6V18A2,2 0 0,0 5,20H9V18H5V8H19V18H15V20H19A2,2 0 0,0 21,18V6A2,2 0 0,0 19,4Z
-                                                </PathIcon.Data>
-                                            </PathIcon>
-                                        </AppBarButton.Icon>
-                                    </AppBarButton>
--->
-                                    <AppBarButton Label="Open" Command="{x:Bind ViewModel.EntryViewExternalCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
-                                        <AppBarButton.Icon>
-                                            <PathIcon>
-                                                <PathIcon.Data>
-                                                    M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z
-                                                </PathIcon.Data>
-                                            </PathIcon>
-                                        </AppBarButton.Icon>
-                                    </AppBarButton>
-<!--
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+
+                                        <AppBarButton Label="Archive" Command="{x:Bind ViewModel.EntryArchiveAllCommand}" IsCompact="False" Opacity="0.9">
+                                            <AppBarButton.Icon>
+                                                <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <PathIcon.Data>
+                                                        M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M5 5V7H19V5M10.5 11V14H8L12 18L16 14H13.5V11
+                                                    </PathIcon.Data>
+                                                </PathIcon>
+                                            </AppBarButton.Icon>
+
+                                            <AppBarButton.KeyboardAccelerators>
+                                                <KeyboardAccelerator Modifiers="Control" Key="A"/>
+                                            </AppBarButton.KeyboardAccelerators>
+
+                                        </AppBarButton>
+
+                                        <AppBarButton Label="View" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" >
+                                            <AppBarButton.Icon>
+                                                <PathIcon>
+                                                    <PathIcon.Data>
+                                                        M16.5 11L13 7.5L14.4 6.1L16.5 8.2L20.7 4L22.1 5.4L16.5 11M11 7H2V9H11V7M21 13.4L19.6 12L17 14.6L14.4 12L13 13.4L15.6 16L13 18.6L14.4 20L17 17.4L19.6 20L21 18.6L18.4 16L21 13.4M11 15H2V17H11V15Z</PathIcon.Data>
+                                                </PathIcon>
+                                            </AppBarButton.Icon>
+                                        </AppBarButton>
+
+                                    </StackPanel>
+
+                                    <CommandBar Grid.Column="0" IsOpen="False" DefaultLabelPosition="Right" HorizontalAlignment="Stretch" Margin="0" Visibility="Collapsed">
+
+                                        <AppBarButton Label="Archive" Command="{x:Bind ViewModel.EntryArchiveAllCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1">
+                                            <AppBarButton.Icon>
+                                                <PathIcon>
+                                                    <PathIcon.Data>
+                                                        M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M5 5V7H19V5M10.5 11V14H8L12 18L16 14H13.5V11</PathIcon.Data>
+                                                </PathIcon>
+                                            </AppBarButton.Icon>
+                                        </AppBarButton>
+
+                                        <!--
+                                    -->
+                                        <!--
                                     <AppBarButton x:Name="PanelOpenClose" Command="{x:Bind ViewModel.DetailsPaneShowHideCommand}" Icon="ClosePane" Label="Show" IsCompact="False" VerticalAlignment="Bottom" Margin="0" Padding="0" Opacity="1">
                                     </AppBarButton>
 -->
-                                    <CommandBar.SecondaryCommands>
+                                    </CommandBar>
 
-                                        <AppBarButton  Label="Show archived" IsCompact="False" VerticalAlignment="Bottom" Margin="0" Padding="0" Opacity="1">
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+
+                                        <AppBarButton Label="Show" Command="{x:Bind ViewModel.EntryViewInternalCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" Visibility="Collapsed">
+                                            <AppBarButton.Icon>
+                                                <PathIcon>
+                                                    <PathIcon.Data>
+                                                        M12,10L8,14H11V20H13V14H16M19,4H5C3.89,4 3,4.9 3,6V18A2,2 0 0,0 5,20H9V18H5V8H19V18H15V20H19A2,2 0 0,0 21,18V6A2,2 0 0,0 19,4Z
+                                                    </PathIcon.Data>
+                                                </PathIcon>
+                                            </AppBarButton.Icon>
                                         </AppBarButton>
-                                    </CommandBar.SecondaryCommands>
 
-                                </CommandBar>
+                                        <AppBarButton Label="Open" Command="{x:Bind ViewModel.EntryViewExternalCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" Visibility="Collapsed">
+                                            <AppBarButton.Icon>
+                                                <PathIcon>
+                                                    <PathIcon.Data>
+                                                        M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z
+                                                    </PathIcon.Data>
+                                                </PathIcon>
+                                            </AppBarButton.Icon>
+                                        </AppBarButton>
+                                    </StackPanel>
+
+                                    <CommandBar Grid.Column="1" IsOpen="False" DefaultLabelPosition="Right" HorizontalAlignment="Stretch" Margin="0" Visibility="Collapsed">
+
+                                        <CommandBar.SecondaryCommands>
+
+                                            <AppBarButton Label="View" IsCompact="False" VerticalAlignment="Bottom" Margin="0" Padding="0" Opacity="1">
+                                            </AppBarButton>
+                                        </CommandBar.SecondaryCommands>
+
+                                    </CommandBar>
+
+                                    <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+
+                                        <AppBarButton Icon="More" Label="" IsCompact="False" HorizontalAlignment="Right" VerticalAlignment="Center" Opacity="0.9">
+                                            <AppBarButton.Flyout>
+                                                <MenuFlyout>
+                                                    <MenuFlyoutItem Icon="Import" Text="Import" Opacity="0.9"></MenuFlyoutItem>
+                                                    <MenuFlyoutItem Icon="Save" Text="Export" Opacity="0.9"></MenuFlyoutItem>
+                                                </MenuFlyout>
+                                            </AppBarButton.Flyout>
+                                        </AppBarButton>
+
+                                    </StackPanel>
+
+                                </Grid>
                             </Border>
 
-                            <ListView Grid.Row="1" Background="{ThemeResource NavigationViewContentBackground}" x:Name="ListViewEntryItem" ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedListViewItem, Mode=TwoWay}" IsDoubleTapEnabled="True" SelectionMode="Single" Margin="0,0,0,6" Padding="0,0,0,0">
+                            <!-- Entries listView -->
+                            <ListView Grid.Row="1" Background="{ThemeResource NavigationViewContentBackground}" x:Name="ListViewEntryItem" ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedListViewItem, Mode=TwoWay}" IsDoubleTapEnabled="True" IsRightTapEnabled="True" SelectionMode="Single" Margin="0,0,0,0" Padding="0,0,0,0">
+                                <ListView.Resources>
+                                    <MenuFlyout x:Key="ListItemContextMenu">
+
+                                        <MenuFlyoutItem Text="Open" Command="{x:Bind ViewModel.EntryViewExternalCommand}">
+                                            <MenuFlyoutItem.Icon>
+                                                <PathIcon Margin="0,0,0,0">
+                                                    <PathIcon.Data>
+                                                        M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z
+                                                    </PathIcon.Data>
+                                                </PathIcon>
+                                            </MenuFlyoutItem.Icon>
+                                        </MenuFlyoutItem>
+
+                                    </MenuFlyout>
+                                </ListView.Resources>
+                                <ListView.ItemContainerStyle>
+                                    <Style TargetType="controls:ListViewItem">
+                                        <Setter Property="ContextFlyout" Value="{StaticResource ListItemContextMenu}"/>
+                                    </Style>
+                                </ListView.ItemContainerStyle>
                                 <ListView.ItemTemplate>
                                     <DataTemplate x:DataType="model:EntryItem">
-                                        <Grid x:Name="itemThumbnail" DoubleTapped="ListViewEntryItem_DoubleTappedAsync">
+                                        <Grid x:Name="itemThumbnail" DoubleTapped="ListViewEntryItem_DoubleTappedAsync" RightTapped="ListViewEntryItem_RightTapped">
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="*"/>
                                                 <RowDefinition Height="*"/>
@@ -392,11 +532,13 @@
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
 
-                                            <PathIcon Grid.RowSpan="3" Data="{x:Bind PathIcon, Mode=OneWay}" Width ="24" Height="24" Margin="6" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.4"></PathIcon>
-                                            
-                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind Name}" x:Phase="1" Style="{ThemeResource BaseTextBlockStyle}" Margin="12,6,0,0" Opacity="0.9"/>
-                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind Author}" x:Phase="2" Style="{ThemeResource BodyTextBlockStyle}" Margin="12,0,0,0" Opacity=".8"/>
-                                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind PublishedDateTimeFormated}" x:Phase="2" Style="{ThemeResource CaptionTextBlockStyle}" Margin="12,0,0,6" Opacity=".6"/>
+                                            <Viewbox Grid.RowSpan="3" Width ="20" Height="20">
+                                                <PathIcon Data="{x:Bind PathIcon, Mode=OneWay}" Width ="24" Height="24" Margin="6" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.4"></PathIcon>
+                                            </Viewbox>
+
+                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind Name}" x:Phase="1" Style="{ThemeResource BaseTextBlockStyle}" FontSize="{StaticResource NormalFontSize}" Margin="12,6,0,0" Opacity="0.8"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind Author}" x:Phase="2" Style="{ThemeResource BodyTextBlockStyle}" FontSize="{StaticResource NormalFontSize}" Margin="12,0,0,0" Opacity=".7"/>
+                                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind PublishedDateTimeFormated}" x:Phase="2" Style="{ThemeResource CaptionTextBlockStyle}" FontSize="{StaticResource SmallFontSize}" Margin="12,0,0,6" Opacity=".6"/>
 
                                         </Grid>
                                     </DataTemplate>
@@ -404,14 +546,11 @@
                             </ListView>
 
                         </Grid>
-                        
                     </Border>
 
                     <!-- Details pane -->
                     <Border x:Name="DetailsPane" Grid.Row="0" Grid.Column="1" Background="{ThemeResource NavigationViewContentBackground}" Visibility="{x:Bind ViewModel.IsEntryDetailPaneVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}" Margin="0" CornerRadius="{ThemeResource NavigationViewContentChildGridCornerRadius}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
-
                         <Grid>
-
                             <ScrollViewer>
 
                                 <StackPanel Margin="24,12,24,24" Visibility="{x:Bind ViewModel.IsEntryDetailVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
@@ -424,35 +563,43 @@
                                             </Canvas>
                                         </Viewbox>
 
-                                        <StackPanel x:Name="title">
+                                        <StackPanel>
 
+                                            <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Name, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" Style="{ThemeResource TitleTextBlockStyle}" FontSize="{StaticResource LargeFontSize}" Opacity="0.9"/>
 
-                                            <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Name, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" Style="{ThemeResource TitleTextBlockStyle}" />
-                                            <!--
-                                        <TextBlock Text="Status" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                        <TextBlock Text="-" Style="{StaticResource DetailBodyBaseMediumStyle}" />
--->
-                                            <TextBlock Text="Author" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                            <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Author, Mode=OneWay}" Style="{StaticResource DetailBodyBaseMediumStyle}" />
+                                            <StackPanel>
+                                                <TextBlock Text="Author" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
+                                                <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Author, Mode=OneWay}" Style="{StaticResource DetailBodyBaseMediumStyle}" />
+                                            </StackPanel>
 
-                                            <TextBlock Text="Publisher" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                            <TextBlock Text="-" Style="{StaticResource DetailBodyBaseMediumStyle}" />
+                                            <StackPanel>
+                                                <TextBlock Text="Publisher" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
+                                                <TextBlock Text="-" Style="{StaticResource DetailBodyBaseMediumStyle}" />
+                                            </StackPanel>
 
-                                            <TextBlock Text="Published date" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                            <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.PublishedDateTimeFormated, Mode=OneWay}" Style="{StaticResource DetailBodyBaseMediumStyle}" />
+                                            <StackPanel>
+                                                <TextBlock Text="Published date" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
+                                                <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.PublishedDateTimeFormated, Mode=OneWay}" Style="{StaticResource DetailBodyBaseMediumStyle}" />
+                                            </StackPanel>
 
-                                            <TextBlock Text="Category" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                            <TextBlock Text="-" Style="{StaticResource DetailBodyBaseMediumStyle}" />
+                                            <StackPanel>
+                                                <TextBlock Text="Category" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
+                                                <TextBlock Text="-" Style="{StaticResource DetailBodyBaseMediumStyle}" />
+                                            </StackPanel>
 
-                                            <TextBlock Text="Summary" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource SubtitleTextBlockStyle}" />
-                                            <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind ViewModel.SelectedListViewItem.Summary, Mode=OneWay}" />
+                                            <StackPanel>
+                                                <TextBlock Text="Summary" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource SubtitleTextBlockStyle}" Opacity="0.9"/>
+                                                <TextBlock Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind ViewModel.SelectedListViewItem.Summary, Mode=OneWay}" />
+                                            </StackPanel>
 
-                                            <TextBlock Text="Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource SubtitleTextBlockStyle}" />
-                                            <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Content, Mode=OneWay}"  Visibility="{x:Bind ViewModel.IsContentText, Mode=OneWay}" Margin="{StaticResource MediumBottomMargin}" Style="{ThemeResource BodyTextBlockStyle}"/>
+                                            <StackPanel>
+                                                <TextBlock Text="Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource SubtitleTextBlockStyle}" Opacity="0.9"/>
+                                                <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Content, Mode=OneWay}" Visibility="{x:Bind ViewModel.IsContentText, Mode=OneWay}" Margin="{StaticResource MediumBottomMargin}" Style="{ThemeResource BodyTextBlockStyle}"/>
+                                            </StackPanel>
 
                                             <StackPanel Visibility="{x:Bind ViewModel.IsContentHTML, Mode=OneWay}">
 
-                                                <TextBlock Text="(The content type is HTML)"></TextBlock>
+                                                <TextBlock Text="(The content type is HTML)" Margin="{StaticResource SmallTopMargin}"></TextBlock>
 
                                                 <StackPanel Orientation="Horizontal">
                                                     <!--
@@ -466,7 +613,7 @@
                                                     </AppBarButton.Icon>
                                                 </AppBarButton>
 -->
-                                                    <AppBarButton Label="Open" Command="{x:Bind ViewModel.EntryViewExternalCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
+                                                    <AppBarButton Label="Open" Command="{x:Bind ViewModel.EntryViewExternalCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" >
                                                         <AppBarButton.Icon>
                                                             <PathIcon>
                                                                 <PathIcon.Data>
@@ -488,15 +635,12 @@
                                 </StackPanel>
 
                             </ScrollViewer>
-
                         </Grid>
-                        
                     </Border>
-                
+
                 </Grid>
 
             </Grid>
-
         </Grid>
 
         <!-- Debug pane -->

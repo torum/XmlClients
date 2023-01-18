@@ -27,7 +27,7 @@ public class ShellViewModel : ObservableRecipient
     }
 
 
-    public ICommand MenuViewsMainCommand
+    public ICommand MenuViewFeedsCommand
     {
         get;
     }
@@ -64,7 +64,7 @@ public class ShellViewModel : ObservableRecipient
 
         MenuFileExitCommand = new RelayCommand(OnMenuFileExit);
         MenuSettingsCommand = new RelayCommand(OnMenuSettings);
-        MenuViewsMainCommand = new RelayCommand(OnMenuViewsMain);
+        MenuViewFeedsCommand = new RelayCommand(OnMenuViewFeeds);
 
     }
 
@@ -90,6 +90,6 @@ public class ShellViewModel : ObservableRecipient
     private void OnMenuSettings() => NavigationService.NavigateTo(typeof(SettingsViewModel).FullName!);
 
 
-    private void OnMenuViewsMain() => NavigationService.NavigateTo(typeof(FeedsViewModel).FullName!);
+    private void OnMenuViewFeeds() => NavigationService.NavigateTo(typeof(FeedsViewModel).FullName!);
 
 }

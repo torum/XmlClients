@@ -1,32 +1,25 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading;
+﻿using System.Collections.ObjectModel;
 using System.Windows.Input;
-using System.Xml;
-using AngleSharp.Html.Dom;
 using BlogWrite.Contracts.Services;
 using BlogWrite.Contracts.ViewModels;
 using BlogWrite.Models;
 using BlogWrite.Models.Clients;
-using BlogWrite.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-
-using Microsoft.UI.Xaml;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
+using Windows.System;
 
 namespace BlogWrite.ViewModels;
 
-public class FeedsViewModel : ObservableRecipient, INavigationAware
+public partial class FeedsViewModel : ObservableRecipient, INavigationAware
 {
 
     #region == Service Treeview ==
-    
-    private readonly ServiceTreeBuilder _services = new ServiceTreeBuilder();
+
+    private readonly ServiceTreeBuilder _services = new();
 
     public ObservableCollection<NodeTree> Services
     {
@@ -119,11 +112,11 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                     }
                 }
 
-                
 
 
-                    // NodeFeed is selected
-                    if (_selectedTreeViewItem is NodeFeed nfeed)
+
+                // NodeFeed is selected
+                if (_selectedTreeViewItem is NodeFeed nfeed)
                 {
                     // Reset view...
                     nfeed.IsDisplayUnarchivedOnly = true;
@@ -186,7 +179,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         get => _selectedTreeViewNode;
         set => SetProperty(ref _selectedTreeViewNode, value);
     }
-    
+
     private string _selectedServiceName = "";
     public string SelectedServiceName
     {
@@ -198,13 +191,16 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     #region == Entry ListViews ==
 
-    private ObservableCollection<EntryItem> _entries = new ObservableCollection<EntryItem>();
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(EntryArchiveAllCommand))]
+    private ObservableCollection<EntryItem> _entries = new();
+    /*
     public ObservableCollection<EntryItem> Entries
     {
-
         get => _entries;
         set => SetProperty(ref _entries, value);
     }
+    */
 
     private EntryItem? _selectedListViewItem = null;
     public EntryItem? SelectedListViewItem
@@ -212,7 +208,10 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         get => _selectedListViewItem;
         set
         {
-            SetProperty(ref _selectedListViewItem, value);
+            if (SetProperty(ref _selectedListViewItem, value))
+            {
+                EntryViewExternalCommand.NotifyCanExecuteChanged();
+            }
 
             if (_selectedListViewItem == null)
             {
@@ -455,67 +454,12 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    #region == Commands ==
+    // db
+    private readonly DataAccess dataAccessModule = new();
+    private readonly ReaderWriterLockSlim _readerWriterLock = new();
 
-    public ICommand FeedAddCommand
-    {
-        get;
-    }
-    public ICommand FeedEditCommand
-    {
-        get;
-    }
-
-    public ICommand FeedRemoveCommand
-    {
-        get;
-    }
-
-    public ICommand FeedUpdateAllCommand
-    {
-        get;
-    }
-
-    public ICommand FeedUpdateCommand
-    {
-        get;
-    }
-
-    public ICommand FolderAddCommand
-    {
-        get;
-    }
-
-    public ICommand OpmlImportCommand
-    {
-        get;
-    }
-    public ICommand OpmlExportCommand
-    {
-        get;
-    }
-
-    public ICommand EntryArchiveAllCommand
-    {
-        get;
-    }
-
-    public ICommand EntryViewInternalCommand
-    {
-        get;
-    }
-
-    public ICommand EntryViewExternalCommand
-    {
-        get;
-    }
-
-    public ICommand DetailsPaneShowHideCommand
-    {
-        get;
-    }
-
-    #endregion
+    // http
+    private readonly FeedClient _feedClient = new();
 
     public FeedsViewModel(INavigationService navigationService)
     {
@@ -523,21 +467,8 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         NavigationService = navigationService;
         NavigationService.Navigated += OnNavigated;
 
-        // Init commands.
-        FeedAddCommand = new RelayCommand(OnFeedAdd);
-        FeedEditCommand = new RelayCommand(OnFeedEdit);
-        FeedRemoveCommand = new RelayCommand(OnFeedRemove);
-        FeedUpdateAllCommand = new RelayCommand(OnFeedUpdateAll);
-        FeedUpdateCommand = new RelayCommand(OnFeedUpdate);
-        FolderAddCommand = new RelayCommand(OnFolderAdd);
-        OpmlImportCommand = new RelayCommand(OnOpmlImportCommand);
-        OpmlExportCommand = new RelayCommand(OnOpmlExportCommand);
-        EntryArchiveAllCommand = new RelayCommand(OnEntryArchiveAll);
-        EntryViewInternalCommand = new RelayCommand(OnEntryViewInternal);
-        EntryViewExternalCommand = new RelayCommand(OnEntryViewExternal);
-        DetailsPaneShowHideCommand = new RelayCommand(OnDetailsPaneShowHide);
-
         // Load searvice tree.
+        // TODO: make it service.
         if (File.Exists(App.AppDataFolder + System.IO.Path.DirectorySeparatorChar + "Searvies.xml"))
         {
             var doc = new System.Xml.XmlDocument();
@@ -555,6 +486,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         }
 
         // Init database.
+        // TODO: make it service.
         try
         {
             var databaseFileFolerPath = App.AppDataFolder;
@@ -564,6 +496,8 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
             var res = dataAccessModule.InitializeDatabase(dataBaseFilePath);
             if (res.IsError)
             {
+                // TODO:
+
                 //MainError = res.Error;
                 //IsShowMainErrorMessage = true;
 
@@ -607,13 +541,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     }
 
-    // db
-    private readonly DataAccess dataAccessModule = new();
-    private readonly ReaderWriterLockSlim _readerWriterLock = new();
-    // http
-    private readonly FeedClient _feedClient = new();
-
-    #region == INavigationService contract ==
+    #region == INavigationService ==
 
     private void OnNavigated(object sender, NavigationEventArgs e) => IsBackEnabled = NavigationService.CanGoBack;
 
@@ -627,6 +555,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     public void OnNavigatedFrom()
     {
+
     }
 
     #endregion
@@ -671,21 +600,6 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
             App.CurrentDispatcherQueue?.TryEnqueue(() =>
             {
                 feed.IsBusy = true;
-
-                //Debug.WriteLine("LoadEntries: " + feed.Name);
-                /*
-                IsWorking = true;
-
-                if (forceUnread)
-                    fnd.IsDisplayUnarchivedOnly = true;
-                */
-
-                //feed.EntryCount = 0;
-                /*
-                if (feed.Status != NodeFeed.DownloadStatus.error)
-                    feed.Status = NodeFeed.DownloadStatus.loading;
-                */
-
             });
 
             var res = await Task.FromResult(SelectEntriesByFeedIdLock(feed.Id, feed.IsDisplayUnarchivedOnly));
@@ -704,12 +618,9 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                         IsShowFeedError = true;
                     }
 
-                    //IsWorking = false;
-                    
                     feed.Status = NodeFeed.DownloadStatus.error;
 
                     Debug.WriteLine(feed.ErrorDatabase.ErrText + ", " + feed.ErrorDatabase.ErrDescription + ", " + feed.ErrorDatabase.ErrPlace);
-
 
                     feed.IsBusy = false;
                 });
@@ -745,23 +656,13 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                         //Entries = res.SelectedEntries;
                         // COPY!! 
                         Entries = new ObservableCollection<EntryItem>(res.SelectedEntries);
-
-                        //if (Entries.Count > 0)
-                        //    ResetListviewPosition?.Invoke(this, 0);
-
                     }
 
                     feed.IsBusy = false;
                 });
-                /*
-                if (nd == SelectedNode)
-                    if (res.SelectedEntries.Count > 0)
-                        await LoadImagesAsync(nd, res.SelectedEntries);
-                */
-                //feed.List = 
+
                 return res.SelectedEntries;
             }
-
         }
         else if (nt is NodeFolder folder)
         {
@@ -818,7 +719,6 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                         //Entries = res.SelectedEntries;
                         // COPY!!
                         Entries = new ObservableCollection<EntryItem>(res.SelectedEntries);
-
                     }
 
                     folder.IsBusy = false;
@@ -826,8 +726,6 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
                 return res.SelectedEntries;
             }
-
-
         }
 
         return new List<EntryItem>();
@@ -857,6 +755,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
     #region == Update feed or folder ==
 
+    // update specific feed or feeds in a folder.
     private async void UpdateFeed()
     {
         if (_selectedTreeViewItem is null)
@@ -868,6 +767,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         }
     }
 
+    // gets entories recursively and save to db.
     private async Task GetEntriesAsync(NodeTree nt)
     {
         if (nt == null)
@@ -937,7 +837,6 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                         IsShowFeedError = false;
                     }
 
-                    //fnd.Status = NodeFeed.DownloadStatus.saving;
                     feed.Status = NodeFeed.DownloadStatus.normal;
 
                     feed.LastUpdate = DateTime.Now;
@@ -946,47 +845,24 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                 if (resEntries.Entries.Count > 0)
                 {
                     await SaveEntryListAsync(resEntries.Entries, feed);
-                    /*
-                    App.CurrentDispatcherQueue?.TryEnqueue(() =>
-                    {
-                        feed.List = new ObservableCollection<EntryItem>(resEntries.Entries);
-
-                        //feed.EntryNewCount = feed.List.Count;
-                        UpdateNewEntryCount(feed, feed.List.Count);
-
-                        if (feed == SelectedTreeViewItem)
-                            Entries = feed.List;
-                    });
-                    */
                 }
             }
         }
         else if (nt is NodeFolder folder)
         {
-            // TODO:
-
-
             //await Task.Run(() => UpdateAllFeedsRecursiveLoop(folder.Children));
             UpdateAllFeedsRecursiveLoop(folder);
-
-            // If selected
-            if (folder == SelectedTreeViewItem)
-            {
-                //await LoadEntriesAsync(nt);
-            }
         }
     }
 
-    #endregion
-
-    #region == Update all feeds ==
-
+    // update all feeds.
     private void UpdateAllFeeds()
     {
         //Task.Run(() => UpdateAllFeedsRecursiveLoop(_services));
         UpdateAllFeedsRecursiveLoop(_services);
     }
 
+    // update all feeds recursive loop.
     private void UpdateAllFeedsRecursiveLoop(NodeTree nt)
     {
         if (nt.Children.Count > 0)
@@ -1017,16 +893,13 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                                 {
                                     await SaveEntryListAsync(list, feed).ConfigureAwait(false);
 
-
                                     await Task.Delay(100);
-                                    ////
+
+                                    // 
                                     CheckParentSelectedAndLoadEntriesIfNotBusy(feed);
                                 }
                             }
                         });
-                        
-
-
                     }
                 }
 
@@ -1040,7 +913,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         }
     }
 
-    // Gets entries from web and return the list.
+    // gets entries from web and return the list.
     private async Task<List<EntryItem>> GetEntryListAsync(NodeFeed feed)
     {
         var res = new List<EntryItem>();
@@ -1149,7 +1022,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         }
     }
 
-    // Save them to database.
+    // save them to database.
     private async Task<List<EntryItem>> SaveEntryListAsync(List<EntryItem> list, NodeFeed feed)
     {
         var res = new List<EntryItem>();
@@ -1607,6 +1480,7 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
                     }
 
                     //IsWorking = false;
+                    EntryArchiveAllCommand.NotifyCanExecuteChanged();
                 });
                 /*
                 if (nd == SelectedNode)
@@ -1658,6 +1532,8 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
             App.CurrentDispatcherQueue?.TryEnqueue(() =>
             {
                 //IsWorking = false;
+
+                EntryArchiveAllCommand.NotifyCanExecuteChanged();
             });
         }
     }
@@ -1695,7 +1571,6 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
             }
         }
     }
-
 
     private void ArchiveThis(NodeTree nd, FeedEntryItem entry)
     {
@@ -1843,12 +1718,12 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         */
     }
 
-
     #endregion
 
-    #region == Feed add command methods ==
+    #region == Feed treeview command methods ==
 
-    private void OnFeedAdd() => NavigationService.NavigateTo(typeof(FeedAddViewModel).FullName!, null);
+    [RelayCommand]
+    private void FeedAdd() => NavigationService.NavigateTo(typeof(FeedAddViewModel).FullName!, null);
 
     public void AddFeed(FeedLink feedlink)
     {
@@ -1871,9 +1746,6 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
 
         a.SetClient = _feedClient;
         a.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
-        /*
-
-        */
 
         if (SelectedTreeViewItem is NodeFolder)
         {
@@ -1918,18 +1790,92 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         return false;
     }
 
-    #endregion
+    [RelayCommand(CanExecute = nameof(CanNodeEdit))]
+    private void NodeEdit()
+    {
+        if (SelectedTreeViewItem is null)
+            return;
 
-    private void OnFeedEdit() => NavigationService.NavigateTo(typeof(FeedEditViewModel).FullName!, null);
+        if ((SelectedTreeViewItem is NodeFeed))
+        {
+            NavigationService.NavigateTo(typeof(FeedEditViewModel).FullName!, SelectedTreeViewItem);
+        }
+        else if (SelectedTreeViewItem is NodeFolder)
+        {
+            NavigationService.NavigateTo(typeof(FolderEditViewModel).FullName!, SelectedTreeViewItem);
+        }
+    }
 
-    private void OnFolderAdd()
+    private bool CanNodeEdit()
+    {
+        return SelectedTreeViewItem is not null;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanFolderAdd))]
+    private void FolderAdd()
     {
         //
     }
 
+    private bool CanFolderAdd()
+    {
+        return SelectedTreeViewItem is not null;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanFeedRemove))]
+    private void FeedRemove()
+    {
+        // TODO: remove data from database...
+
+        if (SelectedTreeViewItem != null)
+        {
+            if (SelectedTreeViewItem.Parent != null)
+            {
+                SelectedTreeViewItem.Parent.Children.Remove(SelectedTreeViewItem);
+            }
+            else
+            {
+                Services.Remove(SelectedTreeViewItem);
+            }
+
+            SaveServiceXml();
+        }
+    }
+
+    private bool CanFeedRemove()
+    {
+        return SelectedTreeViewItem is not null;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanFeedRefreshAll))]
+    private void FeedRefreshAll()
+    {
+        UpdateAllFeeds();
+    }
+
+    private bool CanFeedRefreshAll()
+    {
+        return Services.Count > 0;
+
+    }
+
+    [RelayCommand(CanExecute = nameof(CanFeedRefresh))]
+    private void FeedRefresh()
+    {
+        UpdateFeed();
+    }
+
+    private bool CanFeedRefresh()
+    {
+        return SelectedTreeViewItem is not null;
+    }
+
+    #endregion
+
     #region == Feed OPML ex/import command methods ==
 
-    public void OnOpmlImportCommand()
+    [RelayCommand(CanExecute = nameof(CanOpmlImport))]
+    public void OpmlImportCommand()
     {
         /*
         var filepath = _openDialogService.GetOpenOpmlFileDialog("Import OPML");
@@ -1983,7 +1929,13 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         */
     }
 
-    public void OnOpmlExportCommand()
+    private bool CanOpmlImport()
+    {
+        return true;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanOpmlExport))]
+    public void OpmlExportCommand()
     {
         /*
         Opml opmlWriter = new();
@@ -2001,47 +1953,19 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         */
     }
 
-    #endregion
-
-    #region == Feed other command methods ==
-
-    private void OnFeedRemove()
+    private bool CanOpmlExport()
     {
-        // TODO: remove data from database...
-
-
-        if (SelectedTreeViewItem != null)
-        {
-            if (SelectedTreeViewItem.Parent != null)
-            {
-                SelectedTreeViewItem.Parent.Children.Remove(SelectedTreeViewItem);
-            }
-            else
-            {
-                Services.Remove(SelectedTreeViewItem);
-            }
-
-            SaveServiceXml();
-        }
-    }
-
-    private void OnFeedUpdateAll()
-    {
-        UpdateAllFeeds();
-    }
-
-    private void OnFeedUpdate()
-    {
-        UpdateFeed();
+        return true;
     }
 
     #endregion
 
-    #region == Entry command methods  ==
+    #region == Entry listview command methods  ==
 
-    private void OnEntryArchiveAll()
+    [RelayCommand(CanExecute = nameof(CanEntryArchiveAll))]
+    private void EntryArchiveAll()
     {
-        if (SelectedTreeViewItem == null)
+        if (SelectedTreeViewItem is null)
             return;
 
         if (!((SelectedTreeViewItem is NodeFeed) || (SelectedTreeViewItem is NodeFolder)))
@@ -2050,28 +1974,60 @@ public class FeedsViewModel : ObservableRecipient, INavigationAware
         Task.Run(() => ArchiveAllAsync(SelectedTreeViewItem));
     }
 
-    private void OnEntryViewInternal()
+    private bool CanEntryArchiveAll()
     {
-        if (SelectedListViewItem != null)
-            NavigationService.NavigateTo(typeof(EntryDetailsViewModel).FullName!, SelectedListViewItem);
+        if (SelectedTreeViewItem is null)
+            return false;
+
+        if (!((SelectedTreeViewItem is NodeFeed) || (SelectedTreeViewItem is NodeFolder)))
+            return false;
+
+        if (Entries.Count <= 0)
+            return false;
+
+        return true;
     }
 
-    private async void OnEntryViewExternal()
+    [RelayCommand(CanExecute = nameof(CanEntryViewInternal))]
+    private void EntryViewInternal()
     {
-        if (SelectedListViewItem != null)
+        if (SelectedListViewItem is not null)
+            NavigationService.NavigateTo(typeof(EntryDetailsViewModel).FullName!, SelectedListViewItem);
+    }
+    private bool CanEntryViewInternal()
+    {
+        return SelectedListViewItem is not null;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanEntryViewExternal))]
+    private async void EntryViewExternal()
+    {
+        if (SelectedListViewItem is not null)
         {
-            if (SelectedListViewItem.AltHtmlUri != null)
+            if (SelectedListViewItem.AltHtmlUri is not null)
             {
                 await Windows.System.Launcher.LaunchUriAsync(SelectedListViewItem.AltHtmlUri);
             }
         }
     }
 
+    private bool CanEntryViewExternal()
+    {
+        if (SelectedListViewItem is null)
+            return false;
+
+        if (SelectedListViewItem.AltHtmlUri is null)
+            return false;
+
+        return true;
+    }
+
     #endregion
 
     #region == Other command methods ==
 
-    private void OnDetailsPaneShowHide()
+    [RelayCommand]
+    private void DetailsPaneShowHide()
     {
         IsEntryDetailPaneVisible = !IsEntryDetailPaneVisible;
     }

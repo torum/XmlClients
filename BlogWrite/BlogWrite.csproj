@@ -14,16 +14,10 @@
 	<UseWinUI>true</UseWinUI>
     <EnableMsixTooling>true</EnableMsixTooling>
 	  
-	  <!--  -->
-	  <!--  
-      -->
-	  <!--
-	  
-	  -->
 	  <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
 	  
 	  <!--  -->
-	  <AssemblyVersion>1.0.0.3</AssemblyVersion>
+	  <AssemblyVersion>1.0.0.4</AssemblyVersion>
 	  <FileVersion>$(AssemblyVersion)</FileVersion>
 	  <Version>$(AssemblyVersion)</Version>
   </PropertyGroup>
@@ -34,6 +28,7 @@
     <None Remove="Views\EntryDetailsPage.xaml" />
     <None Remove="Views\FeedAddPage.xaml" />
     <None Remove="Views\FeedEditPage.xaml" />
+    <None Remove="Views\FolderEditPage.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -69,6 +64,10 @@
     <None Update="Assets\Icons\rss.svg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <Page Update="Views\FolderEditPage.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Views\FeedEditPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>

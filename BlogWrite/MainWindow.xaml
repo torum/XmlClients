@@ -6,9 +6,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:windowex="using:WinUIEx"
-    MinWidth="500"
-    MinHeight="500"
-     Width="1024" Height="768"
+    MinWidth="700"
+    MinHeight="400"
     PersistenceId="MainWindowPersistanceId"
     mc:Ignorable="d">
     <windowex:WindowEx.Backdrop>
