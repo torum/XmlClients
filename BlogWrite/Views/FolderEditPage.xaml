@@ -39,7 +39,7 @@
 
                     <StackPanel Margin="12,6,0,0">
                         <TextBlock Text="Name:" Style="{ThemeResource BodyTextBlockStyle}" Margin="{StaticResource XSmallTopMargin}"/>
-                        <TextBox Text="{x:Bind ViewModel.Name, Mode=TwoWay}" Margin="{StaticResource XSmallTopMargin}" Width="300" MaxWidth="800"></TextBox>
+                        <TextBox Text="{x:Bind ViewModel.Name, Mode=TwoWay}" Margin="{StaticResource XSmallTopMargin}" Width="300" MaxWidth="800" HorizontalAlignment="Left"></TextBox>
                     </StackPanel>
 
                     <StackPanel Margin="12,6,0,0">
@@ -47,8 +47,6 @@
                     </StackPanel>
                     
                 </StackPanel>
-
-
 
             </StackPanel>
             

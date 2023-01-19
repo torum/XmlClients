@@ -12,6 +12,13 @@ namespace BlogWrite.Views
     {
         protected override void OnDragEnter(DragEventArgs e)
         {
+            if (FeedsPage.DraggedItems.Count <= 0)
+            {
+                e.Handled = true;
+                base.OnDragEnter(e);
+                return;
+            }
+
             var draggedItem = FeedsPage.DraggedItems[0];
             var draggedOverItem = DataContext as NodeTree;
 
@@ -25,6 +32,14 @@ namespace BlogWrite.Views
 
         protected override void OnDragOver(DragEventArgs e)
         {
+            if (FeedsPage.DraggedItems.Count <= 0)
+            {
+                e.Handled = true;
+                base.OnDragOver(e);
+                e.AcceptedOperation = DataPackageOperation.None;
+                return;
+            }
+
             var draggedItem = FeedsPage.DraggedItems[0];
             var draggedOverItem = DataContext as NodeTree;
             /*
@@ -95,6 +110,14 @@ namespace BlogWrite.Views
         }
         protected override void OnDrop(DragEventArgs e)
         {
+            if (FeedsPage.DraggedItems.Count <= 0)
+            {
+                e.Handled = true; 
+                e.AcceptedOperation = DataPackageOperation.None;
+                base.OnDrop(e);
+                return;
+            }
+
             var draggedItem = FeedsPage.DraggedItems[0];
             var draggedOverItem = DataContext as NodeTree;
 

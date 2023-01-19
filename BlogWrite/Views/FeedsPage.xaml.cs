@@ -15,6 +15,8 @@ using AngleSharp.Dom;
 using Microsoft.UI.Xaml;
 using Windows.ApplicationModel.DataTransfer;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Windows.Storage.Pickers;
+using WinRT.Interop;
 
 namespace BlogWrite.Views;
 
@@ -166,8 +168,4 @@ public sealed partial class FeedsPage : Page
         }
     }
 
-    private void Page_Unloaded(object sender, RoutedEventArgs e)
-    {
-
-    }
 }

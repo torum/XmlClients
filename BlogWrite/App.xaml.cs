@@ -21,11 +21,6 @@ namespace BlogWrite;
 
 public partial class App : Application
 {
-    // The .NET Generic Host provides dependency injection, configuration, logging, and other services.
-    // https://docs.microsoft.com/dotnet/core/extensions/generic-host
-    // https://docs.microsoft.com/dotnet/core/extensions/dependency-injection
-    // https://docs.microsoft.com/dotnet/core/extensions/configuration
-    // https://docs.microsoft.com/dotnet/core/extensions/logging
     public IHost Host
     {
         get;
@@ -84,6 +79,9 @@ public partial class App : Application
             services.AddSingleton<INavigationService, NavigationService>();
             services.AddTransient<INavigationViewService, NavigationViewService>();
 
+            services.AddTransient<IFileDialogService, FileDialogService>();
+            
+
             // Core Services
             services.AddSingleton<ISampleDataService, SampleDataService>();
             services.AddSingleton<IFileService, FileService>();
@@ -99,6 +97,8 @@ public partial class App : Application
             services.AddTransient<FeedEditPage>();
             services.AddTransient<FolderEditViewModel>();
             services.AddTransient<FolderEditPage>();
+            services.AddTransient<FolderAddViewModel>();
+            services.AddTransient<FolderAddPage>();
             services.AddSingleton<FeedsViewModel>();
             services.AddSingleton<FeedsPage>();
             services.AddSingleton<ShellPage>();

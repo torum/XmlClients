@@ -139,14 +139,12 @@ public class DataAccess
         return res;
     }
 
-    public SqliteDataAccessSelectResultWrapper SelectEntriesByFeedId(string feedId, bool UnarchivedOnly = true)
+    public SqliteDataAccessSelectResultWrapper SelectEntriesByFeedId(string feedId, bool IsUnarchivedOnly = true)
     {
         SqliteDataAccessSelectResultWrapper res = new SqliteDataAccessSelectResultWrapper();
 
         if (string.IsNullOrEmpty(feedId))
             return res;
-
-        bool IsUnreadOnly = UnarchivedOnly;
 
         try
         {
@@ -156,13 +154,13 @@ public class DataAccess
 
                 using (var cmd = connection.CreateCommand())
                 {
-                    if (IsUnreadOnly)
+                    if (IsUnarchivedOnly)
                     {
                         cmd.CommandText = String.Format("SELECT * FROM Entry WHERE Feed_ID = '{0}' AND IsArchived = '{1}' ORDER BY Published DESC LIMIT 1000", feedId, bool.FalseString);
                     }
                     else
                     {
-                        cmd.CommandText = String.Format("SELECT * FROM Entry WHERE Feed_ID = '{0}' ORDER BY Published DESC LIMIT 1000", feedId);
+                        cmd.CommandText = String.Format("SELECT * FROM Entry WHERE Feed_ID = '{0}' ORDER BY Published DESC LIMIT 10000", feedId);
                     }
 
                     using (var reader = cmd.ExecuteReader())
@@ -304,7 +302,7 @@ public class DataAccess
         return res;
     }
 
-    public SqliteDataAccessSelectResultWrapper SelectEntriesByFeedIds(List<string> feedIds)
+    public SqliteDataAccessSelectResultWrapper SelectEntriesByFeedIds(List<string> feedIds, bool IsUnarchivedOnly = true)
     {
         var res = new SqliteDataAccessSelectResultWrapper();
         
@@ -326,7 +324,17 @@ public class DataAccess
             middle = middle + String.Format("Feed_ID = '{0}' ", asdf);
         }
 
-        string after = string.Format(") AND IsArchived = '{0}' ORDER BY Published DESC LIMIT 1000", bool.FalseString);
+        //string after = string.Format(") AND IsArchived = '{0}' ORDER BY Published DESC LIMIT 1000", bool.FalseString);
+        string after;
+        if (IsUnarchivedOnly)
+        {
+            after = string.Format(") AND IsArchived = '{0}' ORDER BY Published DESC LIMIT 1000", bool.FalseString);
+        }
+        else
+        {
+            after = string.Format(") ORDER BY Published DESC LIMIT 10000");
+        }
+            
 
         //Debug.WriteLine(before + middle + after);
 

@@ -16,8 +16,7 @@
 	  
 	  <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
 	  
-	  <!--  -->
-	  <AssemblyVersion>1.0.0.4</AssemblyVersion>
+	  <AssemblyVersion>1.0.0.5</AssemblyVersion>
 	  <FileVersion>$(AssemblyVersion)</FileVersion>
 	  <Version>$(AssemblyVersion)</Version>
   </PropertyGroup>
@@ -28,6 +27,7 @@
     <None Remove="Views\EntryDetailsPage.xaml" />
     <None Remove="Views\FeedAddPage.xaml" />
     <None Remove="Views\FeedEditPage.xaml" />
+    <None Remove="Views\FolderAddPage.xaml" />
     <None Remove="Views\FolderEditPage.xaml" />
   </ItemGroup>
 
@@ -36,8 +36,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AngleSharp.Xml" Version="0.17.0" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0" />
+    <PackageReference Include="AngleSharp.Xml" Version="1.0.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.1.0" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Animations" Version="7.1.2" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Controls" Version="7.1.2" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
@@ -64,6 +64,10 @@
     <None Update="Assets\Icons\rss.svg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <Page Update="Views\FolderAddPage.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Views\FolderEditPage.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>

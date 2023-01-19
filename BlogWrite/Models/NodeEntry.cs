@@ -138,15 +138,45 @@ public abstract class EntryItem : Node
     {
         get
         {
-            var culture = System.Globalization.CultureInfo.CurrentCulture;//BlogWrite.Properties.Resources.Culture;//
-            return _published.ToString(culture);
+            if (_published != default)
+            {
+                return _published.ToString(System.Globalization.CultureInfo.CurrentCulture);
+            }
+            else
+            {
+                return "-";
+            }
         }
     }
 
-    private string _author ="";
+    private DateTime _updated = default;
+    public DateTime Updated
+    {
+        get => _updated;
+        set
+        {
+            if (_updated == value)
+                return;
+
+            _updated = value;
+            NotifyPropertyChanged(nameof(Updated));
+        }
+    }
+
+    private string _author = "-";
     public string Author
     {
-        get => _author;
+        get
+        {
+            if (string.IsNullOrEmpty(_author))
+            {
+                return "-";
+            }
+            else
+            {
+                return _author;
+            }
+        }
         set
         {
             if (_author == value)
@@ -154,6 +184,31 @@ public abstract class EntryItem : Node
 
             _author = value;
             NotifyPropertyChanged(nameof(Author));
+        }
+    }
+
+    // not in spec. for internal/UI use.
+    private string _publisher = "";
+    public string Publisher
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(_publisher))
+            {
+                return "";
+            }
+            else
+            {
+                return "from " + _publisher;
+            }
+        }
+        set
+        {
+            if (_publisher == value)
+                return;
+
+            _publisher = value;
+            NotifyPropertyChanged(nameof(Publisher));
         }
     }
 

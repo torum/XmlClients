@@ -9,8 +9,7 @@
     xmlns:controls="using:Microsoft.UI.Xaml.Controls"
      Background="Transparent"
     NavigationCacheMode="Required"
-    mc:Ignorable="d"
-    Unloaded="Page_Unloaded">
+    mc:Ignorable="d">
     <Page.Resources>
         <Style TargetType="Page">
             <Setter Property="FontSize" Value="{StaticResource NormalFontSize}" />
@@ -122,7 +121,6 @@
         
         <!-- Left pane -->
         <Border Grid.Row="0" Grid.Column="0" Margin="0,0,0,0" CornerRadius="{ThemeResource NavigationViewContentChildGridCornerRadius}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
-
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -144,11 +142,11 @@
                         <CommandBar Grid.Column="0" IsOpen="False" DefaultLabelPosition="Bottom" Margin="0" OverflowButtonVisibility="Collapsed">
 
                         </CommandBar>
-                        
+
                         <StackPanel Grid.Column="0" Orientation="Horizontal">
-                            
+
                             <AppBarButton Label="Add" IsCompact="False"  Opacity="0.9">
-                                
+
                                 <AppBarButton.Icon>
                                     <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <PathIcon.Data>
@@ -196,7 +194,7 @@
                             </AppBarButton>
 
                             <AppBarButton Label="Refresh" IsCompact="False" Command="{x:Bind ViewModel.FeedRefreshAllCommand}" Opacity="0.9">
-                                
+
                                 <AppBarButton.Icon>
                                     <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <PathIcon.Data>
@@ -207,13 +205,13 @@
                                 <AppBarButton.KeyboardAccelerators>
                                     <KeyboardAccelerator Modifiers="Control" Key="R"/>
                                 </AppBarButton.KeyboardAccelerators>
-                                
+
                             </AppBarButton>
 
                         </StackPanel>
 
                         <CommandBar Grid.Column="1" IsOpen="False" DefaultLabelPosition="Bottom" Margin="0" Visibility="Collapsed">
-                            
+
                             <CommandBar.SecondaryCommands>
 
                                 <AppBarSeparator/>
@@ -224,7 +222,7 @@
                                 <AppBarButton Icon="Save" Label="Export" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" >
                                 </AppBarButton>
                             </CommandBar.SecondaryCommands>
-                            
+
                         </CommandBar>
 
                         <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
@@ -232,12 +230,12 @@
                             <AppBarButton Icon="More" Label="" IsCompact="False" HorizontalAlignment="Right" VerticalAlignment="Center" Opacity="0.9">
                                 <AppBarButton.Flyout>
                                     <MenuFlyout>
-                                        <MenuFlyoutItem Icon="Import" Text="Import" Opacity="0.9"></MenuFlyoutItem>
-                                        <MenuFlyoutItem Icon="Save" Text="Export" Opacity="0.9"></MenuFlyoutItem>
+                                        <MenuFlyoutItem Icon="Import" Text="Import" Opacity="0.9" Command="{x:Bind ViewModel.OpmlImportCommand, Mode=OneWay}"></MenuFlyoutItem>
+                                        <MenuFlyoutItem Icon="Save" Text="Export" Opacity="0.9" Command="{x:Bind ViewModel.OpmlExportCommand, Mode=OneWay}"></MenuFlyoutItem>
                                     </MenuFlyout>
                                 </AppBarButton.Flyout>
                             </AppBarButton>
-                            
+
                         </StackPanel>
 
                     </Grid>
@@ -245,11 +243,25 @@
                 </Border>
 
                 <!-- Feeds treeview -->
-                <TreeView Grid.Row="1" VerticalAlignment="Stretch" Background="{ThemeResource NavigationViewContentBackground}" x:Name="TreeViewControl" MinWidth="300" Width="330" MaxWidth="400" SelectionMode="Single" 
-                          AllowDrop="True" CanReorderItems="True" CanDragItems="True" DragItemsStarting="TreeView_DragItemsStarting" DragItemsCompleted="TreeView_DragItemsCompleted" 
-                                  IsRightTapEnabled="True"
-                                  IsDoubleTapEnabled="True" 
-                          ItemInvoked="TreeView_ItemInvoked" ItemsSource="{x:Bind ViewModel.Services, Mode=OneWay}" ItemTemplateSelector="{StaticResource ExplorerItemTemplateSelector}" SelectedItem="{x:Bind ViewModel.SelectedTreeViewItem, Mode=TwoWay}" SelectedNode="{x:Bind ViewModel.SelectedTreeViewNode, Mode=OneWay}" Margin="0,0,0,0">
+                <TreeView x:Name="TreeViewControl" Grid.Row="1"
+                          VerticalAlignment="Stretch" 
+                          Background="{ThemeResource NavigationViewContentBackground}" 
+                          MinWidth="300" Width="330" MaxWidth="400" 
+                          SelectionMode="Single" 
+                          AllowDrop="True" 
+                          CanReorderItems="True" 
+                          CanDragItems="True" 
+                          DragItemsStarting="TreeView_DragItemsStarting" 
+                          DragItemsCompleted="TreeView_DragItemsCompleted" 
+                          IsRightTapEnabled="True"
+                          IsDoubleTapEnabled="True" 
+                          ItemInvoked="TreeView_ItemInvoked" 
+                          ItemsSource="{x:Bind ViewModel.Services, Mode=OneWay}" 
+                          ItemTemplateSelector="{StaticResource ExplorerItemTemplateSelector}" 
+                          SelectedItem="{x:Bind ViewModel.SelectedTreeViewItem, Mode=TwoWay}" 
+                          SelectedNode="{x:Bind ViewModel.SelectedTreeViewNode, Mode=OneWay}" 
+                          Margin="0,0,0,0">
+
                     <TreeView.Resources>
                         <MenuFlyout x:Key="TreeItemContextMenu">
 
@@ -276,6 +288,7 @@
 
                         </MenuFlyout>
                     </TreeView.Resources>
+
                     <TreeView.ItemContainerStyle>
                         <Style TargetType="controls:TreeViewItem">
                             <Setter Property="ContextFlyout" Value="{StaticResource TreeItemContextMenu}"/>
@@ -284,7 +297,6 @@
 
                     <TreeView.ItemTemplate>
                         <DataTemplate x:DataType="model:NodeTree">
-
                             <local:MyTreeViewItem ItemsSource="{x:Bind Children, Mode=TwoWay}" IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}" IsSelected="{x:Bind IsSelected, Mode=TwoWay}" RightTapped="TreeViewItem_RightTapped" DoubleTapped="TreeViewItem_DoubleTapped" Padding="0" Margin="0,0,0,0">
                                 <StackPanel>
                                     <Border x:Name="PanelBackground" Background="Transparent" CornerRadius="0">
@@ -310,14 +322,12 @@
                                     </Border>
                                 </StackPanel>
                             </local:MyTreeViewItem>
-
                         </DataTemplate>
                     </TreeView.ItemTemplate>
 
                 </TreeView>
 
             </Grid>
-
         </Border>
 
         <!-- Right pane -->
@@ -418,13 +428,28 @@
 
                                         </AppBarButton>
 
-                                        <AppBarButton Label="View" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" >
+                                        <AppBarButton Label="{x:Bind ViewModel.ToggleInboxAppButtonLabel, Mode=OneWay}" IsEnabled="{x:Bind ViewModel.IsToggleInboxAppButtonEnabled,Mode=OneWay}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9">
                                             <AppBarButton.Icon>
-                                                <PathIcon>
-                                                    <PathIcon.Data>
-                                                        M16.5 11L13 7.5L14.4 6.1L16.5 8.2L20.7 4L22.1 5.4L16.5 11M11 7H2V9H11V7M21 13.4L19.6 12L17 14.6L14.4 12L13 13.4L15.6 16L13 18.6L14.4 20L17 17.4L19.6 20L21 18.6L18.4 16L21 13.4M11 15H2V17H11V15Z</PathIcon.Data>
-                                                </PathIcon>
+                                                <PathIcon Data="{x:Bind ViewModel.ToggleInboxAppButtonIcon, Mode=OneWay}"/>
                                             </AppBarButton.Icon>
+                                            <AppBarButton.Flyout>
+                                                <MenuFlyout>
+                                                    <ToggleMenuFlyoutItem Text="Inbox" Command="{x:Bind ViewModel.ToggleShowInboxEntriesCommand, Mode=OneWay}" IsChecked="{x:Bind ViewModel.IsShowInboxEntries, Mode=OneWay}">
+                                                        <ToggleMenuFlyoutItem.Icon>
+                                                            <PathIcon Data="M19,15H15A3,3 0 0,1 12,18A3,3 0 0,1 9,15H5V5H19M19,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3Z"/>
+                                                        </ToggleMenuFlyoutItem.Icon>
+                                                    </ToggleMenuFlyoutItem>
+                                                    <ToggleMenuFlyoutItem Text="All" Command="{x:Bind ViewModel.ToggleShowAllEntriesCommand, Mode=OneWay}" IsChecked="{x:Bind ViewModel.IsShowAllEntries, Mode=OneWay}">
+                                                        <ToggleMenuFlyoutItem.Icon>
+                                                            <PathIcon Data="M14.5 11C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11H14.5M20 13.55V10H18V13.06C18.69 13.14 19.36 13.31 20 13.55M21 9H3V3H21V9M19 5H5V7H19V5M8.85 19H6V10H4V21H9.78C9.54 20.61 9.32 20.19 9.14 19.75L8.85 19M17 18C16.44 18 16 18.44 16 19S16.44 20 17 20 18 19.56 18 19 17.56 18 17 18M23 19C22.06 21.34 19.73 23 17 23S11.94 21.34 11 19C11.94 16.66 14.27 15 17 15S22.06 16.66 23 19M19.5 19C19.5 17.62 18.38 16.5 17 16.5S14.5 17.62 14.5 19 15.62 21.5 17 21.5 19.5 20.38 19.5 19Z"/>
+                                                        </ToggleMenuFlyoutItem.Icon>
+                                                    </ToggleMenuFlyoutItem>
+                                                    <!--
+                                                    <MenuFlyoutItem Text="Inbox" Command="{x:Bind ViewModel.ShowAllEntriesCommand}" CommandParameter="False" Opacity="0.9"></MenuFlyoutItem>
+                                                    <MenuFlyoutItem Text="All" Command="{x:Bind ViewModel.ShowAllEntriesCommand}" CommandParameter="True"  Opacity="0.9"></MenuFlyoutItem>
+                                                    -->
+                                                </MenuFlyout>
+                                            </AppBarButton.Flyout>
                                         </AppBarButton>
 
                                     </StackPanel>
@@ -533,7 +558,7 @@
                                             </Grid.ColumnDefinitions>
 
                                             <Viewbox Grid.RowSpan="3" Width ="20" Height="20">
-                                                <PathIcon Data="{x:Bind PathIcon, Mode=OneWay}" Width ="24" Height="24" Margin="6" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.4"></PathIcon>
+                                                <PathIcon Data="{x:Bind PathIcon, Mode=OneWay}" Foreground="{ThemeResource SystemAccentColorLight2}" Width ="24" Height="24" Margin="6" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.55"></PathIcon>
                                             </Viewbox>
 
                                             <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind Name}" x:Phase="1" Style="{ThemeResource BaseTextBlockStyle}" FontSize="{StaticResource NormalFontSize}" Margin="12,6,0,0" Opacity="0.8"/>
@@ -565,20 +590,26 @@
 
                                         <StackPanel>
 
-                                            <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Name, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" Style="{ThemeResource TitleTextBlockStyle}" FontSize="{StaticResource LargeFontSize}" Opacity="0.9"/>
+                                            <TextBlock Visibility="{x:Bind ViewModel.IsNoAltLinkExists, Mode=OneWay}" Text="{x:Bind ViewModel.SelectedListViewItem.Name, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" Style="{ThemeResource TitleTextBlockStyle}" FontSize="{StaticResource LargeFontSize}" Opacity="0.9"/>
+                                            <TextBlock Visibility="{x:Bind ViewModel.IsAltLinkExists, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" Style="{ThemeResource TitleTextBlockStyle}" FontSize="{StaticResource LargeFontSize}" Opacity="0.9">
+                                                <Hyperlink NavigateUri="{x:Bind ViewModel.SelectedListViewItem.AltHtmlUri, Mode=OneWay}"><Run Text="{x:Bind ViewModel.SelectedListViewItem.Name, Mode=OneWay}"></Run></Hyperlink>
+
+                                            </TextBlock>
 
                                             <StackPanel>
                                                 <TextBlock Text="Author" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
                                                 <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Author, Mode=OneWay}" Style="{StaticResource DetailBodyBaseMediumStyle}" />
                                             </StackPanel>
 
+                                            <!--
                                             <StackPanel>
                                                 <TextBlock Text="Publisher" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
                                                 <TextBlock Text="-" Style="{StaticResource DetailBodyBaseMediumStyle}" />
                                             </StackPanel>
+                                            -->
 
                                             <StackPanel>
-                                                <TextBlock Text="Published date" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
+                                                <TextBlock Text="Published" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
                                                 <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.PublishedDateTimeFormated, Mode=OneWay}" Style="{StaticResource DetailBodyBaseMediumStyle}" />
                                             </StackPanel>
 
@@ -603,15 +634,17 @@
 
                                                 <StackPanel Orientation="Horizontal">
                                                     <!--
-                                                <AppBarButton Label="View" Command="{x:Bind ViewModel.EntryViewInternalCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
-                                                    <AppBarButton.Icon>
-                                                        <PathIcon>
-                                                            <PathIcon.Data>
-                                                                M12,10L8,14H11V20H13V14H16M19,4H5C3.89,4 3,4.9 3,6V18A2,2 0 0,0 5,20H9V18H5V8H19V18H15V20H19A2,2 0 0,0 21,18V6A2,2 0 0,0 19,4Z
-                                                            </PathIcon.Data>
-                                                        </PathIcon>
-                                                    </AppBarButton.Icon>
-                                                </AppBarButton>
+                                                    <AppBarButton Label="View" Command="{x:Bind ViewModel.EntryViewInternalCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
+                                                        <AppBarButton.Icon>
+                                                            <PathIcon>
+                                                                <PathIcon.Data>
+                                                                    M12,10L8,14H11V20H13V14H16M19,4H5C3.89,4 3,4.9 3,6V18A2,2 0 0,0 5,20H9V18H5V8H19V18H15V20H19A2,2 0 0,0 21,18V6A2,2 0 0,0 19,4Z
+                                                                </PathIcon.Data>
+                                                            </PathIcon>
+                                                        </AppBarButton.Icon>
+                                                    </AppBarButton>
+-->
+                                                    <!--
 -->
                                                     <AppBarButton Label="Open" Command="{x:Bind ViewModel.EntryViewExternalCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" >
                                                         <AppBarButton.Icon>
@@ -622,10 +655,8 @@
                                                             </PathIcon>
                                                         </AppBarButton.Icon>
                                                     </AppBarButton>
-
+                                                    
                                                 </StackPanel>
-
-
                                             </StackPanel>
 
                                         </StackPanel>

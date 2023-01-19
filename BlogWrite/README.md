@@ -29,6 +29,9 @@ A blog editing (web publishing) client with a feed reading functionality - C# po
 
 
 ## Change log
+
+* v1.0.0.5 (2023/1/20)
+ Some updates.
 * v1.0.0.4 (2023/1/18)
  UI update
 * v1.0.0.3 (2023/1/11)
@@ -44,17 +47,23 @@ A blog editing (web publishing) client with a feed reading functionality - C# po
 
 ### Things that currentry working on
 
-- [ ] Folder追加
-- [ ] Feed削除した時データもDBから削除する。
+#### Feed reader
+
+- [ ] Folderでまとめて読む際にどのFeedからのか分かりやすいようにPublisherを表示したい。要DBテーブル。
+- [ ] Refactor Add Feed page.
 - [ ] GoogleNewsのfeedでentry id を確認したほうがよい。
-- [ ] OPMLインポートエクスポート
 - [ ] NewEntryCountをもっと効率よく（上下に伝播させるのではなく）。
 - [ ] Manage entries read/unread status with SQLite database. Newステータス(SQLでロードと同時に既読にする)
-- [ ] show unread(archived)
 - [ ] Dupecheckとかの結果や起動時データベース接続エラーを画面内で通知する。
 - [ ] update 中にドラッグドロップできないようにする。
 - [ ] Check "category" and "publisher" etc.
 - [ ] 元記事の内容が更新された場合、それを反映させたい。
+- [ ] DB管理（容量制限というか自動削除機能）
+- [x] Add Folder page.
+- [x] OPML import/export
+- [x] Delete entries from database when removing feed and folder items.
+- [x] Edit Feed and Folder property (currently limited to "Name"). 
+- [x] Show "Inbox (unarchived)" and "All (include archived)" entries.
 
 
 ### Planning

@@ -1,5 +1,7 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Windows.Input;
+using System.Xml;
 using BlogWrite.Contracts.Services;
 using BlogWrite.Contracts.ViewModels;
 using BlogWrite.Models;
@@ -10,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using Newtonsoft.Json.Linq;
 using Windows.System;
 
 namespace BlogWrite.ViewModels;
@@ -38,8 +41,8 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
         xdoc.Save(System.IO.Path.Combine(App.AppDataFolder, "Searvies.xml"));
     }
 
-    private NodeTree _selectedTreeViewItem = new NodeService("", "", "", new Uri("http://127.0.0.1"), ApiTypes.atUnknown, ServiceTypes.Unknown);
-    public NodeTree SelectedTreeViewItem
+    private NodeTree? _selectedTreeViewItem;// = new NodeService("", "", "", new Uri("http://127.0.0.1"), ApiTypes.atUnknown, ServiceTypes.Unknown);
+    public NodeTree? SelectedTreeViewItem
     {
         get => _selectedTreeViewItem;
         set
@@ -60,6 +63,15 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
             // Clear DB error if shown.
             //DatabaseError = null;
             //IsShowDatabaseErrorMessage = false;
+
+            if (_selectedTreeViewItem != null)
+            {
+                IsToggleInboxAppButtonEnabled = true;
+            }
+            else
+            {
+                IsToggleInboxAppButtonEnabled = false;
+            }
 
             if (_selectedTreeViewItem == null)
                 return;
@@ -112,14 +124,12 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
                     }
                 }
 
-
-
+                //
+                IsShowInboxEntries = nds.IsDisplayUnarchivedOnly;
 
                 // NodeFeed is selected
                 if (_selectedTreeViewItem is NodeFeed nfeed)
                 {
-                    // Reset view...
-                    nfeed.IsDisplayUnarchivedOnly = true;
                     /*
                     if ((SelectedTreeViewItem as NodeFeed).IsDisplayUnarchivedOnly)
                         _selectedComboBoxItemIndex = 0;
@@ -154,10 +164,13 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
                     Entries = new ObservableCollection<EntryItem>();
                 }
             }
-            else if (_selectedTreeViewItem is NodeFolder)
+            else if (_selectedTreeViewItem is NodeFolder folder)
             {
                 //IsShowInFeedAndFolder = true;
                 //IsShowInFeed = false;
+
+
+                IsShowInboxEntries = folder.IsDisplayUnarchivedOnly;
 
                 Entries = new ObservableCollection<EntryItem>();
 
@@ -191,16 +204,22 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
 
     #region == Entry ListViews ==
 
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(EntryArchiveAllCommand))]
+    //[ObservableProperty]
+    //[NotifyCanExecuteChangedFor(nameof(EntryArchiveAllCommand))]
+    //private ObservableCollection<EntryItem> entries = new();
+
     private ObservableCollection<EntryItem> _entries = new();
-    /*
     public ObservableCollection<EntryItem> Entries
     {
         get => _entries;
-        set => SetProperty(ref _entries, value);
+        set 
+        {
+            if (SetProperty(ref _entries, value))
+            {
+                EntryArchiveAllCommand.NotifyCanExecuteChanged();
+            }
+        }
     }
-    */
 
     private EntryItem? _selectedListViewItem = null;
     public EntryItem? SelectedListViewItem
@@ -252,6 +271,16 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
                 SelectedEntryContentHTML = "";
             }
 
+            if ((_selectedListViewItem as EntryItem).AltHtmlUri != null)
+            {
+                IsAltLinkExists = true;
+            }
+            else
+            {
+                IsAltLinkExists = false;
+            }
+
+
             //NavigationService.SetListDataItemForNextConnectedAnimation(_selectedListViewItem);
             //NavigationService.NavigateTo(typeof(EntryDetailsViewModel).FullName!, _selectedListViewItem);
         }
@@ -292,6 +321,26 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
         set => SetProperty(ref _isContentHTML, value);
     }
 
+    private bool _isAltLinkExists;
+    public bool IsAltLinkExists
+    {
+        get => _isAltLinkExists;
+        set
+        {
+            if (SetProperty(ref _isAltLinkExists, value))
+            {
+                IsNoAltLinkExists = !value;
+            }
+        }
+    }
+
+    private bool _isNoAltLinkExists;
+    public bool IsNoAltLinkExists
+    {
+        get => _isNoAltLinkExists;
+        set => SetProperty(ref _isNoAltLinkExists, value);
+    }
+
     /*
     private bool _isContentBrowserVisible;
     public bool IsContentBrowserVisible
@@ -310,38 +359,70 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
         }
     }
     */
-    /*
-    private int _selectedComboBoxItemIndex;
-    public int SelectedComboBoxItemIndex
+
+    private bool _isToggleInboxAppButtonEnabled;
+    public bool IsToggleInboxAppButtonEnabled
     {
-        get
-        {
-            return _selectedComboBoxItemIndex;
-        }
+        get => _isToggleInboxAppButtonEnabled;
+        set => SetProperty(ref _isToggleInboxAppButtonEnabled, value);
+    }
+
+    private string _toggleInboxAppButtonLabel = "Inbox";
+    public string ToggleInboxAppButtonLabel
+    {
+        get => _toggleInboxAppButtonLabel;
+        set => SetProperty(ref _toggleInboxAppButtonLabel, value);
+    }
+
+    private string _toggleInboxAppButtonIcon = "M19,15H15A3,3 0 0,1 12,18A3,3 0 0,1 9,15H5V5H19M19,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3Z";
+    public string ToggleInboxAppButtonIcon
+    {
+        get => _toggleInboxAppButtonIcon;
+        set => SetProperty(ref _toggleInboxAppButtonIcon, value);
+    }
+
+    private bool _isShowInboxEntries = true;
+    public bool IsShowInboxEntries
+    {
+        get => _isShowInboxEntries;
         set
         {
-            if (_selectedComboBoxItemIndex == value)
-                return;
-
-            _selectedComboBoxItemIndex = value;
-            NotifyPropertyChanged(nameof(SelectedComboBoxItemIndex));
-
-            if (SelectedNode == null)
-                return;
-
-            if (SelectedNode is NodeFeed)
+            if (SetProperty(ref _isShowInboxEntries, value))
             {
-                if (_selectedComboBoxItemIndex == 0)
-                    (SelectedNode as NodeFeed).IsDisplayUnarchivedOnly = true;
-                else
-                    (SelectedNode as NodeFeed).IsDisplayUnarchivedOnly = false;
-
-                Task nowait = Task.Run(() => LoadEntriesAsync(SelectedNode as NodeFeed));
-                //LoadEntries(SelectedNode as NodeFeed);
+                IsShowAllEntries = !value;
+                toggleInboxAppButtonLabel();
             }
         }
     }
-    */
+
+    private bool _isShowAllEntries = false;
+    public bool IsShowAllEntries
+    {
+        get => _isShowAllEntries;
+        set 
+        {
+            if (SetProperty(ref _isShowAllEntries, value))
+            {
+                IsShowInboxEntries = !value;
+                toggleInboxAppButtonLabel();
+            }
+        }
+    }
+
+    private void toggleInboxAppButtonLabel()
+    {
+        if (IsShowAllEntries)
+        {
+            ToggleInboxAppButtonLabel = "All";
+            ToggleInboxAppButtonIcon = "M14.5 11C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11H14.5M20 13.55V10H18V13.06C18.69 13.14 19.36 13.31 20 13.55M21 9H3V3H21V9M19 5H5V7H19V5M8.85 19H6V10H4V21H9.78C9.54 20.61 9.32 20.19 9.14 19.75L8.85 19M17 18C16.44 18 16 18.44 16 19S16.44 20 17 20 18 19.56 18 19 17.56 18 17 18M23 19C22.06 21.34 19.73 23 17 23S11.94 21.34 11 19C11.94 16.66 14.27 15 17 15S22.06 16.66 23 19M19.5 19C19.5 17.62 18.38 16.5 17 16.5S14.5 17.62 14.5 19 15.62 21.5 17 21.5 19.5 20.38 19.5 19Z";
+        }
+        if (IsShowInboxEntries)
+        {
+            ToggleInboxAppButtonLabel = "Inbox";
+            ToggleInboxAppButtonIcon = "M19,15H15A3,3 0 0,1 12,18A3,3 0 0,1 9,15H5V5H19M19,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3Z";
+        }
+    }
+
     #endregion
 
     #region == Flags ==
@@ -407,10 +488,9 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
 
     #region == Services ==
 
-    public INavigationService NavigationService
-    {
-        get;
-    }
+    private readonly INavigationService _navigationService;
+
+    private readonly IFileDialogService _fileDialogService;
 
     #endregion
 
@@ -461,11 +541,13 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
     // http
     private readonly FeedClient _feedClient = new();
 
-    public FeedsViewModel(INavigationService navigationService)
+    public FeedsViewModel(INavigationService navigationService, IFileDialogService fileDialogService)
     {
         // Init services.
-        NavigationService = navigationService;
-        NavigationService.Navigated += OnNavigated;
+        _navigationService = navigationService;
+        _navigationService.Navigated += OnNavigated;
+
+        _fileDialogService = fileDialogService;
 
         // Load searvice tree.
         // TODO: make it service.
@@ -497,7 +579,6 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
             if (res.IsError)
             {
                 // TODO:
-
                 //MainError = res.Error;
                 //IsShowMainErrorMessage = true;
 
@@ -530,20 +611,14 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
             Debug.WriteLine("SQLite DB init: " + e.ToString() + ": " + e.Message);
         }
 
-
-
-
         IsDebugWindowEnabled = false;
 
-
         InitClients();
-
-
     }
 
     #region == INavigationService ==
 
-    private void OnNavigated(object sender, NavigationEventArgs e) => IsBackEnabled = NavigationService.CanGoBack;
+    private void OnNavigated(object sender, NavigationEventArgs e) => IsBackEnabled = _navigationService.CanGoBack;
 
     public void OnNavigatedTo(object parameter)
     {
@@ -585,10 +660,222 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    #region == Load all entries from database ==
+    #region == Database access method ==
+
+    private SqliteDataAccessInsertResultWrapper InsertEntriesLock(List<EntryItem> list)
+    {
+        //var resInsert = new SqliteDataAccessInsertResultWrapper();
+
+        // Insert result to Sqlite database.
+        var resInsert = dataAccessModule.InsertEntries(list);
+        /*
+        var isbreaked = false;
+
+        try
+        {
+            _readerWriterLock.EnterWriteLock();
+            if (_readerWriterLock.WaitingReadCount > 0)
+            {
+                isbreaked = true;
+            }
+            else
+            {
+                // Insert result to Sqlite database.
+                resInsert = dataAccessModule.InsertEntries(list);
+
+            }
+        }
+        finally
+        {
+            _readerWriterLock.ExitWriteLock();
+        }
+        if (isbreaked)
+        {
+            Thread.Sleep(10);
+            //await Task.Delay(100);
+
+            return InsertEntriesLock(list);
+        }
+        */
+        return resInsert;
+    }
+
+    private SqliteDataAccessSelectResultWrapper SelectEntriesByFeedIdLock(string id, bool IsUnarchivedOnly)
+    {
+        //var res = new SqliteDataAccessSelectResultWrapper();
+
+        var res = dataAccessModule.SelectEntriesByFeedId(id, IsUnarchivedOnly);
+        /*
+        try
+        {
+            _readerWriterLock.EnterReadLock();
+
+            res = dataAccessModule.SelectEntriesByFeedId(id, IsUnarchivedOnly);
+        }
+        finally
+        {
+            _readerWriterLock.ExitReadLock();
+        }
+        */
+        return res;
+    }
+
+    private SqliteDataAccessSelectResultWrapper SelectEntriesByFeedIdsLock(List<string> list, bool IsUnarchivedOnly)
+    {
+        var res = new SqliteDataAccessSelectResultWrapper();
+
+        try
+        {
+            _readerWriterLock.EnterReadLock();
+
+            res = dataAccessModule.SelectEntriesByFeedIds(list, IsUnarchivedOnly);
+        }
+        finally
+        {
+            _readerWriterLock.ExitReadLock();
+        }
+
+        return res;
+    }
+
+    private SqliteDataAccessResultWrapper UpdateAllEntriesAsReadLock(List<string> list)
+    {
+        var res = new SqliteDataAccessResultWrapper();
+
+        var isbreaked = false;
+
+        try
+        {
+            _readerWriterLock.EnterWriteLock();
+            if (_readerWriterLock.WaitingReadCount > 0)
+            {
+                isbreaked = true;
+            }
+            else
+            {
+                res = dataAccessModule.UpdateAllEntriesAsRead(list);
+
+            }
+        }
+        finally
+        {
+            _readerWriterLock.ExitWriteLock();
+        }
+        if (isbreaked)
+        {
+            Thread.Sleep(10);
+
+            return UpdateAllEntriesAsReadLock(list);
+        }
+
+        return res;
+    }
+
+    private SqliteDataAccessResultWrapper UpdateEntriesAsReadLock(List<EntryItem> list)
+    {
+        var res = new SqliteDataAccessResultWrapper();
+
+        var isbreaked = false;
+
+        try
+        {
+            _readerWriterLock.EnterWriteLock();
+            if (_readerWriterLock.WaitingReadCount > 0)
+            {
+                isbreaked = true;
+            }
+            else
+            {
+                res = dataAccessModule.UpdateEntriesAsRead(list);
+
+            }
+        }
+        finally
+        {
+            _readerWriterLock.ExitWriteLock();
+        }
+        if (isbreaked)
+        {
+            Thread.Sleep(10);
+
+            return UpdateEntriesAsReadLock(list);
+        }
+
+        return res;
+    }
+
+    private SqliteDataAccessResultWrapper UpdateEntryStatusLock(EntryItem entry)
+    {
+        var res = new SqliteDataAccessResultWrapper();
+
+        var isbreaked = false;
+
+        try
+        {
+            _readerWriterLock.EnterWriteLock();
+            if (_readerWriterLock.WaitingReadCount > 0)
+            {
+                isbreaked = true;
+            }
+            else
+            {
+                res = dataAccessModule.UpdateEntryStatus(entry);
+
+            }
+        }
+        finally
+        {
+            _readerWriterLock.ExitWriteLock();
+        }
+        if (isbreaked)
+        {
+            Thread.Sleep(10);
+
+            return UpdateEntryStatusLock(entry);
+        }
+
+        return res;
+    }
+
+    private async Task<SqliteDataAccessResultWrapper> DeleteEntriesByFeedIdsLock(List<string> list)
+    {
+        var res = new SqliteDataAccessResultWrapper();
+
+        var isbreaked = false;
+
+        try
+        {
+            _readerWriterLock.EnterWriteLock();
+            if (_readerWriterLock.WaitingReadCount > 0)
+            {
+                isbreaked = true;
+            }
+            else
+            {
+                res = dataAccessModule.DeleteEntriesByFeedIds(list);
+
+            }
+        }
+        finally
+        {
+            _readerWriterLock.ExitWriteLock();
+        }
+        if (isbreaked)
+        {
+            Thread.Sleep(10);
+
+            return await DeleteEntriesByFeedIdsLock(list);
+        }
+
+        return res;
+    }
+
+    #endregion
+
+    #region == Entries Refreshing ==
 
     // Loads node's all (including children) entries from database.
-    private async Task<List<EntryItem>> LoadEntriesAsync(NodeTree nt, bool forceUnread = false)
+    private async Task<List<EntryItem>> LoadEntriesAsync(NodeTree nt)
     {
         if (nt == null)
             return new List<EntryItem>();
@@ -687,7 +974,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
                 return new List<EntryItem>();
             }
 
-            var res = await Task.FromResult(SelectEntriesByFeedIdsLock(tmpList));
+            var res = await Task.FromResult(SelectEntriesByFeedIdsLock(tmpList, folder.IsDisplayUnarchivedOnly));
 
             if (res.IsError)
             {
@@ -750,10 +1037,6 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
 
         return res;
     }
-
-    #endregion
-
-    #region == Update feed or folder ==
 
     // update specific feed or feeds in a folder.
     private async void UpdateFeed()
@@ -1184,219 +1467,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    #region == Database access method ==
-
-    private SqliteDataAccessInsertResultWrapper InsertEntriesLock(List<EntryItem> list)
-    {
-        //var resInsert = new SqliteDataAccessInsertResultWrapper();
-
-        // Insert result to Sqlite database.
-        var resInsert = dataAccessModule.InsertEntries(list);
-        /*
-        var isbreaked = false;
-
-        try
-        {
-            _readerWriterLock.EnterWriteLock();
-            if (_readerWriterLock.WaitingReadCount > 0)
-            {
-                isbreaked = true;
-            }
-            else
-            {
-                // Insert result to Sqlite database.
-                resInsert = dataAccessModule.InsertEntries(list);
-
-            }
-        }
-        finally
-        {
-            _readerWriterLock.ExitWriteLock();
-        }
-        if (isbreaked)
-        {
-            Thread.Sleep(10);
-            //await Task.Delay(100);
-
-            return InsertEntriesLock(list);
-        }
-        */
-        return resInsert;
-    }
-
-    private SqliteDataAccessSelectResultWrapper SelectEntriesByFeedIdLock(string id, bool bln)
-    {
-        //var res = new SqliteDataAccessSelectResultWrapper();
-
-        var res = dataAccessModule.SelectEntriesByFeedId(id, bln);
-        /*
-        try
-        {
-            _readerWriterLock.EnterReadLock();
-
-            res = dataAccessModule.SelectEntriesByFeedId(id, bln);
-        }
-        finally
-        {
-            _readerWriterLock.ExitReadLock();
-        }
-        */
-        return res;
-    }
-
-    private SqliteDataAccessSelectResultWrapper SelectEntriesByFeedIdsLock(List<string> list)
-    {
-        var res = new SqliteDataAccessSelectResultWrapper();
-
-        try
-        {
-            _readerWriterLock.EnterReadLock();
-
-            res = dataAccessModule.SelectEntriesByFeedIds(list);
-        }
-        finally
-        {
-            _readerWriterLock.ExitReadLock();
-        }
-
-        return res;
-    }
-
-    private SqliteDataAccessResultWrapper UpdateAllEntriesAsReadLock(List<string> list)
-    {
-        var res = new SqliteDataAccessResultWrapper();
-
-        var isbreaked = false;
-
-        try
-        {
-            _readerWriterLock.EnterWriteLock();
-            if (_readerWriterLock.WaitingReadCount > 0)
-            {
-                isbreaked = true;
-            }
-            else
-            {
-                res = dataAccessModule.UpdateAllEntriesAsRead(list);
-
-            }
-        }
-        finally
-        {
-            _readerWriterLock.ExitWriteLock();
-        }
-        if (isbreaked)
-        {
-            Thread.Sleep(10);
-
-            return UpdateAllEntriesAsReadLock(list);
-        }
-
-        return res;
-    }
-
-    private SqliteDataAccessResultWrapper UpdateEntriesAsReadLock(List<EntryItem> list)
-    {
-        var res = new SqliteDataAccessResultWrapper();
-
-        var isbreaked = false;
-
-        try
-        {
-            _readerWriterLock.EnterWriteLock();
-            if (_readerWriterLock.WaitingReadCount > 0)
-            {
-                isbreaked = true;
-            }
-            else
-            {
-                res = dataAccessModule.UpdateEntriesAsRead(list);
-
-            }
-        }
-        finally
-        {
-            _readerWriterLock.ExitWriteLock();
-        }
-        if (isbreaked)
-        {
-            Thread.Sleep(10);
-
-            return UpdateEntriesAsReadLock(list);
-        }
-
-        return res;
-    }
-
-    private SqliteDataAccessResultWrapper UpdateEntryStatusLock(EntryItem entry)
-    {
-        var res = new SqliteDataAccessResultWrapper();
-
-        var isbreaked = false;
-
-        try
-        {
-            _readerWriterLock.EnterWriteLock();
-            if (_readerWriterLock.WaitingReadCount > 0)
-            {
-                isbreaked = true;
-            }
-            else
-            {
-                res = dataAccessModule.UpdateEntryStatus(entry);
-
-            }
-        }
-        finally
-        {
-            _readerWriterLock.ExitWriteLock();
-        }
-        if (isbreaked)
-        {
-            Thread.Sleep(10);
-
-            return UpdateEntryStatusLock(entry);
-        }
-
-        return res;
-    }
-
-    private async Task<SqliteDataAccessResultWrapper> DeleteEntriesByFeedIdsLock(List<string> list)
-    {
-        var res = new SqliteDataAccessResultWrapper();
-
-        var isbreaked = false;
-
-        try
-        {
-            _readerWriterLock.EnterWriteLock();
-            if (_readerWriterLock.WaitingReadCount > 0)
-            {
-                isbreaked = true;
-            }
-            else
-            {
-                res = dataAccessModule.DeleteEntriesByFeedIds(list);
-
-            }
-        }
-        finally
-        {
-            _readerWriterLock.ExitWriteLock();
-        }
-        if (isbreaked)
-        {
-            Thread.Sleep(10);
-
-            return await DeleteEntriesByFeedIdsLock(list);
-        }
-
-        return res;
-    }
-
-    #endregion
-
-    #region == Entry Archive ==
+    #region == Entries Archiving ==
 
     private async Task ArchiveAllAsync(NodeTree nd)
     {
@@ -1473,8 +1544,12 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
 
                             // clear here.
                             Entries.Clear();
-
-                            // 
+                            
+                            // showing all entries. so realod.
+                            if (!feed.IsDisplayUnarchivedOnly)
+                            {
+                                Task nowait = Task.Run(() => LoadEntriesAsync(_selectedTreeViewItem));
+                            } 
                             //Task.Run(() => LoadEntries(_selectedNode));
                         }
                     }
@@ -1525,7 +1600,14 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
                         ResetAllEntryCountAtChildNodes(folder.Children);
 
                         if (folder == _selectedTreeViewItem)
+                        {
                             Entries.Clear();
+
+                            if (!folder.IsDisplayUnarchivedOnly)
+                            {
+                                Task nowait = Task.Run(() => LoadEntriesAsync(_selectedTreeViewItem));
+                            }
+                        }
                     });
                 }
             }
@@ -1720,10 +1802,10 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    #region == Feed treeview command methods ==
+    #region == Feed Treeview commands ==
 
     [RelayCommand]
-    private void FeedAdd() => NavigationService.NavigateTo(typeof(FeedAddViewModel).FullName!, null);
+    private void FeedAdd() => _navigationService.NavigateTo(typeof(FeedAddViewModel).FullName!, null);
 
     public void AddFeed(FeedLink feedlink)
     {
@@ -1796,13 +1878,13 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
         if (SelectedTreeViewItem is null)
             return;
 
-        if ((SelectedTreeViewItem is NodeFeed))
+        if (SelectedTreeViewItem is NodeFeed)
         {
-            NavigationService.NavigateTo(typeof(FeedEditViewModel).FullName!, SelectedTreeViewItem);
+            _navigationService.NavigateTo(typeof(FeedEditViewModel).FullName!, SelectedTreeViewItem);
         }
         else if (SelectedTreeViewItem is NodeFolder)
         {
-            NavigationService.NavigateTo(typeof(FolderEditViewModel).FullName!, SelectedTreeViewItem);
+            _navigationService.NavigateTo(typeof(FolderEditViewModel).FullName!, SelectedTreeViewItem);
         }
     }
 
@@ -1814,31 +1896,131 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
     [RelayCommand(CanExecute = nameof(CanFolderAdd))]
     private void FolderAdd()
     {
-        //
+        NodeTree? targetNode = null;
+
+        if (SelectedTreeViewItem is null) 
+        {
+            targetNode = _services;
+        }
+        else if (SelectedTreeViewItem is NodeFeed feed)
+        {
+            if (feed.Parent != null)
+            {
+                targetNode = feed.Parent;
+            }
+        }
+        else if (SelectedTreeViewItem is NodeFolder folder)
+        {
+            if (folder != null)
+            {
+                targetNode = folder;
+            }
+        }
+
+        if (targetNode is not null)
+        {
+            _navigationService.NavigateTo(typeof(FolderAddViewModel).FullName!, targetNode);
+        }
     }
 
     private bool CanFolderAdd()
     {
-        return SelectedTreeViewItem is not null;
+        return true;
     }
 
     [RelayCommand(CanExecute = nameof(CanFeedRemove))]
     private void FeedRemove()
     {
-        // TODO: remove data from database...
+        if (SelectedTreeViewItem is null)
+            return;
 
-        if (SelectedTreeViewItem != null)
+        DeleteNodeTree(SelectedTreeViewItem);
+
+        SaveServiceXml();
+    }
+
+    private async void DeleteNodeTree(NodeTree nt)
+    {
+        if (nt.IsBusy)
         {
-            if (SelectedTreeViewItem.Parent != null)
+            // TODO: let users know.
+            Debug.WriteLine("DeleteNodeTree: IsBusy.");
+            return;
+        }
+
+        if (!((nt is NodeFolder) || (nt is NodeFeed)))
+        {
+            return;
+        }
+
+        if (nt is NodeFeed feed)
+        {
+            App.CurrentDispatcherQueue?.TryEnqueue(() =>
             {
-                SelectedTreeViewItem.Parent.Children.Remove(SelectedTreeViewItem);
+                // check status
+                if (!((feed.Status == NodeFeed.DownloadStatus.normal) || (feed.Status == NodeFeed.DownloadStatus.error)))
+                {
+                    return;
+                }
+
+                feed.IsBusy = true;
+            });
+
+            List<string> ids = new()
+                {
+                    feed.Id
+                };
+
+            SqliteDataAccessResultWrapper resDelete = await DeleteEntriesByFeedIdsLock(ids);
+
+            if (resDelete.IsError)
+            {
+                App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                {
+                    feed.ErrorDatabase = resDelete.Error;
+
+                    if (feed == _selectedTreeViewItem)
+                    {
+                        ErrorObj = feed.ErrorDatabase;
+                        IsShowFeedError = true;
+                    }
+
+                    feed.IsBusy = false;
+
+                    return;
+                });
+
             }
             else
             {
-                Services.Remove(SelectedTreeViewItem);
+                App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                {
+                    if (feed.Parent != null)
+                    {
+                        feed.Parent.Children.Remove(feed);
+                        feed.IsBusy = false; // remove self from parent IsBusyChildrenCount
+                    }
+                });
+            }
+        }
+        else if (nt is NodeFolder folder)
+        {
+            if (folder.Children.Count > 0)
+            {
+                foreach (var ndc in folder.Children)
+                {
+                    DeleteNodeTree(ndc);
+                }
             }
 
-            SaveServiceXml();
+            // making sure folder is empty.
+            if (folder.Children.Count == 0)
+            {
+                if (folder.Parent != null)
+                {
+                    folder.Parent.Children.Remove(nt);
+                }
+            }
         }
     }
 
@@ -1872,61 +2054,64 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    #region == Feed OPML ex/import command methods ==
+    #region == Feed OPML ex/import commands ==
 
     [RelayCommand(CanExecute = nameof(CanOpmlImport))]
-    public void OpmlImportCommand()
+    public async Task OpmlImportAsync()
     {
-        /*
-        var filepath = _openDialogService.GetOpenOpmlFileDialog("Import OPML");
-        if (!string.IsNullOrEmpty(filepath.Trim()))
+        var file = await _fileDialogService.GetOpenOpmlFileDialog();
+        if (file is null)
+            return;
+
+        var filepath = file.Path;
+
+        if (!File.Exists(filepath.Trim()))
+            return;
+
+        var doc = new XmlDocument();
+        try
         {
-            if (File.Exists(filepath.Trim()))
-            {
-                XmlDocument doc = new XmlDocument();
-                try
-                {
-                    doc.Load(filepath.Trim());
+            doc.Load(filepath.Trim());
 
-                    MainError = null;
-                }
-                catch (Exception e)
-                {
-                    MainError = new ErrorObject();
-                    MainError.ErrType = ErrorObject.ErrTypes.Other;
-                    MainError.ErrCode = "";
-                    MainError.ErrText = e.ToString();
-                    MainError.ErrDescription = e.Message;
-                    MainError.ErrDatetime = DateTime.Now;
-                    MainError.ErrPlace = "OpmlImportCommand_Execute.LoadXmlDoc";
-                    MainError.ErrPlaceParent = "MainViewModel()";
-
-                    IsShowMainErrorMessage = true;
-
-                    return;
-                }
-
-                Opml opmlLoader = new();
-
-                NodeFolder dummyFolder = opmlLoader.LoadOpml(doc);
-                if (dummyFolder is not null)
-                {
-                    if (dummyFolder.Children.Count > 0)
-                    {
-                        foreach (var feed in dummyFolder.Children)
-                        {
-                            feed.Parent = _services;
-                            Services.Add(feed);
-                        }
-                    }
-                }
-
-                SaveServiceXml();
-
-                StartUpdate();
-            }
+            //MainError = null;
         }
-        */
+        catch (Exception e)
+        {
+            /*
+            MainError = new ErrorObject();
+            MainError.ErrType = ErrorObject.ErrTypes.Other;
+            MainError.ErrCode = "";
+            MainError.ErrText = e.ToString();
+            MainError.ErrDescription = e.Message;
+            MainError.ErrDatetime = DateTime.Now;
+            MainError.ErrPlace = "OpmlImportCommand_Execute.LoadXmlDoc";
+            MainError.ErrPlaceParent = "MainViewModel()";
+
+            IsShowMainErrorMessage = true;
+            */
+            Debug.WriteLine("OpmlImportAsync: " + e);
+            return;
+        }
+
+        Opml opmlLoader = new();
+
+        NodeFolder dummyFolder = opmlLoader.LoadOpml(doc);
+        if (dummyFolder is not null)
+        {
+            /*
+            if (dummyFolder.Children.Count > 0)
+            {
+                foreach (var nt in dummyFolder.Children)
+                {
+                    nt.Parent = _services;
+                    Services.Add(nt);
+                }
+            }
+            */
+            Services.Insert(0, dummyFolder);
+        }
+
+        SaveServiceXml();
     }
 
     private bool CanOpmlImport()
@@ -1935,22 +2120,31 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
     }
 
     [RelayCommand(CanExecute = nameof(CanOpmlExport))]
-    public void OpmlExportCommand()
+    public async void OpmlExport()
     {
-        /*
         Opml opmlWriter = new();
 
         XmlDocument xdoc = opmlWriter.WriteOpml(_services);
-        if (xdoc is not null)
-        {
-            var filepath = _openDialogService.GetSaveOpmlFileDialog("Export OPML");
 
-            if (!string.IsNullOrEmpty(filepath))
-            {
-                xdoc.Save(filepath.Trim());
-            }
+        if (xdoc is null)
+        {
+            // TODO: show error?
+            Debug.WriteLine("xdoc is null");
+            return;
         }
-        */
+
+        var file = await _fileDialogService.GetSaveOpmlFileDialog();
+
+        if (file is null)
+        {
+            // canceled or something.
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(file.Path))
+        {
+            xdoc.Save(file.Path.Trim());
+        }
     }
 
     private bool CanOpmlExport()
@@ -1960,7 +2154,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    #region == Entry listview command methods  ==
+    #region == Entry Listview commands  ==
 
     [RelayCommand(CanExecute = nameof(CanEntryArchiveAll))]
     private void EntryArchiveAll()
@@ -1982,7 +2176,10 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
         if (!((SelectedTreeViewItem is NodeFeed) || (SelectedTreeViewItem is NodeFolder)))
             return false;
 
-        if (Entries.Count <= 0)
+        if (SelectedTreeViewItem.EntryNewCount <= 0)
+            return false;
+
+        if (_entries.Count <= 0)
             return false;
 
         return true;
@@ -1992,7 +2189,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
     private void EntryViewInternal()
     {
         if (SelectedListViewItem is not null)
-            NavigationService.NavigateTo(typeof(EntryDetailsViewModel).FullName!, SelectedListViewItem);
+            _navigationService.NavigateTo(typeof(EntryDetailsViewModel).FullName!, SelectedListViewItem);
     }
     private bool CanEntryViewInternal()
     {
@@ -2017,6 +2214,62 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
             return false;
 
         if (SelectedListViewItem.AltHtmlUri is null)
+            return false;
+
+        return true;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanToggleShowAllEntries))]
+    private void ToggleShowAllEntries()
+    {
+        if (SelectedTreeViewItem is null)
+            return;
+
+        IsShowAllEntries = !IsShowAllEntries;
+        
+        if (SelectedTreeViewItem is NodeFeed feed)
+        {
+            feed.IsDisplayUnarchivedOnly = !IsShowAllEntries;
+            Task nowait = Task.Run(() => LoadEntriesAsync(_selectedTreeViewItem));
+        }
+        else if (SelectedTreeViewItem is NodeFolder folder)
+        {
+            folder.IsDisplayUnarchivedOnly = !IsShowAllEntries;
+            Task nowait = Task.Run(() => LoadEntriesAsync(_selectedTreeViewItem));
+        }
+    }
+
+    private bool CanToggleShowAllEntries()
+    {
+        if (SelectedTreeViewItem is null)
+            return false;
+
+        return true;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanToggleShowInboxEntries))]
+    private void ToggleShowInboxEntries()
+    {
+        if (SelectedTreeViewItem is null)
+            return;
+
+        IsShowInboxEntries = !IsShowInboxEntries;
+
+        if (SelectedTreeViewItem is NodeFeed feed)
+        {
+            feed.IsDisplayUnarchivedOnly = IsShowInboxEntries;
+            Task nowait = Task.Run(() => LoadEntriesAsync(_selectedTreeViewItem));
+        }
+        else if (SelectedTreeViewItem is NodeFolder folder)
+        {
+            folder.IsDisplayUnarchivedOnly = IsShowInboxEntries;
+            Task nowait = Task.Run(() => LoadEntriesAsync(_selectedTreeViewItem));
+        }
+    }
+
+    private bool CanToggleShowInboxEntries()
+    {
+        if (SelectedTreeViewItem is null)
             return false;
 
         return true;

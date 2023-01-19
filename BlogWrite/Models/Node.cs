@@ -342,6 +342,21 @@ public abstract class NodeTree : Node
         }
     }
 
+    private bool _isDisplayUnarchivedOnly = true;
+    public bool IsDisplayUnarchivedOnly
+    {
+        get => _isDisplayUnarchivedOnly;
+        set
+        {
+            if (_isDisplayUnarchivedOnly == value)
+                return;
+
+            _isDisplayUnarchivedOnly = value;
+
+            NotifyPropertyChanged(nameof(IsDisplayUnarchivedOnly));
+        }
+    }
+
     private NodeTree? _parent;
     public NodeTree? Parent
     {
@@ -605,21 +620,6 @@ public class NodeFeed : NodeService
     public string? SiteTitle { get; set; }
 
     public Uri? SiteUri { get; set; }
-
-    private bool _isDisplayUnarchivedOnly = true;
-    public bool IsDisplayUnarchivedOnly
-    {
-        get => _isDisplayUnarchivedOnly;
-        set
-        {
-            if (_isDisplayUnarchivedOnly == value)
-                return;
-
-            _isDisplayUnarchivedOnly = value;
-
-            NotifyPropertyChanged(nameof(IsDisplayUnarchivedOnly));
-        }
-    }
 
     public enum DownloadStatus
     {
