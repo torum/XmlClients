@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Text;
-using Windows.Graphics.Imaging;
+﻿using System.Text;
 using System.Xml;
 using BlogWrite.Models.Clients;
 using Microsoft.UI.Xaml.Media.Imaging;

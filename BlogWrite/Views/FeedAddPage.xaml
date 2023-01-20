@@ -88,7 +88,7 @@
 
                                 <ListView SelectionMode="Single" ItemsSource="{x:Bind ViewModel.LinkItems, Mode=OneWay}" MaxHeight="200" SelectedItem="{x:Bind ViewModel.SelectedLinkItem, Mode=TwoWay}">
                                     <ListView.ItemTemplate>
-                                        <DataTemplate x:DataType="model:ServiceDiscoveryLinkItem">
+                                        <DataTemplate x:DataType="model:LinkItem">
 
                                             <Grid Padding="12">
                                                 <Grid.RowDefinitions>

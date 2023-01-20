@@ -220,6 +220,7 @@ public sealed partial class ShellPage : Page
         // Save service tree.
         var hoge = App.GetService<FeedsViewModel>();
         hoge.SaveServiceXml();
+        hoge.CleanUp();
     }
 
     private static KeyboardAccelerator BuildKeyboardAccelerator(VirtualKey key, VirtualKeyModifiers? modifiers = null)

@@ -30,6 +30,8 @@ A blog editing (web publishing) client with a feed reading functionality - C# po
 
 ## Change log
 
+* v1.0.0.5 (2023/1/21)
+ Some code refactoring.
 * v1.0.0.5 (2023/1/20)
  Some updates.
 * v1.0.0.4 (2023/1/18)
@@ -59,11 +61,6 @@ A blog editing (web publishing) client with a feed reading functionality - C# po
 - [ ] Check "category" and "publisher" etc.
 - [ ] 元記事の内容が更新された場合、それを反映させたい。
 - [ ] DB管理（容量制限というか自動削除機能）
-- [x] Add Folder page.
-- [x] OPML import/export
-- [x] Delete entries from database when removing feed and folder items.
-- [x] Edit Feed and Folder property (currently limited to "Name"). 
-- [x] Show "Inbox (unarchived)" and "All (include archived)" entries.
 
 
 ### Planning

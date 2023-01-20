@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Windows.Input;
+﻿using System.Collections.ObjectModel;
 using System.Xml;
 using BlogWrite.Contracts.Services;
 using BlogWrite.Contracts.ViewModels;
@@ -8,18 +6,13 @@ using BlogWrite.Models;
 using BlogWrite.Models.Clients;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
-using Newtonsoft.Json.Linq;
-using Windows.System;
 
 namespace BlogWrite.ViewModels;
 
 public partial class FeedsViewModel : ObservableRecipient, INavigationAware
 {
-
     #region == Service Treeview ==
 
     private readonly ServiceTreeBuilder _services = new();
@@ -434,7 +427,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
         set => SetProperty(ref _isBackEnabled, value);
     }
 
-    private bool _isDebugWindowEnabled;
+    private bool _isDebugWindowEnabled = false;
     public bool IsDebugWindowEnabled
     {
         get => _isDebugWindowEnabled;
@@ -486,71 +479,92 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    #region == Services ==
+    #region == Debug Events ==
 
-    private readonly INavigationService _navigationService;
+    //public event EventHandler<string>? DebugOutput;
 
-    private readonly IFileDialogService _fileDialogService;
+    private string? _debuEventLog;
+    public string? DebugEventLog
+    {
+        get => _debuEventLog;
+        set => SetProperty(ref _debuEventLog, value);
+    }
 
-    #endregion
-
-    #region == Events ==
-
-    public event EventHandler<string>? DebugOutput;
+    private readonly Queue<string> debugEvents = new(101);
 
     public void OnDebugOutput(BaseClient sender, string data)
     {
         if (string.IsNullOrEmpty(data))
             return;
 
-        if (IsDebugWindowEnabled)
-        {
-            var uithread = App.CurrentDispatcherQueue?.HasThreadAccess;
+        if (!IsDebugWindowEnabled)
+            return;
 
-            if (uithread != null)
+        if (!App.CurrentDispatcherQueue.HasThreadAccess)
+        {
+            App.CurrentDispatcherQueue.TryEnqueue(() =>
             {
-                if (uithread == true)
-                {
-                    //Debug.WriteLine(data);
-                    DebugOutput?.Invoke(this, Environment.NewLine + data + Environment.NewLine + Environment.NewLine);
-                }
-                else
-                {
-                    App.CurrentDispatcherQueue?.TryEnqueue(() =>
-                    {
-                        //Debug.WriteLine(data);
-                        DebugOutput?.Invoke(this, Environment.NewLine + data + Environment.NewLine + Environment.NewLine);
-                    });
-                }
-            }
+                OnDebugOutput(sender, data);
+            });
+            return;
         }
+
+        debugEvents.Enqueue(data);
+
+        if (debugEvents.Count > 100)
+            debugEvents.Dequeue();
+
+        DebugEventLog = string.Join('\n', debugEvents.Reverse());
+
+        /*
+        if (!App.CurrentDispatcherQueue.HasThreadAccess)
+        {
+            App.CurrentDispatcherQueue.TryEnqueue(() =>
+            {
+                DebugOutput?.Invoke(this, Environment.NewLine + data + Environment.NewLine + Environment.NewLine);
+            });
+            return;
+        }
+        */
 
         //IsDebugTextHasText = true;
     }
 
-
-    public delegate void DebugClearEventHandler();
-    public event DebugClearEventHandler? DebugClear;
+    //public delegate void DebugClearEventHandler();
+    //public event DebugClearEventHandler? DebugClear;
 
     #endregion
 
-    // db
-    private readonly DataAccess dataAccessModule = new();
-    private readonly ReaderWriterLockSlim _readerWriterLock = new();
+    #region == Services ==
 
-    // http
+    private readonly INavigationService _navigationService;
+
+    private readonly IFileDialogService _fileDialogService;
+
+    private readonly IDataAccessService _dataAccessService;
+
+    #endregion
+
     private readonly FeedClient _feedClient = new();
 
-    public FeedsViewModel(INavigationService navigationService, IFileDialogService fileDialogService)
+    public FeedsViewModel(INavigationService navigationService, IFileDialogService fileDialogService, IDataAccessService dataAccessService)
     {
-        // Init services.
         _navigationService = navigationService;
         _navigationService.Navigated += OnNavigated;
-
         _fileDialogService = fileDialogService;
+        _dataAccessService = dataAccessService;
 
-        // Load searvice tree.
-        // TODO: make it service.
+        InitializeDatabase();
+        InitializeFeedTree();
+        InitializeClient();
+
+        //IsDebugWindowEnabled = true;
+    }
+
+    #region == Initialization ==
+
+    private void InitializeFeedTree()
+    {
         if (File.Exists(App.AppDataFolder + System.IO.Path.DirectorySeparatorChar + "Searvies.xml"))
         {
             var doc = new System.Xml.XmlDocument();
@@ -561,21 +575,24 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
 
                 _services.LoadXmlDoc(doc);
             }
-            catch(Exception ex) 
+            catch (Exception ex)
             {
+                // TODO:
                 Debug.WriteLine("Exception while loading service.xml:" + ex);
             }
         }
+    }
 
+    private async void InitializeDatabase()
+    {
         // Init database.
-        // TODO: make it service.
         try
         {
             var databaseFileFolerPath = App.AppDataFolder;
             System.IO.Directory.CreateDirectory(databaseFileFolerPath);
             var dataBaseFilePath = databaseFileFolerPath + System.IO.Path.DirectorySeparatorChar + "FeedEntries.db";
 
-            var res = dataAccessModule.InitializeDatabase(dataBaseFilePath);
+            var res = await Task.FromResult(_dataAccessService.InitializeDatabase(dataBaseFilePath));
             if (res.IsError)
             {
                 // TODO:
@@ -610,11 +627,32 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
             */
             Debug.WriteLine("SQLite DB init: " + e.ToString() + ": " + e.Message);
         }
-
-        IsDebugWindowEnabled = false;
-
-        InitClients();
     }
+
+    private void InitializeClient()
+    {
+        // subscribe to DebugOutput event.
+        _feedClient.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
+
+        InitClientsRecursiveLoop(_services.Children);
+    }
+
+    private void InitClientsRecursiveLoop(ObservableCollection<NodeTree> nt)
+    {
+        foreach (var c in nt)
+        {
+            if (c is NodeFeed nf)
+            {
+                nf.SetClient = _feedClient;
+                //nf.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
+            }
+
+            if (c.Children.Count > 0)
+                InitClientsRecursiveLoop(c.Children);
+        }
+    }
+
+    #endregion
 
     #region == INavigationService ==
 
@@ -635,239 +673,17 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    #region == HTTP clinet ==
-
-    private void InitClients()
+    #region == Finalization ==
+    public void CleanUp()
     {
-        InitClientsRecursiveLoop(_services.Children);
-    }
-
-    private void InitClientsRecursiveLoop(ObservableCollection<NodeTree> nt)
-    {
-        // subscribe to DebugOutput event.
-        foreach (var c in nt)
-        {
-            if (c is NodeFeed nf)
-            {
-                nf.SetClient = _feedClient;
-                nf.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
-            }
-
-            if (c.Children.Count > 0)
-                InitClientsRecursiveLoop(c.Children);
-        }
-    }
-
-    #endregion
-
-    #region == Database access method ==
-
-    private SqliteDataAccessInsertResultWrapper InsertEntriesLock(List<EntryItem> list)
-    {
-        //var resInsert = new SqliteDataAccessInsertResultWrapper();
-
-        // Insert result to Sqlite database.
-        var resInsert = dataAccessModule.InsertEntries(list);
-        /*
-        var isbreaked = false;
-
         try
         {
-            _readerWriterLock.EnterWriteLock();
-            if (_readerWriterLock.WaitingReadCount > 0)
-            {
-                isbreaked = true;
-            }
-            else
-            {
-                // Insert result to Sqlite database.
-                resInsert = dataAccessModule.InsertEntries(list);
-
-            }
+            _feedClient.Dispose();
         }
-        finally
+        catch (Exception ex)
         {
-            _readerWriterLock.ExitWriteLock();
+            Debug.WriteLine("Error while Shutdown() : " + ex);
         }
-        if (isbreaked)
-        {
-            Thread.Sleep(10);
-            //await Task.Delay(100);
-
-            return InsertEntriesLock(list);
-        }
-        */
-        return resInsert;
-    }
-
-    private SqliteDataAccessSelectResultWrapper SelectEntriesByFeedIdLock(string id, bool IsUnarchivedOnly)
-    {
-        //var res = new SqliteDataAccessSelectResultWrapper();
-
-        var res = dataAccessModule.SelectEntriesByFeedId(id, IsUnarchivedOnly);
-        /*
-        try
-        {
-            _readerWriterLock.EnterReadLock();
-
-            res = dataAccessModule.SelectEntriesByFeedId(id, IsUnarchivedOnly);
-        }
-        finally
-        {
-            _readerWriterLock.ExitReadLock();
-        }
-        */
-        return res;
-    }
-
-    private SqliteDataAccessSelectResultWrapper SelectEntriesByFeedIdsLock(List<string> list, bool IsUnarchivedOnly)
-    {
-        var res = new SqliteDataAccessSelectResultWrapper();
-
-        try
-        {
-            _readerWriterLock.EnterReadLock();
-
-            res = dataAccessModule.SelectEntriesByFeedIds(list, IsUnarchivedOnly);
-        }
-        finally
-        {
-            _readerWriterLock.ExitReadLock();
-        }
-
-        return res;
-    }
-
-    private SqliteDataAccessResultWrapper UpdateAllEntriesAsReadLock(List<string> list)
-    {
-        var res = new SqliteDataAccessResultWrapper();
-
-        var isbreaked = false;
-
-        try
-        {
-            _readerWriterLock.EnterWriteLock();
-            if (_readerWriterLock.WaitingReadCount > 0)
-            {
-                isbreaked = true;
-            }
-            else
-            {
-                res = dataAccessModule.UpdateAllEntriesAsRead(list);
-
-            }
-        }
-        finally
-        {
-            _readerWriterLock.ExitWriteLock();
-        }
-        if (isbreaked)
-        {
-            Thread.Sleep(10);
-
-            return UpdateAllEntriesAsReadLock(list);
-        }
-
-        return res;
-    }
-
-    private SqliteDataAccessResultWrapper UpdateEntriesAsReadLock(List<EntryItem> list)
-    {
-        var res = new SqliteDataAccessResultWrapper();
-
-        var isbreaked = false;
-
-        try
-        {
-            _readerWriterLock.EnterWriteLock();
-            if (_readerWriterLock.WaitingReadCount > 0)
-            {
-                isbreaked = true;
-            }
-            else
-            {
-                res = dataAccessModule.UpdateEntriesAsRead(list);
-
-            }
-        }
-        finally
-        {
-            _readerWriterLock.ExitWriteLock();
-        }
-        if (isbreaked)
-        {
-            Thread.Sleep(10);
-
-            return UpdateEntriesAsReadLock(list);
-        }
-
-        return res;
-    }
-
-    private SqliteDataAccessResultWrapper UpdateEntryStatusLock(EntryItem entry)
-    {
-        var res = new SqliteDataAccessResultWrapper();
-
-        var isbreaked = false;
-
-        try
-        {
-            _readerWriterLock.EnterWriteLock();
-            if (_readerWriterLock.WaitingReadCount > 0)
-            {
-                isbreaked = true;
-            }
-            else
-            {
-                res = dataAccessModule.UpdateEntryStatus(entry);
-
-            }
-        }
-        finally
-        {
-            _readerWriterLock.ExitWriteLock();
-        }
-        if (isbreaked)
-        {
-            Thread.Sleep(10);
-
-            return UpdateEntryStatusLock(entry);
-        }
-
-        return res;
-    }
-
-    private async Task<SqliteDataAccessResultWrapper> DeleteEntriesByFeedIdsLock(List<string> list)
-    {
-        var res = new SqliteDataAccessResultWrapper();
-
-        var isbreaked = false;
-
-        try
-        {
-            _readerWriterLock.EnterWriteLock();
-            if (_readerWriterLock.WaitingReadCount > 0)
-            {
-                isbreaked = true;
-            }
-            else
-            {
-                res = dataAccessModule.DeleteEntriesByFeedIds(list);
-
-            }
-        }
-        finally
-        {
-            _readerWriterLock.ExitWriteLock();
-        }
-        if (isbreaked)
-        {
-            Thread.Sleep(10);
-
-            return await DeleteEntriesByFeedIdsLock(list);
-        }
-
-        return res;
     }
 
     #endregion
@@ -889,7 +705,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
                 feed.IsBusy = true;
             });
 
-            var res = await Task.FromResult(SelectEntriesByFeedIdLock(feed.Id, feed.IsDisplayUnarchivedOnly));
+            var res = await Task.FromResult(_dataAccessService.SelectEntriesByFeedId(feed.Id, feed.IsDisplayUnarchivedOnly));
 
             if (res.IsError)
             {
@@ -974,7 +790,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
                 return new List<EntryItem>();
             }
 
-            var res = await Task.FromResult(SelectEntriesByFeedIdsLock(tmpList, folder.IsDisplayUnarchivedOnly));
+            var res = await Task.FromResult(_dataAccessService.SelectEntriesByFeedIds(tmpList, folder.IsDisplayUnarchivedOnly));
 
             if (res.IsError)
             {
@@ -1322,7 +1138,8 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
             feed.Status = NodeFeed.DownloadStatus.saving;
         });
 
-        var resInsert = await Task.FromResult(InsertEntriesLock(list));
+        //var resInsert = await Task.FromResult(InsertEntriesLock(list));
+        var resInsert = _dataAccessService.InsertEntries(list);
 
         // Result is DB Error
         if (resInsert.IsError)
@@ -1489,7 +1306,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
                 feed.Id
             };
 
-            var res = await Task.FromResult(UpdateAllEntriesAsReadLock(list));
+            var res = await Task.FromResult(_dataAccessService.UpdateAllEntriesAsRead(list));
 
             if (res.IsError)
             {
@@ -1582,7 +1399,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
                     tmpList = GetAllFeedIdsFromChildNodes(folder.Children);
                 }
 
-                var res = UpdateAllEntriesAsReadLock(tmpList);
+                var res = await Task.FromResult(_dataAccessService.UpdateAllEntriesAsRead(tmpList));
 
                 if (res.AffectedCount > 0)
                 {
@@ -1971,7 +1788,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
                     feed.Id
                 };
 
-            SqliteDataAccessResultWrapper resDelete = await DeleteEntriesByFeedIdsLock(ids);
+            var resDelete = await Task.FromResult(_dataAccessService.DeleteEntriesByFeedIds(ids));
 
             if (resDelete.IsError)
             {

@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using System.Xml;
-using System.Xml.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
-using BlogWrite.Models;
 
 namespace BlogWrite.Models.Clients;
 

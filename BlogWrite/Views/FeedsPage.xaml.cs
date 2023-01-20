@@ -32,8 +32,8 @@ public sealed partial class FeedsPage : Page
         ViewModel = App.GetService<FeedsViewModel>();
         InitializeComponent();
 
-        ViewModel.DebugOutput += (sender, arg) => { OnDebugOutput(arg); };
-        ViewModel.DebugClear += () => OnDebugClear();
+        //ViewModel.DebugOutput += (sender, arg) => { OnDebugOutput(arg); };
+        //ViewModel.DebugClear += () => OnDebugClear();
     }
 
     public void OnDebugOutput(string arg)

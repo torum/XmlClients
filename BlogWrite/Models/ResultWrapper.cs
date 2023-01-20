@@ -1,5 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using Microsoft.UI.Xaml.Media.Imaging;
+﻿using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace BlogWrite.Models;
 
@@ -57,11 +56,12 @@ public class SqliteDataAccessSelectResultWrapper: SqliteDataAccessResultWrapper
     public List<EntryItem> SelectedEntries = new();
 }
 
+/*
 public class SqliteDataAccessSelectImageResultWrapper : SqliteDataAccessResultWrapper
 {
     public BitmapImage Image;
 }
-
+*/
 
 public class HttpClientEntryItemCollectionResultWrapper : ResultWrapper
 {

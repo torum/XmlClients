@@ -1,23 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SQLite;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Data;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
-using Windows.Graphics.Imaging;
-using System.IO;
-using System.Windows;
+using BlogWrite.Models;
 using Microsoft.UI.Xaml.Media.Imaging;
-using System.Data.SQLite;
+using Windows.Graphics.Imaging;
+using BlogWrite.Contracts.Services;
 
-namespace BlogWrite.Models;
+namespace BlogWrite.Services;
 
-// SQLite Database Access module
-public class DataAccess
+internal class DataAccessService : IDataAccessService
 {
     private readonly SQLiteConnectionStringBuilder connectionStringBuilder = new();
+
+    public DataAccessService()
+    {
+    
+    }
 
     public SqliteDataAccessResultWrapper InitializeDatabase(string dataBaseFilePath)
     {
@@ -175,9 +177,9 @@ public class DataAccess
 
                             if (!string.IsNullOrEmpty(Convert.ToString(reader["Url"])))
                                 entry.AltHtmlUri = new Uri(Convert.ToString(reader["Url"]));
-                            
+
                             entry.Published = DateTime.Parse(Convert.ToString(reader["Published"]));
-                            
+
                             entry.Summary = Convert.ToString(reader["Summary"]);
 
                             entry.Content = Convert.ToString(reader["Content"]);
@@ -305,7 +307,7 @@ public class DataAccess
     public SqliteDataAccessSelectResultWrapper SelectEntriesByFeedIds(List<string> feedIds, bool IsUnarchivedOnly = true)
     {
         var res = new SqliteDataAccessSelectResultWrapper();
-        
+
         if (feedIds is null)
             return res;
 
@@ -334,7 +336,7 @@ public class DataAccess
         {
             after = string.Format(") ORDER BY Published DESC LIMIT 10000");
         }
-            
+
 
         //Debug.WriteLine(before + middle + after);
 
@@ -472,6 +474,7 @@ public class DataAccess
         return res;
     }
 
+    /*
     public SqliteDataAccessSelectImageResultWrapper SelectImageByImageId(string imageId)
     {
         SqliteDataAccessSelectImageResultWrapper res = new SqliteDataAccessSelectImageResultWrapper();
@@ -492,16 +495,14 @@ public class DataAccess
                         {
                             //if (reader["Image"] != DBNull.Value)
                             //{
-                                byte[] bi = (byte[])reader["Image"];
-                                /*
-                                if (Application.Current != null)
+                            byte[] bi = (byte[])reader["Image"];
+                            if (Application.Current != null)
+                            {
+                                Application.Current.Dispatcher.Invoke(() =>
                                 {
-                                    Application.Current.Dispatcher.Invoke(() =>
-                                    {
-                                        res.Image = BitmapImageFromBytes(bi);
-                                    });
-                                }
-                                */
+                                    res.Image = BitmapImageFromBytes(bi);
+                                });
+                            }
                             //}
 
                             res.AffectedCount++;
@@ -548,6 +549,7 @@ public class DataAccess
 
         return res;
     }
+    */
 
     public SqliteDataAccessInsertResultWrapper InsertEntries(List<EntryItem> entries)
     {
@@ -723,6 +725,7 @@ public class DataAccess
         return res;
     }
 
+    /*
     public SqliteDataAccessInsertResultWrapper InsertImages(List<EntryItem> entries)
     {
         SqliteDataAccessInsertResultWrapper res = new SqliteDataAccessInsertResultWrapper();
@@ -760,10 +763,9 @@ public class DataAccess
 
                             cmd.Parameters.Clear();
 
-                            cmd.Parameters.AddWithValue("@ImageId", entry.Id+':'+entry.ImageUri.AbsoluteUri);
+                            cmd.Parameters.AddWithValue("@ImageId", entry.Id + ':' + entry.ImageUri.AbsoluteUri);
 
                             cmd.Parameters.AddWithValue("@Id", entry.Id);
-                            /*
                             if ((entry.ImageByteArray == Array.Empty<byte>()) || entry.ImageByteArray == null)
                             {
                                 cmd.Parameters.AddWithValue("@Image", DBNull.Value);
@@ -774,7 +776,6 @@ public class DataAccess
                                 parameter1.Value = entry.ImageByteArray;
                                 cmd.Parameters.Add(parameter1);
                             }
-                            */
 
                             var r = cmd.ExecuteNonQuery();
 
@@ -881,7 +882,9 @@ public class DataAccess
 
         return res;
     }
+    */
 
+    /*
     public SqliteDataAccessResultWrapper UpdateEntriesAsRead(List<EntryItem> entries)
     {
         SqliteDataAccessResultWrapper res = new SqliteDataAccessResultWrapper();
@@ -994,6 +997,7 @@ public class DataAccess
 
         return res;
     }
+    */
 
     public SqliteDataAccessResultWrapper UpdateAllEntriesAsRead(List<string> feedIds)
     {
@@ -1099,7 +1103,8 @@ public class DataAccess
 
         return res;
     }
-
+        
+    /*
     public SqliteDataAccessResultWrapper UpdateEntryStatus(EntryItem entry)
     {
         SqliteDataAccessResultWrapper res = new SqliteDataAccessResultWrapper();
@@ -1218,6 +1223,7 @@ public class DataAccess
 
         return res;
     }
+    */
 
     public SqliteDataAccessResultWrapper DeleteEntriesByFeedIds(List<string> feedIds)
     {
@@ -1318,12 +1324,12 @@ public class DataAccess
         return res;
     }
 
+    /*
     public static Byte[] BitmapImageToByteArray(BitmapImage bitmapImage)
     {
         try
         {
             byte[] data = Array.Empty<byte>();
-            /*
             PngBitmapEncoder encoder = new PngBitmapEncoder();
             encoder.Frames.Add(BitmapFrame.Create(bitmapImage));
             using (MemoryStream ms = new MemoryStream())
@@ -1331,7 +1337,6 @@ public class DataAccess
                 encoder.Save(ms);
                 data = ms.ToArray();
             }
-            */
             return data;
         }
         catch (Exception e)
@@ -1341,7 +1346,9 @@ public class DataAccess
             return Array.Empty<byte>();
         }
     }
+    */
 
+    /*
     public static BitmapImage BitmapImageFromBytes(Byte[] bytes)
     {
         try
@@ -1350,12 +1357,10 @@ public class DataAccess
             {
 
                 BitmapImage bmimage = new BitmapImage();
-                /*
                 bmimage.BeginInit();
                 bmimage.CacheOption = BitmapCacheOption.OnLoad;
                 bmimage.StreamSource = stream;
                 bmimage.EndInit();
-                */
                 return bmimage;
             }
         }
@@ -1366,6 +1371,7 @@ public class DataAccess
             return null;
         }
     }
+    */
 
     // ColumnExists check
     public bool ColumnExists(IDataRecord dr, string columnName)
@@ -1377,5 +1383,4 @@ public class DataAccess
         }
         return false; ;
     }
-
 }

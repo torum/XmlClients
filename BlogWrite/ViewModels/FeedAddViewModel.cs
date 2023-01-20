@@ -144,15 +144,15 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
         set => SetProperty(ref _selectedTabIndex, value);
     }
 
-    private ObservableCollection<ServiceDiscoveryLinkItem> _linkItems = new();
-    public ObservableCollection<ServiceDiscoveryLinkItem> LinkItems
+    private ObservableCollection<LinkItem> _linkItems = new();
+    public ObservableCollection<LinkItem> LinkItems
     {
         get => _linkItems;
         set => SetProperty(ref _linkItems, value);
     }
 
-    private ServiceDiscoveryLinkItem _selectedLinkItem;
-    public ServiceDiscoveryLinkItem SelectedLinkItem
+    private LinkItem _selectedLinkItem;
+    public LinkItem SelectedLinkItem
     {
         get => _selectedLinkItem;
         set => SetProperty(ref _selectedLinkItem, value);

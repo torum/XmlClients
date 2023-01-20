@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Nodes;
+using AngleSharp.Dom;
 using BlogWrite.Activation;
 using BlogWrite.Contracts.Services;
 using BlogWrite.Core.Contracts.Services;
@@ -80,7 +81,8 @@ public partial class App : Application
             services.AddTransient<INavigationViewService, NavigationViewService>();
 
             services.AddTransient<IFileDialogService, FileDialogService>();
-            
+            services.AddSingleton<IDataAccessService, DataAccessService>();
+
 
             // Core Services
             services.AddSingleton<ISampleDataService, SampleDataService>();
@@ -127,14 +129,46 @@ public partial class App : Application
     {
         base.OnLaunched(args);
 
+        // Single instance.
+        // https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/migrate-to-windows-app-sdk/guides/applifecycle
+        var mainInstance = Microsoft.Windows.AppLifecycle.AppInstance.FindOrRegisterForKey("Main");
+        // If the instance that's executing the OnLaunched handler right now
+        // isn't the "main" instance.
+        if (!mainInstance.IsCurrent)
+        {
+            // Redirect the activation (and args) to the "main" instance, and exit.
+            var activatedEventArgs = Microsoft.Windows.AppLifecycle.AppInstance.GetCurrent().GetActivatedEventArgs();
+            await mainInstance.RedirectActivationToAsync(activatedEventArgs);
+
+            System.Diagnostics.Process.GetCurrentProcess().Kill();
+            return;
+        }
+        else
+        {
+            // Otherwise, register for activation redirection
+            Microsoft.Windows.AppLifecycle.AppInstance.GetCurrent().Activated += App_Activated;
+        }
+
+        // WinUIEx Storage option.
         if (!RuntimeHelper.IsMSIX)
         {
             WinUIEx.WindowManager.PersistenceStorage = new FilePersistence(Path.Combine(AppDataFolder, "WinUIExPersistence.json"));
         }
 
+        // Nortification example.
         //App.GetService<IAppNotificationService>().Show(string.Format("AppNotificationSamplePayload".GetLocalized(), AppContext.BaseDirectory));
 
+        // Activation.
         await App.GetService<IActivationService>().ActivateAsync(args);
+    }
+
+    private void App_Activated(object? sender, Microsoft.Windows.AppLifecycle.AppActivationArguments e)
+    {
+        CurrentDispatcherQueue?.TryEnqueue(() =>
+        {
+            MainWindow.Activate();
+            MainWindow.BringToFront();
+        });
     }
 
     private class FilePersistence : IDictionary<string, object>

@@ -675,8 +675,8 @@
         </Grid>
 
         <!-- Debug pane -->
-        <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="6,0,6,6" Visibility="{x:Bind ViewModel.IsDebugWindowEnabled, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
-            <TextBox x:Name="DebugTextBox" HorizontalAlignment="Stretch" TextWrapping="Wrap" Padding="6 6 24 6" VerticalAlignment="Stretch" Margin="0" MinHeight="120" MaxHeight="240" ScrollViewer.VerticalScrollBarVisibility="Visible">
+        <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="0" Visibility="{x:Bind ViewModel.IsDebugWindowEnabled, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
+            <TextBox x:Name="DebugTextBox" Text="{x:Bind ViewModel.DebugEventLog, Mode=OneWay}" CornerRadius="0,0,0,0" HorizontalAlignment="Stretch" TextWrapping="Wrap" Padding="6 6 24 6" VerticalAlignment="Stretch" Margin="0" MinHeight="120" MaxHeight="120" ScrollViewer.VerticalScrollBarVisibility="Visible">
 
             </TextBox>
         </Grid>

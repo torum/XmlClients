@@ -1,22 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net.Http;
-using System.Runtime.InteropServices;
-using System.IO;
-using System.Runtime.InteropServices.ComTypes;
-using System.Diagnostics;
-using System.Xml.Linq;
-using System.Xml;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Net;
+using System.Net.Http.Headers;
+using System.Security.Cryptography;
+using System.Text;
+using System.Xml;
 using AngleSharp;
 using AngleSharp.Html.Parser;
 using AngleSharp.Xml.Parser;
-using System.Security.Cryptography;
-using System.Net.Http.Headers;
 
 namespace BlogWrite.Models;
 
@@ -241,20 +231,20 @@ class ServiceResultXmlRpc : ServiceResult
 // Service Discovery class.
 class ServiceDiscovery
 {
-    private HttpClient? _httpClient;
-
-    public ServiceDiscovery()
-    {
-        _httpClient = new HttpClient();
-    }
+    private readonly HttpClient? _httpClient;
 
     #region == Events ==
 
     public delegate void ServiceDiscoveryStatusUpdate(ServiceDiscovery sender, string data);
 
-    public event ServiceDiscoveryStatusUpdate StatusUpdate;
+    public event ServiceDiscoveryStatusUpdate? StatusUpdate;
 
     #endregion
+
+    public ServiceDiscovery()
+    {
+        _httpClient = new HttpClient();
+    }
 
     #region == Methods ==
 

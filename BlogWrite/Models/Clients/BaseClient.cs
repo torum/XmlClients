@@ -1,19 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml;
-using System.Xml.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
-using BlogWrite.Models;
-using AngleSharp;
-using BlogWrite.Common;
-using Windows.Graphics.Imaging;
-using System.IO;
-using System.Diagnostics;
-using System.Windows;
-using System.Reflection;
+﻿using AngleSharp;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace BlogWrite.Models.Clients;

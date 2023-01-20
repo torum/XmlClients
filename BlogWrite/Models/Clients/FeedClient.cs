@@ -1,22 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Net.Http.Headers;
 using System.Xml;
-using System.IO;
-using System.Diagnostics;
-using AngleSharp;
 using BlogWrite.Common;
-using Windows.Graphics.Imaging;
-using System.Windows;
-using System.Collections.ObjectModel;
 
 namespace BlogWrite.Models.Clients;
 
 // Feed Client - reads Atom 1.0. 0.3, RSS 2.0 and 1.0.
 public class FeedClient : BaseClient
 {
+    public FeedClient()
+    {
+        //Client.BaseAddress = ;
+
+        Client.DefaultRequestHeaders.Clear();
+        //Client.DefaultRequestHeaders.ConnectionClose = false;
+        Client.DefaultRequestHeaders.ConnectionClose = true;
+        Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/xml"));
+        Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/atom+xml"));
+        Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rss+xml"));
+    }
+
     public async override Task<HttpClientEntryItemCollectionResultWrapper> GetEntries(Uri entriesUrl, string feedId)
     {
         var res = new HttpClientEntryItemCollectionResultWrapper();
@@ -39,6 +41,8 @@ public class FeedClient : BaseClient
 
         try
         {
+            Client.DefaultRequestHeaders.ConnectionClose = true;
+
             var HTTPResponseMessage = await Client.GetAsync(entriesUrl);
 
             if (HTTPResponseMessage.IsSuccessStatusCode)
@@ -73,7 +77,7 @@ public class FeedClient : BaseClient
                 }
                 catch (Exception e)
                 {
-                    ToDebugWindow("<< Invalid XML document returned: " + entriesUrl.AbsoluteUri
+                    ToDebugWindow("<< Invalid XML document returned from: " + entriesUrl.AbsoluteUri
                         + Environment.NewLine
                         + e.Message
                         + Environment.NewLine); 
@@ -238,7 +242,7 @@ public class FeedClient : BaseClient
                     ToDebugWindow(">> HTTP Request: GET "
                         + entriesUrl.AbsoluteUri
                         + Environment.NewLine
-                        + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
+                        + "<< HTTP Response: " + HTTPResponseMessage.StatusCode.ToString()
                         + Environment.NewLine);
                         //+ contents + Environment.NewLine);
                 }
@@ -247,7 +251,7 @@ public class FeedClient : BaseClient
                     ToDebugWindow(">> HTTP Request: GET "
                         + entriesUrl.AbsoluteUri
                         + Environment.NewLine
-                        + "<< HTTP Response " + HTTPResponseMessage.StatusCode.ToString()
+                        + "<< HTTP Response: " + HTTPResponseMessage.StatusCode.ToString()
                         + Environment.NewLine);
                         //+ contents + Environment.NewLine);
                 }
@@ -784,7 +788,6 @@ public class FeedClient : BaseClient
         }
     }
 
-    // TODO:
     private async Task<AtomEntry> CreateAtomEntryFromXmlAtom(XmlNode entryNode, XmlNamespaceManager atomNsMgr, string feedId)
     {
         AtomEntry entry = new AtomEntry("", feedId, this);
