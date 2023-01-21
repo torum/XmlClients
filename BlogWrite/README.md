@@ -52,7 +52,6 @@ A blog editing (web publishing) client with a feed reading functionality - C# po
 #### Feed reader
 
 - [ ] Folderでまとめて読む際にどのFeedからのか分かりやすいようにPublisherを表示したい。要DBテーブル。
-- [ ] Refactor Add Feed page.
 - [ ] GoogleNewsのfeedでentry id を確認したほうがよい。
 - [ ] NewEntryCountをもっと効率よく（上下に伝播させるのではなく）。
 - [ ] Manage entries read/unread status with SQLite database. Newステータス(SQLでロードと同時に既読にする)

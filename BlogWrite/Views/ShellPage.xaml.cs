@@ -53,11 +53,11 @@ public sealed partial class ShellPage : Page
         App.MainWindow.Closed += MainWindow_Closed;
         AppTitleBarText.Text = "AppDisplayName".GetLocalized();
 
+        TitleBarHelper.UpdateTitleBar(RequestedTheme);
     }
 
-    private void OnLoaded(object sender, RoutedEventArgs e)
+    private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        TitleBarHelper.UpdateTitleBar(RequestedTheme);
 
         KeyboardAccelerators.Add(BuildKeyboardAccelerator(VirtualKey.Left, VirtualKeyModifiers.Menu));
         KeyboardAccelerators.Add(BuildKeyboardAccelerator(VirtualKey.GoBack));
@@ -65,6 +65,11 @@ public sealed partial class ShellPage : Page
         //ShellMenuBarSettingsButton.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(ShellMenuBarSettingsButton_PointerPressed), true);
         //ShellMenuBarSettingsButton.AddHandler(UIElement.PointerReleasedEvent, new PointerEventHandler(ShellMenuBarSettingsButton_PointerReleased), true);
 
+        // give sime time to let window draw itself.
+        await Task.Delay(100);
+
+        // Needed to be here.
+        ViewModel.NavigationService.NavigateTo(typeof(FeedsViewModel).FullName!, null);
     }
 
     private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
@@ -74,152 +79,20 @@ public sealed partial class ShellPage : Page
         AppTitleBarText.Foreground = (SolidColorBrush)App.Current.Resources[resource];
         AppTitleBarIcon.Opacity = args.WindowActivationState == WindowActivationState.Deactivated ? 0.4 : 0.7;
         AppMenuBar.Opacity = args.WindowActivationState == WindowActivationState.Deactivated ? 0.4 : 0.7;
-        /*
-        AppTitleBar.Margin = new Thickness()
-        {
-            Left = AppMenuBar.ActualWidth + 32,//sender.CompactPaneLength * (sender.DisplayMode == NavigationViewDisplayMode.Minimal ? 2 : 1),
-            Top = AppTitleBar.Margin.Top,
-            Right = AppTitleBar.Margin.Right,
-            Bottom = AppTitleBar.Margin.Bottom
-        };
-        */
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
         //ShellMenuBarSettingsButton.RemoveHandler(UIElement.PointerPressedEvent, (PointerEventHandler)ShellMenuBarSettingsButton_PointerPressed);
         //ShellMenuBarSettingsButton.RemoveHandler(UIElement.PointerReleasedEvent, (PointerEventHandler)ShellMenuBarSettingsButton_PointerReleased);
-
     }
 
     private void MainWindow_Closed(object sender, WindowEventArgs args)
     {
-        // TODO: can't use applifesycle service... 
-
-        #region == Save settings ==
-
-        XmlDocument doc = new XmlDocument();
-        XmlDeclaration xmlDeclaration = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
-        doc.InsertBefore(xmlDeclaration, doc.DocumentElement);
-
-        XmlElement root = doc.CreateElement(string.Empty, "App", string.Empty);
-        doc.AppendChild(root);
-
-        //XmlAttribute attrs = doc.CreateAttribute("Version");
-        //attrs.Value = _appVer;
-        //root.SetAttributeNode(attrs);
-        XmlAttribute attrs;
-
-        // Main window
-        if (App.MainWindow != null)
-        {
-            // Main Window element
-            XmlElement mainWindow = doc.CreateElement(string.Empty, "MainWindow", string.Empty);
-
-            // Main Window attributes
-            attrs = doc.CreateAttribute("width");
-            /*
-            if ((sender as Window).WindowState == WindowState.Maximized)
-            {
-                attrs.Value = (sender as Window).RestoreBounds.Width.ToString();
-            }
-            else
-            {
-                attrs.Value = (sender as Window).Width.ToString();
-            }
-            */
-            attrs.Value = App.MainWindow.GetAppWindow().Size.Width.ToString();
-            mainWindow.SetAttributeNode(attrs);
-
-            attrs = doc.CreateAttribute("height");
-            /*
-            if ((sender as Window).WindowState == WindowState.Maximized)
-            {
-                attrs.Value = (sender as Window).RestoreBounds.Height.ToString();
-            }
-            else
-            {
-                attrs.Value = (sender as Window).Height.ToString();
-            }
-            */
-            attrs.Value = App.MainWindow.GetAppWindow().Size.Height.ToString();
-            mainWindow.SetAttributeNode(attrs);
-
-            /*
-            attrs = doc.CreateAttribute("top");
-            if ((sender as Window).WindowState == WindowState.Maximized)
-            {
-                attrs.Value = (sender as Window).RestoreBounds.Top.ToString();
-            }
-            else
-            {
-                attrs.Value = (sender as Window).Top.ToString();
-            }
-            mainWindow.SetAttributeNode(attrs);
-            */
-            /*
-            attrs = doc.CreateAttribute("left");
-            if ((sender as Window).WindowState == WindowState.Maximized)
-            {
-                attrs.Value = (sender as Window).RestoreBounds.Left.ToString();
-            }
-            else
-            {
-                attrs.Value = (sender as Window).Left.ToString();
-            }
-            mainWindow.SetAttributeNode(attrs);
-            */
-            /*
-            attrs = doc.CreateAttribute("state");
-            if ((sender as Window).WindowState == WindowState.Maximized)
-            {
-                attrs.Value = "Maximized";
-            }
-            else if ((sender as Window).WindowState == WindowState.Normal)
-            {
-                attrs.Value = "Normal";
-
-            }
-            else if ((sender as Window).WindowState == WindowState.Minimized)
-            {
-                attrs.Value = "Minimized";
-            }
-            mainWindow.SetAttributeNode(attrs);
-            */
-
-
-
-            // set Main Window element to root.
-            root.AppendChild(mainWindow);
-
-        }
-
-        /*
-        // Options
-        XmlElement xOpts = doc.CreateElement(string.Empty, "Opts", string.Empty);
-        attrs = doc.CreateAttribute("IsChartTooltipVisible");
-        attrs.Value = MainVM.IsChartTooltipVisible.ToString();
-        xOpts.SetAttributeNode(attrs);
-
-        root.AppendChild(xOpts);
-        */
-
-
-        try
-        {
-            doc.Save(App.AppConfigFilePath);
-        }
-        //catch (System.IO.FileNotFoundException) { }
-        catch (Exception ex)
-        {
-            Debug.WriteLine("Error at save setting: " + ex + " while opening : " + App.AppConfigFilePath);
-        }
-
-        #endregion
-
-        // Save service tree.
         var hoge = App.GetService<FeedsViewModel>();
+        // Save service tree.
         hoge.SaveServiceXml();
+        // Dispose httpclient.
         hoge.CleanUp();
     }
 
