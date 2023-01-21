@@ -340,49 +340,48 @@
             <Grid Grid.Row="0">
 
                 <!-- Error -->
-                <Border Visibility="{x:Bind ViewModel.IsShowFeedError,Mode=OneWay}">
+                <Border Visibility="{x:Bind ViewModel.IsShowFeedError,Mode=OneWay}" Background="{ThemeResource NavigationViewContentBackground}" Margin="0,0,0,0" CornerRadius="0" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
                     <ScrollViewer>
-                        <Grid Margin="12,60,12,12">
-                            <Grid MaxWidth="600" Width="600" HorizontalAlignment="Left">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="24"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
 
-                                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Grid Margin="12,12,12,12" HorizontalAlignment="Left" MaxWidth="850">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="42"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="24"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
 
-                                    <Viewbox Width="18" Height="18" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <Canvas Width="18" Height="18">
-                                            <Path Fill="Red" Data="M11,15H13V17H11V15M11,7H13V13H11V7M12,2C6.47,2 2,6.5 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20Z" />
-                                        </Canvas>
-                                    </Viewbox>
+                            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Stretch">
 
-                                    <TextBlock Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Margin="24,0,0,0" Style="{ThemeResource SubtitleTextBlockStyle}"><Run Text="Error"/></TextBlock>
+                                <Viewbox Width="18" Height="18" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.7">
+                                    <Canvas Width="18" Height="18">
+                                        <Path Fill="Red" Data="M11,15H13V17H11V15M11,7H13V13H11V7M12,2C6.47,2 2,6.5 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20Z" />
+                                    </Canvas>
+                                </Viewbox>
 
-                                </StackPanel>
+                                <TextBlock Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Margin="24,4,0,0" Style="{ThemeResource SubtitleTextBlockStyle}" Opacity="0.7"><Run Text="Error"/></TextBlock>
 
-                                <StackPanel Grid.Row="1" Grid.Column="1" Margin="3,24,0,0">
-                                    <TextBox Header="Error Type:" Text="{x:Bind ViewModel.ErrorObj.ErrType, Mode=OneWay}" Background="Transparent" Margin="0,12,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
+                            </StackPanel>
 
-                                    <TextBox Header="Error Description:" Text="{x:Bind ViewModel.ErrorObj.ErrDescription, Mode=OneWay}" Background="Transparent" Margin="0,12,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
+                            <StackPanel Grid.Row="1" Grid.Column="1" Margin="3,12,24,0" HorizontalAlignment="Stretch">
+                                <TextBox Header="Type:" Text="{x:Bind ViewModel.ErrorObj.ErrType, Mode=OneWay}" Background="Transparent" Opacity="0.7" Margin="0,12,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
 
-                                    <TextBox Header="Error source text:" Text="{x:Bind ViewModel.ErrorObj.ErrText, Mode=OneWay}" Background="Transparent" Margin="0,12,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="Stretch"></TextBox>
+                                <TextBox Header="Description:" Text="{x:Bind ViewModel.ErrorObj.ErrDescription, Mode=OneWay}" Background="Transparent" Opacity="0.7" Margin="0,12,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
 
-                                    <TextBox Header="Location 1:"  Text="{x:Bind ViewModel.ErrorObj.ErrPlaceParent, Mode=OneWay}" Background="Transparent" Margin="0,12,0,0" BorderThickness="0,0,0,0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
+                                <TextBox Header="Error text:" Text="{x:Bind ViewModel.ErrorObj.ErrText, Mode=OneWay}" Background="Transparent" Opacity="0.7" Margin="0,12,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="Stretch"></TextBox>
 
-                                    <TextBox Header="Location 2:" Text="{x:Bind ViewModel.ErrorObj.ErrPlace, Mode=OneWay}" Background="Transparent" Margin="0,12,0,0" BorderThickness="0,0,0,0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
+                                <TextBox Header="Location 1:"  Text="{x:Bind ViewModel.ErrorObj.ErrPlaceParent, Mode=OneWay}" Background="Transparent" Opacity="0.7" Margin="0,12,0,0" BorderThickness="0,0,0,0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
 
-                                    <TextBox Header="Date and Time:" Text="{x:Bind ViewModel.ErrorObj.ErrDatetime, Mode=OneWay}" Background="Transparent" Margin="0,12,0,0" BorderThickness="0,0,0,0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
+                                <TextBox Header="Location 2:" Text="{x:Bind ViewModel.ErrorObj.ErrPlace, Mode=OneWay}" Background="Transparent" Opacity="0.7" Margin="0,12,0,0" BorderThickness="0,0,0,0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
 
-                                </StackPanel>
+                                <TextBox Header="Date and Time:" Text="{x:Bind ViewModel.ErrorObj.ErrDatetime, Mode=OneWay}" Background="Transparent" Opacity="0.7" Margin="0,12,0,0" BorderThickness="0,0,0,0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
 
-                            </Grid>
+                            </StackPanel>
+
                         </Grid>
-
+                        
                     </ScrollViewer>
                 </Border>
 

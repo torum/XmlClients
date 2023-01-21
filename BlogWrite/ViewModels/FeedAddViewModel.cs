@@ -14,9 +14,9 @@ namespace BlogWrite.ViewModels;
 public class FeedAddViewModel : ObservableRecipient, INavigationAware
 {
     private readonly INavigationService _navigationService;
-    private readonly ISampleDataService _sampleDataService;
+    //private readonly ISampleDataService _sampleDataService;
 
-    private ServiceDiscovery _serviceDiscovery;
+    private readonly ServiceDiscovery _serviceDiscovery;
 
     #region == Properties ==
 
@@ -205,12 +205,12 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    public ObservableCollection<SampleOrder> Source { get; } = new ObservableCollection<SampleOrder>();
+    //public ObservableCollection<SampleOrder> Source { get; } = new ObservableCollection<SampleOrder>();
 
-    public FeedAddViewModel(INavigationService navigationService, ISampleDataService sampleDataService)
+    public FeedAddViewModel(INavigationService navigationService)
     {
         _navigationService = navigationService;
-        _sampleDataService = sampleDataService;
+        //_sampleDataService = sampleDataService;
 
         _serviceDiscovery = new ServiceDiscovery();
         _serviceDiscovery.StatusUpdate += new ServiceDiscovery.ServiceDiscoveryStatusUpdate(OnStatusUpdate);
@@ -231,15 +231,16 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
 
     public async void OnNavigatedTo(object parameter)
     {
-        Source.Clear();
+        //Source.Clear();
 
         // TODO: Replace with real data.
-        var data = await _sampleDataService.GetGridDataAsync();
-
+        //var data = await _sampleDataService.GetGridDataAsync();
+        /*
         foreach (var item in data)
         {
             Source.Add(item);
         }
+        */
     }
 
     public void OnNavigatedFrom()

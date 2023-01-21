@@ -43,7 +43,7 @@ public partial class App : Application
     private static readonly string _appDeveloper = "torum";
     private static readonly string _envDataFolder = System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
     public static string AppDataFolder { get; } = _envDataFolder + System.IO.Path.DirectorySeparatorChar + _appDeveloper + System.IO.Path.DirectorySeparatorChar + _appName;
-    public static string AppConfigFilePath { get; } = AppDataFolder + System.IO.Path.DirectorySeparatorChar + _appName + ".config";
+    public static string AppConfigFilePath { get; } = Path.Combine(AppDataFolder, _appName + ".config");
 
     //
     public static WindowEx MainWindow { get; } = new MainWindow();
@@ -80,13 +80,12 @@ public partial class App : Application
             services.AddSingleton<INavigationService, NavigationService>();
             services.AddTransient<INavigationViewService, NavigationViewService>();
 
-            services.AddTransient<IFileDialogService, FileDialogService>();
-            services.AddSingleton<IDataAccessService, DataAccessService>();
-
-
             // Core Services
             services.AddSingleton<ISampleDataService, SampleDataService>();
             services.AddSingleton<IFileService, FileService>();
+
+            services.AddTransient<IFileDialogService, FileDialogService>();
+            services.AddSingleton<IDataAccessService, DataAccessService>();
 
             // Views and ViewModels
             services.AddSingleton<SettingsViewModel>();
@@ -112,7 +111,7 @@ public partial class App : Application
         }).
         Build();
 
-        App.GetService<IAppNotificationService>().Initialize();
+        //App.GetService<IAppNotificationService>().Initialize();
 
         UnhandledException += App_UnhandledException;
     }
@@ -152,6 +151,9 @@ public partial class App : Application
         // WinUIEx Storage option.
         if (!RuntimeHelper.IsMSIX)
         {
+            // Create if not exists.
+            System.IO.Directory.CreateDirectory(AppDataFolder);
+
             WinUIEx.WindowManager.PersistenceStorage = new FilePersistence(Path.Combine(AppDataFolder, "WinUIExPersistence.json"));
         }
 

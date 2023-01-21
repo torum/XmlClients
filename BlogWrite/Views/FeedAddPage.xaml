@@ -5,29 +5,37 @@
     xmlns:local="using:BlogWrite.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    
     xmlns:model="using:BlogWrite.Models"
-    NavigationCacheMode="Required"
+    NavigationCacheMode="Disabled"
     mc:Ignorable="d">
+    <Grid x:Name="ContentArea">
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+    </Grid.ColumnDefinitions>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-        
-        <StackPanel Grid.Row="0">
-            <Button Margin="18" Padding="24,7,24,7" VerticalAlignment="Top" Background="Transparent" BorderThickness="0" Command="{x:Bind ViewModel.GoBackCommand}">
-                <SymbolIcon Symbol="Back" />
-            </Button>
-        </StackPanel>
+    <Border Grid.Row="0" Grid.Column="0" Margin="0,0,0,0" Background="{ThemeResource NavigationViewContentBackground}" CornerRadius="{ThemeResource NavigationViewContentChildGridCornerRadius}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
 
-        <Grid Grid.Row="1">
-            <Border MaxWidth="800" Margin="0" Background="{ThemeResource NavigationViewContentBackground}" CornerRadius="{ThemeResource NavigationViewContentChildGridCornerRadius}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
-                
-                <Pivot Title="Add New Feed or API" Margin="0,0,0,0" SelectedIndex="{x:Bind ViewModel.SelectedTabIndex, Mode=TwoWay}">
+        <Button Margin="12,12,0,0" Padding="12" VerticalAlignment="Top" Background="Transparent" BorderThickness="0" Command="{x:Bind ViewModel.GoBackCommand}">
+            <!-- <SymbolIcon Symbol="Back" /> -->
+            <Viewbox Width="16" Height="16" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <PathIcon Margin="-2,-2,0,0" Data="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"></PathIcon>
+            </Viewbox>
+        </Button>
+
+    </Border>
+
+        <Grid Grid.Row="1" Grid.Column="0" Background="{ThemeResource NavigationViewContentBackground}">
+            <StackPanel Margin="50,12,0,0" HorizontalAlignment="Left">
+
+                <TextBlock Text="Feed Item" Margin="0,0,0,12" Style="{StaticResource PageTitleStyle}" />
+
+                <Pivot Title="" Margin="0,-60,0,0" SelectedIndex="{x:Bind ViewModel.SelectedTabIndex, Mode=TwoWay}">
                     <Pivot.HeaderTemplate>
                         <DataTemplate>
                             <StackPanel Height="0" Width="0">
@@ -35,22 +43,21 @@
                             </StackPanel>
                         </DataTemplate>
                     </Pivot.HeaderTemplate>
-                    
-                    <PivotItem Header="1. Input URL">
-                        <StackPanel Margin="0,12,0,0">
 
-                            <TextBlock Text="Enter a URL of a feed, a website or an API endpoint." />
+                    <PivotItem Header="1. Input URL">
+                        <StackPanel Margin="0,12,0,0" HorizontalAlignment="Stretch">
+
+                            <TextBlock Text="Enter a URL of a feed or a website." />
 
                             <StackPanel MinWidth="300" HorizontalAlignment="Stretch" Margin="24,0,24,0">
 
-                                <TextBox Header="URL:" PlaceholderText="https://www.example.com/feed.xml" Text="{x:Bind ViewModel.WebsiteOrEndpointUrl, Mode=TwoWay}" Margin="0,24,0,0" HorizontalAlignment="Stretch"/>
+                                <TextBox Header="URL:" PlaceholderText="https://...." Text="{x:Bind ViewModel.WebsiteOrEndpointUrl, Mode=TwoWay}" Margin="0,24,0,0" HorizontalAlignment="Stretch"/>
 
                                 <Button Content="Go" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoCommand}"></Button>
 
                             </StackPanel>
 
-
-                            <Grid MinWidth="300" MaxWidth="850" HorizontalAlignment="Stretch" Margin="24,0,12,12" Visibility="{x:Bind ViewModel.IsShowError,Mode=OneWay}">
+                            <Grid MinWidth="300" MaxWidth="850" HorizontalAlignment="Left" Margin="24,0,12,12" Visibility="{x:Bind ViewModel.IsShowError,Mode=OneWay}">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
@@ -74,17 +81,16 @@
                                 </RichTextBlock>
                             </Grid>
 
-
                         </StackPanel>
 
                     </PivotItem>
 
                     <PivotItem Header="2. Select">
-                        <StackPanel Margin="0,12,0,0">
+                        <StackPanel Margin="0,12,0,0" HorizontalAlignment="Stretch">
 
                             <TextBlock Text="Select an item to add." />
 
-                            <StackPanel HorizontalAlignment="Stretch" Margin="12,24,12,12">
+                            <StackPanel Margin="12,24,12,12" HorizontalAlignment="Stretch">
 
                                 <ListView SelectionMode="Single" ItemsSource="{x:Bind ViewModel.LinkItems, Mode=OneWay}" MaxHeight="200" SelectedItem="{x:Bind ViewModel.SelectedLinkItem, Mode=TwoWay}">
                                     <ListView.ItemTemplate>
@@ -101,11 +107,11 @@
                                                     <ColumnDefinition Width="Auto"/>
                                                     <ColumnDefinition Width="*"/>
                                                 </Grid.ColumnDefinitions>
-<!--
+                                                <!--
                                                 <Ellipse Grid.RowSpan="3" x:Name="Ellipse" Width ="24" Height="24" Margin="0,0,12,0" VerticalAlignment="Center" HorizontalAlignment="Center" Fill="{ThemeResource SystemControlBackgroundBaseMediumBrush}"/>
 -->
                                                 <PathIcon Data="{Binding IconPath, Mode=OneWay}" Width ="24" Height="24" Margin="0,0,12,0"></PathIcon>
-                                                
+
                                                 <TextBlock Grid.Row="0" Grid.Column="1" FontWeight="Bold" Text="Type:" Padding="3"/>
                                                 <TextBlock Grid.Row="0" Grid.Column="2" FontWeight="Normal" Text="{Binding TypeText, Mode=OneWay}" Padding="3"/>
 
@@ -126,7 +132,6 @@
                                     <Button Content="Go" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoSelectedCommand}"></Button>
 
                                 </StackPanel>
-                                
 
                             </StackPanel>
 
@@ -134,7 +139,7 @@
                     </PivotItem>
 
                     <PivotItem Header="3. Authentication">
-                        <StackPanel Margin="0,12,0,0">
+                        <StackPanel Margin="0,12,0,0" HorizontalAlignment="Stretch">
 
                             <TextBlock Text="flagged emails go here." />
 
@@ -151,11 +156,11 @@
                     </PivotItem>
 
                     <PivotItem Header="4. Comfirm">
-                        <StackPanel Margin="0,12,0,0">
+                        <StackPanel Margin="0,12,0,0" HorizontalAlignment="Stretch">
 
                             <TextBlock Text="Set a label and comfirm to add." />
 
-                            <StackPanel MinWidth="300" MaxWidth="600" HorizontalAlignment="Stretch" Margin="12,24,12,12">
+                            <StackPanel HorizontalAlignment="Stretch" Margin="12,24,12,12">
 
                                 <StackPanel>
 
@@ -175,7 +180,7 @@
 
                                         <TextBlock Grid.Row="1" Grid.Column="0" Text="Label: " Margin="6" VerticalAlignment="Center"></TextBlock>
 
-                                        <TextBox Grid.Row="1" Grid.Column="1" Margin="6" HorizontalAlignment="Left" Width="200" Text="{x:Bind ViewModel.SelectedItemTitleLabel, Mode=TwoWay}"></TextBox>
+                                        <TextBox Grid.Row="1" Grid.Column="1" Margin="6" HorizontalAlignment="Stretch" Text="{x:Bind ViewModel.SelectedItemTitleLabel, Mode=TwoWay}"></TextBox>
 
                                     </Grid>
 
@@ -261,10 +266,10 @@
 
                 </Pivot>
 
-            </Border>
+            </StackPanel>
         </Grid>
 
-        <StackPanel Grid.Row="2" HorizontalAlignment="Stretch" Margin="12,12,12,12" MaxWidth="800">
+        <StackPanel Grid.Row="2" HorizontalAlignment="Stretch" Margin="12,12,12,12">
 
             <TextBlock Text="HTTP Request and HTML Parse status logging" FontWeight="Bold" Margin="0,0,0,6" Opacity="0.5"></TextBlock>
             <Border CornerRadius="3" Background="{ThemeResource NavigationViewContentBackground}">

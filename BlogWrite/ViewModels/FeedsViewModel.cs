@@ -2,6 +2,7 @@
 using System.Xml;
 using BlogWrite.Contracts.Services;
 using BlogWrite.Contracts.ViewModels;
+using BlogWrite.Helpers;
 using BlogWrite.Models;
 using BlogWrite.Models.Clients;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -27,14 +28,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
         }
     }
 
-    public void SaveServiceXml()
-    {
-        var xdoc = _services.AsXmlDoc();
-
-        xdoc.Save(System.IO.Path.Combine(App.AppDataFolder, "Searvies.xml"));
-    }
-
-    private NodeTree? _selectedTreeViewItem;// = new NodeService("", "", "", new Uri("http://127.0.0.1"), ApiTypes.atUnknown, ServiceTypes.Unknown);
+    private NodeTree? _selectedTreeViewItem;
     public NodeTree? SelectedTreeViewItem
     {
         get => _selectedTreeViewItem;
@@ -565,13 +559,19 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
 
     private void InitializeFeedTree()
     {
-        if (File.Exists(App.AppDataFolder + System.IO.Path.DirectorySeparatorChar + "Searvies.xml"))
+        var filePath = Path.Combine(App.AppDataFolder, "Searvies.xml");
+        if (RuntimeHelper.IsMSIX)
+        {
+            filePath = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "Searvies.xml");
+        }
+
+        if (File.Exists(filePath))
         {
             var doc = new System.Xml.XmlDocument();
 
             try
             {
-                doc.Load(App.AppDataFolder + System.IO.Path.DirectorySeparatorChar + "Searvies.xml");
+                doc.Load(filePath);
 
                 _services.LoadXmlDoc(doc);
             }
@@ -588,11 +588,13 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
         // Init database.
         try
         {
-            var databaseFileFolerPath = App.AppDataFolder;
-            System.IO.Directory.CreateDirectory(databaseFileFolerPath);
-            var dataBaseFilePath = databaseFileFolerPath + System.IO.Path.DirectorySeparatorChar + "FeedEntries.db";
+            var filePath = Path.Combine(App.AppDataFolder, "FeedEntries.db");
+            if (RuntimeHelper.IsMSIX)
+            {
+                filePath = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "FeedEntries.db");
+            }
 
-            var res = await Task.FromResult(_dataAccessService.InitializeDatabase(dataBaseFilePath));
+            var res = await Task.FromResult(_dataAccessService.InitializeDatabase(filePath));
             if (res.IsError)
             {
                 // TODO:
@@ -684,6 +686,19 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
         {
             Debug.WriteLine("Error while Shutdown() : " + ex);
         }
+    }
+
+    public void SaveServiceXml()
+    {
+        var filePath = Path.Combine(App.AppDataFolder, "Searvies.xml");
+        if (RuntimeHelper.IsMSIX)
+        {
+            filePath = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "Searvies.xml");
+        }
+
+        var xdoc = _services.AsXmlDoc();
+
+        xdoc.Save(filePath);
     }
 
     #endregion
