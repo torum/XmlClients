@@ -592,8 +592,8 @@ public class ServiceTreeBuilder : NodeRoot
             //feed.IsExpanded = isExpandedf;
             feed.Parent = this;
 
-            feed.SiteTitle = siteTitle;
-            feed.SiteUri = siteUri;
+            feed.Title = siteTitle;
+            feed.HtmlUri = siteUri;
 
             feed.EntryNewCount = unreadCount;
             feed.ViewType = vt;
@@ -967,12 +967,12 @@ public class ServiceTreeBuilder : NodeRoot
         }
 
         attrf = doc.CreateAttribute("SiteTitle");
-        attrf.Value = fd.SiteTitle;
+        attrf.Value = fd.Title;
         feed.SetAttributeNode(attrf);
 
         attrf = doc.CreateAttribute("SiteUri");
-        if (fd.SiteUri != null)
-            attrf.Value = fd.SiteUri.AbsoluteUri;
+        if (fd.HtmlUri != null)
+            attrf.Value = fd.HtmlUri.AbsoluteUri;
         feed.SetAttributeNode(attrf);
 
         attrf = doc.CreateAttribute("UnreadCount");

@@ -71,7 +71,7 @@ public class Opml
                             htmlUrl = outline.Attributes["htmlUrl"].Value;
 
                             var hu = new Uri(htmlUrl);
-                            feed.SiteUri = hu;
+                            feed.HtmlUri = hu;
                         }
 
                         feed.Parent = parent;
@@ -159,10 +159,10 @@ public class Opml
             xmlUriAttr.Value = feed.EndPoint.AbsoluteUri;
             eleOutline.SetAttributeNode(xmlUriAttr);
 
-            if (feed.SiteUri is not null)
+            if (feed.HtmlUri is not null)
             {
                 XmlAttribute htmlUriAttr = xdoc.CreateAttribute("htmlUrl");
-                htmlUriAttr.Value = feed.SiteUri.AbsoluteUri;
+                htmlUriAttr.Value = feed.HtmlUri.AbsoluteUri;
                 eleOutline.SetAttributeNode(htmlUriAttr);
             }
         }

@@ -645,7 +645,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
         {
             if (c is NodeFeed nf)
             {
-                nf.SetClient = _feedClient;
+                nf.Client = _feedClient;
                 //nf.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
             }
 
@@ -902,7 +902,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
                 feed.LastUpdate = DateTime.Now;
             });
 
-            Debug.WriteLine("Getting Entries from: " + feed.Name);
+            //Debug.WriteLine("Getting Entries from: " + feed.Name);
 
             // Get Entries from web.
             var resEntries = await feed.Client.GetEntries(feed.EndPoint, feed.Id);
@@ -1655,10 +1655,10 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
         NodeFeed a = new(feedlink.Title, feedlink.FeedUri);
         a.IsSelected = true;
 
-        a.SiteTitle = feedlink.SiteTitle;
-        a.SiteUri = feedlink.SiteUri;
+        a.Title = feedlink.SiteTitle;
+        a.HtmlUri = feedlink.SiteUri;
 
-        a.SetClient = _feedClient;
+        a.Client = _feedClient;
         a.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
 
         if (SelectedTreeViewItem is NodeFolder)

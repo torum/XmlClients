@@ -7,7 +7,6 @@
     xmlns:model="using:BlogWrite.Models"
     xmlns:local="using:BlogWrite.Views"
     xmlns:controls="using:Microsoft.UI.Xaml.Controls"
-     Background="Transparent"
     NavigationCacheMode="Required"
     mc:Ignorable="d">
     <Page.Resources>
@@ -557,13 +556,20 @@
                                             </Grid.ColumnDefinitions>
 
                                             <Viewbox Grid.RowSpan="3" Width ="20" Height="20">
-                                                <PathIcon Data="{x:Bind PathIcon, Mode=OneWay}" Foreground="{ThemeResource SystemAccentColorLight2}" Width ="24" Height="24" Margin="6" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.55"></PathIcon>
+                                                <PathIcon Data="{x:Bind PathIcon, Mode=OneWay}" Foreground="{ThemeResource SystemAccentColorLight2}" Width ="24" Height="24" Margin="6" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.9"></PathIcon>
                                             </Viewbox>
 
-                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind Name}" x:Phase="1" Style="{ThemeResource BaseTextBlockStyle}" FontSize="{StaticResource NormalFontSize}" Margin="12,6,0,0" Opacity="0.8"/>
+                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind Name}" x:Phase="1" Style="{ThemeResource BaseTextBlockStyle}" FontSize="{StaticResource NormalFontSize}" Padding="2" Margin="12,6,0,0" Opacity="0.8"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="1" Style="{ThemeResource CaptionTextBlockStyle}" Padding="2" Margin="12,0,0,0" Opacity=".7">
+                                                <Run Text="By"/>
+                                                <Run Text="{x:Bind Author}"/>
+                                                <Run Text=" - "/>
+                                                <Run Text="{x:Bind PublishedDateTimeFormated}"/>
+                                            </TextBlock>                                            
+<!--                                         
                                             <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind Author}" x:Phase="2" Style="{ThemeResource BodyTextBlockStyle}" FontSize="{StaticResource NormalFontSize}" Margin="12,0,0,0" Opacity=".7"/>
                                             <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind PublishedDateTimeFormated}" x:Phase="2" Style="{ThemeResource CaptionTextBlockStyle}" FontSize="{StaticResource SmallFontSize}" Margin="12,0,0,6" Opacity=".6"/>
-
+-->
                                         </Grid>
                                     </DataTemplate>
                                 </ListView.ItemTemplate>

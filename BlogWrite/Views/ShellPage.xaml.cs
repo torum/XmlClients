@@ -53,11 +53,12 @@ public sealed partial class ShellPage : Page
         App.MainWindow.Closed += MainWindow_Closed;
         AppTitleBarText.Text = "AppDisplayName".GetLocalized();
 
-        TitleBarHelper.UpdateTitleBar(RequestedTheme);
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
+        // Needed to be here. (don't put this in constructor.. messes up when theme changed.)
+        TitleBarHelper.UpdateTitleBar(RequestedTheme);
 
         KeyboardAccelerators.Add(BuildKeyboardAccelerator(VirtualKey.Left, VirtualKeyModifiers.Menu));
         KeyboardAccelerators.Add(BuildKeyboardAccelerator(VirtualKey.GoBack));
@@ -65,11 +66,12 @@ public sealed partial class ShellPage : Page
         //ShellMenuBarSettingsButton.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(ShellMenuBarSettingsButton_PointerPressed), true);
         //ShellMenuBarSettingsButton.AddHandler(UIElement.PointerReleasedEvent, new PointerEventHandler(ShellMenuBarSettingsButton_PointerReleased), true);
 
-        // give sime time to let window draw itself.
+        // give some time to let window draw itself.
         await Task.Delay(100);
 
         // Needed to be here.
-        ViewModel.NavigationService.NavigateTo(typeof(FeedsViewModel).FullName!, null);
+        var navigationService = App.GetService<INavigationService>();
+        navigationService.NavigateTo(typeof(FeedsViewModel).FullName!, null);
     }
 
     private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)

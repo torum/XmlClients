@@ -19,6 +19,8 @@
 	  <AssemblyVersion>1.0.0.6</AssemblyVersion>
 	  <FileVersion>$(AssemblyVersion)</FileVersion>
 	  <Version>$(AssemblyVersion)</Version>
+	  <PlatformTarget>x64</PlatformTarget>
+	  <NeutralLanguage>en-US</NeutralLanguage>
   </PropertyGroup>
   <ItemGroup>
     <Content Remove="Assets\Icons\rss.svg" />

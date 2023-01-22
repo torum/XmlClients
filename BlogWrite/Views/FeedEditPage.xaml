@@ -61,13 +61,13 @@
 
                     <StackPanel Margin="12,6,0,0">
                         <TextBlock Text="Alt Link:" Margin="{StaticResource XSmallTopMargin}"></TextBlock>
-                        <HyperlinkButton NavigateUri="{x:Bind ViewModel.Feed.SiteUri, Mode=OneTime}" Content="{x:Bind ViewModel.Feed.SiteUri.AbsoluteUri, Mode=OneTime}" Margin="{StaticResource XSmallTopMargin}" />
+                        <HyperlinkButton NavigateUri="{x:Bind ViewModel.Feed.HtmlUri, Mode=OneTime}" Content="{x:Bind ViewModel.Feed.HtmlUri.AbsoluteUri, Mode=OneTime}" Margin="{StaticResource XSmallTopMargin}" />
                     </StackPanel>
 
                     <StackPanel Margin="12,6,0,0">
                         <TextBlock Text="Title:" Margin="{StaticResource XSmallTopMargin}"></TextBlock>
                         <StackPanel Margin="12,6,0,0">
-                            <TextBlock Text="{x:Bind ViewModel.Feed.SiteTitle,Mode=OneTime}" Margin="{StaticResource XSmallTopMargin}"></TextBlock>
+                            <TextBlock Text="{x:Bind ViewModel.Feed.Title,Mode=OneTime}" Margin="{StaticResource XSmallTopMargin}"></TextBlock>
                         </StackPanel>
                     </StackPanel>
 

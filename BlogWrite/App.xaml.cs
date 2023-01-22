@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Text.Json.Nodes;
 using AngleSharp.Dom;
 using BlogWrite.Activation;
@@ -57,6 +58,13 @@ public partial class App : Application
 
     public App()
     {
+        // CultureInfo.CurrentUICulture = new CultureInfo( "ja-JP", false );
+        //CultureInfo.CurrentUICulture = new CultureInfo("en-US", false);
+
+        // Force theme
+        //this.RequestedTheme = ApplicationTheme.Dark;
+        //this.RequestedTheme = ApplicationTheme.Light;
+
         InitializeComponent();
 
         Host = Microsoft.Extensions.Hosting.Host.
@@ -68,17 +76,17 @@ public partial class App : Application
             services.AddTransient<ActivationHandler<LaunchActivatedEventArgs>, DefaultActivationHandler>();
 
             // Other Activation Handlers
-            services.AddTransient<IActivationHandler, AppNotificationActivationHandler>();
+            //services.AddTransient<IActivationHandler, AppNotificationActivationHandler>();
 
             // Services
-            services.AddSingleton<IAppNotificationService, AppNotificationService>();
+            //services.AddSingleton<IAppNotificationService, AppNotificationService>();
             services.AddSingleton<ILocalSettingsService, LocalSettingsService>();
             services.AddSingleton<IThemeSelectorService, ThemeSelectorService>();
-            services.AddTransient<IWebViewService, WebViewService>();
+            //services.AddTransient<IWebViewService, WebViewService>();
             services.AddSingleton<IActivationService, ActivationService>();
             services.AddSingleton<IPageService, PageService>();
             services.AddSingleton<INavigationService, NavigationService>();
-            services.AddTransient<INavigationViewService, NavigationViewService>();
+            //services.AddTransient<INavigationViewService, NavigationViewService>();
 
             // Core Services
             services.AddSingleton<ISampleDataService, SampleDataService>();
@@ -90,8 +98,8 @@ public partial class App : Application
             // Views and ViewModels
             services.AddSingleton<SettingsViewModel>();
             services.AddSingleton<SettingsPage>();
-            services.AddTransient<EntryDetailsViewModel>();
-            services.AddTransient<EntryDetailsPage>();
+            //services.AddTransient<EntryDetailsViewModel>();
+            //services.AddTransient<EntryDetailsPage>();
             services.AddTransient<FeedAddViewModel>();
             services.AddTransient<FeedAddPage>();
             services.AddTransient<FeedEditViewModel>();
@@ -114,6 +122,8 @@ public partial class App : Application
         //App.GetService<IAppNotificationService>().Initialize();
 
         UnhandledException += App_UnhandledException;
+
+
     }
 
     private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
@@ -130,7 +140,7 @@ public partial class App : Application
 
         // Single instance.
         // https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/migrate-to-windows-app-sdk/guides/applifecycle
-        var mainInstance = Microsoft.Windows.AppLifecycle.AppInstance.FindOrRegisterForKey("Main");
+        var mainInstance = Microsoft.Windows.AppLifecycle.AppInstance.FindOrRegisterForKey("BlogWriteMain");
         // If the instance that's executing the OnLaunched handler right now
         // isn't the "main" instance.
         if (!mainInstance.IsCurrent)
@@ -160,7 +170,6 @@ public partial class App : Application
         // Nortification example.
         //App.GetService<IAppNotificationService>().Show(string.Format("AppNotificationSamplePayload".GetLocalized(), AppContext.BaseDirectory));
 
-        // Activation.
         await App.GetService<IActivationService>().ActivateAsync(args);
     }
 

@@ -37,17 +37,20 @@ public class ShellViewModel : ObservableRecipient
         get;
     }
 
+    /*
     public INavigationViewService NavigationViewService
     {
         get;
     }
-
+    */
+    /*
     private object? _selected;
     public object? Selected
     {
         get => _selected;
         set => SetProperty(ref _selected, value);
     }
+    */
 
     private bool _isBackEnabled;
     public bool IsBackEnabled
@@ -56,11 +59,11 @@ public class ShellViewModel : ObservableRecipient
         set => SetProperty(ref _isBackEnabled, value);
     }
 
-    public ShellViewModel(INavigationService navigationService, INavigationViewService navigationViewService)
+    public ShellViewModel(INavigationService navigationService) //, INavigationViewService navigationViewService
     {
         NavigationService = navigationService;
         NavigationService.Navigated += OnNavigated;
-        NavigationViewService = navigationViewService;
+        //NavigationViewService = navigationViewService;
 
         MenuFileExitCommand = new RelayCommand(OnMenuFileExit);
         MenuSettingsCommand = new RelayCommand(OnMenuSettings);
@@ -72,6 +75,7 @@ public class ShellViewModel : ObservableRecipient
     {
         IsBackEnabled = NavigationService.CanGoBack;
 
+        /*
         if (e.SourcePageType == typeof(SettingsPage))
         {
             Selected = NavigationViewService.SettingsItem;
@@ -83,6 +87,7 @@ public class ShellViewModel : ObservableRecipient
         {
             Selected = selectedItem;
         }
+        */
     }
 
     private void OnMenuFileExit() => Application.Current.Exit();

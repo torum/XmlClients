@@ -1,11 +1,9 @@
-﻿using AngleSharp.Html.Dom.Events;
-using BlogWrite.Activation;
+﻿using BlogWrite.Activation;
 using BlogWrite.Contracts.Services;
+using BlogWrite.ViewModels;
 using BlogWrite.Views;
-
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using WinUIEx;
 
 namespace BlogWrite.Services;
 
@@ -16,7 +14,7 @@ public class ActivationService : IActivationService
     private readonly IThemeSelectorService _themeSelectorService;
     private UIElement? _shell = null;
 
-    public ActivationService(ActivationHandler<LaunchActivatedEventArgs> defaultHandler, IEnumerable<IActivationHandler> activationHandlers, IThemeSelectorService themeSelectorService)
+    public ActivationService(ActivationHandler<LaunchActivatedEventArgs> defaultHandler, IEnumerable<IActivationHandler> activationHandlers, IThemeSelectorService themeSelectorService)//
     {
         _defaultHandler = defaultHandler;
         _activationHandlers = activationHandlers;
@@ -41,8 +39,7 @@ public class ActivationService : IActivationService
         // Activate the MainWindow.
         App.MainWindow.Activate();
 
-        //
-        //App.MainWindow.CenterOnScreen(App.MainWindow.Width, App.MainWindow.Height);
+        App.MainWindow.BringToFront();
 
         // Execute tasks after activation.
         await StartupAsync();
@@ -73,5 +70,6 @@ public class ActivationService : IActivationService
     {
         await _themeSelectorService.SetRequestedThemeAsync();
         await Task.CompletedTask;
+
     }
 }
