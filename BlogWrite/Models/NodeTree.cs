@@ -493,7 +493,7 @@ public class NodeService : NodeTree
     public ErrorObject? ErrorDatabase { get; set; }
 
     // The DateTime of the last time checking new feed.
-    public DateTime LastUpdate { get; set; }
+    public DateTime LastFetched { get; set; }
 
     public NodeService(string name, string username, string password, Uri endPoint, ApiTypes api, ServiceTypes serviceType) : base(name)
     {
@@ -576,25 +576,117 @@ public class NodeFeed : NodeService
     private static readonly string _loadingPathIcon = "M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z";
     private static readonly string _loadErrorPathIcon = "M2 12C2 17 6 21 11 21C13.4 21 15.7 20.1 17.4 18.4L15.9 16.9C14.6 18.3 12.9 19 11 19C4.8 19 1.6 11.5 6.1 7.1S18 5.8 18 12H15L19 16H19.1L23 12H20C20 7 16 3 11 3S2 7 2 12M10 15H12V17H10V15M10 7H12V13H10V7";
 
-    // Atom //feed/title, RSS2.0 //rss/channel/title
-    public string? Title { get; set; }
+    // Atom //feed/title
+    // RSS2.0 //rss/channel/title
+    private string _title = "";
+    public string Title
+    {
+        get => _title;
+        set
+        {
+            if (_title == value)
+                return;
 
-    // Atom //feed/subtitle, RSS2.0  //rss/channel/description
-    public string? Description { get; set; }
+            _title = value;
+            NotifyPropertyChanged(nameof(Title));
+        }
+    }
 
+    // Atom //feed/subtitle
+    // RSS2.0  //rss/channel/description
+    private string? _description;
+    public string? Description
+    {
+        get => _description;
+        set
+        {
+            if (_description == value)
+                return;
+
+            _description = value;
+            NotifyPropertyChanged(nameof(Description));
+        }
+    }
+
+    // not really used.
+    // RSS2.0 //rss/channnel/copyright
+    private string? _copyright;
     public string? Copyright
     {
-        get; set;
+        get => _copyright;
+        set
+        {
+            if (_copyright == value)
+                return;
+
+            _copyright = value;
+            NotifyPropertyChanged(nameof(Copyright));
+        }
     }
 
     // Atom //feed/link, RSS2.0 //rss/channnel/link
-    public Uri? HtmlUri { get; set; }
-
-    //
-    // Atom //feed/updated, RSS2.0 //rss/channel/lastBuildDate 
-    public DateTime? Updated
+    private Uri? _htmlUri;
+    public Uri? HtmlUri
     {
-        get;set;
+        get => _htmlUri;
+        set
+        {
+            if (_htmlUri == value)
+                return;
+
+            _htmlUri = value;
+            NotifyPropertyChanged(nameof(HtmlUri));
+        }
+    }
+
+    /*
+    // not really used.
+    // RSS2.0 //rss/channel/pubDate 
+    private DateTime _published = default;
+    public DateTime Published
+    {
+        get => _published;
+        set
+        {
+            if (_published == value)
+                return;
+
+            _published = value;
+            NotifyPropertyChanged(nameof(Published));
+        }
+    }
+    */
+
+    // Atom //feed/updated
+    // RSS2.0 //rss/channel/lastBuildDate
+    private DateTime _updated = default;
+    public DateTime Updated
+    {
+        get => _updated;
+        set
+        {
+            if (_updated == value)
+                return;
+
+            _updated = value;
+            NotifyPropertyChanged(nameof(Updated));
+            NotifyPropertyChanged(nameof(UpdatedDateTimeFormated));
+        }
+    }
+
+    public string? UpdatedDateTimeFormated
+    {
+        get
+        {
+            if (Updated != default)
+            {
+                return Updated.ToString(System.Globalization.CultureInfo.CurrentCulture);
+            }
+            else
+            {
+                return "-";
+            }
+        }
     }
 
     public enum DownloadStatus

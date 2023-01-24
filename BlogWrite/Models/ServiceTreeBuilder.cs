@@ -411,6 +411,13 @@ public class ServiceTreeBuilder : NodeRoot
             siteTitle = string.IsNullOrEmpty(node.Attributes?["SiteTitle"]?.Value) ? "" : node.Attributes?["SiteTitle"]?.Value;
         }
 
+        var siteSubTitle = "";
+        attr = node.Attributes["SiteSubTitle"];
+        if (attr != null)
+        {
+            siteSubTitle = string.IsNullOrEmpty(node.Attributes?["SiteSubTitle"]?.Value) ? "" : node.Attributes?["SiteSubTitle"]?.Value;
+        }
+
         Uri siteUri = null;
         attr = node.Attributes["SiteUri"];
         if (attr != null)
@@ -425,6 +432,14 @@ public class ServiceTreeBuilder : NodeRoot
                 }
                 catch { }
             }
+        }
+
+        DateTime Updated = default;
+        attr = node.Attributes["Updated"];
+        if (attr != null)
+        {
+            if (!string.IsNullOrEmpty(node.Attributes?["Updated"]?.Value))
+                Updated = DateTime.Parse(node.Attributes?["Updated"]?.Value);
         }
 
         var unreadCount = 0;
@@ -593,11 +608,13 @@ public class ServiceTreeBuilder : NodeRoot
             feed.Parent = this;
 
             feed.Title = siteTitle;
+            feed.Description = siteSubTitle;
             feed.HtmlUri = siteUri;
+            feed.Updated = Updated;
 
             feed.EntryNewCount = unreadCount;
             feed.ViewType = vt;
-            feed.LastUpdate = lastUpdate;
+            feed.LastFetched = lastUpdate;
 
             feed.Api = at;
 
@@ -970,9 +987,17 @@ public class ServiceTreeBuilder : NodeRoot
         attrf.Value = fd.Title;
         feed.SetAttributeNode(attrf);
 
+        attrf = doc.CreateAttribute("SiteSubTitle");
+        attrf.Value = fd.Description;
+        feed.SetAttributeNode(attrf);
+
         attrf = doc.CreateAttribute("SiteUri");
         if (fd.HtmlUri != null)
             attrf.Value = fd.HtmlUri.AbsoluteUri;
+        feed.SetAttributeNode(attrf);
+
+        attrf = doc.CreateAttribute("Updated");
+        attrf.Value = fd.Updated.ToString("yyyy-MM-dd HH:mm:ss");
         feed.SetAttributeNode(attrf);
 
         attrf = doc.CreateAttribute("UnreadCount");
@@ -980,7 +1005,7 @@ public class ServiceTreeBuilder : NodeRoot
         feed.SetAttributeNode(attrf);
 
         attrf = doc.CreateAttribute("LastUpdate");
-        attrf.Value = fd.LastUpdate.ToString("yyyy-MM-dd HH:mm:ss");
+        attrf.Value = fd.LastFetched.ToString("yyyy-MM-dd HH:mm:ss");
         feed.SetAttributeNode(attrf);
 
 

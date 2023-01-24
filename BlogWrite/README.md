@@ -30,7 +30,7 @@ A blog editing (web publishing) client with a feed reading functionality - C# po
 
 ## Change log
 
-* v1.0.0.5 (2023/1/21)
+* v1.0.0.7 (2023/1/21)
  Some code refactoring.
 * v1.0.0.5 (2023/1/20)
  Some updates.
@@ -51,22 +51,18 @@ A blog editing (web publishing) client with a feed reading functionality - C# po
 
 #### Feed reader
 
-- [ ] Folderでまとめて読む際にどのFeedからのか分かりやすいようにPublisherを表示したい。要DBテーブル。
-- [ ] GoogleNewsのfeedでentry id を確認したほうがよい。
-- [ ] NewEntryCountをもっと効率よく（上下に伝播させるのではなく）。
-- [ ] Manage entries read/unread status with SQLite database. Newステータス(SQLでロードと同時に既読にする)
 - [ ] Dupecheckとかの結果や起動時データベース接続エラーを画面内で通知する。
-- [ ] update 中にドラッグドロップできないようにする。
-- [ ] Check "category" and "publisher" etc.
+- [ ] NewEntryCountをもっと効率よく（上下に伝播させるのではなく）。Newステータス(SQLでロードと同時に既読にする)
+- [ ] Check "category" and "publisher" etc.GoogleNewsのfeedでentry id を確認したほうがよい。
 - [ ] 元記事の内容が更新された場合、それを反映させたい。
 - [ ] DB管理（容量制限というか自動削除機能）
+- [ ] Download and display "eye catching" images. 
 
 
 ### Planning
 
 #### Feed reader
 - [ ] Grouping display of feed for Folder view. 
-- [ ] Download and display "eye catching" images. 
 - [ ] Auto update feed entries safely. 
 - [ ] Auto update progressbar or some kind to notify it is on going or not.
 

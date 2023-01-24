@@ -192,6 +192,12 @@
 
                             </AppBarButton>
 
+                            <AppBarButton Icon="Save" Label="Export" Command="{x:Bind ViewModel.OpmlExportCommand, Mode=OneWay}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" >
+                            </AppBarButton>
+
+                            <AppBarButton Icon="Import" Label="Import" Command="{x:Bind ViewModel.OpmlImportCommand, Mode=OneWay}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" >
+                            </AppBarButton>
+
                             <AppBarButton Label="Refresh" IsCompact="False" Command="{x:Bind ViewModel.FeedRefreshAllCommand}" Opacity="0.9">
 
                                 <AppBarButton.Icon>
@@ -207,6 +213,7 @@
 
                             </AppBarButton>
 
+
                         </StackPanel>
 
                         <CommandBar Grid.Column="1" IsOpen="False" DefaultLabelPosition="Bottom" Margin="0" Visibility="Collapsed">
@@ -215,16 +222,17 @@
 
                                 <AppBarSeparator/>
 
-                                <AppBarButton Icon="Import" Label="Import" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" >
+                                <AppBarButton Icon="Import" Label="Import" Command="{x:Bind ViewModel.OpmlImportCommand, Mode=OneWay}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" >
                                 </AppBarButton>
 
-                                <AppBarButton Icon="Save" Label="Export" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" >
+                                <AppBarButton Icon="Save" Label="Export" Command="{x:Bind ViewModel.OpmlExportCommand, Mode=OneWay}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" >
                                 </AppBarButton>
+                                
                             </CommandBar.SecondaryCommands>
 
                         </CommandBar>
 
-                        <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="Collapsed">
 
                             <AppBarButton Icon="More" Label="" IsCompact="False" HorizontalAlignment="Right" VerticalAlignment="Center" Opacity="0.9">
                                 <AppBarButton.Flyout>
@@ -504,7 +512,7 @@
 
                                     </CommandBar>
 
-                                    <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                    <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="Collapsed">
 
                                         <AppBarButton Icon="More" Label="" IsCompact="False" HorizontalAlignment="Right" VerticalAlignment="Center" Opacity="0.9">
                                             <AppBarButton.Flyout>
@@ -543,7 +551,7 @@
                                     </Style>
                                 </ListView.ItemContainerStyle>
                                 <ListView.ItemTemplate>
-                                    <DataTemplate x:DataType="model:EntryItem">
+                                    <DataTemplate x:DataType="model:FeedEntryItem">
                                         <Grid x:Name="itemThumbnail" DoubleTapped="ListViewEntryItem_DoubleTappedAsync" RightTapped="ListViewEntryItem_RightTapped">
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="*"/>
@@ -565,6 +573,8 @@
                                                 <Run Text="{x:Bind Author}"/>
                                                 <Run Text=" - "/>
                                                 <Run Text="{x:Bind PublishedDateTimeFormated}"/>
+                                                <Run Text=" from "/>
+                                                <Run Text="{x:Bind FeedTitle}"/>
                                             </TextBlock>                                            
 <!--                                         
                                             <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind Author}" x:Phase="2" Style="{ThemeResource BodyTextBlockStyle}" FontSize="{StaticResource NormalFontSize}" Margin="12,0,0,0" Opacity=".7"/>

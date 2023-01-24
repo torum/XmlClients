@@ -298,9 +298,6 @@ public abstract class EntryItem : Node
         ServiceId = serviceId;
     }
 
-
-
-
     public static string TimeAgo(DateTime dateTime)
     {
         var result = string.Empty;
@@ -396,6 +393,19 @@ public class FeedEntryItem : EntryItem
             if (IsArchived)
                 CommonStatus = "IsArchived";
 
+        }
+    }
+
+    private string _feedTitle = "";
+    public string FeedTitle
+    {
+        get => _feedTitle;
+        set
+        {
+            if (_feedTitle == value)
+                return;
+            _feedTitle = value;
+            NotifyPropertyChanged(nameof(FeedTitle));
         }
     }
 

@@ -23,6 +23,23 @@ namespace BlogWrite;
 
 public partial class App : Application
 {
+    //
+    private static readonly string _appName = "BlogWrite";//_resourceLoader.GetString("AppName");
+    private static readonly string _appDeveloper = "torum";
+    private static readonly string _envDataFolder = System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+    public static string AppDataFolder { get; } = _envDataFolder + System.IO.Path.DirectorySeparatorChar + _appDeveloper + System.IO.Path.DirectorySeparatorChar + _appName;
+    public static string AppConfigFilePath { get; } = Path.Combine(AppDataFolder, _appName + ".config");
+
+    // 
+    private static readonly Microsoft.UI.Dispatching.DispatcherQueue _currentDispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
+    public static Microsoft.UI.Dispatching.DispatcherQueue CurrentDispatcherQueue => _currentDispatcherQueue;
+
+    //
+    private static readonly ResourceLoader _resourceLoader = new();
+
+    //
+    public static WindowEx MainWindow { get; } = new MainWindow();
+
     public IHost Host
     {
         get;
@@ -39,26 +56,9 @@ public partial class App : Application
         return service;
     }
 
-    //
-    private static readonly string _appName = "BlogWrite";//_resourceLoader.GetString("AppName");
-    private static readonly string _appDeveloper = "torum";
-    private static readonly string _envDataFolder = System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-    public static string AppDataFolder { get; } = _envDataFolder + System.IO.Path.DirectorySeparatorChar + _appDeveloper + System.IO.Path.DirectorySeparatorChar + _appName;
-    public static string AppConfigFilePath { get; } = Path.Combine(AppDataFolder, _appName + ".config");
-
-    //
-    public static WindowEx MainWindow { get; } = new MainWindow();
-
-    // 
-    private static readonly Microsoft.UI.Dispatching.DispatcherQueue _currentDispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
-    public static Microsoft.UI.Dispatching.DispatcherQueue CurrentDispatcherQueue => _currentDispatcherQueue;
-
-    //
-    private static readonly ResourceLoader _resourceLoader = new();
-
     public App()
     {
-        // CultureInfo.CurrentUICulture = new CultureInfo( "ja-JP", false );
+        //CultureInfo.CurrentUICulture = new CultureInfo( "ja-JP", false );
         //CultureInfo.CurrentUICulture = new CultureInfo("en-US", false);
 
         // Force theme
@@ -122,7 +122,6 @@ public partial class App : Application
         //App.GetService<IAppNotificationService>().Initialize();
 
         UnhandledException += App_UnhandledException;
-
 
     }
 

@@ -9,6 +9,8 @@ using BlogWrite.Models;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Windows.Graphics.Imaging;
 using BlogWrite.Contracts.Services;
+using AngleSharp.Dom;
+using static BlogWrite.Models.FeedLink;
 
 namespace BlogWrite.Services;
 
@@ -16,134 +18,450 @@ internal class DataAccessService : IDataAccessService
 {
     private readonly SQLiteConnectionStringBuilder connectionStringBuilder = new();
 
-    public DataAccessService()
-    {
-    
-    }
-
     public SqliteDataAccessResultWrapper InitializeDatabase(string dataBaseFilePath)
     {
         var res = new SqliteDataAccessResultWrapper();
 
-        // Create a table if not exists.
         connectionStringBuilder.DataSource = dataBaseFilePath;
+        connectionStringBuilder.ForeignKeys = true;
+
+        using (var connection = new SQLiteConnection(connectionStringBuilder.ConnectionString))
+        {
+            try
+            {
+                connection.Open();
+
+                using (var tableCmd = connection.CreateCommand())
+                {
+                    tableCmd.Transaction = connection.BeginTransaction();
+                    try
+                    {
+                        tableCmd.CommandText = "CREATE TABLE IF NOT EXISTS feeds (" +
+                            "feed_id TEXT NOT NULL PRIMARY KEY," +
+                            "url TEXT NOT NULL," +
+                            "name TEXT NOT NULL," +
+                            "title TEXT," +
+                            "description TEXT," +
+                            "updated TEXT," +
+                            "html_url TEXT" +
+                            ")";
+                        tableCmd.ExecuteNonQuery();
+
+                        tableCmd.CommandText = "CREATE TABLE IF NOT EXISTS entries (" +
+                            "entry_id TEXT NOT NULL PRIMARY KEY," +
+                            "feed_id TEXT NOT NULL," +
+                            "url TEXT NOT NULL," +
+                            "title TEXT," +
+                            "published TEXT NOT NULL," +
+                            "updated TEXT," +
+                            "author TEXT," +
+                            "summary TEXT," +
+                            "content TEXT," +
+                            "content_type TEXT," +
+                            "image_id TEXT," +
+                            "status TEXT," +
+                            "archived TEXT," +
+                            "CONSTRAINT fk_feeds FOREIGN KEY (feed_id) REFERENCES feeds(feed_id) ON DELETE CASCADE" +
+                            ")";
+                        tableCmd.ExecuteNonQuery();
+
+                        tableCmd.CommandText = "CREATE TABLE IF NOT EXISTS images (" +
+                            "image_id TEXT NOT NULL PRIMARY KEY," +
+                            "entry_id TEXT NOT NULL," +
+                            "image_url TEXT," +
+                            "image_downloaded TEXT," +
+                            "image BLOB," +
+                            "CONSTRAINT fk_entries FOREIGN KEY (entry_id) REFERENCES entries(entry_id) ON DELETE CASCADE" +
+                            ")";
+                        tableCmd.ExecuteNonQuery();
+
+                        tableCmd.Transaction.Commit();
+                    }
+                    catch (Exception e)
+                    {
+                        tableCmd.Transaction.Rollback();
+
+                        res.IsError = true;
+                        res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                        res.Error.ErrCode = "";
+                        res.Error.ErrText = "Exception";
+                        res.Error.ErrDescription = e.Message;
+                        res.Error.ErrDatetime = DateTime.Now;
+                        res.Error.ErrPlace = "Transaction.Commit";
+                        res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
+
+                        return res;
+                    }
+                }
+            }
+            catch (System.Reflection.TargetInvocationException ex)
+            {
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+                res.Error.ErrText = "TargetInvocationException";
+                res.Error.ErrDescription = ex.Message;
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open";
+                res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
+
+                return res;
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+                res.Error.ErrText = "InvalidOperationException"; ;
+                res.Error.ErrDescription = ex.Message;
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open";
+                res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
+
+                return res;
+            }
+            catch (Exception e)
+            {
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+
+                if (e.InnerException != null)
+                {
+                    res.Error.ErrText = "InnerException";
+                    res.Error.ErrDescription = e.InnerException.Message;
+                }
+                else
+                {
+                    res.Error.ErrText = "Exception";
+                    res.Error.ErrDescription = e.Message;
+                }
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open";
+                res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
+
+                return res;
+            }
+        }
+
+        return res;
+    }
+
+    public SqliteDataAccessResultWrapper InsertFeed(string feedId, Uri feedUri, string feedName, string feedTitle, string feedDescription, DateTime updated, Uri htmlUri)
+    {
+        var res = new SqliteDataAccessResultWrapper();
+
+        if (string.IsNullOrEmpty(feedId))
+        {
+            res.IsError = true;
+            // TODO:
+            return res;
+        }
 
         try
         {
             using (var connection = new SQLiteConnection(connectionStringBuilder.ConnectionString))
             {
-                try
-                {
-                    connection.Open();
+                connection.Open();
 
-                    using (var tableCmd = connection.CreateCommand())
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.Transaction = connection.BeginTransaction();
+                    try
                     {
-                        tableCmd.Transaction = connection.BeginTransaction();
-                        try
+                        cmd.CommandText = "INSERT OR IGNORE INTO feeds (feed_id, url, name, title, description, updated, html_url) VALUES (@FeedId, @Uri, @Name, @Title, @Description, @Updated, @HtmlUri)";
+                        cmd.CommandType = CommandType.Text;
+
+                        cmd.Parameters.AddWithValue("@FeedId", feedId);
+                        cmd.Parameters.AddWithValue("@Uri", feedUri.AbsoluteUri);
+                        cmd.Parameters.AddWithValue("@Name", feedName);
+                        cmd.Parameters.AddWithValue("@Title", feedTitle);
+                        cmd.Parameters.AddWithValue("@Description", feedDescription);
+                        cmd.Parameters.AddWithValue("@Updated", updated.ToString("yyyy-MM-dd HH:mm:ss"));
+                        if (htmlUri != null)
                         {
-                            tableCmd.CommandText = "CREATE TABLE IF NOT EXISTS Entry (" +
-                                "ID TEXT NOT NULL PRIMARY KEY," +
-                                "Feed_ID TEXT NOT NULL," +
-                                "Entry_ID TEXT NOT NULL," +
-                                "Url TEXT NOT NULL," +
-                                "Title TEXT," +
-                                "Published TEXT NOT NULL," +
-                                "Author TEXT," +
-                                "Summary TEXT," +
-                                "Content TEXT," +
-                                "ContentType TEXT," +
-                                "ImageUrl TEXT," +
-                                "IsImageDownloaded TEXT," +
-                                "Image_ID TEXT," +
-                                "Status TEXT," +
-                                "IsArchived TEXT)";
-
-                            tableCmd.ExecuteNonQuery();
-
-                            tableCmd.Transaction.Commit();
+                            cmd.Parameters.AddWithValue("@HtmlUri", htmlUri.AbsoluteUri);
                         }
-                        catch (Exception e)
+                        else
                         {
-                            tableCmd.Transaction.Rollback();
-
-                            res.IsError = true;
-                            res.Error.ErrType = ErrorObject.ErrTypes.DB;
-                            res.Error.ErrCode = "";
-                            res.Error.ErrText = "Exception";
-                            res.Error.ErrDescription = e.Message;
-                            res.Error.ErrDatetime = DateTime.Now;
-                            res.Error.ErrPlace = "Transaction.Commit";
-                            res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
-
-                            Debug.WriteLine("fuck");
-                            return res;
+                            cmd.Parameters.AddWithValue("@HtmlUri", "");
                         }
+
+                        res.AffectedCount = cmd.ExecuteNonQuery();
+
+                        cmd.Transaction.Commit();
                     }
-                }
-                catch (System.Reflection.TargetInvocationException ex)
-                {
-                    res.IsError = true;
-                    res.Error.ErrType = ErrorObject.ErrTypes.DB;
-                    res.Error.ErrCode = "";
-                    res.Error.ErrText = "TargetInvocationException";
-                    res.Error.ErrDescription = ex.Message;
-                    res.Error.ErrDatetime = DateTime.Now;
-                    res.Error.ErrPlace = "connection.Open";
-                    res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
-
-                    Debug.WriteLine("fuck");
-                    return res;
-                }
-                catch (System.InvalidOperationException ex)
-                {
-                    res.IsError = true;
-                    res.Error.ErrType = ErrorObject.ErrTypes.DB;
-                    res.Error.ErrCode = "";
-                    res.Error.ErrText = "InvalidOperationException"; ;
-                    res.Error.ErrDescription = ex.Message;
-                    res.Error.ErrDatetime = DateTime.Now;
-                    res.Error.ErrPlace = "connection.Open";
-                    res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
-
-                    Debug.WriteLine("fuck");
-                    return res;
-                }
-                catch (Exception e)
-                {
-                    res.IsError = true;
-                    res.Error.ErrType = ErrorObject.ErrTypes.DB;
-                    res.Error.ErrCode = "";
-
-                    if (e.InnerException != null)
+                    catch (Exception e)
                     {
-                        res.Error.ErrText = "InnerException";
-                        res.Error.ErrDescription = e.InnerException.Message;
-                    }
-                    else
-                    {
+                        cmd.Transaction.Rollback();
+
+                        res.IsError = true;
+                        res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                        res.Error.ErrCode = "";
                         res.Error.ErrText = "Exception";
                         res.Error.ErrDescription = e.Message;
-                    }
-                    res.Error.ErrDatetime = DateTime.Now;
-                    res.Error.ErrPlace = "connection.Open";
-                    res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
+                        res.Error.ErrDatetime = DateTime.Now;
+                        res.Error.ErrPlace = "connection.Open(),Transaction.Commit";
+                        res.Error.ErrPlaceParent = "DataAccess::InsertFeed";
 
-                    Debug.WriteLine("fuck");
-                    return res;
+                        return res;
+                    }
                 }
             }
         }
-        catch
+        catch (System.Reflection.TargetInvocationException ex)
         {
-            Debug.WriteLine("fuck");
+            res.IsError = true;
+            res.Error.ErrType = ErrorObject.ErrTypes.DB;
+            res.Error.ErrCode = "";
+            res.Error.ErrText = "TargetInvocationException";
+            res.Error.ErrDescription = ex.Message;
+            res.Error.ErrDatetime = DateTime.Now;
+            res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
+            res.Error.ErrPlaceParent = "DataAccess::InsertFeed";
+
+            return res;
         }
+        catch (System.InvalidOperationException ex)
+        {
+            Debug.WriteLine("Opps. InvalidOperationException@DataAccess::InsertFeed");
+
+            res.IsError = true;
+            res.Error.ErrType = ErrorObject.ErrTypes.DB;
+            res.Error.ErrCode = "";
+            res.Error.ErrText = "InvalidOperationException";
+            res.Error.ErrDescription = ex.Message;
+            res.Error.ErrDatetime = DateTime.Now;
+            res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
+            res.Error.ErrPlaceParent = "DataAccess::InsertFeed";
+
+            return res;
+        }
+        catch (Exception e)
+        {
+            res.IsError = true;
+            res.Error.ErrType = ErrorObject.ErrTypes.DB;
+            res.Error.ErrCode = "";
+
+            if (e.InnerException != null)
+            {
+                res.Error.ErrText = "InnerException";
+                res.Error.ErrDescription = e.InnerException.Message;
+            }
+            else
+            {
+                res.Error.ErrText = "Exception";
+                res.Error.ErrDescription = e.Message;
+            }
+            res.Error.ErrDatetime = DateTime.Now;
+            res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
+            res.Error.ErrPlaceParent = "DataAccess::InsertFeed";
+
+            return res;
+        }
+
+        //Debug.WriteLine(string.Format("{0} Entries Inserted to DB", res.AffectedCount.ToString()));
+
+        return res;
+    }
+
+    public SqliteDataAccessResultWrapper DeleteFeed(string feedId)
+    {
+        var res = new SqliteDataAccessResultWrapper();
+        
+        if (string.IsNullOrEmpty(feedId))
+        {
+            res.IsError = true;
+            // TODO:
+            return res;
+        }
+
+        try
+        {
+            using (var connection = new SQLiteConnection(connectionStringBuilder.ConnectionString))
+            {
+                connection.Open();
+
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = String.Format("DELETE FROM feeds WHERE feed_id = '{0}';", feedId);
+
+                    //cmd.Transaction = connection.BeginTransaction();
+
+                    res.AffectedCount = cmd.ExecuteNonQuery();
+
+                    //cmd.Transaction.Commit();
+                }
+            }
+        }
+        catch (System.Reflection.TargetInvocationException ex)
+        {
+            res.IsError = true;
+            res.Error.ErrType = ErrorObject.ErrTypes.DB;
+            res.Error.ErrCode = "";
+            res.Error.ErrText = "TargetInvocationException";
+            res.Error.ErrDescription = ex.Message;
+            res.Error.ErrDatetime = DateTime.Now;
+            res.Error.ErrPlace = "connection.Open(),cmd.ExecuteNonQuery()";
+            res.Error.ErrPlaceParent = "DataAccess::DeleteFeed";
+
+            return res;
+        }
+        catch (System.InvalidOperationException ex)
+        {
+            res.IsError = true;
+            res.Error.ErrType = ErrorObject.ErrTypes.DB;
+            res.Error.ErrCode = "";
+            res.Error.ErrText = "InvalidOperationException";
+            res.Error.ErrDescription = ex.Message;
+            res.Error.ErrDatetime = DateTime.Now;
+            res.Error.ErrPlace = "connection.Open(),cmd.ExecuteNonQuery()";
+            res.Error.ErrPlaceParent = "DataAccess::DeleteFeed";
+
+            return res;
+        }
+        catch (Exception e)
+        {
+            res.IsError = true;
+            res.Error.ErrType = ErrorObject.ErrTypes.DB;
+            res.Error.ErrCode = "";
+            res.Error.ErrText = e.ToString();
+            if (e.InnerException != null)
+            {
+                Debug.WriteLine(e.InnerException.Message + " @DataAccess::DeleteFeed");
+                res.Error.ErrDescription = e.InnerException.Message;
+            }
+            else
+            {
+                Debug.WriteLine(e.Message + " @DataAccess::DeleteFeed");
+                res.Error.ErrDescription = e.Message;
+            }
+            res.Error.ErrDatetime = DateTime.Now;
+            res.Error.ErrPlace = "connection.Open(),cmd.ExecuteNonQuery()";
+            res.Error.ErrPlaceParent = "DataAccess::DeleteFeed";
+
+            return res;
+        }
+
+        Debug.WriteLine(string.Format("{0} feed Deleted from DB", res.AffectedCount));
+
+        return res;
+    }
+
+    // not really used.
+    public SqliteDataAccessResultWrapper UpdateFeed(string feedId, Uri feedUri, string feedName, string feedTitle, string feedDescription, DateTime updated, Uri htmlUri)
+    {
+        var res = new SqliteDataAccessResultWrapper();
+
+        if (string.IsNullOrEmpty(feedId))
+        {
+            res.IsError = true;
+            // TODO:
+            return res;
+        }
+
+        try
+        {
+            using (var connection = new SQLiteConnection(connectionStringBuilder.ConnectionString))
+            {
+                connection.Open();
+
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.Transaction = connection.BeginTransaction();
+                    try
+                    {
+                        string sql = "UPDATE feeds SET";
+                        sql += String.Format(" name = '{0}',", escapeSingleQuote(feedName));
+                        sql += String.Format(" title = '{0}',", escapeSingleQuote(feedTitle));
+                        sql += String.Format(" description = '{0}',", escapeSingleQuote(feedDescription));
+                        sql += String.Format(" updated = '{0}',", updated.ToString("yyyy-MM-dd HH:mm:ss"));
+                        sql += String.Format(" html_url = '{0}' ", htmlUri.AbsoluteUri);
+                        sql += String.Format("WHERE feed_id = '{0}'; ", feedId); 
+
+                        cmd.CommandText = sql;
+
+                        res.AffectedCount = cmd.ExecuteNonQuery();
+
+                        cmd.Transaction.Commit();
+                    }
+                    catch (Exception e)
+                    {
+                        cmd.Transaction.Rollback();
+
+                        res.IsError = true;
+                        res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                        res.Error.ErrCode = "";
+                        res.Error.ErrText = "Exception";
+                        res.Error.ErrDescription = e.Message;
+                        res.Error.ErrDatetime = DateTime.Now;
+                        res.Error.ErrPlace = "connection.Open(),Transaction.Commit";
+                        res.Error.ErrPlaceParent = "DataAccess::UpdateFeed";
+
+                        return res;
+                    }
+                }
+            }
+        }
+        catch (System.Reflection.TargetInvocationException ex)
+        {
+            res.IsError = true;
+            res.Error.ErrType = ErrorObject.ErrTypes.DB;
+            res.Error.ErrCode = "";
+            res.Error.ErrText = "TargetInvocationException";
+            res.Error.ErrDescription = ex.Message;
+            res.Error.ErrDatetime = DateTime.Now;
+            res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
+            res.Error.ErrPlaceParent = "DataAccess::UpdateFeed";
+
+            return res;
+        }
+        catch (System.InvalidOperationException ex)
+        {
+            Debug.WriteLine("Opps. InvalidOperationException@DataAccess::UpdateFeed");
+
+            res.IsError = true;
+            res.Error.ErrType = ErrorObject.ErrTypes.DB;
+            res.Error.ErrCode = "";
+            res.Error.ErrText = "InvalidOperationException";
+            res.Error.ErrDescription = ex.Message;
+            res.Error.ErrDatetime = DateTime.Now;
+            res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
+            res.Error.ErrPlaceParent = "DataAccess::UpdateFeed";
+
+            return res;
+        }
+        catch (Exception e)
+        {
+            res.IsError = true;
+            res.Error.ErrType = ErrorObject.ErrTypes.DB;
+            res.Error.ErrCode = "";
+
+            if (e.InnerException != null)
+            {
+                res.Error.ErrText = "InnerException";
+                res.Error.ErrDescription = e.InnerException.Message;
+            }
+            else
+            {
+                res.Error.ErrText = "Exception";
+                res.Error.ErrDescription = e.Message;
+            }
+            res.Error.ErrDatetime = DateTime.Now;
+            res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
+            res.Error.ErrPlaceParent = "DataAccess::UpdateFeed";
+
+            return res;
+        }
+
+        Debug.WriteLine(string.Format("{0} feed updated", res.AffectedCount.ToString()));
 
         return res;
     }
 
     public SqliteDataAccessSelectResultWrapper SelectEntriesByFeedId(string feedId, bool IsUnarchivedOnly = true)
     {
-        SqliteDataAccessSelectResultWrapper res = new SqliteDataAccessSelectResultWrapper();
+        var res = new SqliteDataAccessSelectResultWrapper();
 
         if (string.IsNullOrEmpty(feedId))
             return res;
@@ -158,37 +476,40 @@ internal class DataAccessService : IDataAccessService
                 {
                     if (IsUnarchivedOnly)
                     {
-                        cmd.CommandText = String.Format("SELECT * FROM Entry WHERE Feed_ID = '{0}' AND IsArchived = '{1}' ORDER BY Published DESC LIMIT 1000", feedId, bool.FalseString);
+                        cmd.CommandText = String.Format("SELECT * FROM entries INNER JOIN feeds USING (feed_id) WHERE feed_id = '{0}' AND archived = '{1}' ORDER BY published DESC LIMIT 1000", feedId, bool.FalseString);
                     }
                     else
                     {
-                        cmd.CommandText = String.Format("SELECT * FROM Entry WHERE Feed_ID = '{0}' ORDER BY Published DESC LIMIT 10000", feedId);
+                        cmd.CommandText = String.Format("SELECT * FROM entries INNER JOIN feeds USING (feed_id) WHERE feed_id = '{0}' ORDER BY published DESC LIMIT 10000", feedId);
                     }
 
                     using (var reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
                         {
-                            FeedEntryItem entry = new FeedEntryItem(Convert.ToString(reader["Title"]), feedId, null);
+                            FeedEntryItem entry = new FeedEntryItem(Convert.ToString(reader["title"]), feedId, null);
 
                             //entry.MyNodeFeed = ndf;
 
-                            entry.EntryId = Convert.ToString(reader["Entry_ID"]);
+                            entry.EntryId = Convert.ToString(reader["entry_id"]);
 
-                            if (!string.IsNullOrEmpty(Convert.ToString(reader["Url"])))
-                                entry.AltHtmlUri = new Uri(Convert.ToString(reader["Url"]));
+                            if (!string.IsNullOrEmpty(Convert.ToString(reader["url"])))
+                                entry.AltHtmlUri = new Uri(Convert.ToString(reader["url"]));
 
-                            entry.Published = DateTime.Parse(Convert.ToString(reader["Published"]));
+                            entry.Published = DateTime.Parse(Convert.ToString(reader["published"]));
 
-                            entry.Summary = Convert.ToString(reader["Summary"]);
+                            entry.Summary = Convert.ToString(reader["summary"]);
 
-                            entry.Content = Convert.ToString(reader["Content"]);
+                            entry.Content = Convert.ToString(reader["content"]);
 
+                            // TODO:
                             entry.ContentType = EntryItem.ContentTypes.textHtml;
 
-                            if (!string.IsNullOrEmpty(Convert.ToString(reader["ImageUrl"])))
-                                entry.ImageUri = new Uri(Convert.ToString(reader["ImageUrl"]));
-
+                            /*
+                            if (!string.IsNullOrEmpty(Convert.ToString(reader["image_url"])))
+                                entry.ImageUri = new Uri(Convert.ToString(reader["image_url"]));
+                            */
+                            /*
                             string bln = Convert.ToString(reader["IsImageDownloaded"]);
                             if (!string.IsNullOrEmpty(bln))
                             {
@@ -197,8 +518,7 @@ internal class DataAccessService : IDataAccessService
                                 else
                                     entry.IsImageDownloaded = false;
                             }
-
-                            entry.ImageId = Convert.ToString(reader["Image_ID"]);
+                            */
 
                             /*
                             if (reader["Image"] != DBNull.Value)
@@ -216,14 +536,16 @@ internal class DataAccessService : IDataAccessService
                                 entry.IsImageDownloaded = true;
                             }
                             */
+                            entry.ImageId = Convert.ToString(reader["image_id"]);
 
-                            string status = Convert.ToString(reader["Status"]);
+
+                            string status = Convert.ToString(reader["status"]);
                             if (!string.IsNullOrEmpty(status))
                                 entry.Status = entry.StatusTextToType(status);
 
-                            entry.Author = Convert.ToString(reader["Author"]);
+                            entry.Author = Convert.ToString(reader["author"]);
 
-                            string blnstr = Convert.ToString(reader["IsArchived"]);
+                            string blnstr = Convert.ToString(reader["archived"]);
                             if (!string.IsNullOrEmpty(blnstr))
                             {
                                 if (blnstr == bool.TrueString)
@@ -241,6 +563,8 @@ internal class DataAccessService : IDataAccessService
                             {
                                 res.UnreadCount++;
                             }
+
+                            entry.FeedTitle = Convert.ToString(reader["name"]);
 
                             res.AffectedCount++;
 
@@ -314,29 +638,28 @@ internal class DataAccessService : IDataAccessService
         if (feedIds.Count == 0)
             return res;
 
-        string before = "SELECT * FROM Entry WHERE ";
+        string before = "SELECT * FROM entries INNER JOIN feeds USING (feed_id) WHERE ";
 
         string middle = "(";
 
         foreach (var asdf in feedIds)
         {
             if (middle != "(")
-                middle = middle + "OR ";
+                middle += "OR ";
 
-            middle = middle + String.Format("Feed_ID = '{0}' ", asdf);
+            middle += String.Format("feed_id = '{0}' ", asdf);
         }
 
         //string after = string.Format(") AND IsArchived = '{0}' ORDER BY Published DESC LIMIT 1000", bool.FalseString);
         string after;
         if (IsUnarchivedOnly)
         {
-            after = string.Format(") AND IsArchived = '{0}' ORDER BY Published DESC LIMIT 1000", bool.FalseString);
+            after = string.Format(") AND archived = '{0}' ORDER BY published DESC LIMIT 1000", bool.FalseString);
         }
         else
         {
-            after = string.Format(") ORDER BY Published DESC LIMIT 10000");
+            after = string.Format(") ORDER BY published DESC LIMIT 10000");
         }
-
 
         //Debug.WriteLine(before + middle + after);
 
@@ -345,7 +668,6 @@ internal class DataAccessService : IDataAccessService
             using (var connection = new SQLiteConnection(connectionStringBuilder.ConnectionString))
             {
                 connection.Open();
-
                 using (var cmd = connection.CreateCommand())
                 {
                     cmd.CommandText = before + middle + after;
@@ -354,27 +676,28 @@ internal class DataAccessService : IDataAccessService
                     {
                         while (reader.Read())
                         {
-                            FeedEntryItem entry = new FeedEntryItem(Convert.ToString(reader["Title"]), Convert.ToString(reader["Feed_ID"]), null);
+                            FeedEntryItem entry = new FeedEntryItem(Convert.ToString(reader["title"]), Convert.ToString(reader["feed_id"]), null);
 
                             //entry.MyNodeFeed = ndf;
 
-                            entry.EntryId = Convert.ToString(reader["Entry_ID"]);
+                            entry.EntryId = Convert.ToString(reader["entry_id"]);
 
-                            if (!string.IsNullOrEmpty(Convert.ToString(reader["Url"])))
-                                entry.AltHtmlUri = new Uri(Convert.ToString(reader["Url"]));
+                            if (!string.IsNullOrEmpty(Convert.ToString(reader["url"])))
+                                entry.AltHtmlUri = new Uri(Convert.ToString(reader["url"]));
 
-                            entry.Published = DateTime.Parse(Convert.ToString(reader["Published"]));
+                            entry.Published = DateTime.Parse(Convert.ToString(reader["published"]));
 
-                            entry.Summary = Convert.ToString(reader["Summary"]);
+                            entry.Summary = Convert.ToString(reader["summary"]);
 
-                            entry.Content = Convert.ToString(reader["Content"]);
+                            entry.Content = Convert.ToString(reader["content"]);
 
+                            // TODO:
                             entry.ContentType = EntryItem.ContentTypes.textHtml;
 
-                            if (!string.IsNullOrEmpty(Convert.ToString(reader["ImageUrl"])))
-                                entry.ImageUri = new Uri(Convert.ToString(reader["ImageUrl"]));
-
                             /*
+                            if (!string.IsNullOrEmpty(Convert.ToString(reader["image_url"])))
+                                entry.ImageUri = new Uri(Convert.ToString(reader["image_url"]));
+
                             if (reader["Image"] != DBNull.Value)
                             {
                                 byte[] imageBytes = (byte[])reader["Image"];
@@ -390,7 +713,7 @@ internal class DataAccessService : IDataAccessService
                                 entry.IsImageDownloaded = true;
                             }
                             */
-
+                            /*
                             string bln = Convert.ToString(reader["IsImageDownloaded"]);
                             if (!string.IsNullOrEmpty(bln))
                             {
@@ -399,16 +722,17 @@ internal class DataAccessService : IDataAccessService
                                 else
                                     entry.IsImageDownloaded = false;
                             }
+                            */
 
-                            entry.ImageId = Convert.ToString(reader["Image_ID"]);
+                            entry.ImageId = Convert.ToString(reader["image_id"]);
 
-                            string status = Convert.ToString(reader["Status"]);
+                            string status = Convert.ToString(reader["status"]);
                             if (!string.IsNullOrEmpty(status))
                                 entry.Status = entry.StatusTextToType(status);
 
-                            entry.Author = Convert.ToString(reader["Author"]);
+                            entry.Author = Convert.ToString(reader["author"]);
 
-                            string blnstr = Convert.ToString(reader["IsArchived"]);
+                            string blnstr = Convert.ToString(reader["archived"]);
                             if (!string.IsNullOrEmpty(blnstr))
                             {
                                 if (blnstr == bool.TrueString)
@@ -426,6 +750,8 @@ internal class DataAccessService : IDataAccessService
                             {
                                 res.UnreadCount++;
                             }
+
+                            entry.FeedTitle = Convert.ToString(reader["name"]);
 
                             res.AffectedCount++;
 
@@ -551,9 +877,9 @@ internal class DataAccessService : IDataAccessService
     }
     */
 
-    public SqliteDataAccessInsertResultWrapper InsertEntries(List<EntryItem> entries)
+    public SqliteDataAccessInsertResultWrapper InsertEntries(List<EntryItem> entries, string feedId, string feedName, string feedTitle, string feedDescription, DateTime updated, Uri htmlUri)
     {
-        SqliteDataAccessInsertResultWrapper res = new SqliteDataAccessInsertResultWrapper();
+        var res = new SqliteDataAccessInsertResultWrapper();
 
         if (entries is null)
             return res;
@@ -569,6 +895,18 @@ internal class DataAccessService : IDataAccessService
                     cmd.Transaction = connection.BeginTransaction();
                     try
                     {
+                        // update feed info.
+                        string sql = "UPDATE feeds SET";
+                        sql += String.Format(" name = '{0}',", escapeSingleQuote(feedName));
+                        sql += String.Format(" title = '{0}',", escapeSingleQuote(feedTitle));
+                        sql += String.Format(" description = '{0}',", escapeSingleQuote(feedDescription));
+                        sql += String.Format(" updated = '{0}',", updated.ToString("yyyy-MM-dd HH:mm:ss"));
+                        sql += String.Format(" html_url = '{0}' ", htmlUri.AbsoluteUri);
+                        sql += String.Format("WHERE feed_id = '{0}'; ", feedId);
+
+                        cmd.CommandText = sql;
+                        cmd.ExecuteNonQuery();
+
                         foreach (var entry in entries)
                         {
                             if (entry is not FeedEntryItem)
@@ -576,7 +914,7 @@ internal class DataAccessService : IDataAccessService
                             if ((entry.EntryId == null) || (entry.AltHtmlUri == null))
                                 continue;
 
-                            string sqlInsert = "INSERT OR IGNORE INTO Entry (ID, Feed_ID, Entry_ID, Url, Title, Published, Author, Summary, Content, ContentType, ImageUrl, IsImageDownloaded, Image_ID, Status, IsArchived) VALUES (@Id, @feedId, @EntryId, @AltHtmlUri, @Title, @Published, @Author, @Summary, @Content, @ContentType, @ImageUri, @IsImageDownloaded, @ImageId, @Status, @IsArchived)";
+                            string sqlInsert = "INSERT OR IGNORE INTO entries (entry_id, feed_id, url, title, published, updated, author, summary, content, content_type, image_id, status, archived) VALUES (@EntryId, @FeedId, @AltHtmlUri, @Title, @Published, @Updated, @Author, @Summary, @Content, @ContentType, @ImageId, @Status, @IsArchived)";
 
                             cmd.CommandText = sqlInsert;
 
@@ -584,11 +922,12 @@ internal class DataAccessService : IDataAccessService
 
                             cmd.Parameters.Clear();
 
-                            cmd.Parameters.AddWithValue("@Id", entry.Id);
+                            //cmd.Parameters.AddWithValue("@Id", entry.Id);
 
-                            cmd.Parameters.AddWithValue("@feedId", entry.ServiceId);//feedId
+                            cmd.Parameters.AddWithValue("@FeedId", entry.ServiceId);//feedId
 
-                            cmd.Parameters.AddWithValue("@EntryId", entry.EntryId);
+                            //cmd.Parameters.AddWithValue("@EntryId", entry.EntryId);
+                            cmd.Parameters.AddWithValue("@EntryId", entry.Id);
 
                             cmd.Parameters.AddWithValue("@AltHtmlUri", entry.AltHtmlUri.AbsoluteUri);
 
@@ -598,6 +937,8 @@ internal class DataAccessService : IDataAccessService
                                 cmd.Parameters.AddWithValue("@Title", string.Empty);
 
                             cmd.Parameters.AddWithValue("@Published", entry.Published.ToString("yyyy-MM-dd HH:mm:ss"));
+
+                            cmd.Parameters.AddWithValue("@Updated", entry.Updated.ToString("yyyy-MM-dd HH:mm:ss"));
 
                             if (entry.Author != null)
                                 cmd.Parameters.AddWithValue("@Author", entry.Author);
@@ -615,17 +956,17 @@ internal class DataAccessService : IDataAccessService
                                 cmd.Parameters.AddWithValue("@Content", string.Empty);
 
                             cmd.Parameters.AddWithValue("@ContentType", entry.ContentType.ToString());
-
+                            /*
                             if (entry.ImageUri != null)
                                 cmd.Parameters.AddWithValue("@ImageUri", entry.ImageUri.AbsoluteUri);
                             else
                                 cmd.Parameters.AddWithValue("@ImageUri", string.Empty);
-
+                            
                             if (entry.IsImageDownloaded)
                                 cmd.Parameters.AddWithValue("@IsImageDownloaded", bool.TrueString);
                             else
                                 cmd.Parameters.AddWithValue("@IsImageDownloaded", bool.FalseString);
-
+                            */
                             if (entry.ImageId != null)
                                 cmd.Parameters.AddWithValue("@ImageId", entry.ImageId);
                             else
@@ -999,7 +1340,7 @@ internal class DataAccessService : IDataAccessService
     }
     */
 
-    public SqliteDataAccessResultWrapper UpdateAllEntriesAsRead(List<string> feedIds)
+    public SqliteDataAccessResultWrapper UpdateAllEntriesAsArchived(List<string> feedIds)
     {
         SqliteDataAccessResultWrapper res = new SqliteDataAccessResultWrapper();
 
@@ -1009,7 +1350,7 @@ internal class DataAccessService : IDataAccessService
         if (feedIds.Count == 0)
             return res;
 
-        string before = string.Format("UPDATE Entry SET IsArchived = '{0}' WHERE ", bool.TrueString);
+        string before = string.Format("UPDATE entries SET archived = '{0}' WHERE ", bool.TrueString);
 
         string middle = "(";
 
@@ -1018,10 +1359,10 @@ internal class DataAccessService : IDataAccessService
             if (middle != "(")
                 middle = middle + "OR ";
 
-            middle = middle + String.Format("Feed_ID = '{0}' ", asdf);
+            middle = middle + String.Format("feed_id = '{0}' ", asdf);
         }
 
-        string after = string.Format(") AND IsArchived = '{0}'", bool.FalseString);
+        string after = string.Format(") AND archived = '{0}'", bool.FalseString);
 
         //Debug.WriteLine(before + middle + after);
 
@@ -1225,9 +1566,10 @@ internal class DataAccessService : IDataAccessService
     }
     */
 
+    // not really used.
     public SqliteDataAccessResultWrapper DeleteEntriesByFeedIds(List<string> feedIds)
     {
-        SqliteDataAccessResultWrapper res = new SqliteDataAccessResultWrapper();
+        var res = new SqliteDataAccessResultWrapper();
 
         if (feedIds is null)
             return res;
@@ -1235,22 +1577,33 @@ internal class DataAccessService : IDataAccessService
         if (feedIds.Count == 0)
             return res;
 
-        //
-        string before = "DELETE FROM Entry WHERE ";
+        var sqlDelEntries = string.Empty;
 
-        string middle = "(";
-
-        foreach (var asdf in feedIds)
+        if (feedIds.Count > 1)
         {
-            if (middle != "(")
-                middle = middle + "OR ";
+            string before = "DELETE FROM entries WHERE ";
+            //var before = "DELETE FROM feeds WHERE ";
+            var middle = "(";
 
-            middle = middle + String.Format("Feed_ID = '{0}' ", asdf);
+            foreach (var asdf in feedIds)
+            {
+                if (middle != "(")
+                    middle = middle + "OR ";
+
+                middle += String.Format("feed_id = '{0}' ", asdf);
+            }
+
+            var after = ")";
+
+            sqlDelEntries = before + middle + after;
+        }
+        else
+        {
+            sqlDelEntries = String.Format("DELETE FROM entries WHERE feed_id = '{0}';", feedIds[0]);
+            //sqlDelEntries = String.Format("DELETE FROM feeds WHERE feed_id = '{0}';", feedIds[0]);
         }
 
-        string after = ")";
-
-        var sqlDelEntries = before + middle + after;
+        Debug.WriteLine(sqlDelEntries);
 
         try
         {
@@ -1261,7 +1614,7 @@ internal class DataAccessService : IDataAccessService
                 using (var cmd = connection.CreateCommand())
                 {
                     //cmd.Transaction = connection.BeginTransaction();
-
+                    
                     cmd.CommandText = sqlDelEntries;
 
                     res.AffectedCount = cmd.ExecuteNonQuery();
@@ -1374,7 +1727,7 @@ internal class DataAccessService : IDataAccessService
     */
 
     // ColumnExists check
-    public bool ColumnExists(IDataRecord dr, string columnName)
+    private bool ColumnExists(IDataRecord dr, string columnName)
     {
         for (int i = 0; i < dr.FieldCount; i++)
         {
@@ -1382,5 +1735,10 @@ internal class DataAccessService : IDataAccessService
                 return true;
         }
         return false; ;
+    }
+
+    private string escapeSingleQuote(string s)
+    {
+        return s.Replace("'", "''");
     }
 }

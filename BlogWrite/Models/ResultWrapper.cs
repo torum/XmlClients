@@ -65,5 +65,40 @@ public class SqliteDataAccessSelectImageResultWrapper : SqliteDataAccessResultWr
 
 public class HttpClientEntryItemCollectionResultWrapper : ResultWrapper
 {
+    // Atom //feed/title
+    // RSS2.0 //rss/channel/title
+    public string? Title
+    {
+        get; set;
+    }
+
+    // Atom //feed/subtitle
+    // RSS2.0  //rss/channel/description
+    public string? Description
+    {
+        get; set;
+    }
+
+    // RSS2.0 pubDate
+    // in UTC
+    public DateTime Published
+    {
+        get; set;
+    }
+
+    // RSS2.0 lastBuildDate
+    public DateTime Updated
+    {
+        get; set;
+    }
+
+    // Website uri
+    public Uri? HtmlUri
+    {
+        get; set;
+    }
+    
+    // category (s)
+
     public List<EntryItem> Entries = new();
 }

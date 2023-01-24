@@ -13,6 +13,12 @@ public interface IDataAccessService
 {
     SqliteDataAccessResultWrapper InitializeDatabase(string dataBaseFilePath);
 
+    SqliteDataAccessResultWrapper InsertFeed(string feedId, Uri feedUri, string feedName, string feedTitle, string feedDescription, DateTime updated, Uri htmlUri);
+
+    SqliteDataAccessResultWrapper UpdateFeed(string feedId, Uri feedUri, string feedName, string feedTitle, string feedDescription, DateTime updated, Uri htmlUri);
+
+    SqliteDataAccessResultWrapper DeleteFeed(string feedId);
+
     SqliteDataAccessSelectResultWrapper SelectEntriesByFeedId(string feedId, bool IsUnarchivedOnly = true);
     
     SqliteDataAccessSelectResultWrapper SelectEntriesByFeedIds(List<string> feedIds, bool IsUnarchivedOnly = true);
@@ -20,7 +26,7 @@ public interface IDataAccessService
 
     //SqliteDataAccessSelectImageResultWrapper SelectImageByImageId(string imageId);
 
-    SqliteDataAccessInsertResultWrapper InsertEntries(List<EntryItem> entries);
+    SqliteDataAccessInsertResultWrapper InsertEntries(List<EntryItem> entries, string feedId, string feedName, string feedTitle, string feedDescription, DateTime updated, Uri htmlUri);
 
 
     //SqliteDataAccessInsertResultWrapper InsertImages(List<EntryItem> entries);
@@ -29,7 +35,7 @@ public interface IDataAccessService
     //SqliteDataAccessResultWrapper UpdateEntriesAsRead(List<EntryItem> entries);
 
 
-    SqliteDataAccessResultWrapper UpdateAllEntriesAsRead(List<string> feedIds);
+    SqliteDataAccessResultWrapper UpdateAllEntriesAsArchived(List<string> feedIds);
 
 
     //SqliteDataAccessResultWrapper UpdateEntryStatus(EntryItem entry);

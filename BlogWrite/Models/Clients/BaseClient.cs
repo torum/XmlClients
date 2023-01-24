@@ -5,10 +5,10 @@ namespace BlogWrite.Models.Clients;
 
 public abstract class BaseClient : IDisposable
 {
-    private static readonly object _locker = new object();
+    private static readonly object _locker = new();
     private static volatile HttpClient? _client;
 
-    protected static HttpClient? Client
+    protected static HttpClient Client
     {
         get
         {
