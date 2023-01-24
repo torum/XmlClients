@@ -1,16 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 using BlogWrite.Contracts.Services;
 using BlogWrite.Contracts.ViewModels;
-using BlogWrite.Core.Contracts.Services;
-using BlogWrite.Core.Models;
-using BlogWrite.Core.Services;
 using BlogWrite.Models;
-using BlogWrite.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml.Controls;
@@ -46,7 +37,7 @@ public class EntryDetailsViewModel : ObservableRecipient, INavigationAware
         get;
     }
 
-    private static string _html = @"
+    private static readonly string _html = @"
                 <html>
                     <head>
                         <title></title>
@@ -55,8 +46,8 @@ public class EntryDetailsViewModel : ObservableRecipient, INavigationAware
                     </body>
                 </html>";
 
-    private Uri _source = null;// new("");
-    public Uri Source
+    private Uri? _source = null;// new("");
+    public Uri? Source
     {
         get => _source;
         set => SetProperty(ref _source, value);
@@ -104,11 +95,9 @@ public class EntryDetailsViewModel : ObservableRecipient, INavigationAware
         set => SetProperty(ref _isContentHTML, value);
     }
 
-    private static string WrapHtmlContent(string source, string styles = null)
+    private static string WrapHtmlContent(string source, string? styles = null)
     {
-        if (styles == null)
-        {
-            styles = @"
+        styles ??= @"
 ::-webkit-scrollbar { width: 17px; height: 3px;}
 ::-webkit-scrollbar-button {  background-color: #666; }
 ::-webkit-scrollbar-track {  background-color: #646464; box-shadow: 0 0 4px #aaa inset;}
@@ -174,7 +163,6 @@ li {
 	line-height: 1.5em;
 }
                 ";
-        }
 
         return String.Format(
             @"<html>

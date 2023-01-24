@@ -2108,7 +2108,6 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
 
         if (xdoc is null)
         {
-            // TODO: show error?
             Debug.WriteLine("xdoc is null");
             return;
         }

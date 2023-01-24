@@ -39,7 +39,7 @@ public class ActivationService : IActivationService
         // Activate the MainWindow.
         App.MainWindow.Activate();
 
-        App.MainWindow.BringToFront();
+        //App.MainWindow.BringToFront();
 
         // Execute tasks after activation.
         await StartupAsync();

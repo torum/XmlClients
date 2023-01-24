@@ -371,13 +371,16 @@ internal class DataAccessService : IDataAccessService
                     cmd.Transaction = connection.BeginTransaction();
                     try
                     {
-                        string sql = "UPDATE feeds SET";
-                        sql += String.Format(" name = '{0}',", escapeSingleQuote(feedName));
-                        sql += String.Format(" title = '{0}',", escapeSingleQuote(feedTitle));
-                        sql += String.Format(" description = '{0}',", escapeSingleQuote(feedDescription));
-                        sql += String.Format(" updated = '{0}',", updated.ToString("yyyy-MM-dd HH:mm:ss"));
-                        sql += String.Format(" html_url = '{0}' ", htmlUri.AbsoluteUri);
-                        sql += String.Format("WHERE feed_id = '{0}'; ", feedId); 
+                        var sql = "UPDATE feeds SET ";
+                        sql += String.Format("name = '{0}', ", escapeSingleQuote(feedName));
+                        sql += String.Format("title = '{0}', ", escapeSingleQuote(feedTitle));
+                        sql += String.Format("description = '{0}', ", escapeSingleQuote(feedDescription));
+                        sql += String.Format("updated = '{0}'", updated.ToString("yyyy-MM-dd HH:mm:ss"));
+                        if (htmlUri != null)
+                        {
+                            sql += String.Format(", html_url = '{0}'", htmlUri.AbsoluteUri);
+                        }
+                        sql += String.Format(" WHERE feed_id = '{0}'; ", feedId);
 
                         cmd.CommandText = sql;
 
@@ -454,7 +457,7 @@ internal class DataAccessService : IDataAccessService
             return res;
         }
 
-        Debug.WriteLine(string.Format("{0} feed updated", res.AffectedCount.ToString()));
+        //Debug.WriteLine(string.Format("{0} feed updated", res.AffectedCount.ToString()));
 
         return res;
     }
@@ -493,8 +496,9 @@ internal class DataAccessService : IDataAccessService
 
                             entry.EntryId = Convert.ToString(reader["entry_id"]);
 
-                            if (!string.IsNullOrEmpty(Convert.ToString(reader["url"])))
-                                entry.AltHtmlUri = new Uri(Convert.ToString(reader["url"]));
+                            var s = Convert.ToString(reader["url"]);
+                            if (!string.IsNullOrEmpty(s))
+                                entry.AltHtmlUri = new Uri(s);
 
                             entry.Published = DateTime.Parse(Convert.ToString(reader["published"]));
 
@@ -896,13 +900,16 @@ internal class DataAccessService : IDataAccessService
                     try
                     {
                         // update feed info.
-                        string sql = "UPDATE feeds SET";
-                        sql += String.Format(" name = '{0}',", escapeSingleQuote(feedName));
-                        sql += String.Format(" title = '{0}',", escapeSingleQuote(feedTitle));
-                        sql += String.Format(" description = '{0}',", escapeSingleQuote(feedDescription));
-                        sql += String.Format(" updated = '{0}',", updated.ToString("yyyy-MM-dd HH:mm:ss"));
-                        sql += String.Format(" html_url = '{0}' ", htmlUri.AbsoluteUri);
-                        sql += String.Format("WHERE feed_id = '{0}'; ", feedId);
+                        string sql = "UPDATE feeds SET ";
+                        sql += String.Format("name = '{0}', ", escapeSingleQuote(feedName));
+                        sql += String.Format("title = '{0}', ", escapeSingleQuote(feedTitle));
+                        sql += String.Format("description = '{0}', ", escapeSingleQuote(feedDescription));
+                        sql += String.Format("updated = '{0}'", updated.ToString("yyyy-MM-dd HH:mm:ss"));
+                        if (htmlUri != null)
+                        {
+                            sql += String.Format(", html_url = '{0}'", htmlUri.AbsoluteUri);
+                        }
+                        sql += String.Format(" WHERE feed_id = '{0}'; ", feedId);
 
                         cmd.CommandText = sql;
                         cmd.ExecuteNonQuery();
@@ -1729,16 +1736,18 @@ internal class DataAccessService : IDataAccessService
     // ColumnExists check
     private bool ColumnExists(IDataRecord dr, string columnName)
     {
-        for (int i = 0; i < dr.FieldCount; i++)
+        for (var i = 0; i < dr.FieldCount; i++)
         {
             if (dr.GetName(i).Equals(columnName, StringComparison.InvariantCultureIgnoreCase))
+            {
                 return true;
+            }
         }
         return false; ;
     }
 
     private string escapeSingleQuote(string s)
     {
-        return s.Replace("'", "''");
+        return s is null ? string.Empty : s.Replace("'", "''");
     }
 }

@@ -192,11 +192,13 @@
 
                             </AppBarButton>
 
+                            <!-- 
                             <AppBarButton Icon="Save" Label="Export" Command="{x:Bind ViewModel.OpmlExportCommand, Mode=OneWay}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" >
                             </AppBarButton>
 
                             <AppBarButton Icon="Import" Label="Import" Command="{x:Bind ViewModel.OpmlImportCommand, Mode=OneWay}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" >
                             </AppBarButton>
+                            -->
 
                             <AppBarButton Label="Refresh" IsCompact="False" Command="{x:Bind ViewModel.FeedRefreshAllCommand}" Opacity="0.9">
 
@@ -232,7 +234,7 @@
 
                         </CommandBar>
 
-                        <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="Collapsed">
+                        <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
 
                             <AppBarButton Icon="More" Label="" IsCompact="False" HorizontalAlignment="Right" VerticalAlignment="Center" Opacity="0.9">
                                 <AppBarButton.Flyout>
@@ -491,7 +493,7 @@
                                             </AppBarButton.Icon>
                                         </AppBarButton>
 
-                                        <AppBarButton Label="Open" Command="{x:Bind ViewModel.EntryViewExternalCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" Visibility="Collapsed">
+                                        <AppBarButton Label="Open" Command="{x:Bind ViewModel.EntryViewExternalCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9">
                                             <AppBarButton.Icon>
                                                 <PathIcon>
                                                     <PathIcon.Data>

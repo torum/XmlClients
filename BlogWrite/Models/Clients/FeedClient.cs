@@ -1010,8 +1010,7 @@ public class FeedClient : BaseClient
 
     private async void FillEntryItemFromXmlAtom10(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr, string feedId)
     {
-        // TODO:
-        AtomEntry entry = await CreateAtomEntryFromXmlAtom(entryNode, atomNsMgr, feedId);
+        var entry = await CreateAtomEntryFromXmlAtom(entryNode, atomNsMgr, feedId);
 
         entItem.Name = entry.Name;
         //entItem.ID = entry.ID;

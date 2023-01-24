@@ -89,7 +89,7 @@ public partial class App : Application
             //services.AddTransient<INavigationViewService, NavigationViewService>();
 
             // Core Services
-            services.AddSingleton<ISampleDataService, SampleDataService>();
+            //services.AddSingleton<ISampleDataService, SampleDataService>();
             services.AddSingleton<IFileService, FileService>();
 
             services.AddTransient<IFileDialogService, FileDialogService>();
@@ -242,16 +242,16 @@ public partial class App : Application
 
         public bool ContainsKey(string key) => _data.ContainsKey(key);
 
-        public void CopyTo(KeyValuePair<string, object>[] array, int arrayIndex) => throw new NotImplementedException(); // TODO
+        public void CopyTo(KeyValuePair<string, object>[] array, int arrayIndex) => throw new NotImplementedException(); 
 
-        public IEnumerator<KeyValuePair<string, object>> GetEnumerator() => throw new NotImplementedException(); // TODO
+        public IEnumerator<KeyValuePair<string, object>> GetEnumerator() => throw new NotImplementedException(); 
 
-        public bool Remove(string key) => throw new NotImplementedException(); // TODO
+        public bool Remove(string key) => throw new NotImplementedException(); 
 
-        public bool Remove(KeyValuePair<string, object> item) => throw new NotImplementedException(); // TODO
+        public bool Remove(KeyValuePair<string, object> item) => throw new NotImplementedException(); 
 
-        public bool TryGetValue(string key, [MaybeNullWhen(false)] out object value) => throw new NotImplementedException(); // TODO
+        public bool TryGetValue(string key, [MaybeNullWhen(false)] out object value) => throw new NotImplementedException(); 
 
-        IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException(); // TODO
+        IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException(); 
     }
 }

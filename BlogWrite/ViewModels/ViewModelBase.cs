@@ -12,7 +12,7 @@ public abstract class ViewModelBase : INotifyPropertyChanged//, IDataErrorInfo
 
     #region == INotifyPropertyChanged ==
 
-    public event PropertyChangedEventHandler PropertyChanged;
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     protected void NotifyPropertyChanged(string propertyName)
     {

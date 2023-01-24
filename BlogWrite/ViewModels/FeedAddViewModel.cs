@@ -2,8 +2,6 @@
 using System.Windows.Input;
 using BlogWrite.Contracts.Services;
 using BlogWrite.Contracts.ViewModels;
-using BlogWrite.Core.Contracts.Services;
-using BlogWrite.Core.Models;
 using BlogWrite.Models;
 
 using CommunityToolkit.Mvvm.ComponentModel;
