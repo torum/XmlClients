@@ -3,7 +3,7 @@ using System.Windows.Input;
 
 using BlogWrite.Contracts.Services;
 using BlogWrite.Contracts.ViewModels;
-using BlogWrite.Helpers;
+using BlogWrite.Core.Helpers;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;

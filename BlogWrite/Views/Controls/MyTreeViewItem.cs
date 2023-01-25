@@ -2,7 +2,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Windows.UI.Xaml;
-using BlogWrite.Models;
+using BlogWrite.Core.Models;
 using DataPackageOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation;
 
 namespace BlogWrite.Views

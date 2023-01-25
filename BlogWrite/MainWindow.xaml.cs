@@ -1,4 +1,4 @@
-﻿using BlogWrite.Helpers;
+﻿using BlogWrite.Core.Helpers;
 
 namespace BlogWrite;
 

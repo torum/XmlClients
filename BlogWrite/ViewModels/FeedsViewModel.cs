@@ -2,13 +2,15 @@
 using System.Xml;
 using BlogWrite.Contracts.Services;
 using BlogWrite.Contracts.ViewModels;
-using BlogWrite.Helpers;
-using BlogWrite.Models;
-using BlogWrite.Models.Clients;
+using BlogWrite.Core.Contracts.Services;
+using BlogWrite.Core.Helpers;
+using BlogWrite.Core.Models;
+using BlogWrite.Core.Models.Clients;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using WinRT.Interop;
 
 namespace BlogWrite.ViewModels;
 
@@ -537,16 +539,19 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
 
     private readonly IDataAccessService _dataAccessService;
 
+    private readonly IFeedClientService _feedClientService;
+
     #endregion
 
-    private readonly FeedClient _feedClient = new();
+    //private readonly FeedClient _feedClient = new();
 
-    public FeedsViewModel(INavigationService navigationService, IFileDialogService fileDialogService, IDataAccessService dataAccessService)
+    public FeedsViewModel(INavigationService navigationService, IFileDialogService fileDialogService, IDataAccessService dataAccessService, IFeedClientService feedClientService)
     {
         _navigationService = navigationService;
         _navigationService.Navigated += OnNavigated;
         _fileDialogService = fileDialogService;
         _dataAccessService = dataAccessService;
+        _feedClientService = feedClientService;
 
         InitializeFeedTree();
         InitializeDatabase();
@@ -634,7 +639,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
     private void InitializeClient()
     {
         // subscribe to DebugOutput event.
-        _feedClient.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
+        _feedClientService.BaseClient.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
 
         InitClientsRecursiveLoop(_services.Children);
     }
@@ -645,7 +650,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
         {
             if (c is NodeFeed nf)
             {
-                nf.Client = _feedClient;
+                nf.Client = _feedClientService.BaseClient;
                 //nf.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
             }
 
@@ -690,7 +695,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
     {
         try
         {
-            _feedClient.Dispose();
+            _feedClientService.BaseClient.Dispose();
         }
         catch (Exception ex)
         {
@@ -1695,7 +1700,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
             a.Title = feedlink.SiteTitle;
             a.HtmlUri = feedlink.SiteUri;
 
-            a.Client = _feedClient;
+            a.Client = _feedClientService.BaseClient;
             a.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
 
             if (SelectedTreeViewItem is NodeFolder)
@@ -1984,7 +1989,8 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
     [RelayCommand(CanExecute = nameof(CanOpmlImport))]
     public async Task OpmlImportAsync()
     {
-        var file = await _fileDialogService.GetOpenOpmlFileDialog();
+        var hwnd = WindowNative.GetWindowHandle(App.MainWindow);
+        var file = await _fileDialogService.GetOpenOpmlFileDialog(hwnd);
         if (file is null)
             return;
 
@@ -2078,7 +2084,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
                 }
                 else
                 {
-                    feed.Client = _feedClient;
+                    feed.Client = _feedClientService.BaseClient;
                 }
             }
         }
@@ -2112,7 +2118,8 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
             return;
         }
 
-        var file = await _fileDialogService.GetSaveOpmlFileDialog();
+        var hwnd = WindowNative.GetWindowHandle(App.MainWindow);
+        var file = await _fileDialogService.GetSaveOpmlFileDialog(hwnd);
 
         if (file is null)
         {
@@ -2201,7 +2208,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
     [RelayCommand(CanExecute = nameof(CanToggleShowAllEntries))]
     private void ToggleShowAllEntries()
     {
-        if (SelectedTreeViewItem is null)
+        if (_selectedTreeViewItem is null)
             return;
 
         IsShowAllEntries = !IsShowAllEntries;
@@ -2229,7 +2236,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
     [RelayCommand(CanExecute = nameof(CanToggleShowInboxEntries))]
     private void ToggleShowInboxEntries()
     {
-        if (SelectedTreeViewItem is null)
+        if (_selectedTreeViewItem is null)
             return;
 
         IsShowInboxEntries = !IsShowInboxEntries;

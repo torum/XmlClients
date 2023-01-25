@@ -1,7 +1,7 @@
 ﻿using System.Xml;
 using System.Xml.Linq;
 using BlogWrite.Contracts.Services;
-using BlogWrite.Helpers;
+using BlogWrite.Core.Helpers;
 using BlogWrite.ViewModels;
 
 using Microsoft.UI.Xaml;
@@ -58,7 +58,7 @@ public sealed partial class ShellPage : Page
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
         // Needed to be here. (don't put this in constructor.. messes up when theme changed.)
-        TitleBarHelper.UpdateTitleBar(RequestedTheme);
+        TitleBarHelper.UpdateTitleBar(RequestedTheme, App.MainWindow);
 
         KeyboardAccelerators.Add(BuildKeyboardAccelerator(VirtualKey.Left, VirtualKeyModifiers.Menu));
         KeyboardAccelerators.Add(BuildKeyboardAccelerator(VirtualKey.GoBack));

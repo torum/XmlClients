@@ -8,7 +8,7 @@ using BlogWrite.Activation;
 using BlogWrite.Contracts.Services;
 using BlogWrite.Core.Contracts.Services;
 using BlogWrite.Core.Services;
-using BlogWrite.Helpers;
+using BlogWrite.Core.Helpers;
 using BlogWrite.Models;
 using BlogWrite.Notifications;
 using BlogWrite.Services;
@@ -94,6 +94,7 @@ public partial class App : Application
 
             services.AddTransient<IFileDialogService, FileDialogService>();
             services.AddSingleton<IDataAccessService, DataAccessService>();
+            services.AddSingleton<IFeedClientService, FeedClientService>();
 
             // Views and ViewModels
             services.AddSingleton<SettingsViewModel>();

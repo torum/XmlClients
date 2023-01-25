@@ -10,7 +10,7 @@ using System.ComponentModel;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Windows.Storage;
-using BlogWrite.Models;
+using BlogWrite.Core.Models;
 using AngleSharp.Dom;
 using Microsoft.UI.Xaml;
 using Windows.ApplicationModel.DataTransfer;

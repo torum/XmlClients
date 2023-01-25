@@ -3,7 +3,7 @@
 using Microsoft.UI.Xaml.Controls;
 
 using BlogWrite.Contracts.Services;
-using BlogWrite.Helpers;
+using BlogWrite.Core.Helpers;
 using BlogWrite.ViewModels;
 
 namespace BlogWrite.Services;

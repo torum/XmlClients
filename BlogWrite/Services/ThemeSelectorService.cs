@@ -1,5 +1,5 @@
 ﻿using BlogWrite.Contracts.Services;
-using BlogWrite.Helpers;
+using BlogWrite.Core.Helpers;
 
 using Microsoft.UI.Xaml;
 
@@ -38,7 +38,7 @@ public class ThemeSelectorService : IThemeSelectorService
         {
             rootElement.RequestedTheme = Theme;
 
-            TitleBarHelper.UpdateTitleBar(Theme);
+            TitleBarHelper.UpdateTitleBar(Theme, App.MainWindow);
         }
 
         await Task.CompletedTask;

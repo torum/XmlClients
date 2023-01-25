@@ -2,7 +2,7 @@
 
 using BlogWrite.Contracts.Services;
 using BlogWrite.Contracts.ViewModels;
-using BlogWrite.Helpers;
+using BlogWrite.Core.Helpers;
 
 using CommunityToolkit.WinUI.UI.Animations;
 
