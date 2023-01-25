@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net6.0-windows10.0.19041.0</TargetFramework>
@@ -10,7 +10,29 @@
     <PublishProfile>win10-$(Platform).pubxml</PublishProfile>
     <UseWinUI>true</UseWinUI>
     <EnableMsixTooling>true</EnableMsixTooling>
+	  <ImplicitUsings>enable</ImplicitUsings>
+
+	  <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+
+	  <AssemblyVersion>1.0.0.6</AssemblyVersion>
+	  <FileVersion>$(AssemblyVersion)</FileVersion>
+	  <Version>$(AssemblyVersion)</Version>
+	  <PlatformTarget>x64</PlatformTarget>
+	  <NeutralLanguage>en-US</NeutralLanguage>
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Styles\FontSizes.xaml" />
+    <None Remove="Styles\TextBlock.xaml" />
+    <None Remove="Styles\Thickness.xaml" />
+    <None Remove="Views\EntryDetailsPage.xaml" />
+    <None Remove="Views\FeedAddPage.xaml" />
+    <None Remove="Views\FeedEditPage.xaml" />
+    <None Remove="Views\FeedsPage.xaml" />
+    <None Remove="Views\FolderAddPage.xaml" />
+    <None Remove="Views\FolderEditPage.xaml" />
+    <None Remove="Views\SettingsPage.xaml" />
+    <None Remove="Views\ShellPage.xaml" />
+  </ItemGroup>
 
   <ItemGroup>
     <Content Include="Assets\SplashScreen.scale-200.png" />
@@ -23,8 +45,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AngleSharp.Xml" Version="1.0.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.1.0" />
+    <PackageReference Include="CommunityToolkit.WinUI.UI.Animations" Version="7.1.2" />
+    <PackageReference Include="CommunityToolkit.WinUI.UI.Controls" Version="7.1.2" />
+    <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.221209.1" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22621.755" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="2.0.9" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.117" />
+    <PackageReference Include="WinUIEx" Version="2.1.0" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
@@ -38,6 +70,46 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BlogWrite.Core\BlogWrite.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Styles\FontSizes.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+    </Page>
+    <Page Update="Styles\TextBlock.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+    </Page>
+    <Page Update="Styles\Thickness.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+    </Page>
+    <Page Update="Views\EntryDetailsPage.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\FeedAddPage.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\FeedEditPage.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\FeedsPage.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+    </Page>
+    <Page Update="Views\FolderAddPage.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\FolderEditPage.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\SettingsPage.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+    </Page>
+    <Page Update="Views\ShellPage.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+    </Page>
   </ItemGroup>
 
   <!-- 
