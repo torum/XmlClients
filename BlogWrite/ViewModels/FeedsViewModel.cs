@@ -552,10 +552,11 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
         _fileDialogService = fileDialogService;
         _dataAccessService = dataAccessService;
         _feedClientService = feedClientService;
+        _feedClientService.BaseClient.DebugOutput += OnDebugOutput;
 
         InitializeFeedTree();
         InitializeDatabase();
-        InitializeClient();
+        InitializeFeedClient();
 
         //IsDebugWindowEnabled = true;
     }
@@ -636,10 +637,10 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
         }
     }
 
-    private void InitializeClient()
+    private void InitializeFeedClient()
     {
         // subscribe to DebugOutput event.
-        _feedClientService.BaseClient.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
+        //_feedClientService.BaseClient.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
 
         InitClientsRecursiveLoop(_services.Children);
     }

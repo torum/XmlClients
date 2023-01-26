@@ -543,7 +543,6 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    //private readonly FeedClient _feedClient = new();
 
     public FeedsViewModel(INavigationService navigationService, IFileDialogService fileDialogService, IDataAccessService dataAccessService, IFeedClientService feedClientService)
     {
@@ -1449,6 +1448,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
                 {
                     App.CurrentDispatcherQueue?.TryEnqueue(() =>
                     {
+                        /*
                         foreach (var hoge in folder.Children)
                         {
                             if (hoge is NodeFeed)
@@ -1456,6 +1456,11 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
                                 folder.EntryNewCount = 0;
                             }
                         }
+                        */
+                        // TODO: wait what about parents?
+
+                        if (folder.Parent is NodeFolder parentFolder)
+                            MinusAllParentEntryCount(parentFolder, folder.EntryNewCount);
 
                         folder.EntryNewCount = 0;
                         ResetAllEntryCountAtChildNodes(folder.Children);
@@ -1472,6 +1477,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
                     });
                 }
             }
+
             App.CurrentDispatcherQueue?.TryEnqueue(() =>
             {
                 //IsWorking = false;

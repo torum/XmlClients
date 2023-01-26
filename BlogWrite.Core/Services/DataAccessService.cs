@@ -543,13 +543,13 @@ public class DataAccessService : IDataAccessService
                             entry.ImageId = Convert.ToString(reader["image_id"]);
 
 
-                            string status = Convert.ToString(reader["status"]);
+                            var status = Convert.ToString(reader["status"]);
                             if (!string.IsNullOrEmpty(status))
                                 entry.Status = entry.StatusTextToType(status);
 
                             entry.Author = Convert.ToString(reader["author"]);
 
-                            string blnstr = Convert.ToString(reader["archived"]);
+                            var blnstr = Convert.ToString(reader["archived"]);
                             if (!string.IsNullOrEmpty(blnstr))
                             {
                                 if (blnstr == bool.TrueString)
@@ -900,7 +900,7 @@ public class DataAccessService : IDataAccessService
                     try
                     {
                         // update feed info.
-                        string sql = "UPDATE feeds SET ";
+                        var sql = "UPDATE feeds SET ";
                         sql += String.Format("name = '{0}', ", escapeSingleQuote(feedName));
                         sql += String.Format("title = '{0}', ", escapeSingleQuote(feedTitle));
                         sql += String.Format("description = '{0}', ", escapeSingleQuote(feedDescription));
@@ -921,7 +921,7 @@ public class DataAccessService : IDataAccessService
                             if ((entry.EntryId == null) || (entry.AltHtmlUri == null))
                                 continue;
 
-                            string sqlInsert = "INSERT OR IGNORE INTO entries (entry_id, feed_id, url, title, published, updated, author, summary, content, content_type, image_id, status, archived) VALUES (@EntryId, @FeedId, @AltHtmlUri, @Title, @Published, @Updated, @Author, @Summary, @Content, @ContentType, @ImageId, @Status, @IsArchived)";
+                            var sqlInsert = "INSERT OR IGNORE INTO entries (entry_id, feed_id, url, title, published, updated, author, summary, content, content_type, image_id, status, archived) VALUES (@EntryId, @FeedId, @AltHtmlUri, @Title, @Published, @Updated, @Author, @Summary, @Content, @ContentType, @ImageId, @Status, @IsArchived)";
 
                             cmd.CommandText = sqlInsert;
 
@@ -962,6 +962,7 @@ public class DataAccessService : IDataAccessService
                             else
                                 cmd.Parameters.AddWithValue("@Content", string.Empty);
 
+                            // TODO:
                             cmd.Parameters.AddWithValue("@ContentType", entry.ContentType.ToString());
                             /*
                             if (entry.ImageUri != null)
@@ -1364,12 +1365,12 @@ public class DataAccessService : IDataAccessService
         foreach (var asdf in feedIds)
         {
             if (middle != "(")
-                middle = middle + "OR ";
+                middle += "OR ";
 
-            middle = middle + String.Format("feed_id = '{0}' ", asdf);
+            middle += String.Format("feed_id = '{0}' ", asdf);
         }
 
-        string after = string.Format(") AND archived = '{0}'", bool.FalseString);
+        var after = string.Format(") AND archived = '{0}'", bool.FalseString);
 
         //Debug.WriteLine(before + middle + after);
 

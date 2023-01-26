@@ -18,7 +18,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.ApplicationModel.Resources;
-using WinUIEx;
+using System.Text;
 
 namespace FeedDesk;
 
@@ -37,6 +37,11 @@ public partial class App : Application
 
     //
     private static readonly ResourceLoader _resourceLoader = new();
+
+    // 
+    public bool IsSaveErrorLog = true;
+    public string LogFilePath = System.Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + System.IO.Path.DirectorySeparatorChar + "FeedDesk_errors.txt";
+    private readonly StringBuilder Errortxt = new();
 
     //
     public static WindowEx MainWindow { get; } = new MainWindow();
@@ -90,7 +95,6 @@ public partial class App : Application
             //services.AddTransient<INavigationViewService, NavigationViewService>();
 
             // Core Services
-            //services.AddSingleton<ISampleDataService, SampleDataService>();
             services.AddSingleton<IFileService, FileService>();
 
             services.AddTransient<IFileDialogService, FileDialogService>();
@@ -115,7 +119,6 @@ public partial class App : Application
             services.AddSingleton<ShellPage>();
             services.AddSingleton<ShellViewModel>();
 
-
             // Configuration
             services.Configure<LocalSettingsOptions>(context.Configuration.GetSection(nameof(LocalSettingsOptions)));
         }).
@@ -123,16 +126,11 @@ public partial class App : Application
 
         //App.GetService<IAppNotificationService>().Initialize();
 
-        UnhandledException += App_UnhandledException;
+        Microsoft.UI.Xaml.Application.Current.UnhandledException += App_UnhandledException;
 
-    }
+        TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+        AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
-    private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
-    {
-        // TODO: Log and handle exceptions as appropriate.
-        // https://docs.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.application.unhandledexception.
-
-        Debug.Write("App_UnhandledException: " + e.Exception.ToString());
     }
 
     protected async override void OnLaunched(LaunchActivatedEventArgs args)
@@ -182,6 +180,94 @@ public partial class App : Application
             MainWindow.BringToFront();
         });
     }
+
+    #region == UnhandledException ==
+
+    private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+    {
+        // TODO: Log and handle exceptions as appropriate.
+        // https://docs.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.application.unhandledexception.
+
+        Debug.Write("App_UnhandledException: " + e.Exception.ToString());
+
+        // This does not fire...because of winui3 bugs. should be fixed in v1.2.2 WinAppSDK
+        // see https://github.com/microsoft/microsoft-ui-xaml/issues/5221
+
+        Debug.WriteLine("App_UnhandledException", e.Message + $"StackTrace: {e.Exception.StackTrace}, Source: {e.Exception.Source}");
+        AppendErrorLog("App_UnhandledException", e.Message + $"StackTrace: {e.Exception.StackTrace}, Source: {e.Exception.Source}");
+
+        try
+        {
+            SaveErrorLog();
+        }
+        catch (Exception) { }
+    }
+
+    private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+    {
+        var exception = e.Exception.InnerException as Exception;
+
+        Debug.WriteLine("TaskScheduler_UnobservedTaskException: " + exception.Message);
+        AppendErrorLog("TaskScheduler_UnobservedTaskException", exception.Message);
+        SaveErrorLog();
+
+        e.SetObserved();
+    }
+
+    private void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
+    {
+        var exception = e.ExceptionObject as Exception;
+
+        if (exception is TaskCanceledException)
+        {
+            // can ignore.
+            Debug.WriteLine("CurrentDomain_UnhandledException (TaskCanceledException): " + exception.Message);
+            AppendErrorLog("CurrentDomain_UnhandledException (TaskCanceledException)", exception.Message);
+        }
+        else
+        {
+            Debug.WriteLine("CurrentDomain_UnhandledException: " + exception.Message);
+            AppendErrorLog("CurrentDomain_UnhandledException", exception.Message);
+            SaveErrorLog();
+        }
+    }
+
+    public void AppendErrorLog(string kindTxt, string errorTxt)
+    {
+        Errortxt.AppendLine(kindTxt + ": " + errorTxt);
+        DateTime dt = DateTime.Now;
+        Errortxt.AppendLine($"Occured at {dt.ToString("yyyy/MM/dd HH:mm:ss")}");
+        Errortxt.AppendLine("");
+    }
+
+    private void SaveErrorLog()
+    {
+        if (!IsSaveErrorLog)
+            return;
+
+        if (string.IsNullOrEmpty(LogFilePath))
+            return;
+
+        Errortxt.AppendLine("");
+        DateTime dt = DateTime.Now;
+        Errortxt.AppendLine($"Saved at {dt.ToString("yyyy/MM/dd HH:mm:ss")}");
+
+        string s = Errortxt.ToString();
+        if (!string.IsNullOrEmpty(s))
+            File.WriteAllText(LogFilePath, s);
+    }
+
+    public void SaveErrorLogIfAny()
+    {
+        if (Errortxt.Length > 0)
+        {
+            SaveErrorLog();
+        }
+    }
+
+    #endregion
+
+    #region == FilePersistence for WinUIEx ==
 
     private class FilePersistence : IDictionary<string, object>
     {
@@ -256,4 +342,6 @@ public partial class App : Application
 
         IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
     }
+
+    #endregion
 }

@@ -19,6 +19,7 @@
 	  <Version>$(AssemblyVersion)</Version>
 	  <PlatformTarget>x64</PlatformTarget>
 	  <NeutralLanguage>en-US</NeutralLanguage>
+	  <Nullable>annotations</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Styles\FontSizes.xaml" />
