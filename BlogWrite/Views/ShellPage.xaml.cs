@@ -71,7 +71,7 @@ public sealed partial class ShellPage : Page
 
         // Needed to be here.
         var navigationService = App.GetService<INavigationService>();
-        navigationService.NavigateTo(typeof(FeedsViewModel).FullName!, null);
+        navigationService.NavigateTo(typeof(MainViewModel).FullName!, null);
     }
 
     private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
@@ -91,11 +91,6 @@ public sealed partial class ShellPage : Page
 
     private void MainWindow_Closed(object sender, WindowEventArgs args)
     {
-        var hoge = App.GetService<FeedsViewModel>();
-        // Save service tree.
-        hoge.SaveServiceXml();
-        // Dispose httpclient.
-        hoge.CleanUp();
     }
 
     private static KeyboardAccelerator BuildKeyboardAccelerator(VirtualKey key, VirtualKeyModifiers? modifiers = null)

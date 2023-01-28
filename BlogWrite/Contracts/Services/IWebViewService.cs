@@ -5,6 +5,12 @@ namespace BlogWrite.Contracts.Services;
 
 public interface IWebViewService
 {
+    public CoreWebView2? CoreWebView2
+    {
+
+        get;
+    }
+
     Uri? Source
     {
         get;

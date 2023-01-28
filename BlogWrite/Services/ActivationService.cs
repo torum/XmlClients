@@ -1,6 +1,5 @@
 ﻿using BlogWrite.Activation;
 using BlogWrite.Contracts.Services;
-using BlogWrite.ViewModels;
 using BlogWrite.Views;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -40,6 +39,7 @@ public class ActivationService : IActivationService
         App.MainWindow.Activate();
 
         //App.MainWindow.BringToFront();
+        await Task.Delay(100);
 
         // Execute tasks after activation.
         await StartupAsync();

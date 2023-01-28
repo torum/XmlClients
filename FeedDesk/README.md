@@ -40,6 +40,7 @@ Desktop feed reader.
 
 
 #### Feed reader
+- [ ] "Read lator" or saved or boolmark or whatever.
 - [ ] Grouping display of entries. 
 - [ ] multiple viewing style (3 panes, cards, etc)
 - [ ] Auto reflesh.
@@ -48,7 +49,7 @@ Desktop feed reader.
 
 #### Sync 
 - [ ] Sync with Firefox Pocket or Instapaper etc for "read lator".
-- [ ] Sync with online feed readers or creat one.
+- [ ] Sync with online feed readers such as Miniflux or creat one.
 
 
 ##### Other

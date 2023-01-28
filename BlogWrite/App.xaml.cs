@@ -82,7 +82,7 @@ public partial class App : Application
             //services.AddSingleton<IAppNotificationService, AppNotificationService>();
             services.AddSingleton<ILocalSettingsService, LocalSettingsService>();
             services.AddSingleton<IThemeSelectorService, ThemeSelectorService>();
-            //services.AddTransient<IWebViewService, WebViewService>();
+            services.AddTransient<IWebViewService, WebViewService>();
             services.AddSingleton<IActivationService, ActivationService>();
             services.AddSingleton<IPageService, PageService>();
             services.AddSingleton<INavigationService, NavigationService>();
@@ -99,18 +99,8 @@ public partial class App : Application
             // Views and ViewModels
             services.AddSingleton<SettingsViewModel>();
             services.AddSingleton<SettingsPage>();
-            //services.AddTransient<EntryDetailsViewModel>();
-            //services.AddTransient<EntryDetailsPage>();
-            services.AddTransient<FeedAddViewModel>();
-            services.AddTransient<FeedAddPage>();
-            services.AddTransient<FeedEditViewModel>();
-            services.AddTransient<FeedEditPage>();
-            services.AddTransient<FolderEditViewModel>();
-            services.AddTransient<FolderEditPage>();
-            services.AddTransient<FolderAddViewModel>();
-            services.AddTransient<FolderAddPage>();
-            services.AddSingleton<FeedsViewModel>();
-            services.AddSingleton<FeedsPage>();
+            services.AddSingleton<MainViewModel>();
+            services.AddSingleton<MainPage>();
             services.AddSingleton<ShellPage>();
             services.AddSingleton<ShellViewModel>();
 

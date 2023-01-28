@@ -11,6 +11,8 @@ public class WebViewService : IWebViewService
 {
     private WebView2? _webView;
 
+    public CoreWebView2? CoreWebView2 => _webView?.CoreWebView2;
+
     public Uri? Source => _webView?.Source;
 
 

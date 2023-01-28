@@ -252,7 +252,7 @@ public partial class App : Application
         DateTime dt = DateTime.Now;
         Errortxt.AppendLine($"Saved at {dt.ToString("yyyy/MM/dd HH:mm:ss")}");
 
-        string s = Errortxt.ToString();
+        var s = Errortxt.ToString();
         if (!string.IsNullOrEmpty(s))
             File.WriteAllText(LogFilePath, s);
     }
