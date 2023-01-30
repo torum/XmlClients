@@ -1,16 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
+using System.Text;
 using System.Text.Json.Nodes;
 using AngleSharp.Dom;
+using BlogWrite.Core.Contracts.Services;
+using BlogWrite.Core.Helpers;
+using BlogWrite.Core.Services;
 using FeedDesk.Activation;
 using FeedDesk.Contracts.Services;
-using BlogWrite.Core.Contracts.Services;
-using BlogWrite.Core.Services;
-using BlogWrite.Core.Helpers;
 using FeedDesk.Models;
-using FeedDesk.Notifications;
 using FeedDesk.Services;
 using FeedDesk.ViewModels;
 using FeedDesk.Views;
@@ -18,7 +17,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.ApplicationModel.Resources;
-using System.Text;
 
 namespace FeedDesk;
 
@@ -102,8 +100,8 @@ public partial class App : Application
             services.AddSingleton<IFeedClientService, FeedClientService>();
 
             // Views and ViewModels
-            services.AddSingleton<SettingsViewModel>();
-            services.AddSingleton<SettingsPage>();
+            services.AddTransient<SettingsViewModel>();
+            services.AddTransient<SettingsPage>();
             //services.AddTransient<EntryDetailsViewModel>();
             //services.AddTransient<EntryDetailsPage>();
             services.AddTransient<FeedAddViewModel>();
@@ -120,7 +118,7 @@ public partial class App : Application
             services.AddSingleton<ShellViewModel>();
 
             // Configuration
-            services.Configure<LocalSettingsOptions>(context.Configuration.GetSection(nameof(LocalSettingsOptions)));
+            //services.Configure<LocalSettingsOptions>(context.Configuration.GetSection(nameof(LocalSettingsOptions)));
         }).
         Build();
 

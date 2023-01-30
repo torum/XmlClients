@@ -15,7 +15,7 @@ public class PageService : IPageService
     public PageService()
     {
         Configure<FeedsViewModel, FeedsPage>();
-        Configure<EntryDetailsViewModel, EntryDetailsPage>();
+        //Configure<EntryDetailsViewModel, EntryDetailsPage>();
         Configure<FeedAddViewModel, FeedAddPage>();
         Configure<FeedEditViewModel, FeedEditPage>();
         Configure<FolderEditViewModel, FolderEditPage>();

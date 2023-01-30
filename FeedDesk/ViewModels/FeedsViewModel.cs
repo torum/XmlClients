@@ -711,7 +711,9 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
     {
         try
         {
-            _feedClientService.BaseClient.Dispose();
+            if (_feedClientService != null)
+                if (_feedClientService.BaseClient != null)
+                    _feedClientService.BaseClient.Dispose();
         }
         catch (Exception ex)
         {
@@ -862,6 +864,12 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
             {
                 App.CurrentDispatcherQueue?.TryEnqueue(() =>
                 {
+                    // Clear error
+                    folder.ErrorDatabase = null;
+
+                    // Update the count
+                    folder.EntryNewCount = res.UnreadCount;
+
                     if (folder == _selectedTreeViewItem)
                     {
                         // Load entries.  

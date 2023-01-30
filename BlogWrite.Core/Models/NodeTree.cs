@@ -163,6 +163,11 @@ public abstract class NodeTree : Node
         }
     }
 
+    public ErrorObject? ErrorDatabase
+    {
+        get; set;
+    }
+
     /*
     private bool _isDragOver;
     public bool IsDragOver
@@ -490,7 +495,6 @@ public class NodeService : NodeTree
 
     public ErrorObject? ErrorHttp { get; set; }
 
-    public ErrorObject? ErrorDatabase { get; set; }
 
     // The DateTime of the last time checking new feed.
     public DateTime LastFetched { get; set; }

@@ -35,11 +35,15 @@ public class ActivationService : IActivationService
         // Handle activation via ActivationHandlers.
         await HandleActivationAsync(activationArgs);
 
+        // Test
+        await Task.Delay(100);
+
+        //App.MainWindow.Show();
+
         // Activate the MainWindow.
         App.MainWindow.Activate();
 
-        //App.MainWindow.BringToFront();
-        await Task.Delay(100);
+        App.MainWindow.BringToFront();
 
         // Execute tasks after activation.
         await StartupAsync();
@@ -63,13 +67,15 @@ public class ActivationService : IActivationService
     private async Task InitializeAsync()
     {
         await _themeSelectorService.InitializeAsync().ConfigureAwait(false);
-        await Task.CompletedTask;
+        await Task.FromResult(true);
+        //await Task.CompletedTask;
     }
 
     private async Task StartupAsync()
     {
         await _themeSelectorService.SetRequestedThemeAsync();
-        await Task.CompletedTask;
+        await Task.FromResult(true);
+        //await Task.CompletedTask;
 
     }
 }

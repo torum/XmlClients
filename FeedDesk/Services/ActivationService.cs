@@ -14,7 +14,7 @@ public class ActivationService : IActivationService
     private readonly IThemeSelectorService _themeSelectorService;
     private UIElement? _shell = null;
 
-    public ActivationService(ActivationHandler<LaunchActivatedEventArgs> defaultHandler, IEnumerable<IActivationHandler> activationHandlers, IThemeSelectorService themeSelectorService)//
+    public ActivationService(ActivationHandler<LaunchActivatedEventArgs> defaultHandler, IEnumerable<IActivationHandler> activationHandlers, IThemeSelectorService themeSelectorService)
     {
         _defaultHandler = defaultHandler;
         _activationHandlers = activationHandlers;
@@ -37,16 +37,16 @@ public class ActivationService : IActivationService
         await HandleActivationAsync(activationArgs);
 
         // Test
-        App.MainWindow.Show();
+        await Task.Delay(100);
+
+        // Test
+        //App.MainWindow.Show();
 
         // Activate the MainWindow.
         App.MainWindow.Activate();
 
         // Test
         App.MainWindow.BringToFront();
-
-        // Test
-        await Task.Delay(100);
 
         // Execute tasks after activation.
         await StartupAsync();
@@ -77,6 +77,5 @@ public class ActivationService : IActivationService
     {
         await _themeSelectorService.SetRequestedThemeAsync();
         await Task.CompletedTask;
-
     }
 }

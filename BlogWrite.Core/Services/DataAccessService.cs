@@ -1,16 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Data;
 using System.Data.SQLite;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using BlogWrite.Core.Models;
-using Microsoft.UI.Xaml.Media.Imaging;
-using Windows.Graphics.Imaging;
 using BlogWrite.Core.Contracts.Services;
-using AngleSharp.Dom;
-using static BlogWrite.Core.Models.FeedLink;
+using BlogWrite.Core.Models;
 
 namespace BlogWrite.Core.Services;
 

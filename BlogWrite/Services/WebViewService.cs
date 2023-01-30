@@ -39,13 +39,14 @@ public class WebViewService : IWebViewService
     }
 
     [MemberNotNull(nameof(_webView))]
-    public void Initialize(WebView2 webView)
+    public async void Initialize(WebView2 webView)
     {
         _webView = webView;
 
-        _webView.EnsureCoreWebView2Async();
         _webView.NavigationCompleted += OnWebViewNavigationCompleted;
         _webView.CoreWebView2Initialized += OnCoreWebView2Initialized;
+
+        await _webView.EnsureCoreWebView2Async();
     }
 
     public void GoBack() => _webView?.GoBack();
@@ -59,11 +60,11 @@ public class WebViewService : IWebViewService
         if (_webView != null)
         {
             _webView.NavigationCompleted -= OnWebViewNavigationCompleted;
+            _webView.CoreWebView2Initialized -= OnCoreWebView2Initialized;
         }
     }
 
     private void OnWebViewNavigationCompleted(WebView2 sender, CoreWebView2NavigationCompletedEventArgs args) => NavigationCompleted?.Invoke(this, args.WebErrorStatus);
-
 
     private void OnCoreWebView2Initialized(WebView2 sender, CoreWebView2InitializedEventArgs args) => CoreWebView2Initialized?.Invoke(sender, args);
 

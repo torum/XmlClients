@@ -40,41 +40,37 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     <link rel=""stylesheet"" href=""https://blogwrite/Web/style.css"">
     <script src=""https://blogwrite/Web/script.js""></script>
     <script>
-        function setChangeListener (div, listener) {
-
-            div.addEventListener(""blur"", listener);
-            div.addEventListener(""keyup"", listener);
-            div.addEventListener(""paste"", listener);
-            div.addEventListener(""copy"", listener);
-            div.addEventListener(""cut"", listener);
-            div.addEventListener(""delete"", listener);
-            div.addEventListener(""mouseup"", listener);
-
+        function setChangeListener (editor, listener) {
+            editor.addEventListener(""blur"", listener);
+            editor.addEventListener(""keyup"", listener);
+            //editor.addEventListener(""paste"", listener);
+            //editor.addEventListener(""copy"", listener);
+            editor.addEventListener(""cut"", listener);
+            editor.addEventListener(""delete"", listener);
+            editor.addEventListener(""mouseup"", listener);
         }
 
         window.onload=function(){
-            const mb = document.getElementById('mytextarea');
-            mb.addEventListener('paste', OnPaste, false);
-            //mb.addEventListener(""click"", handler2);
+            const editor = document.getElementById('mytextarea');
 
-            setChangeListener(mb, function(event){
-                //console.log(event);
+            document.addEventListener('DOMContentLoaded', () => { editor.focus(); });
 
+            setChangeListener(editor, function(event){
                 // Update HTML Source to native-side.
-                window.chrome.webview.postMessage(mb.innerHTML);
+                window.chrome.webview.postMessage(editor.innerHTML);
             });
 
+            editor.addEventListener('paste', OnPaste, false);
+
         }
-        //document.getElementById('mytextarea').addEventListener('paste', OnPaste, false);
-
-
     </script>
+<script>
 
+</script>
   </head>
 
   <body>
-      <div id=""mytextarea"" contenteditable=""true""><p>&nbsp;</p></div>
-
+      <div id=""mytextarea"" contenteditable=""true"" autofocus><p>&nbsp;</p></div>
 
   </body>
 </html>";
@@ -230,24 +226,11 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     {
         _navigationService = navigationService;
         _navigationService.Navigated += OnNavigated;
-        /*
-        _fileDialogService = fileDialogService;
-        _dataAccessService = dataAccessService;
-        _feedClientService = feedClientService;
-        _feedClientService.BaseClient.DebugOutput += OnDebugOutput;
-        */
-        WebViewService = webViewService;
-        //_webViewService.Initialize();
 
+        WebViewService = webViewService;
 
         TestCommand = new RelayCommand(OnTest);
 
-        /*
-        InitializeFeedTree();
-        InitializeDatabase();
-        InitializeFeedClient();
-        */
-        //IsDebugWindowEnabled = true;
     }
 
 
@@ -300,14 +283,14 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     public void OnNavigatedFrom()
     {
-        WebViewService.UnregisterEvents();
         WebViewService.NavigationCompleted -= OnNavigationCompleted;
         WebViewService.CoreWebView2Initialized -= OnCoreWebView2Initialized;
+        WebViewService.UnregisterEvents();
     }
 
     #endregion
 
-    private async void OnNavigationCompleted(object? sender, CoreWebView2WebErrorStatus webErrorStatus)
+    private void OnNavigationCompleted(object? sender, CoreWebView2WebErrorStatus webErrorStatus)
     {
         IsLoading = false;
         //OnPropertyChanged(nameof(BrowserBackCommand));
@@ -316,25 +299,21 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         {
             HasFailures = true;
         }
-
-        //var scriptResult = await WebViewService.CoreWebView2?.ExecuteScriptAsync("document.getElementById('mytextarea').style.fontWeight = `bold`");
-
     }
 
     private void OnCoreWebView2Initialized(object? sender, CoreWebView2InitializedEventArgs arg)
     {
+
         if (WebViewService.CoreWebView2 is null)
             return;
 
         WebViewService.CoreWebView2.DOMContentLoaded += OnCoreWebView2DOMContentLoaded;
 
-        WebViewService.CoreWebView2.SetVirtualHostNameToFolderMapping(hostName: "blogwrite",
-                                                       folderPath: "",
-                                                       accessKind: CoreWebView2HostResourceAccessKind.Allow);
+        WebViewService.CoreWebView2.SetVirtualHostNameToFolderMapping(hostName: "blogwrite", folderPath: "", accessKind: CoreWebView2HostResourceAccessKind.Allow);
 
         WebViewService.CoreWebView2.WebMessageReceived += OnWebMessageReceived;
 
-        // not 
+        // Not working because not supported.
         WebViewService.CoreWebView2.PermissionRequested += CoreWebView2OnPermissionRequested;
         /*
         WebViewService.CoreWebView2.PermissionRequested += (_, args) =>

@@ -40,4 +40,9 @@ public sealed partial class MainPage : Page
         //ViewModel.DebugClear += () => OnDebugClear();
     }
 
+    private async void Page_Loaded(object sender, RoutedEventArgs e)
+    {
+        await Task.Delay(100);
+        WebView.Focus(FocusState.Programmatic);
+    }
 }

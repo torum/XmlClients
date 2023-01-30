@@ -8,7 +8,7 @@ public sealed partial class MainWindow : WindowEx
     {
         InitializeComponent();
 
-        //AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets/FeedDesk.ico"));
+        //AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets/BlogWrite.ico"));
         Content = null;
         Title = "AppDisplayName".GetLocalized();
 

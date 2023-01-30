@@ -50,13 +50,19 @@ async function OnPaste(e) {
             //console.log(text);
             //text=escapeHtml(text);
             //text=text.replace(/\n/g,'<br/>');
-            text = strip_tags(text, 'b', 'i', 'u', 'p', 'br', 'span', 'h1', 'h2', 'h3', 'h4', 'ul', 'li', 'ui', 'ol', 'blockquote', 'web-copy-code', 'pre', 'code', 'dd', 'dt', 'dl');
+            text = strip_tags(text, 'b', 'i', 'u', 'p', 'br', 'div', 'span', 'h1', 'h2', 'h3', 'h4', 'ul', 'li', 'ui', 'ol', 'blockquote', 'web-copy-code', 'pre', 'code', 'dd', 'dt', 'dl');
             //console.log(text);
 
+            /*
+             * This is OK, but Undo/Redo won't work.
             const range = window.getSelection().getRangeAt(0);
             const documentFragment = range.createContextualFragment(text);
             range.deleteContents();
             range.insertNode(documentFragment);
+            range.collapse();
+            */
+
+            document.execCommand("insertHTML", false, text);
 
             //var parentNode = range.commonAncestorContainer;
             //parentNode.innerHTML = newNode.innerHTML + text;
@@ -92,6 +98,8 @@ async function OnPaste(e) {
                 document.selection.createRange().pasteHTML(text);
             }
             */
+
+            console.log('html');
         }
 
     }
@@ -108,10 +116,18 @@ async function OnPaste(e) {
             text = escapeHtml(text);
             text = text.replace(/\n/g, '<br/>');
 
+            /*
+             * This is OK, but Undo/Redo won't work.
             const range = window.getSelection().getRangeAt(0);
             const documentFragment = range.createContextualFragment(text);
             range.deleteContents();
             range.insertNode(documentFragment);
+            range.collapse();
+            */
+
+
+            document.execCommand("insertHTML", false, text);
+
 
             /*
             var newNode = document.createElement('span');
@@ -143,6 +159,8 @@ async function OnPaste(e) {
                 document.selection.createRange().pasteHTML(text);
             }
             */
+
+            console.log('text');
         }
     }
 

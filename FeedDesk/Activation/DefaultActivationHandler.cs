@@ -1,6 +1,4 @@
-﻿using System.Xml.Linq;
-using AngleSharp.Dom;
-using FeedDesk.Contracts.Services;
+﻿using FeedDesk.Contracts.Services;
 using FeedDesk.ViewModels;
 
 using Microsoft.UI.Xaml;
@@ -24,8 +22,9 @@ public class DefaultActivationHandler : ActivationHandler<LaunchActivatedEventAr
 
     protected async override Task HandleInternalAsync(LaunchActivatedEventArgs args)
     {
-        //_navigationService.NavigateTo(typeof(FeedsViewModel).FullName!, args.Arguments);
+        _navigationService.NavigateTo(typeof(FeedsViewModel).FullName!, null);
 
-        await Task.CompletedTask;
+        await Task.FromResult(true);
+        //await Task.CompletedTask;
     }
 }

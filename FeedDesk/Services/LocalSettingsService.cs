@@ -12,7 +12,7 @@ namespace FeedDesk.Services;
 
 public class LocalSettingsService : ILocalSettingsService
 {
-    private const string _defaultApplicationDataFolder = "BlogWrite/ApplicationData";
+    private readonly string _defaultApplicationDataFolder = "FeedDesk" + System.IO.Path.DirectorySeparatorChar + "ApplicationData";
     private const string _defaultLocalSettingsFile = "LocalSettings.json";
 
     private readonly IFileService _fileService;

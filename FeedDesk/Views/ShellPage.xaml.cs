@@ -1,17 +1,12 @@
-﻿using System.Xml;
-using System.Xml.Linq;
+﻿using BlogWrite.Core.Helpers;
 using FeedDesk.Contracts.Services;
-using BlogWrite.Core.Helpers;
 using FeedDesk.ViewModels;
-
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Markup;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
-using Microsoft.Windows.ApplicationModel.Resources;
 using Windows.System;
 
 namespace FeedDesk.Views;
@@ -31,6 +26,7 @@ public sealed partial class ShellPage : Page
         try
         {
             InitializeComponent();
+
         }
         catch (XamlParseException parseException)
         {
@@ -42,6 +38,8 @@ public sealed partial class ShellPage : Page
             throw;
         }
 
+        AppTitleBarText.Text = "AppDisplayName".GetLocalized();
+
         ViewModel.NavigationService.Frame = NavigationFrame;
         //ViewModel.NavigationViewService.Initialize(NavigationViewControl);
 
@@ -51,11 +49,12 @@ public sealed partial class ShellPage : Page
 
         App.MainWindow.Activated += MainWindow_Activated;
         App.MainWindow.Closed += MainWindow_Closed;
-        AppTitleBarText.Text = "AppDisplayName".GetLocalized();
 
+        //var navigationService = App.GetService<INavigationService>();
+        //navigationService.Frame = NavigationFrame;
     }
 
-    private async void OnLoaded(object sender, RoutedEventArgs e)
+    private void OnLoaded(object sender, RoutedEventArgs e)
     {
         // Needed to be here. (don't put this in constructor.. messes up when theme changed.)
         TitleBarHelper.UpdateTitleBar(RequestedTheme, App.MainWindow);
@@ -67,11 +66,13 @@ public sealed partial class ShellPage : Page
         //ShellMenuBarSettingsButton.AddHandler(UIElement.PointerReleasedEvent, new PointerEventHandler(ShellMenuBarSettingsButton_PointerReleased), true);
 
         // give some time to let window draw itself.
-        await Task.Delay(100);
+        //await Task.Delay(100);
 
         // Needed to be here.
-        var navigationService = App.GetService<INavigationService>();
-        navigationService.NavigateTo(typeof(FeedsViewModel).FullName!, null);
+        //var navigationService = App.GetService<INavigationService>();
+        ////navigationService.Frame = NavigationFrame;
+        //navigationService.NavigateTo(typeof(FeedsViewModel).FullName!, null);
+
     }
 
     private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)

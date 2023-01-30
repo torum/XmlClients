@@ -45,17 +45,18 @@ public sealed partial class ShellPage : Page
         ViewModel.NavigationService.Frame = NavigationFrame;
         //ViewModel.NavigationViewService.Initialize(NavigationViewControl);
 
+        AppTitleBarText.Text = "AppDisplayName".GetLocalized();
+
         App.MainWindow.ExtendsContentIntoTitleBar = true;
 
         App.MainWindow.SetTitleBar(AppTitleBar);
 
         App.MainWindow.Activated += MainWindow_Activated;
         App.MainWindow.Closed += MainWindow_Closed;
-        AppTitleBarText.Text = "AppDisplayName".GetLocalized();
 
     }
 
-    private async void OnLoaded(object sender, RoutedEventArgs e)
+    private void OnLoaded(object sender, RoutedEventArgs e)
     {
         // Needed to be here. (don't put this in constructor.. messes up when theme changed.)
         TitleBarHelper.UpdateTitleBar(RequestedTheme, App.MainWindow);
@@ -67,11 +68,11 @@ public sealed partial class ShellPage : Page
         //ShellMenuBarSettingsButton.AddHandler(UIElement.PointerReleasedEvent, new PointerEventHandler(ShellMenuBarSettingsButton_PointerReleased), true);
 
         // give some time to let window draw itself.
-        await Task.Delay(100);
+        //await Task.Delay(100);
 
         // Needed to be here.
-        var navigationService = App.GetService<INavigationService>();
-        navigationService.NavigateTo(typeof(MainViewModel).FullName!, null);
+        //var navigationService = App.GetService<INavigationService>();
+        //navigationService.NavigateTo(typeof(MainViewModel).FullName!, null);
     }
 
     private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
