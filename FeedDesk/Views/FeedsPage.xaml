@@ -615,7 +615,13 @@
                                             <StackPanel Visibility="{x:Bind ViewModel.IsImageLinkExists, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
                                                 <TextBlock Text="Media/Enclosure" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource SubtitleTextBlockStyle}" Opacity="0.9" Visibility="Collapsed"/>
                                                 <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.ImageUri.AbsoluteUri, Mode=OneWay}" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource BodyTextBlockStyle}" Visibility="Collapsed"/>
-                                                <Image Source="{x:Bind ViewModel.SelectedListViewItem.ImageUri.AbsoluteUri, Mode=OneWay}" HorizontalAlignment="Stretch" Margin="0,12,0,0"/>
+                                                <Border CornerRadius="6" HorizontalAlignment="Stretch" Margin="0,12,0,0">
+                                                    <Border.Background>
+                                                        <ImageBrush ImageSource="{x:Bind ViewModel.SelectedListViewItem.ImageUri.AbsoluteUri, Mode=OneWay}" Stretch="UniformToFill"/>
+                                                    </Border.Background>
+                                                    <Image Source="{x:Bind ViewModel.SelectedListViewItem.ImageUri.AbsoluteUri, Mode=OneWay}" HorizontalAlignment="Stretch" Margin="0,12,0,0" Opacity="0"/>
+                                                </Border>
+
                                             </StackPanel>
                                             
                                             <StackPanel>
