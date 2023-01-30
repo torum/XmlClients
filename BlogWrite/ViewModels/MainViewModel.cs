@@ -381,15 +381,16 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         //Debug.Print($"WebView.CoreWebView2.DOMContentLoaded: {nameof(args.NavigationId)} = {args.NavigationId}");
     }
 
-    private void OnWebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs args)
+    private async void OnWebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs args)
     {
-        var msg = args.WebMessageAsJson;
-        var json = JsonDocument.Parse(msg);
-        var text = json.RootElement.ToString();
+        var msg = args.TryGetWebMessageAsString();// args.WebMessageAsJson;
+        //Debug.WriteLine(msg);
+        //var json = JsonDocument.Parse(msg);
+        //var text = json.RootElement.ToString();
         //Debug.WriteLine(text);
 
         var parser = new HtmlParser();
-        var document = parser.ParseDocument(text);
+        var document = await parser.ParseDocumentAsync(msg);//parser.ParseDocument(msg);
         if (document.Body != null)
         {
             //document.Body.ToHtml(sw, new PrettyMarkupFormatter());

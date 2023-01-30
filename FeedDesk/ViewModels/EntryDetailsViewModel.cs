@@ -37,6 +37,7 @@ public class EntryDetailsViewModel : ObservableRecipient, INavigationAware
         get;
     }
 
+    /*
     private static readonly string _html = @"
                 <html>
                     <head>
@@ -45,6 +46,7 @@ public class EntryDetailsViewModel : ObservableRecipient, INavigationAware
                     <body style=""background-color:#212121;"">
                     </body>
                 </html>";
+    */
 
     private Uri? _source = null;// new("");
     public Uri? Source
@@ -194,7 +196,7 @@ li {
 
     }
 
-    public async void OnNavigatedTo(object parameter)
+    public void OnNavigatedTo(object parameter)
     {
         if (parameter is EntryItem item)
         {

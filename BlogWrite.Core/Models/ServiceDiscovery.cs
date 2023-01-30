@@ -1337,7 +1337,8 @@ public class ServiceDiscovery
     private string GenDigest(string password, string created, string nonce)
     {
         byte[] digest;
-        using (SHA1Managed sha1 = new SHA1Managed())
+        //using (SHA1Managed sha1 = new SHA1Managed())
+        using (SHA1 sha1 = SHA1.Create())
         {
             string digestText = nonce + created + password;
             byte[] digestBytes = Encoding.UTF8.GetBytes(digestText);
@@ -1349,11 +1350,19 @@ public class ServiceDiscovery
 
     private string GenNounce(int length)
     {
+        using (var rng = RandomNumberGenerator.Create())
+        {
+            byte[] buffer = new byte[length];
+            rng.GetBytes(buffer);
+            return Convert.ToBase64String(buffer);
+        }
+        /*
         RNGCryptoServiceProvider rnd = new RNGCryptoServiceProvider();
         byte[] buffer = new byte[length];
         rnd.GetBytes(buffer);
         string nonce64 = Convert.ToBase64String(buffer);
         return nonce64;
+        */
     }
 
     #endregion

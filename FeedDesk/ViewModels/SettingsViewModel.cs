@@ -65,7 +65,7 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
         GoBackCommand = new RelayCommand(OnGoBack);
     }
 
-    public async void OnNavigatedTo(object parameter)
+    public void OnNavigatedTo(object parameter)
     {
     }
 

@@ -210,8 +210,8 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
         }
     }
 
-    private EntryItem? _selectedListViewItem = null;
-    public EntryItem? SelectedListViewItem
+    private FeedEntryItem? _selectedListViewItem = null;
+    public FeedEntryItem? SelectedListViewItem
     {
         get => _selectedListViewItem;
         set
@@ -267,6 +267,15 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
             else
             {
                 IsAltLinkExists = false;
+            }
+
+            if (_selectedListViewItem.ImageUri != null)
+            {
+                IsImageLinkExists = true;
+            }
+            else
+            {
+                IsImageLinkExists = false;
             }
 
 
@@ -328,6 +337,13 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
     {
         get => _isNoAltLinkExists;
         set => SetProperty(ref _isNoAltLinkExists, value);
+    }
+
+    private bool _isImageLinkExists;
+    public bool IsImageLinkExists
+    {
+        get => _isImageLinkExists;
+        set => SetProperty(ref _isImageLinkExists, value);
     }
 
     /*
@@ -1267,7 +1283,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
 
     private void UpdateNewEntryCount(NodeFeed feed, int newCount)
     {
-        feed.EntryNewCount = newCount;
+        feed.EntryNewCount += newCount;
 
         if (newCount > 0)
         {

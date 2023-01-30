@@ -574,9 +574,9 @@
                                                 <Run Text="By"/>
                                                 <Run Text="{x:Bind Author}"/>
                                                 <Run Text=" - "/>
-                                                <Run Text="{x:Bind PublishedDateTimeFormated}"/>
+                                                <Run Text="{x:Bind PublishedDateTimeFormatedAbout}"/>
                                                 <Run Text=" from "/>
-                                                <Run Text="{x:Bind FeedTitle}"/>
+                                                <Run Text="{x:Bind Publisher}"/>
                                             </TextBlock>                                            
 <!--                                         
                                             <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind Author}" x:Phase="2" Style="{ThemeResource BodyTextBlockStyle}" FontSize="{StaticResource NormalFontSize}" Margin="12,0,0,0" Opacity=".7"/>
@@ -610,20 +610,28 @@
                                             <TextBlock Visibility="{x:Bind ViewModel.IsNoAltLinkExists, Mode=OneWay}" Text="{x:Bind ViewModel.SelectedListViewItem.Name, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" Style="{ThemeResource TitleTextBlockStyle}" FontSize="{StaticResource LargeFontSize}" Opacity="0.9"/>
                                             <TextBlock Visibility="{x:Bind ViewModel.IsAltLinkExists, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" Style="{ThemeResource TitleTextBlockStyle}" FontSize="{StaticResource LargeFontSize}" Opacity="0.9">
                                                 <Hyperlink NavigateUri="{x:Bind ViewModel.SelectedListViewItem.AltHtmlUri, Mode=OneWay}"><Run Text="{x:Bind ViewModel.SelectedListViewItem.Name, Mode=OneWay}"></Run></Hyperlink>
-
                                             </TextBlock>
 
+                                            <StackPanel Visibility="{x:Bind ViewModel.IsImageLinkExists, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
+                                                <TextBlock Text="Media/Enclosure" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource SubtitleTextBlockStyle}" Opacity="0.9" Visibility="Collapsed"/>
+                                                <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.ImageUri.AbsoluteUri, Mode=OneWay}" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource BodyTextBlockStyle}" Visibility="Collapsed"/>
+                                                <Image Source="{x:Bind ViewModel.SelectedListViewItem.ImageUri.AbsoluteUri, Mode=OneWay}" HorizontalAlignment="Stretch" Margin="0,12,0,0"/>
+                                            </StackPanel>
+                                            
                                             <StackPanel>
                                                 <TextBlock Text="Author" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
                                                 <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Author, Mode=OneWay}" Style="{StaticResource DetailBodyBaseMediumStyle}" />
                                             </StackPanel>
 
-                                            <!--
                                             <StackPanel>
-                                                <TextBlock Text="Publisher" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                                <TextBlock Text="-" Style="{StaticResource DetailBodyBaseMediumStyle}" />
+                                                <TextBlock Text="Category" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
+                                                <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Category, Mode=OneWay}" Style="{StaticResource DetailBodyBaseMediumStyle}" />
                                             </StackPanel>
-                                            -->
+
+                                            <StackPanel>
+                                                <TextBlock Text="Publisher/Syndicator" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
+                                                <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Publisher, Mode=OneWay}" Style="{StaticResource DetailBodyBaseMediumStyle}" />
+                                            </StackPanel>
 
                                             <StackPanel>
                                                 <TextBlock Text="Published" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
@@ -631,15 +639,10 @@
                                             </StackPanel>
 
                                             <StackPanel>
-                                                <TextBlock Text="Category" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                                <TextBlock Text="-" Style="{StaticResource DetailBodyBaseMediumStyle}" />
-                                            </StackPanel>
-
-                                            <StackPanel>
                                                 <TextBlock Text="Summary" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource SubtitleTextBlockStyle}" Opacity="0.9"/>
                                                 <TextBlock Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind ViewModel.SelectedListViewItem.Summary, Mode=OneWay}" />
                                             </StackPanel>
-
+                                            
                                             <StackPanel>
                                                 <TextBlock Text="Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource SubtitleTextBlockStyle}" Opacity="0.9"/>
                                                 <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Content, Mode=OneWay}" Visibility="{x:Bind ViewModel.IsContentText, Mode=OneWay}" Margin="{StaticResource MediumBottomMargin}" Style="{ThemeResource BodyTextBlockStyle}"/>

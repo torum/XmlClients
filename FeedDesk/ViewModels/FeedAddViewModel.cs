@@ -227,18 +227,9 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
         GoToFourthTabCommand = new RelayCommand(OnGoToFourthTab);
     }
 
-    public async void OnNavigatedTo(object parameter)
+    public void OnNavigatedTo(object parameter)
     {
-        //Source.Clear();
 
-        // TODO: Replace with real data.
-        //var data = await _sampleDataService.GetGridDataAsync();
-        /*
-        foreach (var item in data)
-        {
-            Source.Add(item);
-        }
-        */
     }
 
     public void OnNavigatedFrom()

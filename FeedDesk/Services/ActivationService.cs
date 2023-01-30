@@ -36,10 +36,17 @@ public class ActivationService : IActivationService
         // Handle activation via ActivationHandlers.
         await HandleActivationAsync(activationArgs);
 
+        // Test
+        App.MainWindow.Show();
+
         // Activate the MainWindow.
         App.MainWindow.Activate();
 
-        //App.MainWindow.BringToFront();
+        // Test
+        App.MainWindow.BringToFront();
+
+        // Test
+        await Task.Delay(100);
 
         // Execute tasks after activation.
         await StartupAsync();

@@ -622,14 +622,57 @@ public class FeedClientService : BaseClient, IFeedClientService
                     entryAuthor += "/" + auth.InnerText;
             }
         }
+        entItem.Author = entryAuthor;
 
-        if (string.IsNullOrEmpty(entryAuthor))
+        var entrySource = "";
+        XmlNode? entrySourceNode = entryNode.SelectSingleNode("source");
+        if (entrySourceNode != null)
+        {
+            var s = entrySourceNode.InnerText;
+            if (!string.IsNullOrEmpty(s))
+            {
+                entrySource = s;
+            }
+
+            if (string.IsNullOrEmpty(entrySource))
+            {
+                if (entrySourceNode.Attributes["url"] != null)
+                {
+                    string urlSource = entrySourceNode.Attributes["url"].Value;
+                    try
+                    {
+                        entItem.SourceUri = new Uri(urlSource);
+                    }catch { }
+                }
+            }
+        }
+        entItem.Source = entrySource;
+
+        /*
+        if (string.IsNullOrEmpty(entItem.Author))
         {
             //if (entItem.AltHtmlUri != null)
             //    entryAuthor = entItem.AltHtmlUri.Host;
+            if (!string.IsNullOrEmpty(entrySource))
+            {
+                entItem.Author = entrySource;
+            }
         }
+        */
 
-        entItem.Author = entryAuthor;
+        var entryCategory = "";
+        XmlNodeList? entryCategories = entryNode.SelectNodes("category", NsMgr);
+        if (entryCategories != null)
+        {
+            foreach (XmlNode cat in entryCategories)
+            {
+                if (string.IsNullOrEmpty(entryCategory))
+                    entryCategory = cat.InnerText;
+                else
+                    entryCategory += "/" + cat.InnerText;
+            }
+        }
+        entItem.Category = entryCategory;
 
         // gets imageUri from enclosure
         XmlNode? enclosure = entryNode.SelectSingleNode("enclosure");

@@ -37,11 +37,13 @@ public class WebViewService : IWebViewService
     }
 
     [MemberNotNull(nameof(_webView))]
-    public void Initialize(WebView2 webView)
+    public async void Initialize(WebView2 webView)
     {
         _webView = webView;
 
-        _webView.EnsureCoreWebView2Async();
+        // Test
+        await _webView.EnsureCoreWebView2Async();
+        // _webView.EnsureCoreWebView2Async();
         _webView.NavigationCompleted += OnWebViewNavigationCompleted;
         _webView.CoreWebView2Initialized += OnCoreWebView2Initialized;
     }

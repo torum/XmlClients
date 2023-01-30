@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Xml;
 using BlogWrite.Core.Models.Clients;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace BlogWrite.Core.Models;
@@ -91,7 +92,8 @@ public abstract class EntryItem : Node
         text,
         textHtml,
         markdown,
-        hatena
+        hatena,
+        unknown
 
         //type="text/html"
         //type="text/x-hatena-syntax"
@@ -130,13 +132,28 @@ public abstract class EntryItem : Node
         }
     }
 
-    public string PublishedDateTimeFormated
+    public string PublishedDateTimeFormatedAbout
     {
         get
         {
             if (_published != default)
             {
                 return TimeAgo(_published);//_published.ToString(System.Globalization.CultureInfo.CurrentCulture);
+            }
+            else
+            {
+                return "-";
+            }
+        }
+    }
+
+    public string PublishedDateTimeFormated
+    {
+        get
+        {
+            if (_published != default)
+            {
+                return _published.ToString(System.Globalization.CultureInfo.CurrentCulture);
             }
             else
             {
@@ -183,28 +200,27 @@ public abstract class EntryItem : Node
         }
     }
 
-    // not in spec. for internal/UI use.
-    private string _publisher = "";
-    public string Publisher
+    private string _category = "-";
+    public string Category
     {
         get
         {
-            if (string.IsNullOrEmpty(_publisher))
+            if (string.IsNullOrEmpty(_category))
             {
-                return "";
+                return "-";
             }
             else
             {
-                return "from " + _publisher;
+                return _category;
             }
         }
         set
         {
-            if (_publisher == value)
+            if (_category == value)
                 return;
 
-            _publisher = value;
-            NotifyPropertyChanged(nameof(Publisher));
+            _category = value;
+            NotifyPropertyChanged(nameof(Category));
         }
     }
 
@@ -222,8 +238,8 @@ public abstract class EntryItem : Node
         }
     }
 
-    private Uri _imageUri;
-    public Uri ImageUri
+    private Uri? _imageUri;
+    public Uri? ImageUri
     {
         get => _imageUri;
         set
@@ -236,6 +252,7 @@ public abstract class EntryItem : Node
         }
     }
 
+    /*
     private bool _isImageDownloaded = false;
     public bool IsImageDownloaded
     {
@@ -248,7 +265,9 @@ public abstract class EntryItem : Node
             NotifyPropertyChanged(nameof(IsImageDownloaded));
         }
     }
+    */
 
+    /*
     private string _imageId = "";
     public string ImageId
     {
@@ -261,9 +280,11 @@ public abstract class EntryItem : Node
             NotifyPropertyChanged(nameof(ImageId));
         }
     }
+    */
 
-    private BitmapImage _image;
-    public BitmapImage Image
+    /*
+    private ImageSource _image;
+    public ImageSource Image
     {
         get => _image;
         set
@@ -275,7 +296,9 @@ public abstract class EntryItem : Node
             NotifyPropertyChanged(nameof(Image));
         }
     }
+    */
 
+    /*
     private byte[] _imageByteArray = Array.Empty<byte>();
     public byte[] ImageByteArray
     {
@@ -289,6 +312,7 @@ public abstract class EntryItem : Node
             NotifyPropertyChanged(nameof(ImageByteArray));
         }
     }
+    */
 
     public BaseClient? Client { get; } = null;
 
@@ -393,6 +417,61 @@ public class FeedEntryItem : EntryItem
             if (IsArchived)
                 CommonStatus = "IsArchived";
 
+        }
+    }
+
+
+    // rss item source@url (news source site info)
+    private string _source = "";
+    public string Source
+    {
+        get => _source;
+        set
+        {
+            if (_source == value)
+                return;
+
+            _source = value;
+            NotifyPropertyChanged(nameof(Source));
+        }
+    }
+
+    private Uri? _sourceUri;
+    public Uri? SourceUri
+    {
+        get => _sourceUri;
+        set
+        {
+            if (_sourceUri == value)
+                return;
+
+            _sourceUri = value;
+            NotifyPropertyChanged(nameof(SourceUri));
+        }
+    }
+
+    // not in spec. for internal/UI use.
+    private string _publisher = "";
+    public string Publisher
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(_source))
+            {
+                return _feedTitle;
+            }
+            else
+            {
+                return _source + " via " + _feedTitle;
+            }
+        }
+        set
+        {
+            if (_publisher == value)
+                return;
+
+            _publisher = value;
+            NotifyPropertyChanged(nameof(Publisher));
         }
     }
 

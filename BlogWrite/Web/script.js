@@ -50,7 +50,7 @@ async function OnPaste(e) {
             //console.log(text);
             //text=escapeHtml(text);
             //text=text.replace(/\n/g,'<br/>');
-            text = strip_tags(text, 'b', 'i', 'u', 'p', 'br', 'span', 'h1', 'h2', 'h3', 'h4', 'ul', 'li', 'ui', 'ol', 'blockquote', 'web-copy-code', 'pre', 'code');
+            text = strip_tags(text, 'b', 'i', 'u', 'p', 'br', 'span', 'h1', 'h2', 'h3', 'h4', 'ul', 'li', 'ui', 'ol', 'blockquote', 'web-copy-code', 'pre', 'code', 'dd', 'dt', 'dl');
             //console.log(text);
 
             const range = window.getSelection().getRangeAt(0);

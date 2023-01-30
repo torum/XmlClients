@@ -1,5 +1,6 @@
 ﻿using AngleSharp;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Windows.Storage.Streams;
 
 namespace BlogWrite.Core.Models.Clients;
 
@@ -16,10 +17,7 @@ public abstract class BaseClient : IDisposable
             {
                 lock (_locker)
                 {
-                    if (_client == null)
-                    {
-                        _client = new HttpClient();
-                    }
+                    _client ??= new HttpClient();
                 }
             }
 
@@ -52,12 +50,26 @@ public abstract class BaseClient : IDisposable
     {
         foreach (var entItem in entryItems)
         {
-            if (entItem.IsImageDownloaded)
-                continue;
+            //if (entItem.IsImageDownloaded)  continue;
 
-            if (entItem.ImageUri != null)
-            {
-                //Debug.WriteLine("Gettting Image: " + entItem.ImageUri.AbsoluteUri);
+            //if (entItem.ImageUri != null)
+            //{
+                /*
+                Debug.WriteLine("Gettting Image: " + entItem.ImageUri.AbsoluteUri);
+
+                Byte[] bytes = await this.GetImage(entItem.ImageUri);
+                using var ms = new InMemoryRandomAccessStream();
+                using (var writer = new DataWriter(ms.GetOutputStreamAt(0)))
+                {
+                    writer.WriteBytes(bytes);
+                    writer.StoreAsync().GetResults();
+                }
+                var bitmap = new BitmapImage();
+                bitmap.SetSource(ms);
+
+                entItem.Image = bitmap;
+                */
+
                 /*
                 // 
                 Byte[] bytes = await this.GetImage(entItem.ImageUri);
@@ -83,7 +95,7 @@ public abstract class BaseClient : IDisposable
                     }
                 }
                 */
-            }
+            //}
         }
 
         return entryItems;
