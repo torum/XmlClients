@@ -159,7 +159,10 @@ public partial class App : Application
         if (!RuntimeHelper.IsMSIX)
         {
             // Create if not exists.
-            System.IO.Directory.CreateDirectory(AppDataFolder);
+            if (!Directory.Exists(AppDataFolder))
+            {
+                Directory.CreateDirectory(AppDataFolder);
+            }
 
             WinUIEx.WindowManager.PersistenceStorage = new FilePersistence(Path.Combine(AppDataFolder, "WinUIExPersistence.json"));
         }

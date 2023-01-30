@@ -1,23 +1,6 @@
 ﻿using BlogWrite.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Windows.Input;
-using System.Windows;
-using System.Xml;
-using System.Xml.Linq;
-using System.IO;
-using System.ComponentModel;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Documents;
-using Windows.Storage;
-using BlogWrite.Core.Models;
-using AngleSharp.Dom;
 using Microsoft.UI.Xaml;
-using Windows.ApplicationModel.DataTransfer;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Windows.Storage.Pickers;
-using WinRT.Interop;
-using Microsoft.Web.WebView2.Core;
+using Microsoft.UI.Xaml.Controls;
 
 namespace BlogWrite.Views;
 
@@ -33,16 +16,12 @@ public sealed partial class MainPage : Page
         ViewModel = App.GetService<MainViewModel>();
         InitializeComponent();
 
-        ViewModel.WebViewService.Initialize(WebView);
-
-
-        //ViewModel.DebugOutput += (sender, arg) => { OnDebugOutput(arg); };
-        //ViewModel.DebugClear += () => OnDebugClear();
+        ViewModel.WebViewService.Initialize(WebViewEditor);
     }
 
     private async void Page_Loaded(object sender, RoutedEventArgs e)
     {
         await Task.Delay(100);
-        WebView.Focus(FocusState.Programmatic);
+        WebViewEditor.Focus(FocusState.Programmatic);
     }
 }

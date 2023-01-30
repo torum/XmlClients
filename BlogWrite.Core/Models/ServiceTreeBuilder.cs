@@ -5,7 +5,9 @@ namespace BlogWrite.Core.Models;
 
 public class ServiceTreeBuilder : NodeRoot
 {
-    public ServiceTreeBuilder() { }
+    public ServiceTreeBuilder() {
+        this.Name = "NodeRoot";
+    }
 
     // Loads service tree.
     public void LoadXmlDoc(XmlDocument doc)

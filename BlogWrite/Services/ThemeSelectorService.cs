@@ -20,7 +20,7 @@ public class ThemeSelectorService : IThemeSelectorService
 
     public async Task InitializeAsync()
     {
-        Theme = await LoadThemeFromSettingsAsync();
+        //Theme = await LoadThemeFromSettingsAsync();
         await Task.CompletedTask;
     }
 
@@ -29,7 +29,7 @@ public class ThemeSelectorService : IThemeSelectorService
         Theme = theme;
 
         await SetRequestedThemeAsync();
-        await SaveThemeInSettingsAsync(Theme);
+        //await SaveThemeInSettingsAsync(Theme);
     }
 
     public async Task SetRequestedThemeAsync()

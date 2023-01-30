@@ -32,7 +32,6 @@ Desktop feed reader.
 - [ ] Dupecheckとかの結果や起動時データベース接続エラーを画面内で通知する。
 - [ ] 元記事の内容が更新された場合、それを反映させたい。
 - [ ] DB管理（容量制限というか自動削除機能）
-- [ ] Download and display "eye catching" images. 
 
 
 ### Planning

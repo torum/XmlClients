@@ -16,10 +16,23 @@ function test() {
             selectedTextRange.surroundContents(span);
 
             // Update HTML Source to native-side.
-            window.chrome.webview.postMessage(document.getElementById('mytextarea').innerHTML);
+            window.chrome.webview.postMessage(document.getElementById('editor').innerHTML);
 
         } catch (e) { console.log(e) }
     }
+}
+
+function isSelectionInTag(tag) {
+    // Get the current node
+    let currentNode = window.getSelection().focusNode;
+    // While the node is not the editor division
+    while (currentNode.id !== 'editor') {
+        // Check if the node is the requested tag
+        if (currentNode.tagName === tag) return true;
+        // Move up in the tree
+        currentNode = currentNode.parentNode;
+    }
+    return false;
 }
 
 function escapeHtml(htmlStr) {
@@ -36,7 +49,6 @@ function strip_tags(html, ...args) {
         return args.includes(tag) ? '<' + endMark + tag + '>' : '';
     }).replace(/<!--.*?-->/g, '');
 }
-
 
 async function OnPaste(e) {
     e.preventDefault();
@@ -85,7 +97,7 @@ async function OnPaste(e) {
             */
 
             // Update HTML Source to native-side.
-            window.chrome.webview.postMessage(document.getElementById('mytextarea').innerHTML);
+            window.chrome.webview.postMessage(document.getElementById('editor').innerHTML);
 
 
             /*
@@ -147,7 +159,7 @@ async function OnPaste(e) {
             */
 
             // Update HTML Source to native-side.
-            window.chrome.webview.postMessage(document.getElementById('mytextarea').innerHTML);
+            window.chrome.webview.postMessage(document.getElementById('editor').innerHTML);
 
             /*
             if (window.getSelection) {

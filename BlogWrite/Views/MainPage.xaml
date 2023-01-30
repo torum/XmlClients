@@ -52,10 +52,70 @@
             </CommandBar.SecondaryCommands>
 
         </CommandBar>
+        <TabView Grid.Row="1" Margin="0" TabWidthMode="Equal" IsAddTabButtonVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <TabView.TabItems>
+                <TabViewItem Header="Editor" IsClosable="False">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-        <WebView2 x:Name="WebView" Grid.Row="1" Margin="24" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                        <Border Grid.Row="0" Grid.Column="0" Background="#2E2D2C" Margin="8" CornerRadius="4">
+                            <CommandBar IsOpen="False" DefaultLabelPosition="Right" Margin="0" HorizontalAlignment="Left">
 
-        <TextBox x:Name="DebugTextBox" Grid.Row="2" Text="{x:Bind ViewModel.Source, Mode=OneWay}" CornerRadius="0,0,0,0" HorizontalAlignment="Stretch" AcceptsReturn="True" TextWrapping="Wrap" Padding="6 6 24 6" VerticalAlignment="Stretch" Margin="24,12,24,24" ScrollViewer.VerticalScrollBarVisibility="Visible"></TextBox>
+                                <AppBarButton Label="" Command="{x:Bind ViewModel.EditorExecFormatBoldCommand}" IsCompact="False" Opacity="0.9">
+                                    <AppBarButton.Icon>
+                                        <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <PathIcon.Data>
+                                                M13.5,15.5H10V12.5H13.5A1.5,1.5 0 0,1 15,14A1.5,1.5 0 0,1 13.5,15.5M10,6.5H13A1.5,1.5 0 0,1 14.5,8A1.5,1.5 0 0,1 13,9.5H10M15.6,10.79C16.57,10.11 17.25,9 17.25,8C17.25,5.74 15.5,4 13.25,4H7V18H14.04C16.14,18 17.75,16.3 17.75,14.21C17.75,12.69 16.89,11.39 15.6,10.79Z
+                                            </PathIcon.Data>
+                                        </PathIcon>
+                                    </AppBarButton.Icon>
+                                </AppBarButton>
+
+                                <AppBarButton Label="" Command="{x:Bind ViewModel.EditorExecFormatItalicCommand}" IsCompact="False" Opacity="0.9">
+                                    <AppBarButton.Icon>
+                                        <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <PathIcon.Data>
+                                                M10,4V7H12.21L8.79,15H6V18H14V15H11.79L15.21,7H18V4H10Z
+                                            </PathIcon.Data>
+                                        </PathIcon>
+                                    </AppBarButton.Icon>
+                                </AppBarButton>
+
+                                <CommandBar.SecondaryCommands>
+
+                                    <AppBarSeparator/>
+
+                                    <AppBarButton Icon="Import" Label="test2" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" >
+                                    </AppBarButton>
+
+                                    <AppBarButton Icon="Save" Label="test3" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" >
+                                    </AppBarButton>
+
+                                </CommandBar.SecondaryCommands>
+
+                            </CommandBar>
+                        </Border>
+                        
+                        <WebView2 x:Name="WebViewEditor" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="6"/>
+                        
+                    </Grid>
+                </TabViewItem>
+                <TabViewItem Header="Source" IsClosable="False">
+
+                </TabViewItem>
+                <TabViewItem Header="Preview" IsClosable="False">
+
+                </TabViewItem>
+            </TabView.TabItems>
+        </TabView>
+
+        <TextBox x:Name="DebugTextBox" Grid.Row="2" Text="{x:Bind ViewModel.Source, Mode=OneWay}" CornerRadius="0,0,0,0" HorizontalAlignment="Stretch" AcceptsReturn="True" TextWrapping="Wrap" Padding="6 6 24 6" VerticalAlignment="Stretch" Margin="0,6,0,24" ScrollViewer.VerticalScrollBarVisibility="Visible"></TextBox>
     
     </Grid>
 </Page>

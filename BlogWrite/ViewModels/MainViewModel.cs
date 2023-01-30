@@ -1,28 +1,17 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Text;
+using System.Text.Json;
 using System.Windows.Input;
-using System.Xml;
+using AngleSharp.Html;
+using AngleSharp.Html.Parser;
 using BlogWrite.Contracts.Services;
 using BlogWrite.Contracts.ViewModels;
-using BlogWrite.Core.Contracts.Services;
-using BlogWrite.Core.Helpers;
 using BlogWrite.Core.Models;
 using BlogWrite.Core.Models.Clients;
-using BlogWrite.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.WinUI.UI.Controls;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Web.WebView2.Core;
-using Windows.UI.WebUI;
-using WinRT.Interop;
-using System.Text.Json;
-using static System.Net.Mime.MediaTypeNames;
-using System.Text;
-using System;
-using System.Text.Encodings.Web;
-using AngleSharp.Html.Parser;
-using AngleSharp.Html;
 
 namespace BlogWrite.ViewModels;
 
@@ -40,7 +29,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     <link rel=""stylesheet"" href=""https://blogwrite/Web/style.css"">
     <script src=""https://blogwrite/Web/script.js""></script>
     <script>
-        function setChangeListener (editor, listener) {
+        function setChangeListener (editor, listener) 
+        {
             editor.addEventListener(""blur"", listener);
             editor.addEventListener(""keyup"", listener);
             //editor.addEventListener(""paste"", listener);
@@ -50,12 +40,18 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             editor.addEventListener(""mouseup"", listener);
         }
 
-        window.onload=function(){
-            const editor = document.getElementById('mytextarea');
+        window.onload=function()
+        {
+            const editor = document.getElementById('editor');
 
             document.addEventListener('DOMContentLoaded', () => { editor.focus(); });
 
             setChangeListener(editor, function(event){
+                if (editor.innerHTML !== ''){
+                }else{
+                    editor.innerHTML = '<p>&nbsp;</p>';
+                }
+
                 // Update HTML Source to native-side.
                 window.chrome.webview.postMessage(editor.innerHTML);
             });
@@ -70,8 +66,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
   </head>
 
   <body>
-      <div id=""mytextarea"" contenteditable=""true"" autofocus><p>&nbsp;</p></div>
-
+      <div id=""editor"" contenteditable=""true"" autofocus><p>&nbsp;</p></div>
   </body>
 </html>";
 
@@ -222,6 +217,16 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         get;
     }
 
+    public ICommand EditorExecFormatBoldCommand
+    {
+        get;
+    }
+
+    public ICommand EditorExecFormatItalicCommand
+    {
+        get;
+    }
+
     public MainViewModel(INavigationService navigationService, IWebViewService webViewService)
     {
         _navigationService = navigationService;
@@ -230,14 +235,27 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         WebViewService = webViewService;
 
         TestCommand = new RelayCommand(OnTest);
+        EditorExecFormatBoldCommand = new RelayCommand(OnEditorExecFormatBoldCommand);
+        EditorExecFormatItalicCommand = new RelayCommand(OnEditorExecFormatItalicCommand);
+    }
 
+    private async void OnEditorExecFormatBoldCommand()
+    {
+        var scriptResult = await WebViewService.CoreWebView2?.ExecuteScriptAsync("document.execCommand(\"bold\", false);");
+        Debug.WriteLine(scriptResult);
+    }
+
+    private async void OnEditorExecFormatItalicCommand()
+    {
+        var scriptResult = await WebViewService.CoreWebView2?.ExecuteScriptAsync("document.execCommand(\"italic\", false);");
+        Debug.WriteLine(scriptResult);
     }
 
 
     private async void OnTest()
     {
         var scriptResult = await WebViewService.CoreWebView2?.ExecuteScriptAsync("test();");
-        //Debug.WriteLine(scriptResult);
+        Debug.WriteLine(scriptResult);
         
         /*
         var res = await WebViewService.CoreWebView2.ExecuteScriptAsync(@"document.getElementById('mytextarea').innerHTML");
@@ -277,20 +295,20 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     public void OnNavigatedTo(object parameter)
     {
-        WebViewService.NavigationCompleted += OnNavigationCompleted;
+        WebViewService.NavigationCompleted += OnWebView2NavigationCompleted;
         WebViewService.CoreWebView2Initialized += OnCoreWebView2Initialized;
     }
 
     public void OnNavigatedFrom()
     {
-        WebViewService.NavigationCompleted -= OnNavigationCompleted;
+        WebViewService.NavigationCompleted -= OnWebView2NavigationCompleted;
         WebViewService.CoreWebView2Initialized -= OnCoreWebView2Initialized;
-        WebViewService.UnregisterEvents();
+        //WebViewService.UnregisterEvents();
     }
 
     #endregion
 
-    private void OnNavigationCompleted(object? sender, CoreWebView2WebErrorStatus webErrorStatus)
+    private void OnWebView2NavigationCompleted(object? sender, CoreWebView2WebErrorStatus webErrorStatus)
     {
         IsLoading = false;
         //OnPropertyChanged(nameof(BrowserBackCommand));
@@ -307,12 +325,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         if (WebViewService.CoreWebView2 is null)
             return;
 
-        WebViewService.CoreWebView2.DOMContentLoaded += OnCoreWebView2DOMContentLoaded;
+        //WebViewService.CoreWebView2?.AddHostObjectToScript("model", _jsModel);
 
         WebViewService.CoreWebView2.SetVirtualHostNameToFolderMapping(hostName: "blogwrite", folderPath: "", accessKind: CoreWebView2HostResourceAccessKind.Allow);
 
+        WebViewService.CoreWebView2.DOMContentLoaded += OnCoreWebView2DOMContentLoaded;
         WebViewService.CoreWebView2.WebMessageReceived += OnWebMessageReceived;
-
         // Not working because not supported.
         WebViewService.CoreWebView2.PermissionRequested += CoreWebView2OnPermissionRequested;
         /*
@@ -334,8 +352,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
         WebViewService.NavigateToString(_html);
         //WebViewService.CoreWebView2.Navigate("https://blogwrite/HTML/main.html");
-
-        //WebViewService.CoreWebView2?.AddHostObjectToScript("model", _jsModel);
     }
 
     private void CoreWebView2OnPermissionRequested(object? sender, CoreWebView2PermissionRequestedEventArgs e)
@@ -355,9 +371,16 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         def.Complete();
     }
 
-    private void OnCoreWebView2DOMContentLoaded(object? sender, CoreWebView2DOMContentLoadedEventArgs args)
+    private async void OnCoreWebView2DOMContentLoaded(object? sender, CoreWebView2DOMContentLoadedEventArgs args)
     {
         //Debug.Print($"WebView.CoreWebView2.DOMContentLoaded: {nameof(args.NavigationId)} = {args.NavigationId}");
+
+        var res = await WebViewService.CoreWebView2.ExecuteScriptAsync(@"document.getElementById('editor').innerHTML");
+
+        var json = JsonDocument.Parse(res);
+        var text = json.RootElement.ToString();
+        //
+        WriteToSource(text);
     }
 
     private async void OnWebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs args)
@@ -368,8 +391,19 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         //var text = json.RootElement.ToString();
         //Debug.WriteLine(text);
 
+        WriteToSource(msg);
+
+        var scriptResult = await WebViewService.CoreWebView2.ExecuteScriptAsync(@"isSelectionInTag('B');");
+        if (scriptResult == "true")
+        {
+            Debug.WriteLine("BOLD");
+        }
+    }
+
+    private async void WriteToSource(string source)
+    {
         var parser = new HtmlParser();
-        var document = await parser.ParseDocumentAsync(msg);//parser.ParseDocument(msg);
+        var document = await parser.ParseDocumentAsync(source);//parser.ParseDocument(msg);
         if (document.Body != null)
         {
             //document.Body.ToHtml(sw, new PrettyMarkupFormatter());

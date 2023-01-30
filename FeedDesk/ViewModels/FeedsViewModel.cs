@@ -30,6 +30,8 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
         }
     }
 
+    public NodeRoot Root => _services;
+
     private NodeTree? _selectedTreeViewItem;
     public NodeTree? SelectedTreeViewItem
     {
@@ -1906,6 +1908,10 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
                     hoge.Parent.Children.Remove(hoge);
                     hoge.IsBusy = false; // remove self from parent IsBusyChildrenCount
                 }
+                else
+                {
+                    Debug.WriteLine("DeleteNodeTree: (hoge.Parent is null)");
+                }
             }
 
             Entries.Clear();
@@ -1968,6 +1974,7 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
             }
             else
             {
+                feed.IsBusy = false;
                 nodeToBeDeleted.Add(feed);
             }
         }
