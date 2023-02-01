@@ -10,7 +10,6 @@
     NavigationCacheMode="Required"
     mc:Ignorable="d"
     Loaded="Page_Loaded">
-
     <Grid x:Name="ContentArea">
 
         <Grid.RowDefinitions>
@@ -52,10 +51,23 @@
             </CommandBar.SecondaryCommands>
 
         </CommandBar>
-        <TabView Grid.Row="1" Margin="0" TabWidthMode="Equal" IsAddTabButtonVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+
+        <TabView Grid.Row="1" SelectedIndex="{x:Bind ViewModel.SelectedTabindex, Mode=TwoWay}" Margin="0" TabWidthMode="Equal" IsAddTabButtonVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <TabView.TabItems>
-                <TabViewItem Header="Editor" IsClosable="False">
-                    <Grid>
+                
+                <TabViewItem Header="Rich Text Editor" IsClosable="False">
+                    <!--
+                    https://github.com/microsoft/microsoft-ui-xaml/issues/2495
+                    https://github.com/microsoft/microsoft-ui-xaml/issues/7878
+                    <TabViewItem.IconSource>
+                        <PathIconSource>
+                            <PathIconSource.Data>
+                                M14.06,9L15,9.94L5.92,19H5V18.08L14.06,9M17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3M14.06,6.19L3,17.25V21H6.75L17.81,9.94L14.06,6.19Z
+                            </PathIconSource.Data>
+                        </PathIconSource>
+                    </TabViewItem.IconSource>
+                    -->
+                    <Grid Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
@@ -64,7 +76,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <Border Grid.Row="0" Grid.Column="0" Background="#2E2D2C" Margin="8" CornerRadius="4">
+                        <Border Grid.Row="0" Grid.Column="0" Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush2}" Margin="8" CornerRadius="4">
                             <CommandBar IsOpen="False" DefaultLabelPosition="Right" Margin="0" HorizontalAlignment="Left">
 
                                 <AppBarButton Label="" Command="{x:Bind ViewModel.EditorExecFormatBoldCommand}" IsCompact="False" Opacity="0.9">
@@ -102,16 +114,31 @@
                             </CommandBar>
                         </Border>
                         
-                        <WebView2 x:Name="WebViewEditor" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="6"/>
+                        <WebView2 x:Name="WebViewRichEdit" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="6"/>
                         
                     </Grid>
                 </TabViewItem>
-                <TabViewItem Header="Source" IsClosable="False">
+                
+                <TabViewItem Header="HTML Source Editor" IsClosable="False">
+                    <Grid Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+
+                        <WebView2 x:Name="WebViewSourceEdit" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="6"/>
+
+                    </Grid>
+                </TabViewItem>
+                
+                <TabViewItem Header="Preview Browser" IsClosable="False">
 
                 </TabViewItem>
-                <TabViewItem Header="Preview" IsClosable="False">
-
-                </TabViewItem>
+                
             </TabView.TabItems>
         </TabView>
 

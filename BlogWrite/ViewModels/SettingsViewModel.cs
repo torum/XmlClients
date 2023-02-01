@@ -4,13 +4,14 @@ using System.Windows.Input;
 using BlogWrite.Contracts.Services;
 using BlogWrite.Contracts.ViewModels;
 using BlogWrite.Core.Helpers;
-
+using BlogWrite.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.UI.Xaml;
 
 using Windows.ApplicationModel;
+using Windows.System;
 
 namespace BlogWrite.ViewModels;
 
@@ -58,6 +59,10 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
                 {
                     ElementTheme = param;
                     await _themeSelectorService.SetThemeAsync(param);
+
+                    var thm = ElementTheme.ToString().ToLower();
+
+                    WeakReferenceMessenger.Default.Send(new ThemeChangedMessage(thm));
                 }
             });
 
@@ -65,7 +70,7 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
         GoBackCommand = new RelayCommand(OnGoBack);
     }
 
-    public async void OnNavigatedTo(object parameter)
+    public void OnNavigatedTo(object parameter)
     {
     }
 

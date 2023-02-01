@@ -26,14 +26,23 @@
     <Content Remove="Assets\Icons\rss.svg" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="Web\script.js" />
-    <None Remove="Web\style.css" />
+    <None Remove="Styles\Colors.xaml" />
+    <None Remove="Web\richedit_script.js" />
+    <None Remove="Web\richedit_style.css" />
+    <None Remove="Web\sourceedit_script.js" />
+    <None Remove="Web\sourceedit_style.css" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Web\script.js">
+    <Content Include="Web\sourceedit_script.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Web\style.css">
+    <Content Include="Web\richedit_script.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Web\sourceedit_style.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Web\richedit_style.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -72,6 +81,9 @@
     <None Update="Assets\Icons\rss.svg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <Page Update="Styles\Colors.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 
   <ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">

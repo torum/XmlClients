@@ -17,6 +17,7 @@ using Windows.ApplicationModel.DataTransfer;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
+using Microsoft.UI.Xaml.Markup;
 
 namespace FeedDesk.Views;
 
@@ -30,7 +31,19 @@ public sealed partial class FeedsPage : Page
     public FeedsPage()
     {
         ViewModel = App.GetService<FeedsViewModel>();
-        InitializeComponent();
+        try
+        {
+            InitializeComponent();
+        }
+        catch (XamlParseException parseException)
+        {
+            Debug.WriteLine($"Unhandled XamlParseException in FeedsPage: {parseException.Message}");
+            foreach (var key in parseException.Data.Keys)
+            {
+                Debug.WriteLine("{Key}:{Value}", key.ToString(), parseException.Data[key]?.ToString());
+            }
+            throw;
+        }
 
         //ViewModel.DebugOutput += (sender, arg) => { OnDebugOutput(arg); };
         //ViewModel.DebugClear += () => OnDebugClear();
