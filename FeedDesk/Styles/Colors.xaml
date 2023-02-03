@@ -1,0 +1,29 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Dark">
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary>
+                    <!-- 
+                    <Color x:Key="FeedIconColor">#F78E04</Color> -->
+                    <Color x:Key="FeedIconColor">#FF9955</Color>
+                    <SolidColorBrush x:Key="FeedIconBrush" Color="{StaticResource FeedIconColor}" />
+                    
+                </ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Light">
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary>
+                    <Color x:Key="FeedIconColor">#FF6600</Color>
+                    <SolidColorBrush x:Key="FeedIconBrush" Color="{StaticResource FeedIconColor}" />
+                </ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="HighContrast">
+            <Color x:Key="FeedIconColor">#FF6600</Color>
+            <SolidColorBrush x:Key="FeedIconBrush" Color="{StaticResource FeedIconColor}" />
+        </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
+</ResourceDictionary>

@@ -114,8 +114,8 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="330"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="7*"/>
         </Grid.ColumnDefinitions>
         
         <!-- Left pane -->
@@ -254,8 +254,7 @@
                 <!-- Feeds treeview -->
                 <TreeView x:Name="TreeViewControl" Grid.Row="1"
                           VerticalAlignment="Stretch" 
-                          Background="{ThemeResource NavigationViewContentBackground}" 
-                          MinWidth="300" Width="330" MaxWidth="400" 
+                          Background="{ThemeResource NavigationViewContentBackground}"  
                           SelectionMode="Single" 
                           AllowDrop="True" 
                           CanReorderItems="True" 
@@ -318,7 +317,7 @@
                                             </Grid.ColumnDefinitions>
 
                                             <Viewbox Grid.Row="0" Grid.Column="0" Margin="-4,0,0,0" Width="18" Height="18">
-                                                <PathIcon  Data="{x:Bind PathIcon, Mode=OneWay}" Opacity="0.4"></PathIcon>
+                                                <PathIcon  Data="{x:Bind PathIcon, Mode=OneWay}" Opacity="0.9" Foreground="{ThemeResource FeedIconBrush}"></PathIcon>
                                             </Viewbox>
 
                                             <TextBlock Grid.Row="0" Grid.Column="1" x:Name="NodeTextBlock" Text="{x:Bind Name, Mode=OneWay}" Padding="3" FontSize="{StaticResource NormalFontSize}" IsHitTestVisible="False" Margin="6,0,0,0" Opacity="0.9"/>

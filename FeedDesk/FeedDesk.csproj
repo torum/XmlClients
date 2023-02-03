@@ -21,8 +21,10 @@
 	  <NeutralLanguage>en-US</NeutralLanguage>
 	  <Nullable>annotations</Nullable>
 	  <ApplicationIcon>FeedDesk.ico</ApplicationIcon>
+	  <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Styles\Colors.xaml" />
     <None Remove="Styles\FontSizes.xaml" />
     <None Remove="Styles\TextBlock.xaml" />
     <None Remove="Styles\Thickness.xaml" />
@@ -75,6 +77,10 @@
     <ProjectReference Include="..\BlogWrite.Core\BlogWrite.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Page Update="Styles\Colors.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Styles\FontSizes.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
     </Page>

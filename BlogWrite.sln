@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlogWrite", "BlogWrite\BlogWrite.csproj", "{6E99770F-F98E-4C26-9493-379E559ECF2A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlogDesk", "BlogDesk\BlogDesk.csproj", "{6E99770F-F98E-4C26-9493-379E559ECF2A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlogWrite.Core", "BlogWrite.Core\BlogWrite.Core.csproj", "{48D19E16-7BA2-4DF2-8F45-8A40A4F19224}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FeedDesk", "FeedDesk\FeedDesk.csproj", "{6F88D8B8-6184-4EE3-A922-0DC4FB760630}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FeedDesk", "FeedDesk\FeedDesk.csproj", "{6F88D8B8-6184-4EE3-A922-0DC4FB760630}"
 	ProjectSection(ProjectDependencies) = postProject
 		{48D19E16-7BA2-4DF2-8F45-8A40A4F19224} = {48D19E16-7BA2-4DF2-8F45-8A40A4F19224}
 	EndProjectSection
