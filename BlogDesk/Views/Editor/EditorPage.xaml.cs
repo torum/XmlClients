@@ -1,4 +1,5 @@
 ﻿using BlogDesk.ViewModels;
+using BlogWrite.Core.Helpers;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Markup;
@@ -54,6 +55,16 @@ public sealed partial class EditorPage : Page
         EditorWindow.SetTitleBar(AppTitleBar);
         EditorWindow.Activated += EditorWindow_Activated;
         EditorWindow.Closed += EditorWindow_Closed;
+
+        if (App.MainWindow.Content is FrameworkElement rootElement)
+        {
+            if (RequestedTheme != rootElement.RequestedTheme)
+            {
+                OnThemeChanged(rootElement.RequestedTheme);
+
+                ViewModel.SetTheme(rootElement.RequestedTheme);
+            }
+        }
     }
 
     private void EditorWindow_Activated(object sender, WindowActivatedEventArgs args)
@@ -84,7 +95,11 @@ public sealed partial class EditorPage : Page
 
     private void OnThemeChanged(ElementTheme arg)
     {
-        this.RequestedTheme = arg;
+        Debug.WriteLine("OnThemeChanged: " + arg.ToString());
+        RequestedTheme = arg;
+
+        // not good.
+        //TitleBarHelper.UpdateTitleBar(RequestedTheme, EditorWindow);
     }
     
 

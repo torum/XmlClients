@@ -45,7 +45,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     }
 
-    private void OnMenuFileNewEditor()
+    private async void OnMenuFileNewEditor()
     {
         
         EditorWindow window = new();
@@ -59,6 +59,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             //window.CanClose
             window.Close();
         };
+
+        await Task.Delay(200);
 
         window.Activate();
 

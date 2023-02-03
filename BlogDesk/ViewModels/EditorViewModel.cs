@@ -17,6 +17,8 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.Web.WebView2.Core;
 using Windows.UI.ViewManagement;
+using BlogWrite.Core.Helpers;
+using BlogDesk.Views;
 
 namespace BlogDesk.ViewModels;
 
@@ -436,7 +438,6 @@ public partial class EditorViewModel : ObservableRecipient
         WebViewServiceSourceEdit = webViewServiceSourceEdit;
         WebViewServicePreviewBrowser = webViewServicePreviewBrowser;
 
-
         MenuFileExitCommand = new RelayCommand(OnMenuFileExit);
         MenuFileNewCommand = new RelayCommand(OnMenuFileNew);
 
@@ -517,6 +518,10 @@ public partial class EditorViewModel : ObservableRecipient
         //
     }
 
+    public void SetTheme(ElementTheme theme)
+    {
+        _theme = theme;
+    }
 
     public bool Closing()
     {

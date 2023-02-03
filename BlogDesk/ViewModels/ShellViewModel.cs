@@ -97,7 +97,7 @@ public class ShellViewModel : ObservableRecipient
     private void OnMenuSettings() => NavigationService.NavigateTo(typeof(SettingsViewModel).FullName!);
 
 
-    private void OnMenuFileNew()
+    private async void OnMenuFileNew()
     {
 
         EditorWindow window = new();
@@ -111,6 +111,8 @@ public class ShellViewModel : ObservableRecipient
             //window.CanClose
             window.Close();
         };
+
+        await Task.Delay(200);
 
         window.Activate();
     }
