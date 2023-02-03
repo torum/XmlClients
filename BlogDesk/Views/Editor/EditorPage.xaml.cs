@@ -67,11 +67,19 @@ public sealed partial class EditorPage : Page
 
     private void EditorWindow_Closed(object sender, WindowEventArgs args)
     {
-        //Debug.WriteLine("EditorWindow_Closed");
+        // TODO:
 
-        WebViewRichEdit.Close();
-        WebViewSourceEdit.Close();
-        WebViewPreviewBrowser.Close();
+        if (ViewModel.Closing())
+        {
+            WebViewRichEdit.Close();
+            WebViewSourceEdit.Close();
+            WebViewPreviewBrowser.Close();
+        }
+        else
+        {
+            // Cancel
+            //args.Handled = true;
+        }
     }
 
     private void OnThemeChanged(ElementTheme arg)

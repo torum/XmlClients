@@ -99,15 +99,19 @@ public class ShellViewModel : ObservableRecipient
 
     private void OnMenuFileNew()
     {
+
         EditorWindow window = new();
-        /*
-        this.Closed += (s, a) =>
-        {
-            window.Close();
-        };
-        */
+
         var editor = new EditorPage(window);
         window.Content = editor;
+
+        App.MainWindow.Closed += (s, a) =>
+        {
+            // TODO: when close is canceled.
+            //window.CanClose
+            window.Close();
+        };
+
         window.Activate();
     }
 

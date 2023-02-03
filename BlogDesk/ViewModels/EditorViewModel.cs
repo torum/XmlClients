@@ -489,9 +489,8 @@ public partial class EditorViewModel : ObservableRecipient
 
                 ThemeChanged?.Invoke(this, _theme);
             }
-            //Root.RequestedTheme = 
         });
-        //Closed += (sender, e) => { messenger.UnregisterAll(this); };
+        
 
         // System theme changed.
         _uiSettings.ColorValuesChanged += SystemUISettingColorValuesChanged;
@@ -519,30 +518,33 @@ public partial class EditorViewModel : ObservableRecipient
     }
 
 
-    public void Closing()
+    public bool Closing()
     {
-        //
         //Debug.WriteLine("EditorViewModel Closing");
-        /*
-        WebViewServiceRichEdit.NavigationCompleted -= OnRichEditWebView2NavigationCompleted;
-        WebViewServiceRichEdit.CoreWebView2Initialized -= OnRichEditCoreWebView2Initialized;
 
+        // TODO: check if dirty.
+
+        // TODO:
         WebViewServiceRichEdit.UnregisterEvents();
-
-        WebViewServiceSourceEdit.NavigationCompleted -= OnSourceEditWebView2NavigationCompleted;
-        WebViewServiceSourceEdit.CoreWebView2Initialized -= OnSourceEditCoreWebView2Initialized;
+        WebViewServiceRichEdit.CoreWebView2.DOMContentLoaded -= OnRichEditCoreWebView2DOMContentLoaded;
+        WebViewServiceRichEdit.CoreWebView2.WebMessageReceived -= OnRichEditWebMessageReceived;
+        WebViewServiceRichEdit.CoreWebView2.PermissionRequested -= OnRichEditCoreWebView2OnPermissionRequested;
 
         WebViewServiceSourceEdit.UnregisterEvents();
-
-        WebViewServicePreviewBrowser.NavigationCompleted -= OnPreviewBrowserWebView2NavigationCompleted;
-        WebViewServicePreviewBrowser.CoreWebView2Initialized -= OnPreviewBrowserCoreWebView2Initialized;
+        WebViewServiceSourceEdit.CoreWebView2.DOMContentLoaded -= OnSourceEditCoreWebView2DOMContentLoaded;
+        WebViewServiceSourceEdit.CoreWebView2.WebMessageReceived -= OnSourceEditWebMessageReceived;
+        WebViewServiceSourceEdit.CoreWebView2.PermissionRequested -= OnSourceEditCoreWebView2OnPermissionRequested;
 
         WebViewServicePreviewBrowser.UnregisterEvents();
+        WebViewServicePreviewBrowser.CoreWebView2.DOMContentLoaded -= OnPreviewBrowserCoreWebView2DOMContentLoaded;
+        WebViewServicePreviewBrowser.CoreWebView2.NavigationStarting -= OnPreviewBrowserCoreWebView2NavigationStarting;
+        WebViewServicePreviewBrowser.CoreWebView2.FrameNavigationStarting -= OnPreviewBrowserCoreWebView2NavigationStarting;
 
         _uiSettings.ColorValuesChanged -= SystemUISettingColorValuesChanged;
-        */
 
-        //WindowClosing?.Invoke(this, "");
+        WeakReferenceMessenger.Default.UnregisterAll(this);
+
+        return true;
     }
 
     #region == IWebViewServices ==

@@ -1,17 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 using BlogDesk.Contracts.Services;
 using BlogDesk.Contracts.ViewModels;
 using BlogDesk.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.UI.Windowing;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Navigation;
 
 namespace BlogDesk.ViewModels;
@@ -57,14 +49,17 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     {
         
         EditorWindow window = new();
-        /*
-        this.Closed += (s, a) =>
-        {
-            window.Close();
-        };
-        */
+
         var editor = new EditorPage(window);
         window.Content = editor;
+
+        App.MainWindow.Closed += (s, a) =>
+        {
+            // TODO: when close is canceled.
+            //window.CanClose
+            window.Close();
+        };
+
         window.Activate();
 
     }
