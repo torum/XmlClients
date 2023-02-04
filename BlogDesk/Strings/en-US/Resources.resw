@@ -126,14 +126,8 @@
   <data name="ShellMenuBarItem_File.Title" xml:space="preserve">
     <value>File</value>
   </data>
-  <data name="ShellMenuBarItem_View.Title" xml:space="preserve">
-    <value>View</value>
-  </data>
-  <data name="ShellMenuItem_File_Exit.Text" xml:space="preserve">
+  <data name="ShellMenuFlyoutItem_File_Exit.Text" xml:space="preserve">
     <value>Exit</value>
-  </data>
-  <data name="ShellMenuItem_View_Main.Text" xml:space="preserve">
-    <value>Main</value>
   </data>
   <data name="Main_Title.Text" xml:space="preserve">
     <value>Main</value>
@@ -210,9 +204,6 @@
   <data name="SettingsPage_PrivacyTermsLink.NavigateUri" xml:space="preserve">
     <value>https://YourPrivacyUrlGoesHere/</value>
   </data>
-  <data name="ShellMenuBarSettingsButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
-    <value>Settings</value>
-  </data>
   <data name="Settings_Title.Text" xml:space="preserve">
     <value>Settings</value>
     <comment>Page title for SettingsPage</comment>
@@ -234,28 +225,25 @@
   <data name="AppName" xml:space="preserve">
     <value>BlogDesk</value>
   </data>
-  <data name="ShellMenuBarItem_Options.Title" xml:space="preserve">
-    <value>Options</value>
-  </data>
-  <data name="ShellMenuBar_Options_Settings.Text" xml:space="preserve">
+  <data name="ShellMenuFlyoutItem_Options_Settings.Text" xml:space="preserve">
     <value>Settings</value>
-  </data>
-  <data name="ShellNavigationItem_Blogs.Content" xml:space="preserve">
-    <value>Blogs</value>
-  </data>
-  <data name="ShellNavigationItem_Feeds.Content" xml:space="preserve">
-    <value>Feeds</value>
-  </data>
-  <data name="ShellNavigationItem_Main.Content" xml:space="preserve">
-    <value>Main</value>
   </data>
   <data name="Setting" xml:space="preserve">
     <value>Setting</value>
   </data>
-  <data name="ShellMenuItem_View_Feeds.Text" xml:space="preserve">
-    <value>Feeds</value>
+  <data name="ShellMenuFlyoutItem_File_New_Entry.Text" xml:space="preserve">
+    <value>Entry</value>
   </data>
-  <data name="ShellMenuBar_File_New.Text" xml:space="preserve">
+  <data name="ShellMenuBarItem_Edit.Title" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="ShellMenuFlyoutItem_Accounts_Add.Text" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="ShellMenuBarItem_View.Title" xml:space="preserve">
+    <value>View</value>
+  </data>
+  <data name="ShellMenuFlyoutItem_File_New.Text" xml:space="preserve">
     <value>New</value>
   </data>
 </root>

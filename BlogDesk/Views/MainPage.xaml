@@ -6,8 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    NavigationCacheMode="Required"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    NavigationCacheMode="Required">
 
     <Grid x:Name="ContentArea">
         <Grid.RowDefinitions>
@@ -19,10 +18,34 @@
             <ColumnDefinition Width="7*"/>
         </Grid.ColumnDefinitions>
 
-        <CommandBar Grid.Row="0" Grid.Column="0" IsOpen="False" DefaultLabelPosition="Right" Margin="0" HorizontalAlignment="Left">
+        <CommandBar Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" IsOpen="False" DefaultLabelPosition="Right" Margin="0" HorizontalAlignment="Left">
 
-            <AppBarButton Label="New" Command="{x:Bind ViewModel.MenuFileNewEditorCommand}" IsCompact="False" Opacity="0.9">
+            <AppBarButton Label="Add Account" Command="{x:Bind ViewModel.AddAccountCommand}" IsCompact="False" Opacity="0.9">
+                <AppBarButton.Icon>
+                    <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <PathIcon.Data>
+                            M15,14C12.33,14 7,15.33 7,18V20H23V18C23,15.33 17.67,14 15,14M6,10V7H4V10H1V12H4V15H6V12H9V10M15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12Z</PathIcon.Data>
+                    </PathIcon>
+                </AppBarButton.Icon>
+                <AppBarButton.KeyboardAccelerators>
+                    <KeyboardAccelerator Modifiers="Control" Key="N"/>
+                </AppBarButton.KeyboardAccelerators>
+            </AppBarButton>
 
+            
+            <CommandBar.SecondaryCommands>
+
+                <AppBarSeparator/>
+
+            </CommandBar.SecondaryCommands>
+
+        </CommandBar>
+
+
+        <CommandBar Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" IsOpen="False" DefaultLabelPosition="Right" Margin="0" HorizontalAlignment="Left">
+
+
+            <AppBarButton Label="New Entry" Command="{x:Bind ViewModel.NewEditorCommand}" IsCompact="False" Opacity="0.9">
                 <AppBarButton.Icon>
                     <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <PathIcon.Data>
@@ -30,25 +53,25 @@
                         </PathIcon.Data>
                     </PathIcon>
                 </AppBarButton.Icon>
-
                 <AppBarButton.KeyboardAccelerators>
-                    <KeyboardAccelerator Modifiers="Control" Key="N"/>
+                    <KeyboardAccelerator Modifiers="Control" Key="B"/>
                 </AppBarButton.KeyboardAccelerators>
-
             </AppBarButton>
+
             <CommandBar.SecondaryCommands>
 
                 <AppBarSeparator/>
-
-                <AppBarButton Icon="Import" Label="test2" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" >
-                </AppBarButton>
-
-                <AppBarButton Icon="Save" Label="test3" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" >
-                </AppBarButton>
 
             </CommandBar.SecondaryCommands>
 
         </CommandBar>
 
+        <Grid Grid.Row="1" Grid.Column="0">
+            
+        </Grid>
+        
+        <Grid Grid.Row="1" Grid.Column="1">
+
+        </Grid>
     </Grid>
 </Page>

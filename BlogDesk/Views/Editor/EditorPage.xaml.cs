@@ -23,11 +23,18 @@ public sealed partial class EditorPage : Page
     {
         EditorWindow = window;
 
+        EditorWindow.ExtendsContentIntoTitleBar = true;
+        EditorWindow.Activated += EditorWindow_Activated;
+        EditorWindow.Closed += EditorWindow_Closed;
+
         ViewModel = App.GetService<EditorViewModel>();
 
         try
         {
             InitializeComponent();
+
+            // AppTitleBar needs InitializeComponent() beforehand.
+            EditorWindow.SetTitleBar(AppTitleBar);
         }
         catch (XamlParseException parseException)
         {
@@ -39,23 +46,20 @@ public sealed partial class EditorPage : Page
             throw;
         }
 
+        // Init webview2
         ViewModel.WebViewServiceRichEdit.Initialize(WebViewRichEdit);
         ViewModel.WebViewServiceSourceEdit.Initialize(WebViewSourceEdit);
         ViewModel.WebViewServicePreviewBrowser.Initialize(WebViewPreviewBrowser);
 
+        // Focus control
         ViewModel.WebView2RichEditSetFocus += (sender, arg) => { this.OnWebView2RichEditSetFocus(arg); };
         ViewModel.WebView2SourceEditSetFocus += (sender, arg) => { this.OnWebView2SourceEditSetFocus(arg); };
         ViewModel.WebView2PreviewBrowserSetFocus += (sender, arg) => { this.OnWebView2PreviewBrowserSetFocus(arg); };
 
+        // Theme change event from message received in the viewmodel.
         ViewModel.ThemeChanged += (sender, arg) => { this.OnThemeChanged(arg); };
 
-        //ViewModel.WindowClosing += (sender, arg) => { this.OnWindowClosing(arg); };
-
-        EditorWindow.ExtendsContentIntoTitleBar = true;
-        EditorWindow.SetTitleBar(AppTitleBar);
-        EditorWindow.Activated += EditorWindow_Activated;
-        EditorWindow.Closed += EditorWindow_Closed;
-
+        // This is for the case where theme is changed in settings page.
         if (App.MainWindow.Content is FrameworkElement rootElement)
         {
             if (RequestedTheme != rootElement.RequestedTheme)
@@ -95,13 +99,11 @@ public sealed partial class EditorPage : Page
 
     private void OnThemeChanged(ElementTheme arg)
     {
-        Debug.WriteLine("OnThemeChanged: " + arg.ToString());
         RequestedTheme = arg;
 
-        // not good.
+        // not good...
         //TitleBarHelper.UpdateTitleBar(RequestedTheme, EditorWindow);
     }
-    
 
     private async void Page_Loaded(object sender, RoutedEventArgs e)
     {
@@ -119,7 +121,6 @@ public sealed partial class EditorPage : Page
             await Task.Delay(100);
 
             WebViewRichEdit.Focus(FocusState.Programmatic);
-            //Debug.WriteLine("OnWebView2EditorSetFocus");
         }
     }
 
@@ -131,7 +132,6 @@ public sealed partial class EditorPage : Page
             await Task.Delay(100);
 
             WebViewSourceEdit.Focus(FocusState.Programmatic);
-            //Debug.WriteLine("OnWebView2EditorSetFocus");
         }
     }
 
@@ -143,7 +143,6 @@ public sealed partial class EditorPage : Page
             await Task.Delay(100);
 
             WebViewPreviewBrowser.Focus(FocusState.Programmatic);
-            //Debug.WriteLine("OnWebView2EditorSetFocus");
         }
     }
 

@@ -17,6 +17,7 @@ public class PageService : IPageService
         //Configure<EditorViewModel, EditorPage>();
         Configure<MainViewModel, MainPage>();
         Configure<SettingsViewModel, SettingsPage>();
+        Configure<AccountAddViewModel, AccountAddPage>();
     }
 
     public Type GetPageType(string key)

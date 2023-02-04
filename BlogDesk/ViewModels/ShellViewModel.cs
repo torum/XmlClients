@@ -34,6 +34,11 @@ public class ShellViewModel : ObservableRecipient
         get;
     }
 
+    public ICommand MenuAccountAddCommand
+    {
+        get;
+    }
+
     public INavigationService NavigationService
     {
         get;
@@ -70,6 +75,8 @@ public class ShellViewModel : ObservableRecipient
         MenuFileExitCommand = new RelayCommand(OnMenuFileExit);
         MenuSettingsCommand = new RelayCommand(OnMenuSettings);
         MenuFileNewCommand = new RelayCommand(OnMenuFileNew);
+        MenuAccountAddCommand = new RelayCommand(OnMenuAccountAddCommand);
+        
 
     }
 
@@ -77,19 +84,6 @@ public class ShellViewModel : ObservableRecipient
     {
         IsBackEnabled = NavigationService.CanGoBack;
 
-        /*
-        if (e.SourcePageType == typeof(SettingsPage))
-        {
-            Selected = NavigationViewService.SettingsItem;
-            return;
-        }
-
-        var selectedItem = NavigationViewService.GetSelectedItem(e.SourcePageType);
-        if (selectedItem != null)
-        {
-            Selected = selectedItem;
-        }
-        */
     }
 
     private void OnMenuFileExit() => Application.Current.Exit();
@@ -97,24 +91,15 @@ public class ShellViewModel : ObservableRecipient
     private void OnMenuSettings() => NavigationService.NavigateTo(typeof(SettingsViewModel).FullName!);
 
 
-    private async void OnMenuFileNew()
+    private void OnMenuFileNew()
     {
-
-        EditorWindow window = new();
-
-        var editor = new EditorPage(window);
-        window.Content = editor;
-
-        App.MainWindow.Closed += (s, a) =>
-        {
-            // TODO: when close is canceled.
-            //window.CanClose
-            window.Close();
-        };
-
-        await Task.Delay(200);
-
-        window.Activate();
+        var vm = App.GetService<MainViewModel>();
+        vm.CreateNewEditor();
     }
 
+    private void OnMenuAccountAddCommand()
+    {
+        var vm = App.GetService<MainViewModel>();
+        vm.AddAccount();
+    }
 }

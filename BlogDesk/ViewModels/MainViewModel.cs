@@ -10,7 +10,11 @@ namespace BlogDesk.ViewModels;
 
 public partial class MainViewModel : ObservableRecipient, INavigationAware
 {
-    public ICommand MenuFileNewEditorCommand
+    public ICommand NewEditorCommand
+    {
+        get;
+    }
+    public ICommand AddAccountCommand
     {
         get;
     }
@@ -29,8 +33,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         _navigationService = navigationService;
         _navigationService.Navigated += OnNavigated;
 
-
-        MenuFileNewEditorCommand = new RelayCommand(OnMenuFileNewEditor);
+        NewEditorCommand = new RelayCommand(OnNewEditor);
+        AddAccountCommand = new RelayCommand(OnAddAccount);
     }
 
     private void OnNavigated(object sender, NavigationEventArgs e) => IsBackEnabled = _navigationService.CanGoBack;
@@ -45,9 +49,18 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     }
 
-    private async void OnMenuFileNewEditor()
+    private void OnNewEditor()
     {
-        
+        NewEditor();
+    }
+
+    public void CreateNewEditor()
+    {
+        NewEditor();
+    }
+
+    private async void NewEditor()
+    {
         EditorWindow window = new();
 
         var editor = new EditorPage(window);
@@ -63,6 +76,15 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         await Task.Delay(200);
 
         window.Activate();
+    }
 
+    private void OnAddAccount()
+    {
+        AddAccount();
+    }
+
+    public void AddAccount()
+    {
+        _navigationService.NavigateTo(typeof(AccountAddViewModel).FullName!);
     }
 }

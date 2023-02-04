@@ -102,6 +102,9 @@ public partial class App : Application
             services.AddTransient<EditorViewModel>();
             services.AddTransient<EditorPage>();
 
+            services.AddTransient<AccountAddViewModel>();
+            services.AddTransient<AccountAddPage>();
+
             services.AddSingleton<MainViewModel>();
             services.AddSingleton<MainPage>();
 

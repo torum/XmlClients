@@ -445,6 +445,7 @@ public partial class EditorViewModel : ObservableRecipient
         EditorExecFormatBoldCommand = new RelayCommand(OnEditorExecFormatBoldCommand);
         EditorExecFormatItalicCommand = new RelayCommand(OnEditorExecFormatItalicCommand);
 
+        // This does not consider the theme which is changed/specified in settings. Need to be set in SetTheme() from codebehind.
         if (App.Current.RequestedTheme == ApplicationTheme.Dark)
         {
             _theme = ElementTheme.Dark;
