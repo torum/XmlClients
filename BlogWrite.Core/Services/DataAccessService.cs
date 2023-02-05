@@ -52,14 +52,15 @@ public class DataAccessService : IDataAccessService
                             "content_type TEXT," +
                             "source TEXT," +
                             "source_url TEXT," +
-                            "image_id TEXT," +
+                            //"image_id TEXT," +
                             "image_url TEXT," +
+                            "audio_url TEXT," +
                             "status TEXT," +
                             "archived TEXT," +
                             "CONSTRAINT fk_feeds FOREIGN KEY (feed_id) REFERENCES feeds(feed_id) ON DELETE CASCADE" +
                             ")";
                         tableCmd.ExecuteNonQuery();
-
+                        /*
                         tableCmd.CommandText = "CREATE TABLE IF NOT EXISTS images (" +
                             "image_id TEXT NOT NULL PRIMARY KEY," +
                             "entry_id TEXT NOT NULL," +
@@ -69,7 +70,7 @@ public class DataAccessService : IDataAccessService
                             "CONSTRAINT fk_entries FOREIGN KEY (entry_id) REFERENCES entries(entry_id) ON DELETE CASCADE" +
                             ")";
                         tableCmd.ExecuteNonQuery();
-
+                        */
                         //tableCmd.CommandText = "ALTER TABLE entries ADD COLUMN category TEXT;";
                         //tableCmd.ExecuteNonQuery();
 
@@ -497,10 +498,11 @@ public class DataAccessService : IDataAccessService
                         {
                             if (entry is not FeedEntryItem)
                                 continue;
-                            if ((entry.EntryId == null) || (entry.AltHtmlUri == null))
+                            //if ((entry.EntryId == null) || (entry.AltHtmlUri == null))
+                            if (entry.EntryId == null)
                                 continue;
 
-                            var sqlInsert = "INSERT OR IGNORE INTO entries (entry_id, feed_id, url, title, published, updated, author, category, summary, content, content_type, image_url, source, source_url, status, archived) VALUES (@EntryId, @FeedId, @AltHtmlUri, @Title, @Published, @Updated, @Author, @Category, @Summary, @Content, @ContentType, @ImageUri, @Source, @SourceUri, @Status, @IsArchived)";
+                            var sqlInsert = "INSERT OR IGNORE INTO entries (entry_id, feed_id, url, title, published, updated, author, category, summary, content, content_type, image_url, audio_url, source, source_url, status, archived) VALUES (@EntryId, @FeedId, @AltHtmlUri, @Title, @Published, @Updated, @Author, @Category, @Summary, @Content, @ContentType, @ImageUri, @AudioUri, @Source, @SourceUri, @Status, @IsArchived)";
 
                             cmd.CommandText = sqlInsert;
 
@@ -515,7 +517,10 @@ public class DataAccessService : IDataAccessService
                             //cmd.Parameters.AddWithValue("@EntryId", entry.EntryId);
                             cmd.Parameters.AddWithValue("@EntryId", entry.Id);
 
-                            cmd.Parameters.AddWithValue("@AltHtmlUri", entry.AltHtmlUri.AbsoluteUri);
+                            if (entry.AltHtmlUri != null)
+                                cmd.Parameters.AddWithValue("@AltHtmlUri", entry.AltHtmlUri.AbsoluteUri);
+                            else
+                                cmd.Parameters.AddWithValue("@AltHtmlUri", string.Empty);
 
                             if (entry.Title != null)
                                 cmd.Parameters.AddWithValue("@Title", entry.Title);
@@ -560,6 +565,11 @@ public class DataAccessService : IDataAccessService
                             else
                                 cmd.Parameters.AddWithValue("@ImageUri", string.Empty);
 
+                            if (entry.AudioUri != null)
+                                cmd.Parameters.AddWithValue("@AudioUri", entry.AudioUri.AbsoluteUri);
+                            else
+                                cmd.Parameters.AddWithValue("@AudioUri", string.Empty);
+
                             if (entry is FeedEntryItem fei)
                             {
                                 if (fei.Source != null)
@@ -584,6 +594,10 @@ public class DataAccessService : IDataAccessService
                                 res.AffectedCount++;
 
                                 res.InsertedEntries.Add(entry);
+                            }
+                            else
+                            {
+                                // TODO: update entry.
                             }
                         }
 
@@ -683,11 +697,11 @@ public class DataAccessService : IDataAccessService
                     {
                         //cmd.CommandText = String.Format("SELECT * FROM entries INNER JOIN feeds USING (feed_id) WHERE feed_id = '{0}' AND archived = '{1}' ORDER BY published DESC LIMIT 1000", feedId, bool.FalseString);
 
-                        cmd.CommandText = String.Format("SELECT feeds.name as feedName, entries.title as entryTitle, entries.entry_id as entryId, entries.url as entryUrl, entries.published as entryPublished, entries.summary as entrySummary, entries.content as entryContent, entries.content_type as entryContentType, entries.image_url as entryImageUri, entries.source as entrySource, entries.source_url as entrySourceUri, entries.author as entryAuthor, entries.category as entryCategory, entries.archived as entryArchived FROM entries INNER JOIN feeds USING (feed_id) WHERE feed_id = '{0}' AND archived = '{1}' ORDER BY published DESC LIMIT 1000", feedId, bool.FalseString);
+                        cmd.CommandText = String.Format("SELECT feeds.name as feedName, entries.title as entryTitle, entries.entry_id as entryId, entries.url as entryUrl, entries.published as entryPublished, entries.summary as entrySummary, entries.content as entryContent, entries.content_type as entryContentType, entries.image_url as entryImageUri, entries.audio_url as entryAudioUri, entries.source as entrySource, entries.source_url as entrySourceUri, entries.author as entryAuthor, entries.category as entryCategory, entries.archived as entryArchived FROM entries INNER JOIN feeds USING (feed_id) WHERE feed_id = '{0}' AND archived = '{1}' ORDER BY published DESC LIMIT 1000", feedId, bool.FalseString);
                     }
                     else
                     {
-                        cmd.CommandText = String.Format("SELECT feeds.name as feedName, entries.title as entryTitle, entries.entry_id as entryId, entries.url as entryUrl, entries.published as entryPublished, entries.summary as entrySummary, entries.content as entryContent, entries.content_type as entryContentType, entries.image_url as entryImageUri, entries.source as entrySource, entries.source_url as entrySourceUri, entries.author as entryAuthor, entries.category as entryCategory, entries.archived as entryArchived FROM entries INNER JOIN feeds USING (feed_id) WHERE feed_id = '{0}' ORDER BY published DESC LIMIT 10000", feedId);
+                        cmd.CommandText = String.Format("SELECT feeds.name as feedName, entries.title as entryTitle, entries.entry_id as entryId, entries.url as entryUrl, entries.published as entryPublished, entries.summary as entrySummary, entries.content as entryContent, entries.content_type as entryContentType, entries.image_url as entryImageUri, entries.audio_url as entryAudioUri, entries.source as entrySource, entries.source_url as entrySourceUri, entries.author as entryAuthor, entries.category as entryCategory, entries.archived as entryArchived FROM entries INNER JOIN feeds USING (feed_id) WHERE feed_id = '{0}' ORDER BY published DESC LIMIT 10000", feedId);
                     }
 
                     using (var reader = cmd.ExecuteReader())
@@ -719,9 +733,24 @@ public class DataAccessService : IDataAccessService
                             {
                                 entry.ContentType = EntryItem.ContentTypes.text;
                             }
+                            else if (t == "markdown")
+                            {
+                                entry.ContentType = EntryItem.ContentTypes.markdown;
+                            }
+                            else if (t == "hatena")
+                            {
+                                entry.ContentType = EntryItem.ContentTypes.hatena;
+                            }
+                            else if (t == "unknown")
+                            {
+                                entry.ContentType = EntryItem.ContentTypes.hatena;
+                            }
+                            else if (t == "none")
+                            {
+                                entry.ContentType = EntryItem.ContentTypes.none;
+                            }
                             else
                             {
-                                // TODO:
                                 entry.ContentType = EntryItem.ContentTypes.unknown;
                             }
 
@@ -739,6 +768,12 @@ public class DataAccessService : IDataAccessService
                             if (!string.IsNullOrEmpty(u))
                             {
                                 entry.ImageUri = new Uri(u);
+                            }
+
+                            var au = Convert.ToString(reader["entryAudioUri"]);
+                            if (!string.IsNullOrEmpty(au))
+                            {
+                                entry.AudioUri = new Uri(au);
                             }
 
                             /*
@@ -879,7 +914,7 @@ public class DataAccessService : IDataAccessService
         if (feedIds.Count == 0)
             return res;
 
-        var before = "SELECT feeds.name as feedName, feeds.feed_id as feedId, entries.title as entryTitle, entries.entry_id as entryId, entries.url as entryUrl, entries.published as entryPublished, entries.summary as entrySummary, entries.content as entryContent, entries.content_type as entryContentType, entries.image_url as entryImageUri, entries.source as entrySource, entries.source_url as entrySourceUri, entries.author as entryAuthor, entries.category as entryCategory, entries.archived as entryArchived FROM entries INNER JOIN feeds USING (feed_id) WHERE ";
+        var before = "SELECT feeds.name as feedName, feeds.feed_id as feedId, entries.title as entryTitle, entries.entry_id as entryId, entries.url as entryUrl, entries.published as entryPublished, entries.summary as entrySummary, entries.content as entryContent, entries.content_type as entryContentType, entries.image_url as entryImageUri, entries.audio_url as entryAudioUri, entries.source as entrySource, entries.source_url as entrySourceUri, entries.author as entryAuthor, entries.category as entryCategory, entries.archived as entryArchived FROM entries INNER JOIN feeds USING (feed_id) WHERE ";
 
         var middle = "(";
 
@@ -947,9 +982,24 @@ public class DataAccessService : IDataAccessService
                             {
                                 entry.ContentType = EntryItem.ContentTypes.text;
                             }
+                            else if (t == "markdown")
+                            {
+                                entry.ContentType = EntryItem.ContentTypes.markdown;
+                            }
+                            else if (t == "hatena")
+                            {
+                                entry.ContentType = EntryItem.ContentTypes.hatena;
+                            }
+                            else if (t == "unknown")
+                            {
+                                entry.ContentType = EntryItem.ContentTypes.hatena;
+                            }
+                            else if (t == "none")
+                            {
+                                entry.ContentType = EntryItem.ContentTypes.none;
+                            }
                             else
                             {
-                                // TODO:
                                 entry.ContentType = EntryItem.ContentTypes.unknown;
                             }
 
@@ -957,6 +1007,12 @@ public class DataAccessService : IDataAccessService
                             if (!string.IsNullOrEmpty(u))
                             {
                                 entry.ImageUri = new Uri(u);
+                            }
+
+                            var au = Convert.ToString(reader["entryAudioUri"]);
+                            if (!string.IsNullOrEmpty(au))
+                            {
+                                entry.AudioUri = new Uri(au);
                             }
 
                             /*

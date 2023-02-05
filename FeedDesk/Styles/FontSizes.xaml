@@ -6,7 +6,7 @@
 
     <x:Double x:Key="MediumFontSize">16</x:Double>
 
-    <x:Double x:Key="XNormalFontSize">13</x:Double>
+    <x:Double x:Key="XNormalFontSize">13.5</x:Double>
     <x:Double x:Key="NormalFontSize">12.5</x:Double>
     
     <x:Double x:Key="SmallFontSize">10.5</x:Double>

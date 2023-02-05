@@ -11,6 +11,9 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using WinRT.Interop;
+using Windows.Media.Core;
+using static System.Net.Mime.MediaTypeNames;
+using Windows.ApplicationModel.DataTransfer;
 
 namespace FeedDesk.ViewModels;
 
@@ -223,6 +226,9 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
                 EntryViewExternalCommand.NotifyCanExecuteChanged();
             }
 
+            IsMediaPlayerVisible = false;
+            MediaSource = null;
+
             if (_selectedListViewItem == null)
             {
                 //WriteHtmlToContentPreviewBrowser?.Invoke(this, "");
@@ -280,6 +286,16 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
                 IsImageLinkExists = false;
             }
 
+            if (_selectedListViewItem.AudioUri != null)
+            {
+                IsAudioLinkExists = true;
+                //MediaSource = MediaSource.CreateFromUri(_selectedListViewItem.AudioUri);
+            }
+            else
+            {
+                IsAudioLinkExists = false;
+                //MediaSource = null;
+            }
 
             //NavigationService.SetListDataItemForNextConnectedAnimation(_selectedListViewItem);
             //NavigationService.NavigateTo(typeof(EntryDetailsViewModel).FullName!, _selectedListViewItem);
@@ -327,10 +343,8 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
         get => _isAltLinkExists;
         set
         {
-            if (SetProperty(ref _isAltLinkExists, value))
-            {
-                IsNoAltLinkExists = !value;
-            }
+            SetProperty(ref _isAltLinkExists, value);
+            IsNoAltLinkExists = !value;
         }
     }
 
@@ -346,6 +360,38 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
     {
         get => _isImageLinkExists;
         set => SetProperty(ref _isImageLinkExists, value);
+    }
+
+    private bool _isAudioLinkExists;
+    public bool IsAudioLinkExists
+    {
+        get => _isAudioLinkExists;
+        set => SetProperty(ref _isAudioLinkExists, value);
+    }
+
+    private MediaSource _mediaSource;
+    public MediaSource MediaSource
+    {
+        get => _mediaSource;
+        set => SetProperty(ref _mediaSource, value);
+    }
+
+    private bool _isMediaPlayerVisible;
+    public bool IsMediaPlayerVisible
+    {
+        get => _isMediaPlayerVisible;
+        set
+        {
+            SetProperty(ref _isMediaPlayerVisible, value);
+            IsNotMediaPlayerVisible = !value;
+        }
+    }
+
+    private bool _isNotMediaPlayerVisible;
+    public bool IsNotMediaPlayerVisible
+    {
+        get => _isNotMediaPlayerVisible;
+        set => SetProperty(ref _isNotMediaPlayerVisible, value);
     }
 
     /*
@@ -2301,6 +2347,39 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
+    [RelayCommand]
+    private void DownloadAudioFile()
+    {
+        if (_selectedListViewItem is null)
+            return;
+
+        if (_selectedListViewItem.AudioUri != null)
+        {
+            IsMediaPlayerVisible = true;
+            MediaSource = MediaSource.CreateFromUri(_selectedListViewItem.AudioUri);
+        }
+        else
+        {
+            IsMediaPlayerVisible = false;
+            MediaSource = null;
+        }
+    }
+
+    [RelayCommand]
+    private void CopyAudioFileUrlToClipboard()
+    {
+        if (_selectedListViewItem is null)
+            return;
+
+        if (_selectedListViewItem.AudioUri != null)
+        {
+            DataPackage data = new DataPackage();
+            data.SetText(_selectedListViewItem.AudioUri.AbsoluteUri);
+            Clipboard.SetContent(data);
+        }
+    }
+
+
     #region == Other command methods ==
 
     [RelayCommand]
@@ -2310,4 +2389,6 @@ public partial class FeedsViewModel : ObservableRecipient, INavigationAware
     }
 
     #endregion
+
+
 }

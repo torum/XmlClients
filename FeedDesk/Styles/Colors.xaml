@@ -6,8 +6,10 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary>
                     <!-- 
-                    <Color x:Key="FeedIconColor">#F78E04</Color> -->
+                    <Color x:Key="FeedIconColor">#F78E04</Color> 
                     <Color x:Key="FeedIconColor">#FF9955</Color>
+                    <Color x:Key="FeedIconColor">#F4AD5D</Color>-->
+                    <Color x:Key="FeedIconColor">#FFF</Color>
                     <SolidColorBrush x:Key="FeedIconBrush" Color="{StaticResource FeedIconColor}" />
                     
                 </ResourceDictionary>

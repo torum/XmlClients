@@ -111,7 +111,6 @@
         -->
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*"/>
@@ -124,6 +123,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <!-- Feeds menu buttons -->
@@ -317,10 +317,10 @@
                                             </Grid.ColumnDefinitions>
 
                                             <Viewbox Grid.Row="0" Grid.Column="0" Margin="-4,0,0,0" Width="18" Height="18">
-                                                <PathIcon  Data="{x:Bind PathIcon, Mode=OneWay}" Opacity="0.9" Foreground="{ThemeResource FeedIconBrush}"></PathIcon>
+                                                <PathIcon  Data="{x:Bind PathIcon, Mode=OneWay}" Opacity="0.7" Foreground="{ThemeResource FeedIconBrush}"></PathIcon>
                                             </Viewbox>
 
-                                            <TextBlock Grid.Row="0" Grid.Column="1" x:Name="NodeTextBlock" Text="{x:Bind Name, Mode=OneWay}" Padding="3" FontSize="{StaticResource NormalFontSize}" IsHitTestVisible="False" Margin="6,0,0,0" Opacity="0.9"/>
+                                            <TextBlock Grid.Row="0" Grid.Column="1" x:Name="NodeTextBlock" Text="{x:Bind Name, Mode=OneWay}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Padding="3" Style="{ThemeResource BodyTextBlockStyle}" FontSize="{StaticResource NormalFontSize}" IsHitTestVisible="False" Margin="6,0,0,0" Opacity="0.9"/>
 
                                             <TextBlock Grid.Row="0" Grid.Column="2" Text="{x:Bind SubNodeText, Mode=OneWay}" FontSize="{StaticResource NormalFontSize}" Margin="9 3 3 3" HorizontalAlignment="Right" Visibility="Collapsed"></TextBlock>
 
@@ -334,6 +334,13 @@
                     </TreeView.ItemTemplate>
 
                 </TreeView>
+
+                <!-- Debug pane -->
+                <Grid Grid.Row="2" Margin="0" Visibility="{x:Bind ViewModel.IsDebugWindowEnabled, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
+                    <TextBox x:Name="DebugTextBox" Text="{x:Bind ViewModel.DebugEventLog, Mode=OneWay}" TextWrapping="NoWrap" AcceptsReturn="True" IsSpellCheckEnabled="False" CornerRadius="0,0,0,0" HorizontalAlignment="Stretch" Padding="6 6 24 6" VerticalAlignment="Stretch" Margin="0" MinHeight="120" MaxHeight="120" Height="120" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Auto">
+
+                    </TextBox>
+                </Grid>
 
             </Grid>
         </Border>
@@ -565,10 +572,10 @@
                                             </Grid.ColumnDefinitions>
 
                                             <Viewbox Grid.RowSpan="3" Width ="20" Height="20">
-                                                <PathIcon Data="{x:Bind PathIcon, Mode=OneWay}" Foreground="{ThemeResource SystemAccentColorLight2}" Width ="24" Height="24" Margin="6" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.9"></PathIcon>
+                                                <PathIcon Data="{x:Bind PathIcon}" Foreground="{ThemeResource SystemAccentColorLight2}" Width ="24" Height="24" Margin="6" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.9"></PathIcon>
                                             </Viewbox>
 
-                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind Name}" x:Phase="1" Style="{ThemeResource BaseTextBlockStyle}" FontSize="{StaticResource XNormalFontSize}" Padding="2" Margin="12,6,0,0" Opacity="0.8"/>
+                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind Name}" x:Phase="1" Style="{ThemeResource BodyTextBlockStyle}" FontSize="{StaticResource XNormalFontSize}" Padding="2" Margin="12,6,0,0" Opacity="0.9"/>
                                             <TextBlock Grid.Row="1" Grid.Column="1" Style="{ThemeResource CaptionTextBlockStyle}" Padding="2" Margin="12,0,0,0" Opacity=".7">
                                                 <Run Text="By"/>
                                                 <Run Text="{x:Bind Author}"/>
@@ -620,43 +627,56 @@
                                                     </Border.Background>
                                                     <Image Source="{x:Bind ViewModel.SelectedListViewItem.ImageUri.AbsoluteUri, Mode=OneWay}" HorizontalAlignment="Stretch" Margin="0,12,0,0" Opacity="0"/>
                                                 </Border>
+                                            </StackPanel>
 
+                                            <StackPanel Visibility="{x:Bind ViewModel.IsAudioLinkExists, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
+                                                <TextBlock Margin="{StaticResource SmallTopMargin}" TextWrapping="Wrap" Visibility="Collapsed">
+                                                    <Hyperlink NavigateUri="{x:Bind ViewModel.SelectedListViewItem.AudioUri.AbsoluteUri, Mode=OneWay}">
+                                                        <Run Text="{x:Bind ViewModel.SelectedListViewItem.AudioUri.AbsoluteUri, Mode=OneWay}"></Run>
+                                                    </Hyperlink>
+                                                </TextBlock>
+                                                <StackPanel HorizontalAlignment="Left" Margin="0,6,0,0">
+                                                    <MediaPlayerElement Source="{x:Bind ViewModel.MediaSource, Mode=OneWay}" Visibility="{x:Bind ViewModel.IsMediaPlayerVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}" HorizontalAlignment="Left" MaxWidth="740" AutoPlay="False" AreTransportControlsEnabled="True" />
+                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,12,0,0" Visibility="{x:Bind ViewModel.IsNotMediaPlayerVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
+                                                        <Button Content="Download Audio File" Command="{x:Bind ViewModel.DownloadAudioFileCommand, Mode=OneWay}" Margin="22,0,0,0" />
+                                                        <Button Content="Copy URL to Clipboard" Command="{x:Bind ViewModel.CopyAudioFileUrlToClipboardCommand, Mode=OneWay}" Margin="12,0,22,0"/>
+                                                    </StackPanel>
+                                                </StackPanel>
                                             </StackPanel>
                                             
                                             <StackPanel>
                                                 <TextBlock Text="Author" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                                <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Author, Mode=OneWay}" Style="{StaticResource DetailBodyBaseMediumStyle}" />
+                                                <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Author, Mode=OneWay}" Style="{StaticResource DetailBodyStyle}" />
                                             </StackPanel>
 
                                             <StackPanel>
                                                 <TextBlock Text="Category" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                                <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Category, Mode=OneWay}" Style="{StaticResource DetailBodyBaseMediumStyle}" />
+                                                <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Category, Mode=OneWay}" Style="{StaticResource DetailBodyStyle}" />
                                             </StackPanel>
 
                                             <StackPanel>
                                                 <TextBlock Text="Publisher/Syndicator" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                                <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Publisher, Mode=OneWay}" Style="{StaticResource DetailBodyBaseMediumStyle}" />
+                                                <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Publisher, Mode=OneWay}" Style="{StaticResource DetailBodyStyle}" />
                                             </StackPanel>
 
                                             <StackPanel>
                                                 <TextBlock Text="Published" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                                <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.PublishedDateTimeFormated, Mode=OneWay}" Style="{StaticResource DetailBodyBaseMediumStyle}" />
+                                                <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.PublishedDateTimeFormated, Mode=OneWay}" Style="{StaticResource DetailBodyStyle}" />
                                             </StackPanel>
 
                                             <StackPanel>
                                                 <TextBlock Text="Summary" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource SubtitleTextBlockStyle}" Opacity="0.9"/>
-                                                <TextBlock Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource BodyTextBlockStyle}" Text="{x:Bind ViewModel.SelectedListViewItem.Summary, Mode=OneWay}" />
+                                                <TextBlock Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailBodyStyle}" Text="{x:Bind ViewModel.SelectedListViewItem.Summary, Mode=OneWay}"/>
+                                            </StackPanel>
+
+                                            <StackPanel Visibility="{x:Bind ViewModel.IsContentText, Mode=OneWay}">
+                                                <TextBlock Text="Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource SubtitleTextBlockStyle}" Opacity="0.9"/>
+                                                <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Content, Mode=OneWay}" TextWrapping="Wrap" Margin="{StaticResource MediumBottomMargin}" Style="{ThemeResource DetailBodyStyle}"/>
                                             </StackPanel>
                                             
-                                            <StackPanel>
-                                                <TextBlock Text="Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource SubtitleTextBlockStyle}" Opacity="0.9"/>
-                                                <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Content, Mode=OneWay}" Visibility="{x:Bind ViewModel.IsContentText, Mode=OneWay}" Margin="{StaticResource MediumBottomMargin}" Style="{ThemeResource BodyTextBlockStyle}"/>
-                                            </StackPanel>
-
                                             <StackPanel Visibility="{x:Bind ViewModel.IsContentHTML, Mode=OneWay}">
-
+                                                <TextBlock Text="Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource SubtitleTextBlockStyle}" Opacity="0.9"/>
                                                 <TextBlock Text="(The content type is HTML)" Margin="{StaticResource SmallTopMargin}"></TextBlock>
-
                                                 <StackPanel Orientation="Horizontal">
                                                     <!--
                                                     <AppBarButton Label="View" Command="{x:Bind ViewModel.EntryViewInternalCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
@@ -671,7 +691,7 @@
 -->
                                                     <!--
 -->
-                                                    <AppBarButton Label="Open" Command="{x:Bind ViewModel.EntryViewExternalCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9" >
+                                                    <AppBarButton Label="Open" Command="{x:Bind ViewModel.EntryViewExternalCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9">
                                                         <AppBarButton.Icon>
                                                             <PathIcon>
                                                                 <PathIcon.Data>
@@ -683,6 +703,8 @@
                                                     
                                                 </StackPanel>
                                             </StackPanel>
+
+                                            <StackPanel Margin="0,0,0,24"></StackPanel>
 
                                         </StackPanel>
 
@@ -699,12 +721,7 @@
             </Grid>
         </Grid>
 
-        <!-- Debug pane -->
-        <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="0" Visibility="{x:Bind ViewModel.IsDebugWindowEnabled, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
-            <TextBox x:Name="DebugTextBox" Text="{x:Bind ViewModel.DebugEventLog, Mode=OneWay}" CornerRadius="0,0,0,0" HorizontalAlignment="Stretch" TextWrapping="Wrap" Padding="6 6 24 6" VerticalAlignment="Stretch" Margin="0" MinHeight="120" MaxHeight="120" ScrollViewer.VerticalScrollBarVisibility="Visible">
 
-            </TextBox>
-        </Grid>
         
     </Grid>
 </Page>

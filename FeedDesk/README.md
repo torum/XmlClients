@@ -10,12 +10,14 @@ Desktop feed reader.
 
 ## Change log
 
+* v1.0.0.8 (2023/2/3)
+ Podcast support.
 * v1.0.0.7 (2023/1/21)
  Some code refactoring.
 * v1.0.0.5 (2023/1/20)
  Some updates.
 * v1.0.0.4 (2023/1/18)
- UI update
+ Some UI update.
 * v1.0.0.3 (2023/1/11)
  Finishing up feed updates.
 * v1.0.0.2 (2023/1/8) 
@@ -25,20 +27,20 @@ Desktop feed reader.
 * v1.0.0.0 (2023/1/1) 
  Moved to WinUI3 from a WPF project. 
 
-### Things that currentry working on
+## Things that currentry working on
 
-#### Feed reader
+### Feed reader
 
+- [ ] 
 - [ ] Dupecheckとかの結果や起動時データベース接続エラーを画面内で通知する。
 - [ ] 元記事の内容が更新された場合、それを反映させたい。
 - [ ] DB管理（容量制限というか自動削除機能）
+- [ ] Itunes namespace, YouTube media, Hatena comments, HN comments, etc.
 
 
-### Planning
-- [ ] 
+## Planning
 
-
-#### Feed reader
+### Feed reader
 - [ ] "Read lator" or saved or boolmark or whatever.
 - [ ] Grouping display of entries. 
 - [ ] multiple viewing style (3 panes, cards, etc)
@@ -46,12 +48,12 @@ Desktop feed reader.
 - [ ] A progressbar or some kind to notify refleshing is on going or not.
 
 
-#### Sync 
+### Sync 
 - [ ] Sync with Firefox Pocket or Instapaper etc for "read lator".
 - [ ] Sync with online feed readers such as Miniflux or creat one.
 
 
-##### Other
+### Other
 - [ ] Internationalization
 - [ ] Settings
 - [ ] Themes

@@ -680,7 +680,7 @@ public class FeedClientService : BaseClient, IFeedClientService
         {
             if (enclosure.Attributes["url"] != null)
             {
-                string urlImage = enclosure.Attributes["url"].Value;
+                string url = enclosure.Attributes["url"].Value;
 
                 if (enclosure.Attributes["type"] != null)
                 {
@@ -690,7 +690,20 @@ public class FeedClientService : BaseClient, IFeedClientService
                     {
                         try
                         {
-                            entItem.ImageUri = new Uri(urlImage);
+                            entItem.ImageUri = new Uri(url);
+                        }
+                        catch (Exception e)
+                        {
+                            ToDebugWindow(">> Exception @FeedClient@FillEntryItemFromXmlRss:new Uri()"
+                                + Environment.NewLine +
+                                "RSS feed entry (" + entItem.Name + ") contain invalid entry > enclosure@link Uri: " + e.Message +
+                                Environment.NewLine);
+                        }
+                    }else if (imageType == "audio/mpeg")
+                    {
+                        try
+                        {
+                            entItem.AudioUri = new Uri(url);
                         }
                         catch (Exception e)
                         {
@@ -704,26 +717,31 @@ public class FeedClientService : BaseClient, IFeedClientService
             }
         }
 
-        // Force textHtml for RSS feed. Even though description was missing. (needs this for browser)
-        entItem.ContentType = EntryItem.ContentTypes.textHtml;
+        entItem.ContentType = EntryItem.ContentTypes.none;
 
         XmlNode? sum = entryNode.SelectSingleNode("description");
         if (sum != null)
         {
-            // Content
-            entItem.Content = await StripStyleAttributes(sum.InnerText);
-
-            if (!string.IsNullOrEmpty(entItem.Content))
+            var s = sum.InnerText;
+            if (!string.IsNullOrEmpty(s))
             {
-                // Summary
-                entItem.Summary = await StripHtmlTags(entItem.Content);
-                //entItem.Summary = Truncate(entItem.Summary, 230);
+                entItem.ContentType = EntryItem.ContentTypes.unknown;
 
-                //entItem.SummaryPlainText = Truncate(entItem.Summary, 78);
+                // Content
+                entItem.Content = await StripStyleAttributes(sum.InnerText);
 
-                // gets image Uri
-                if (entItem.ImageUri == null)
-                    entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
+                if (!string.IsNullOrEmpty(entItem.Content))
+                {
+                    // Summary
+                    entItem.Summary = await StripHtmlTags(entItem.Content);
+                    //entItem.Summary = Truncate(entItem.Summary, 230);
+
+                    //entItem.SummaryPlainText = Truncate(entItem.Summary, 78);
+
+                    // gets image Uri
+                    if (entItem.ImageUri == null)
+                        entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
+                }
             }
         }
 
@@ -778,7 +796,7 @@ public class FeedClientService : BaseClient, IFeedClientService
             }
         }
 
-        string entryAuthor = "";
+        var entryAuthor = "";
         XmlNodeList? entryAuthors = entryNode.SelectNodes("dc:creator", NsMgr);
         if (entryAuthors != null)
         {
@@ -790,35 +808,51 @@ public class FeedClientService : BaseClient, IFeedClientService
                     entryAuthor += "/" + auth.InnerText;
             }
         }
-
         if (string.IsNullOrEmpty(entryAuthor))
         {
             //if (entItem.AltHtmlUri != null)
             //    entryAuthor = entItem.AltHtmlUri.Host;
-
         }
-
         entItem.Author = entryAuthor;
 
-        // Force textHtml for RSS feed. Even though description was missing. (needs this for browser)
-        entItem.ContentType = EntryItem.ContentTypes.textHtml;
+        var entryCategory = "";
+        XmlNodeList? entryCategories = entryNode.SelectNodes("dc:subject", NsMgr);
+        if (entryCategories != null)
+        {
+            foreach (XmlNode cat in entryCategories)
+            {
+                if (string.IsNullOrEmpty(entryCategory))
+                    entryCategory = cat.InnerText;
+                else
+                    entryCategory += "/" + cat.InnerText;
+            }
+        }
+        entItem.Category = entryCategory;
+
+        entItem.ContentType = EntryItem.ContentTypes.none;
 
         XmlNode? sum = entryNode.SelectSingleNode("rss:description", NsMgr);
         if (sum != null)
         {
-            // Content
-            entItem.Content = await StripStyleAttributes(sum.InnerText);
-
-            if (!string.IsNullOrEmpty(entItem.Content))
+            var s = sum.InnerText;
+            if (!string.IsNullOrEmpty(s))
             {
-                // Summary
-                entItem.Summary = await StripHtmlTags(entItem.Content);
+                entItem.ContentType = EntryItem.ContentTypes.unknown;
 
-                //entItem.SummaryPlainText = Truncate(entItem.SummaryPlainText, 78);
+                // Content
+                entItem.Content = await StripStyleAttributes(sum.InnerText);
+
+                if (!string.IsNullOrEmpty(entItem.Content))
+                {
+                    // Summary
+                    entItem.Summary = await StripHtmlTags(entItem.Content);
+
+                    //entItem.SummaryPlainText = Truncate(entItem.SummaryPlainText, 78);
+                }
+
+                // gets image Uri
+                entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
             }
-
-            // gets image Uri
-            entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
         }
 
         entItem.Status = FeedEntryItem.ReadStatus.rsNew;
@@ -1006,7 +1040,7 @@ public class FeedClientService : BaseClient, IFeedClientService
                         entItem.ContentType = EntryItem.ContentTypes.hatena;
                         break;
                     default:
-                        entItem.ContentType = EntryItem.ContentTypes.text;
+                        entItem.ContentType = EntryItem.ContentTypes.unknown;
                         break;
                 }
             }
@@ -1199,6 +1233,20 @@ public class FeedClientService : BaseClient, IFeedClientService
                                         }
                                     }
                                 }
+                                else if ((typeAttr == "audio/mpeg"))
+                                {
+                                    try
+                                    {
+                                        entry.AudioUri = new Uri(hrefAttr);
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        ToDebugWindow(">> Exception @FeedClient@CreateAtomEntryFromXmlAtom:new Uri()"
+                                            + Environment.NewLine +
+                                            "Atom feed entry (" + entry.Name + ") contain invalid entry > enclosure@link Uri: " + e.Message +
+                                            Environment.NewLine);
+                                    }
+                                }
                                 break;
                             }
                             catch
@@ -1375,6 +1423,8 @@ public class FeedClientService : BaseClient, IFeedClientService
         }
         */
 
+        entry.ContentType = EntryItem.ContentTypes.none;
+
         XmlNode? cont = entryNode.SelectSingleNode("atom:content", atomNsMgr);
         if (cont != null)
         {
@@ -1407,7 +1457,7 @@ public class FeedClientService : BaseClient, IFeedClientService
                         entry.ContentType = EntryItem.ContentTypes.hatena;
                         break;
                     default:
-                        entry.ContentType = EntryItem.ContentTypes.text;
+                        entry.ContentType = EntryItem.ContentTypes.unknown;
                         break;
                 }
             }

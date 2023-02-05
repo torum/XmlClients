@@ -89,6 +89,7 @@ public abstract class EntryItem : Node
 
     public enum ContentTypes
     {
+        none,
         text,
         textHtml,
         markdown,
@@ -252,6 +253,20 @@ public abstract class EntryItem : Node
         }
     }
 
+    private Uri? _audioUri;
+    public Uri? AudioUri
+    {
+        get => _audioUri;
+        set
+        {
+            if (_audioUri == value)
+                return;
+
+            _audioUri = value;
+            NotifyPropertyChanged(nameof(AudioUri));
+        }
+    }
+
     /*
     private bool _isImageDownloaded = false;
     public bool IsImageDownloaded
@@ -320,6 +335,7 @@ public abstract class EntryItem : Node
     {
         Client = bc;
         ServiceId = serviceId;
+        ContentType = ContentTypes.none;
     }
 
     public static string TimeAgo(DateTime dateTime)
@@ -365,7 +381,6 @@ public abstract class EntryItem : Node
         return result;
     }
 }
-
 
 // Feed Entry Item
 public class FeedEntryItem : EntryItem
