@@ -297,7 +297,7 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
 
     private void OnStatusUpdate(ServiceDiscovery sender, string data)
     {
-        bool? uithread = App.CurrentDispatcherQueue?.HasThreadAccess;
+        var uithread = App.CurrentDispatcherQueue?.HasThreadAccess;
 
         if (uithread != null)
         {
@@ -596,7 +596,7 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
 
             //RegisterFeed?.Invoke(this, arg);
 
-            _navigationService.NavigateTo(typeof(FeedsViewModel).FullName!, arg);
+            _navigationService.NavigateTo(typeof(MainViewModel).FullName!, arg);
 
 
         }

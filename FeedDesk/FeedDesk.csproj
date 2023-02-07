@@ -32,9 +32,9 @@
     <None Remove="Views\EntryDetailsPage.xaml" />
     <None Remove="Views\FeedAddPage.xaml" />
     <None Remove="Views\FeedEditPage.xaml" />
-    <None Remove="Views\FeedsPage.xaml" />
     <None Remove="Views\FolderAddPage.xaml" />
     <None Remove="Views\FolderEditPage.xaml" />
+    <None Remove="Views\MainPage.xaml" />
     <None Remove="Views\SettingsPage.xaml" />
     <None Remove="Views\ShellPage.xaml" />
   </ItemGroup>
@@ -106,7 +106,7 @@
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\FeedsPage.xaml">
+    <Page Update="Views\MainPage.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
     </Page>
     <Page Update="Views\FolderAddPage.xaml">

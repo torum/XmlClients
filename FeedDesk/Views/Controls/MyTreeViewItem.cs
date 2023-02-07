@@ -12,14 +12,14 @@ namespace FeedDesk.Views
     {
         protected override void OnDragEnter(DragEventArgs e)
         {
-            if (FeedsPage.DraggedItems.Count <= 0)
+            if (MainPage.DraggedItems.Count <= 0)
             {
                 e.Handled = true;
                 base.OnDragEnter(e);
                 return;
             }
 
-            var draggedItem = FeedsPage.DraggedItems[0];
+            var draggedItem = MainPage.DraggedItems[0];
             var draggedOverItem = DataContext as NodeTree;
 
             if ((draggedItem is NodeFolder) && (draggedOverItem is NodeFolder) || (draggedItem is NodeFeed) && (draggedOverItem is NodeFolder))
@@ -32,7 +32,7 @@ namespace FeedDesk.Views
 
         protected override void OnDragOver(DragEventArgs e)
         {
-            if (FeedsPage.DraggedItems.Count <= 0)
+            if (MainPage.DraggedItems.Count <= 0)
             {
                 e.Handled = true;
                 base.OnDragOver(e);
@@ -40,7 +40,7 @@ namespace FeedDesk.Views
                 return;
             }
 
-            var draggedItem = FeedsPage.DraggedItems[0];
+            var draggedItem = MainPage.DraggedItems[0];
             var draggedOverItem = DataContext as NodeTree;
             /*
             if (draggedOverItem != null)
@@ -110,7 +110,7 @@ namespace FeedDesk.Views
         }
         protected override void OnDrop(DragEventArgs e)
         {
-            if (FeedsPage.DraggedItems.Count <= 0)
+            if (MainPage.DraggedItems.Count <= 0)
             {
                 e.Handled = true; 
                 e.AcceptedOperation = DataPackageOperation.None;
@@ -118,7 +118,7 @@ namespace FeedDesk.Views
                 return;
             }
 
-            var draggedItem = FeedsPage.DraggedItems[0];
+            var draggedItem = MainPage.DraggedItems[0];
             var draggedOverItem = DataContext as NodeTree;
 
             if ((draggedItem is NodeFeed) && (draggedOverItem is NodeFolder))

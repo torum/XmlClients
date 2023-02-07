@@ -90,7 +90,7 @@ public class FolderEditViewModel : ObservableRecipient, INavigationAware
             if (Folder != null)
             {
                 Folder.Name = Name;
-                _navigationService.NavigateTo(typeof(FeedsViewModel).FullName!, null);
+                _navigationService.NavigateTo(typeof(MainViewModel).FullName!, null);
             }
         }
     }

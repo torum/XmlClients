@@ -92,7 +92,7 @@ public sealed partial class ShellPage : Page
 
     private void MainWindow_Closed(object sender, WindowEventArgs args)
     {
-        var hoge = App.GetService<FeedsViewModel>();
+        var hoge = App.GetService<MainViewModel>();
         // Save service tree.
         hoge.SaveServiceXml();
         // Dispose httpclient.

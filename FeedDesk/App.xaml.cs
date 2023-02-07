@@ -112,8 +112,8 @@ public partial class App : Application
             services.AddTransient<FolderEditPage>();
             services.AddTransient<FolderAddViewModel>();
             services.AddTransient<FolderAddPage>();
-            services.AddSingleton<FeedsViewModel>();
-            services.AddSingleton<FeedsPage>();
+            services.AddSingleton<MainViewModel>();
+            services.AddSingleton<MainPage>();
             services.AddSingleton<ShellPage>();
             services.AddSingleton<ShellViewModel>();
 

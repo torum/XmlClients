@@ -93,7 +93,7 @@ public class FeedEditViewModel : ObservableRecipient, INavigationAware
                 var hoge = new NodeTreePropertyChangedArgs();
                 hoge.Name = Name;
                 hoge.Node = Feed;
-                _navigationService.NavigateTo(typeof(FeedsViewModel).FullName!, hoge);
+                _navigationService.NavigateTo(typeof(MainViewModel).FullName!, hoge);
             }
         }
     }

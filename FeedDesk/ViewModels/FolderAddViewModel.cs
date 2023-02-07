@@ -100,7 +100,7 @@ public class FolderAddViewModel : ObservableRecipient, INavigationAware
 
                 folder.IsSelected = true;
 
-                _navigationService.NavigateTo(typeof(FeedsViewModel).FullName!, null);
+                _navigationService.NavigateTo(typeof(MainViewModel).FullName!, null);
             }
         }
     }

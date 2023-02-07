@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Headers;
 using System.Xml;
+using AngleSharp.Dom;
 using BlogWrite.Core.Contracts.Services;
 using BlogWrite.Core.Helpers;
 using BlogWrite.Core.Models;
@@ -102,6 +103,7 @@ public class FeedClientService : BaseClient, IFeedClientService
                 {
                     XmlNamespaceManager NsMgr = new XmlNamespaceManager(xdoc.NameTable);
                     NsMgr.AddNamespace("dc", "http://purl.org/dc/elements/1.1/");
+                    NsMgr.AddNamespace("itunes", "http://www.itunes.com/dtds/podcast-1.0.dtd");
 
                     XmlNode? feedTitle = xdoc.DocumentElement.SelectSingleNode("channel/title");
                     res.Title = (feedTitle != null) ? feedTitle.InnerText : "";
@@ -223,6 +225,7 @@ public class FeedClientService : BaseClient, IFeedClientService
                     NsMgr.AddNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
                     NsMgr.AddNamespace("rss", "http://purl.org/rss/1.0/");
                     NsMgr.AddNamespace("dc", "http://purl.org/dc/elements/1.1/");
+                    NsMgr.AddNamespace("hatena", "http://www.hatena.ne.jp/info/xmlns#");
 
                     XmlNode? feedTitle = xdoc.DocumentElement.SelectSingleNode("rss:channel/rss:title", NsMgr);
                     res.Title = (feedTitle != null) ? feedTitle.InnerText : "";
@@ -276,6 +279,7 @@ public class FeedClientService : BaseClient, IFeedClientService
                         XmlNamespaceManager atomNsMgr = new XmlNamespaceManager(xdoc.NameTable);
                         atomNsMgr.AddNamespace("atom", "http://www.w3.org/2005/Atom");
                         atomNsMgr.AddNamespace("app", "http://www.w3.org/2007/app");
+                        atomNsMgr.AddNamespace("media", "http://search.yahoo.com/mrss/");
 
                         XmlNode? feedTitle = xdoc.DocumentElement.SelectSingleNode("atom:title", atomNsMgr);
                         res.Title = (feedTitle != null) ? feedTitle.InnerText : "";
@@ -610,19 +614,36 @@ public class FeedClientService : BaseClient, IFeedClientService
             }
         }
 
-        var entryAuthor = "";
-        XmlNodeList? entryAuthors = entryNode.SelectNodes("dc:creator", NsMgr);
-        if (entryAuthors != null)
+        var entryDcAuthor = "";
+        XmlNodeList? entryDcAuthors = entryNode.SelectNodes("dc:creator", NsMgr);
+        if (entryDcAuthors != null)
         {
-            foreach (XmlNode auth in entryAuthors)
+            foreach (XmlNode auth in entryDcAuthors)
             {
-                if (string.IsNullOrEmpty(entryAuthor))
-                    entryAuthor = auth.InnerText;
+                if (string.IsNullOrEmpty(entryDcAuthor))
+                    entryDcAuthor = auth.InnerText;
                 else
-                    entryAuthor += "/" + auth.InnerText;
+                    entryDcAuthor += "/" + auth.InnerText;
+            }
+            entItem.Author = entryDcAuthor;
+        }
+
+        if (string.IsNullOrEmpty(entItem.Author))
+        {
+            var entryAuthor = "";
+            XmlNodeList? entryAuthors = entryNode.SelectNodes("author", NsMgr);
+            if (entryAuthors != null)
+            {
+                foreach (XmlNode auth in entryAuthors)
+                {
+                    if (string.IsNullOrEmpty(entryAuthor))
+                        entryAuthor = auth.InnerText;
+                    else
+                        entryAuthor += "/" + auth.InnerText;
+                }
+                entItem.Author = entryAuthor;
             }
         }
-        entItem.Author = entryAuthor;
 
         var entrySource = "";
         XmlNode? entrySourceNode = entryNode.SelectSingleNode("source");
@@ -645,8 +666,8 @@ public class FeedClientService : BaseClient, IFeedClientService
                     }catch { }
                 }
             }
+            entItem.Source = entrySource;
         }
-        entItem.Source = entrySource;
 
         /*
         if (string.IsNullOrEmpty(entItem.Author))
@@ -671,8 +692,8 @@ public class FeedClientService : BaseClient, IFeedClientService
                 else
                     entryCategory += "/" + cat.InnerText;
             }
+            entItem.Category = entryCategory;
         }
-        entItem.Category = entryCategory;
 
         // gets imageUri from enclosure
         XmlNode? enclosure = entryNode.SelectSingleNode("enclosure");
@@ -717,8 +738,22 @@ public class FeedClientService : BaseClient, IFeedClientService
             }
         }
 
-        entItem.ContentType = EntryItem.ContentTypes.none;
+        //comments
+        XmlNode? entryCommentsNode = entryNode.SelectSingleNode("comments");
+        if (entryCommentsNode != null)
+        {
+            var s = entryCommentsNode.InnerText;
+            if (!string.IsNullOrEmpty(s))
+            {
+                try
+                {
+                    entItem.CommentUri = new Uri(s);
+                }
+                catch { }
+            }
+        }
 
+        entItem.ContentType = EntryItem.ContentTypes.none;
         XmlNode? sum = entryNode.SelectSingleNode("description");
         if (sum != null)
         {
@@ -742,6 +777,24 @@ public class FeedClientService : BaseClient, IFeedClientService
                     if (entItem.ImageUri == null)
                         entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
                 }
+            }
+        }
+
+        if (string.IsNullOrEmpty(entItem.Author))
+        {
+            // itunes:author. Is this supporsed to be a single element or multiple?
+            var entryItunesAuthor = "";
+            XmlNodeList? entryItunesAuthors = entryNode.SelectNodes("itunes:author", NsMgr);
+            if (entryItunesAuthor != null)
+            {
+                foreach (XmlNode auth in entryItunesAuthors)
+                {
+                    if (string.IsNullOrEmpty(entryItunesAuthor))
+                        entryItunesAuthor = auth.InnerText;
+                    else
+                        entryItunesAuthor += "/" + auth.InnerText;
+                }
+                entItem.Author = entryItunesAuthor;
             }
         }
 
@@ -829,8 +882,43 @@ public class FeedClientService : BaseClient, IFeedClientService
         }
         entItem.Category = entryCategory;
 
-        entItem.ContentType = EntryItem.ContentTypes.none;
+        // hatena imageurl
+        XmlNode? hatenaImgUri = entryNode.SelectSingleNode("hatena:imageurl", NsMgr);
+        try
+        {
+            if (hatenaImgUri != null)
+                if (!string.IsNullOrEmpty(hatenaImgUri.InnerText))
+                    entItem.ImageUri = new Uri(hatenaImgUri.InnerText);
+        }
+        catch (Exception e)
+        {
+            Debug.WriteLine("Exception @new Uri(entryLinkUri.InnerText)" + "(" + entItem.Name + ")" + " : " + e.Message);
 
+            ToDebugWindow(">> Exception @RssFeedClient@FillEntryItemFromXmlRdf:new Uri()"
+                + Environment.NewLine +
+                "RSS feed entry (" + entItem.Name + ") contain invalid image Uri: " + e.Message +
+                Environment.NewLine);
+        }
+
+        // hatena commenturl
+        XmlNode? hatenaCommentUri = entryNode.SelectSingleNode("hatena:bookmarkCommentListPageUrl", NsMgr);
+        try
+        {
+            if (hatenaCommentUri != null)
+                if (!string.IsNullOrEmpty(hatenaCommentUri.InnerText))
+                    entItem.CommentUri = new Uri(hatenaCommentUri.InnerText);
+        }
+        catch (Exception e)
+        {
+            Debug.WriteLine("Exception @new Uri(entryLinkUri.InnerText)" + "(" + entItem.Name + ")" + " : " + e.Message);
+
+            ToDebugWindow(">> Exception @RssFeedClient@FillEntryItemFromXmlRdf:new Uri()"
+                + Environment.NewLine +
+                "RSS feed entry (" + entItem.Name + ") contain invalid image Uri: " + e.Message +
+                Environment.NewLine);
+        }
+
+        entItem.ContentType = EntryItem.ContentTypes.none;
         XmlNode? sum = entryNode.SelectSingleNode("rss:description", NsMgr);
         if (sum != null)
         {
@@ -851,7 +939,8 @@ public class FeedClientService : BaseClient, IFeedClientService
                 }
 
                 // gets image Uri
-                entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
+                if (entItem.ImageUri == null)
+                    entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
             }
         }
 
@@ -1106,6 +1195,9 @@ public class FeedClientService : BaseClient, IFeedClientService
         entItem.ContentType = entry.ContentType;
         // entItem.EntryBody = entry;
 
+        entItem.ImageUri = entry.ImageUri;
+        entItem.AudioUri = entry.AudioUri;
+
         entItem.Status = FeedEntryItem.ReadStatus.rsNew;
 
         if (entItem.ContentType == EntryItem.ContentTypes.textHtml)
@@ -1327,7 +1419,7 @@ public class FeedClientService : BaseClient, IFeedClientService
             }
         }
 
-        string entryAuthor = "";
+        var entryAuthor = "";
         XmlNodeList? entryAuthors = entryNode.SelectNodes("atom:author", atomNsMgr);
         if (entryAuthors != null)
         {
@@ -1428,7 +1520,7 @@ public class FeedClientService : BaseClient, IFeedClientService
         XmlNode? cont = entryNode.SelectSingleNode("atom:content", atomNsMgr);
         if (cont != null)
         {
-            string contype = cont.Attributes["type"].Value;
+            var contype = cont.Attributes["type"].Value;
             if (!string.IsNullOrEmpty(contype))
             {
                 entry.ContentTypeString = contype;
@@ -1480,7 +1572,7 @@ public class FeedClientService : BaseClient, IFeedClientService
         }
         else
         {
-            string s = entry.Content;
+            var s = entry.Content;
 
             if (!string.IsNullOrEmpty(s))
             {
@@ -1493,6 +1585,77 @@ public class FeedClientService : BaseClient, IFeedClientService
                 {
                     entry.Summary = s;
                     //entItem.SummaryPlainText = Truncate(s, 78);
+                }
+            }
+        }
+
+        // xmlns:media="http://search.yahoo.com/mrss/" eg YouTube
+        XmlNode? mediaNode = entryNode.SelectSingleNode("media:group", atomNsMgr);
+        if (mediaNode != null)
+        {
+            if (string.IsNullOrEmpty(entry.Title))
+            {
+                XmlNode? mediaTitleNode = mediaNode.SelectSingleNode("media:title", atomNsMgr);
+                if (mediaTitleNode != null)
+                {
+                    entry.Title = mediaTitleNode.InnerText;
+                }
+            }
+
+            XmlNode? mediaContentNode = mediaNode.SelectSingleNode("media:content", atomNsMgr);
+            if (mediaContentNode != null)
+            {
+                var url = mediaContentNode.Attributes["url"].Value;
+                if (!string.IsNullOrEmpty(url))
+                {
+                    var type = mediaContentNode.Attributes["type"].Value;
+                    if (!string.IsNullOrEmpty(type))
+                    {
+                        if (type == "application/x-shockwave-flash")
+                        {
+                            // YouTube does this...
+                        }
+                        else if (type == "video/mp4")
+                        {
+                            //
+                        }
+                        else if (type == "audio/mp4")
+                        {
+                            //
+                        }
+                        else if (type == "audio/mpeg")
+                        {
+                            //mp3
+                            try
+                            {
+                                entry.AudioUri = new Uri(url);
+                            }
+                            catch { }
+                        }
+                    }
+                }
+            }
+
+            XmlNode? mediaThumbnailNode = mediaNode.SelectSingleNode("media:thumbnail", atomNsMgr);
+            if (mediaThumbnailNode != null)
+            {
+                var url = mediaThumbnailNode.Attributes["url"].Value;
+                if (!string.IsNullOrEmpty(url))
+                {
+                    try
+                    {
+                        entry.ImageUri = new Uri(url);
+                    }
+                    catch { }
+                }
+            }
+
+            if (string.IsNullOrEmpty(entry.Summary))
+            {
+                XmlNode? mediaDescriptionNode = mediaNode.SelectSingleNode("media:description", atomNsMgr);
+                if (mediaDescriptionNode != null)
+                {
+                    entry.Summary = mediaDescriptionNode.InnerText;
                 }
             }
         }

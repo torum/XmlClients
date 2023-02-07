@@ -225,20 +225,6 @@ public abstract class EntryItem : Node
         }
     }
 
-    // For FeedEntryItem, "IsArchived" is used so far.
-    private string _commonStatus = "";
-    public string CommonStatus
-    {
-        get => _commonStatus;
-        protected set
-        {
-            if (_commonStatus == value)
-                return;
-            _commonStatus = value;
-            NotifyPropertyChanged(nameof(CommonStatus));
-        }
-    }
-
     private Uri? _imageUri;
     public Uri? ImageUri
     {
@@ -264,6 +250,21 @@ public abstract class EntryItem : Node
 
             _audioUri = value;
             NotifyPropertyChanged(nameof(AudioUri));
+        }
+    }
+
+    // TODO: stil using?
+    // For FeedEntryItem, "IsArchived" is used so far.
+    private string _commonStatus = "";
+    public string CommonStatus
+    {
+        get => _commonStatus;
+        protected set
+        {
+            if (_commonStatus == value)
+                return;
+            _commonStatus = value;
+            NotifyPropertyChanged(nameof(CommonStatus));
         }
     }
 
@@ -390,6 +391,7 @@ public class FeedEntryItem : EntryItem
     private static readonly string _rsNormal = "M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z";
     private static readonly string _rsVisited = "M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M12 20C7.59 20 4 16.41 4 12S7.59 4 12 4 20 7.59 20 12 16.41 20 12 20M16.59 7.58L10 14.17L7.41 11.59L6 13L10 17L18 9L16.59 7.58Z";
 
+    // internal read state
     public enum ReadStatus
     {
         rsNew,
@@ -418,6 +420,7 @@ public class FeedEntryItem : EntryItem
         }
     }
 
+    // internal flag
     private bool _isArchived = false;
     public bool IsArchived
     {
@@ -434,7 +437,6 @@ public class FeedEntryItem : EntryItem
 
         }
     }
-
 
     // rss item source@url (news source site info)
     private string _source = "";
@@ -490,6 +492,23 @@ public class FeedEntryItem : EntryItem
         }
     }
 
+    // comment uri for hatena and hacker news.
+    private Uri? _commentUri;
+    public Uri? CommentUri
+    {
+        get => _commentUri;
+        set
+        {
+            if (_commentUri == value)
+                return;
+
+            _commentUri = value;
+            NotifyPropertyChanged(nameof(CommentUri));
+        }
+    }
+
+
+    // TODO: still using this?
     private string _feedTitle = "";
     public string FeedTitle
     {
@@ -502,7 +521,6 @@ public class FeedEntryItem : EntryItem
             NotifyPropertyChanged(nameof(FeedTitle));
         }
     }
-
 
     public FeedEntryItem(string title, string serviceId, BaseClient bc) : base(title, serviceId, bc)
     {
