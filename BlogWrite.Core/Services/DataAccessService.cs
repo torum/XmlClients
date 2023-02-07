@@ -1,7 +1,9 @@
 ﻿using System.Data;
 using System.Data.SQLite;
+using AngleSharp.Dom;
 using BlogWrite.Core.Contracts.Services;
 using BlogWrite.Core.Models;
+using Microsoft.UI.Xaml.Controls.Primitives;
 
 namespace BlogWrite.Core.Services;
 
@@ -75,6 +77,26 @@ public class DataAccessService : IDataAccessService
                         //tableCmd.CommandText = "ALTER TABLE entries ADD COLUMN category TEXT;";
                         //tableCmd.ExecuteNonQuery();
 
+                        //
+                        //tableCmd.CommandText = "drop trigger if exists trigger_delete_old_entries";
+                        //tableCmd.ExecuteNonQuery();
+                        /*
+                        tableCmd.CommandText = "CREATE TRIGGER IF NOT EXISTS trigger_delete_old_entries AFTER INSERT ON entries";
+                        tableCmd.CommandText += " BEGIN";
+                        tableCmd.CommandText += " delete from entries where";
+                        tableCmd.CommandText += " entry_id = (select min(entry_id) from entries)";
+                        tableCmd.CommandText += " and (select count(*) from entries) > 1000;";
+                        tableCmd.CommandText += " END;";
+                        tableCmd.ExecuteNonQuery();
+                        */
+                        /*
+                        tableCmd.CommandText = "CREATE TRIGGER IF NOT EXISTS trigger_delete_old_entries AFTER INSERT ON entries";
+                        tableCmd.CommandText += " WHEN (SELECT COUNT(*) FROM entries) > 1000";
+                        tableCmd.CommandText += " BEGIN";
+                        tableCmd.CommandText += " DELETE FROM entries WHERE entry_id NOT IN (SELECT entry_id FROM entries ORDER BY published DESC LIMIT 1000);";
+                        tableCmd.CommandText += " END;";
+                        tableCmd.ExecuteNonQuery();
+                        */
                         tableCmd.Transaction.Commit();
                     }
                     catch (Exception e)
@@ -84,8 +106,8 @@ public class DataAccessService : IDataAccessService
                         res.IsError = true;
                         res.Error.ErrType = ErrorObject.ErrTypes.DB;
                         res.Error.ErrCode = "";
-                        res.Error.ErrText = "Exception";
-                        res.Error.ErrDescription = e.Message;
+                        res.Error.ErrText = e.Message;
+                        res.Error.ErrDescription = "Exception while executing SQL queries";
                         res.Error.ErrDatetime = DateTime.Now;
                         res.Error.ErrPlace = "Transaction.Commit";
                         res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
@@ -99,8 +121,8 @@ public class DataAccessService : IDataAccessService
                 res.IsError = true;
                 res.Error.ErrType = ErrorObject.ErrTypes.DB;
                 res.Error.ErrCode = "";
-                res.Error.ErrText = "TargetInvocationException";
-                res.Error.ErrDescription = ex.Message;
+                res.Error.ErrText = ex.Message;
+                res.Error.ErrDescription = "TargetInvocationException while connecting to a SQL database file"; 
                 res.Error.ErrDatetime = DateTime.Now;
                 res.Error.ErrPlace = "connection.Open";
                 res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
@@ -112,8 +134,8 @@ public class DataAccessService : IDataAccessService
                 res.IsError = true;
                 res.Error.ErrType = ErrorObject.ErrTypes.DB;
                 res.Error.ErrCode = "";
-                res.Error.ErrText = "InvalidOperationException"; ;
-                res.Error.ErrDescription = ex.Message;
+                res.Error.ErrText = ex.Message;
+                res.Error.ErrDescription = "InvalidOperationException while connecting to a SQL database file";
                 res.Error.ErrDatetime = DateTime.Now;
                 res.Error.ErrPlace = "connection.Open";
                 res.Error.ErrPlaceParent = "DataAccess::InitializeDatabase";
@@ -128,13 +150,13 @@ public class DataAccessService : IDataAccessService
 
                 if (e.InnerException != null)
                 {
-                    res.Error.ErrText = "InnerException";
-                    res.Error.ErrDescription = e.InnerException.Message;
+                    res.Error.ErrDescription = "InnerException while connecting to a SQL database file";
+                    res.Error.ErrText = e.InnerException.Message;
                 }
                 else
                 {
-                    res.Error.ErrText = "Exception";
-                    res.Error.ErrDescription = e.Message;
+                    res.Error.ErrDescription = "Exception while connecting to a SQL database file";
+                    res.Error.ErrText = e.Message;
                 }
                 res.Error.ErrDatetime = DateTime.Now;
                 res.Error.ErrPlace = "connection.Open";
@@ -198,8 +220,8 @@ public class DataAccessService : IDataAccessService
                         res.IsError = true;
                         res.Error.ErrType = ErrorObject.ErrTypes.DB;
                         res.Error.ErrCode = "";
-                        res.Error.ErrText = "Exception";
-                        res.Error.ErrDescription = e.Message;
+                        res.Error.ErrText = e.Message;
+                        res.Error.ErrDescription = "Exception";
                         res.Error.ErrDatetime = DateTime.Now;
                         res.Error.ErrPlace = "connection.Open(),Transaction.Commit";
                         res.Error.ErrPlaceParent = "DataAccess::InsertFeed";
@@ -214,8 +236,8 @@ public class DataAccessService : IDataAccessService
             res.IsError = true;
             res.Error.ErrType = ErrorObject.ErrTypes.DB;
             res.Error.ErrCode = "";
-            res.Error.ErrText = "TargetInvocationException";
-            res.Error.ErrDescription = ex.Message;
+            res.Error.ErrText = ex.Message;
+            res.Error.ErrDescription = "TargetInvocationException";
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
             res.Error.ErrPlaceParent = "DataAccess::InsertFeed";
@@ -229,8 +251,8 @@ public class DataAccessService : IDataAccessService
             res.IsError = true;
             res.Error.ErrType = ErrorObject.ErrTypes.DB;
             res.Error.ErrCode = "";
-            res.Error.ErrText = "InvalidOperationException";
-            res.Error.ErrDescription = ex.Message;
+            res.Error.ErrText = ex.Message;
+            res.Error.ErrDescription = "InvalidOperationException";
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
             res.Error.ErrPlaceParent = "DataAccess::InsertFeed";
@@ -245,13 +267,13 @@ public class DataAccessService : IDataAccessService
 
             if (e.InnerException != null)
             {
-                res.Error.ErrText = "InnerException";
-                res.Error.ErrDescription = e.InnerException.Message;
+                res.Error.ErrText = e.InnerException.Message;
+                res.Error.ErrDescription = "InnerException";
             }
             else
             {
-                res.Error.ErrText = "Exception";
-                res.Error.ErrDescription = e.Message;
+                res.Error.ErrText = e.Message;
+                res.Error.ErrDescription = "Exception";
             }
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
@@ -299,8 +321,8 @@ public class DataAccessService : IDataAccessService
             res.IsError = true;
             res.Error.ErrType = ErrorObject.ErrTypes.DB;
             res.Error.ErrCode = "";
-            res.Error.ErrText = "TargetInvocationException";
-            res.Error.ErrDescription = ex.Message;
+            res.Error.ErrText = ex.Message;
+            res.Error.ErrDescription = "TargetInvocationException";
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),cmd.ExecuteNonQuery()";
             res.Error.ErrPlaceParent = "DataAccess::DeleteFeed";
@@ -312,8 +334,8 @@ public class DataAccessService : IDataAccessService
             res.IsError = true;
             res.Error.ErrType = ErrorObject.ErrTypes.DB;
             res.Error.ErrCode = "";
-            res.Error.ErrText = "InvalidOperationException";
-            res.Error.ErrDescription = ex.Message;
+            res.Error.ErrText = ex.Message;
+            res.Error.ErrDescription = "InvalidOperationException";
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),cmd.ExecuteNonQuery()";
             res.Error.ErrPlaceParent = "DataAccess::DeleteFeed";
@@ -325,16 +347,17 @@ public class DataAccessService : IDataAccessService
             res.IsError = true;
             res.Error.ErrType = ErrorObject.ErrTypes.DB;
             res.Error.ErrCode = "";
-            res.Error.ErrText = e.ToString();
             if (e.InnerException != null)
             {
+                res.Error.ErrDescription = "InnerException";
+                res.Error.ErrText = e.Message + " " + e.InnerException.Message;
                 Debug.WriteLine(e.InnerException.Message + " @DataAccess::DeleteFeed");
-                res.Error.ErrDescription = e.InnerException.Message;
             }
             else
             {
+                res.Error.ErrDescription = "Exception";
+                res.Error.ErrText = e.Message;
                 Debug.WriteLine(e.Message + " @DataAccess::DeleteFeed");
-                res.Error.ErrDescription = e.Message;
             }
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),cmd.ExecuteNonQuery()";
@@ -372,9 +395,9 @@ public class DataAccessService : IDataAccessService
                     try
                     {
                         var sql = "UPDATE feeds SET ";
-                        sql += String.Format("name = '{0}', ", escapeSingleQuote(feedName));
-                        sql += String.Format("title = '{0}', ", escapeSingleQuote(feedTitle));
-                        sql += String.Format("description = '{0}', ", escapeSingleQuote(feedDescription));
+                        sql += String.Format("name = '{0}', ", EscapeSingleQuote(feedName));
+                        sql += String.Format("title = '{0}', ", EscapeSingleQuote(feedTitle));
+                        sql += String.Format("description = '{0}', ", EscapeSingleQuote(feedDescription));
                         sql += String.Format("updated = '{0}'", updated.ToString("yyyy-MM-dd HH:mm:ss"));
                         if (htmlUri != null)
                         {
@@ -395,8 +418,8 @@ public class DataAccessService : IDataAccessService
                         res.IsError = true;
                         res.Error.ErrType = ErrorObject.ErrTypes.DB;
                         res.Error.ErrCode = "";
-                        res.Error.ErrText = "Exception";
-                        res.Error.ErrDescription = e.Message;
+                        res.Error.ErrText = e.Message;
+                        res.Error.ErrDescription = "Exception";
                         res.Error.ErrDatetime = DateTime.Now;
                         res.Error.ErrPlace = "connection.Open(),Transaction.Commit";
                         res.Error.ErrPlaceParent = "DataAccess::UpdateFeed";
@@ -411,8 +434,8 @@ public class DataAccessService : IDataAccessService
             res.IsError = true;
             res.Error.ErrType = ErrorObject.ErrTypes.DB;
             res.Error.ErrCode = "";
-            res.Error.ErrText = "TargetInvocationException";
-            res.Error.ErrDescription = ex.Message;
+            res.Error.ErrDescription = "TargetInvocationException";
+            res.Error.ErrText = ex.Message;
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
             res.Error.ErrPlaceParent = "DataAccess::UpdateFeed";
@@ -426,8 +449,8 @@ public class DataAccessService : IDataAccessService
             res.IsError = true;
             res.Error.ErrType = ErrorObject.ErrTypes.DB;
             res.Error.ErrCode = "";
-            res.Error.ErrText = "InvalidOperationException";
-            res.Error.ErrDescription = ex.Message;
+            res.Error.ErrDescription = "InvalidOperationException";
+            res.Error.ErrText = ex.Message;
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
             res.Error.ErrPlaceParent = "DataAccess::UpdateFeed";
@@ -442,13 +465,13 @@ public class DataAccessService : IDataAccessService
 
             if (e.InnerException != null)
             {
-                res.Error.ErrText = "InnerException";
-                res.Error.ErrDescription = e.InnerException.Message;
+                res.Error.ErrDescription = "InnerException";
+                res.Error.ErrText = e.Message + " " + e.InnerException.Message;
             }
             else
             {
-                res.Error.ErrText = "Exception";
-                res.Error.ErrDescription = e.Message;
+                res.Error.ErrDescription = "Exception";
+                res.Error.ErrText = e.Message;
             }
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
@@ -482,9 +505,9 @@ public class DataAccessService : IDataAccessService
                     {
                         // update feed info.
                         var sql = "UPDATE feeds SET ";
-                        sql += String.Format("name = '{0}', ", escapeSingleQuote(feedName));
-                        sql += String.Format("title = '{0}', ", escapeSingleQuote(feedTitle));
-                        sql += String.Format("description = '{0}', ", escapeSingleQuote(feedDescription));
+                        sql += String.Format("name = '{0}', ", EscapeSingleQuote(feedName));
+                        sql += String.Format("title = '{0}', ", EscapeSingleQuote(feedTitle));
+                        sql += String.Format("description = '{0}', ", EscapeSingleQuote(feedDescription));
                         sql += String.Format("updated = '{0}'", updated.ToString("yyyy-MM-dd HH:mm:ss"));
                         if (htmlUri != null)
                         {
@@ -499,6 +522,7 @@ public class DataAccessService : IDataAccessService
                         {
                             if (entry is not FeedEntryItem)
                                 continue;
+
                             //if ((entry.EntryId == null) || (entry.AltHtmlUri == null))
                             if (entry.EntryId == null)
                                 continue;
@@ -609,7 +633,13 @@ public class DataAccessService : IDataAccessService
                             }
                         }
 
-                        //　コミット
+                        //
+                        //cmd.CommandText = "SELECT COUNT(*) FROM tracks WHERE albumid = 10;";
+                        cmd.CommandText = String.Format("DELETE FROM entries WHERE feed_id = '{0}' AND entry_id NOT IN (SELECT entry_id FROM entries WHERE feed_id = '{0}' ORDER BY published DESC LIMIT 1000);", feedId);
+                        cmd.ExecuteNonQuery();
+
+
+                        //
                         cmd.Transaction.Commit();
                     }
                     catch (Exception e)
@@ -619,8 +649,8 @@ public class DataAccessService : IDataAccessService
                         res.IsError = true;
                         res.Error.ErrType = ErrorObject.ErrTypes.DB;
                         res.Error.ErrCode = "";
-                        res.Error.ErrText = "Exception";
-                        res.Error.ErrDescription = e.Message;
+                        res.Error.ErrDescription = "Exception";
+                        res.Error.ErrText = e.Message;
                         res.Error.ErrDatetime = DateTime.Now;
                         res.Error.ErrPlace = "connection.Open(),Transaction.Commit";
                         res.Error.ErrPlaceParent = "DataAccess::InsertEntries";
@@ -635,8 +665,8 @@ public class DataAccessService : IDataAccessService
             res.IsError = true;
             res.Error.ErrType = ErrorObject.ErrTypes.DB;
             res.Error.ErrCode = "";
-            res.Error.ErrText = "TargetInvocationException";
-            res.Error.ErrDescription = ex.Message;
+            res.Error.ErrDescription = "TargetInvocationException";
+            res.Error.ErrText = ex.Message;
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
             res.Error.ErrPlaceParent = "DataAccess::InsertEntries";
@@ -650,8 +680,8 @@ public class DataAccessService : IDataAccessService
             res.IsError = true;
             res.Error.ErrType = ErrorObject.ErrTypes.DB;
             res.Error.ErrCode = "";
-            res.Error.ErrText = "InvalidOperationException";
-            res.Error.ErrDescription = ex.Message;
+            res.Error.ErrDescription = "InvalidOperationException";
+            res.Error.ErrText = ex.Message;
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
             res.Error.ErrPlaceParent = "DataAccess::InsertEntries";
@@ -666,13 +696,13 @@ public class DataAccessService : IDataAccessService
 
             if (e.InnerException != null)
             {
-                res.Error.ErrText = "InnerException";
-                res.Error.ErrDescription = e.InnerException.Message;
+                res.Error.ErrDescription = "InnerException";
+                res.Error.ErrText = e.Message + " " + e.InnerException.Message;
             }
             else
             {
-                res.Error.ErrText = "Exception";
-                res.Error.ErrDescription = e.Message;
+                res.Error.ErrDescription = "Exception";
+                res.Error.ErrText = e.Message;
             }
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
@@ -709,7 +739,7 @@ public class DataAccessService : IDataAccessService
                     }
                     else
                     {
-                        cmd.CommandText = String.Format("SELECT feeds.name as feedName, entries.title as entryTitle, entries.entry_id as entryId, entries.url as entryUrl, entries.published as entryPublished, entries.summary as entrySummary, entries.content as entryContent, entries.content_type as entryContentType, entries.image_url as entryImageUri, entries.audio_url as entryAudioUri, entries.source as entrySource, entries.source_url as entrySourceUri, entries.author as entryAuthor, entries.category as entryCategory, entries.comment_url as entryCommentUri, entries.archived as entryArchived FROM entries INNER JOIN feeds USING (feed_id) WHERE feed_id = '{0}' ORDER BY published DESC LIMIT 10000", feedId);
+                        cmd.CommandText = String.Format("SELECT feeds.name as feedName, entries.title as entryTitle, entries.entry_id as entryId, entries.url as entryUrl, entries.published as entryPublished, entries.summary as entrySummary, entries.content as entryContent, entries.content_type as entryContentType, entries.image_url as entryImageUri, entries.audio_url as entryAudioUri, entries.source as entrySource, entries.source_url as entrySourceUri, entries.author as entryAuthor, entries.category as entryCategory, entries.comment_url as entryCommentUri, entries.archived as entryArchived FROM entries INNER JOIN feeds USING (feed_id) WHERE feed_id = '{0}' ORDER BY published DESC LIMIT 5000", feedId);
                     }
 
                     using (var reader = cmd.ExecuteReader())
@@ -869,8 +899,8 @@ public class DataAccessService : IDataAccessService
             res.IsError = true;
             res.Error.ErrType = ErrorObject.ErrTypes.DB;
             res.Error.ErrCode = "";
-            res.Error.ErrText = "TargetInvocationException";
-            res.Error.ErrDescription = ex.Message;
+            res.Error.ErrDescription = "TargetInvocationException";
+            res.Error.ErrText = ex.Message;
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
             res.Error.ErrPlaceParent = "DataAccess::SelectEntriesByFeedId";
@@ -884,8 +914,8 @@ public class DataAccessService : IDataAccessService
             res.IsError = true;
             res.Error.ErrType = ErrorObject.ErrTypes.DB;
             res.Error.ErrCode = "";
-            res.Error.ErrText = "InvalidOperationException";
-            res.Error.ErrDescription = ex.Message;
+            res.Error.ErrDescription = "InvalidOperationException";
+            res.Error.ErrText = ex.Message;
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
             res.Error.ErrPlaceParent = "DataAccess::SelectEntriesByFeedId";
@@ -897,16 +927,17 @@ public class DataAccessService : IDataAccessService
             res.IsError = true;
             res.Error.ErrType = ErrorObject.ErrTypes.DB;
             res.Error.ErrCode = "";
-            res.Error.ErrText = e.ToString();
             if (e.InnerException != null)
             {
                 Debug.WriteLine(e.InnerException.Message + " @DataAccess::SelectEntriesByFeedId");
-                res.Error.ErrDescription = e.InnerException.Message;
+                res.Error.ErrDescription = "InnerException";
+                res.Error.ErrText = e.InnerException.Message;
             }
             else
             {
                 Debug.WriteLine(e.Message + " @DataAccess::SelectEntriesByFeedId");
-                res.Error.ErrDescription = e.Message;
+                res.Error.ErrDescription = "Exception";
+                res.Error.ErrText = e.Message;
             }
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
@@ -1116,8 +1147,8 @@ public class DataAccessService : IDataAccessService
             res.IsError = true;
             res.Error.ErrType = ErrorObject.ErrTypes.DB;
             res.Error.ErrCode = "";
-            res.Error.ErrText = "InvalidOperationException";
-            res.Error.ErrDescription = ex.Message;
+            res.Error.ErrDescription = "InvalidOperationException";
+            res.Error.ErrText = ex.Message;
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
             res.Error.ErrPlaceParent = "DataAccess::SelectEntriesByMultipleFeedIds";
@@ -1129,16 +1160,17 @@ public class DataAccessService : IDataAccessService
             res.IsError = true;
             res.Error.ErrType = ErrorObject.ErrTypes.DB;
             res.Error.ErrCode = "";
-            res.Error.ErrText = e.ToString();
             if (e.InnerException != null)
             {
                 Debug.WriteLine(e.InnerException.Message + " @DataAccess::SelectEntriesByMultipleFeedIds");
-                res.Error.ErrDescription = e.InnerException.Message;
+                res.Error.ErrText = e.Message + " " + e.InnerException.Message;
+                res.Error.ErrDescription = "InnerException";
             }
             else
             {
                 Debug.WriteLine(e.Message + " @DataAccess::SelectEntriesByMultipleFeedIds");
-                res.Error.ErrDescription = e.Message;
+                res.Error.ErrText = e.Message;
+                res.Error.ErrDescription = "Exception";
             }
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),ExecuteReader()";
@@ -1203,8 +1235,8 @@ public class DataAccessService : IDataAccessService
                         res.IsError = true;
                         res.Error.ErrType = ErrorObject.ErrTypes.DB;
                         res.Error.ErrCode = "";
-                        res.Error.ErrText = "Exception";
-                        res.Error.ErrDescription = e.Message;
+                        res.Error.ErrText = e.Message;
+                        res.Error.ErrDescription = "Exception";
                         res.Error.ErrDatetime = DateTime.Now;
                         res.Error.ErrPlace = "connection.Open(),Transaction.Commit";
                         res.Error.ErrPlaceParent = "DataAccess::UpdateAllEntriesAsRead";
@@ -1219,8 +1251,8 @@ public class DataAccessService : IDataAccessService
             res.IsError = true;
             res.Error.ErrType = ErrorObject.ErrTypes.DB;
             res.Error.ErrCode = "";
-            res.Error.ErrText = "InvalidOperationException";
-            res.Error.ErrDescription = ex.Message;
+            res.Error.ErrText = ex.Message;
+            res.Error.ErrDescription = "InvalidOperationException";
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
             res.Error.ErrPlaceParent = "DataAccess::UpdateAllEntriesAsRead";
@@ -1235,13 +1267,13 @@ public class DataAccessService : IDataAccessService
 
             if (e.InnerException != null)
             {
-                res.Error.ErrText = "InnerException";
-                res.Error.ErrDescription = e.InnerException.Message;
+                res.Error.ErrDescription = "InnerException";
+                res.Error.ErrText = e.Message + " " + e.InnerException.Message;
             }
             else
             {
-                res.Error.ErrText = "Exception";
-                res.Error.ErrDescription = e.Message;
+                res.Error.ErrDescription = "Exception";
+                res.Error.ErrText = e.Message;
             }
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
@@ -1317,8 +1349,8 @@ public class DataAccessService : IDataAccessService
             res.IsError = true;
             res.Error.ErrType = ErrorObject.ErrTypes.DB;
             res.Error.ErrCode = "";
-            res.Error.ErrText = "TargetInvocationException";
-            res.Error.ErrDescription = ex.Message;
+            res.Error.ErrDescription = "TargetInvocationException";
+            res.Error.ErrText = ex.Message;
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),cmd.ExecuteNonQuery()";
             res.Error.ErrPlaceParent = "DataAccess::DeleteEntriesByFeedIds";
@@ -1330,8 +1362,8 @@ public class DataAccessService : IDataAccessService
             res.IsError = true;
             res.Error.ErrType = ErrorObject.ErrTypes.DB;
             res.Error.ErrCode = "";
-            res.Error.ErrText = "InvalidOperationException";
-            res.Error.ErrDescription = ex.Message;
+            res.Error.ErrDescription = "InvalidOperationException";
+            res.Error.ErrText = ex.Message;
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),cmd.ExecuteNonQuery()";
             res.Error.ErrPlaceParent = "DataAccess::DeleteEntriesByFeedIds";
@@ -1343,16 +1375,17 @@ public class DataAccessService : IDataAccessService
             res.IsError = true;
             res.Error.ErrType = ErrorObject.ErrTypes.DB;
             res.Error.ErrCode = "";
-            res.Error.ErrText = e.ToString();
             if (e.InnerException != null)
             {
                 Debug.WriteLine(e.InnerException.Message + " @DataAccess::DeleteEntriesByFeedIds");
-                res.Error.ErrDescription = e.InnerException.Message;
+                res.Error.ErrDescription = "InnerException";
+                res.Error.ErrText = e.Message + " " + e.InnerException.Message;
             }
             else
             {
                 Debug.WriteLine(e.Message + " @DataAccess::DeleteEntriesByFeedIds");
-                res.Error.ErrDescription = e.Message;
+                res.Error.ErrDescription = "Exception";
+                res.Error.ErrText = e.Message;
             }
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),cmd.ExecuteNonQuery()";
@@ -1367,7 +1400,7 @@ public class DataAccessService : IDataAccessService
     }
 
     // ColumnExists check
-    private bool ColumnExists(IDataRecord dr, string columnName)
+    private static bool ColumnExists(IDataRecord dr, string columnName)
     {
         for (var i = 0; i < dr.FieldCount; i++)
         {
@@ -1379,7 +1412,7 @@ public class DataAccessService : IDataAccessService
         return false; ;
     }
 
-    private string escapeSingleQuote(string s)
+    private static string EscapeSingleQuote(string s)
     {
         return s is null ? string.Empty : s.Replace("'", "''");
     }

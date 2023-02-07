@@ -75,7 +75,7 @@
 
                                 <MenuFlyoutSeparator/>
 
-                                <MenuFlyoutItem Text="Export OPML">
+                                <MenuFlyoutItem Text="Export OPML" Command="{x:Bind ViewModel.MenuFileExportOpmlCommand}">
                                     <MenuFlyoutItem.Icon>
                                         <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                             <PathIcon.Data>
@@ -83,8 +83,8 @@
                                         </PathIcon>
                                     </MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
-                                
-                                <MenuFlyoutItem Text="Inport OPML">
+
+                                <MenuFlyoutItem Text="Inport OPML" Command="{x:Bind ViewModel.MenuFileInportOpmlCommand}">
                                     <MenuFlyoutItem.Icon>
                                         <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                             <PathIcon.Data>

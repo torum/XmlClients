@@ -21,6 +21,16 @@ public class ShellViewModel : ObservableRecipient
         get;
     }
 
+    public ICommand MenuFileExportOpmlCommand
+    {
+        get;
+    }
+
+    public ICommand MenuFileInportOpmlCommand
+    {
+        get;
+    }
+
     public ICommand MenuSettingsCommand
     {
         get;
@@ -42,8 +52,7 @@ public class ShellViewModel : ObservableRecipient
     {
         get;
     }
-    */
-    /*
+
     private object? _selected;
     public object? Selected
     {
@@ -66,6 +75,8 @@ public class ShellViewModel : ObservableRecipient
         //NavigationViewService = navigationViewService;
 
         MenuFileExitCommand = new RelayCommand(OnMenuFileExit);
+        MenuFileExportOpmlCommand = new RelayCommand(OnMenuFileExportOpml);
+        MenuFileInportOpmlCommand = new RelayCommand(OnMenuFileInportOpml);
         MenuSettingsCommand = new RelayCommand(OnMenuSettings);
         MenuViewFeedsCommand = new RelayCommand(OnMenuViewFeeds);
 
@@ -91,6 +102,19 @@ public class ShellViewModel : ObservableRecipient
     }
 
     private void OnMenuFileExit() => Application.Current.Exit();
+
+    private void OnMenuFileExportOpml()
+    {
+        var hoge = App.GetService<MainViewModel>();
+        hoge.OpmlExport();
+
+    }
+
+    private async void OnMenuFileInportOpml()
+    {
+        var hoge = App.GetService<MainViewModel>();
+        await hoge.OpmlImportAsync();
+    }
 
     private void OnMenuSettings() => NavigationService.NavigateTo(typeof(SettingsViewModel).FullName!);
 

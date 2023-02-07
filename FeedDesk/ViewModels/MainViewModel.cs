@@ -226,17 +226,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 EntryViewExternalCommand.NotifyCanExecuteChanged();
             }
 
-            //IsMediaPlayerVisible = false;
-            //MediaSource = null;
-
             if (_selectedListViewItem == null)
             {
-                //WriteHtmlToContentPreviewBrowser?.Invoke(this, "");
-
-                //NotifyPropertyChanged(nameof(EntryContentText));
-
                 IsEntryDetailVisible = false;
-
                 return;
             }
             else
@@ -244,28 +236,28 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 IsEntryDetailVisible = true;
             }
 
-            SelectedEntrySummary = _selectedListViewItem.Summary;
+            //SelectedEntrySummary = _selectedListViewItem.Summary;
 
             if ((_selectedListViewItem as EntryItem).ContentType == EntryItem.ContentTypes.text)
             {
                 IsContentText = true;
-                SelectedEntryContentText = (_selectedListViewItem as EntryItem).Content;
+                //SelectedEntryContentText = (_selectedListViewItem as EntryItem).Content;
             }
             else
             {
                 IsContentText = false;
-                SelectedEntryContentText = "";
+                //SelectedEntryContentText = "";
             }
 
             if ((_selectedListViewItem as EntryItem).ContentType == EntryItem.ContentTypes.textHtml)
             {
                 IsContentHTML = true;
-                SelectedEntryContentHTML = (_selectedListViewItem as EntryItem).Content;
+                //SelectedEntryContentHTML = (_selectedListViewItem as EntryItem).Content;
             }
             else
             {
                 IsContentHTML = false;
-                SelectedEntryContentHTML = "";
+                //SelectedEntryContentHTML = "";
             }
 
             if ((_selectedListViewItem as EntryItem).AltHtmlUri != null)
@@ -280,7 +272,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             if (_selectedListViewItem.ImageUri != null)
             {
                 IsImageLinkExists = true;
-                //Debug.WriteLine(_selectedListViewItem.ImageUri.AbsoluteUri);
             }
             else
             {
@@ -290,12 +281,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             if (_selectedListViewItem.AudioUri != null)
             {
                 IsAudioLinkExists = true;
-                //MediaSource = MediaSource.CreateFromUri(_selectedListViewItem.AudioUri);
             }
             else
             {
                 IsAudioLinkExists = false;
-                //MediaSource = null;
             }
 
             if (_selectedListViewItem.CommentUri != null)
@@ -308,14 +297,14 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             }
         }
     }
-
+    /*
     private string? _selectedEntrySummary;
     public string? SelectedEntrySummary
     {
         get => _selectedEntrySummary;
         set => SetProperty(ref _selectedEntrySummary, value);
     }
-
+    */
     private string? _selectedEntryContentText;
     public string? SelectedEntryContentText
     {
@@ -508,23 +497,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         set => SetProperty(ref _isDebugWindowEnabled, value);
     }
 
-    private bool _isShowFeedError = false;
-    public bool IsShowFeedError
-    {
-        get => _isShowFeedError;
-        set
-        {
-            SetProperty(ref _isShowFeedError, value);
-            IsShowFeedErrorInverse = !value;
-        }
-    }
-
-    private bool _isShowFeedErrorInverse = true;
-    public bool IsShowFeedErrorInverse
-    {
-        get => _isShowFeedErrorInverse;
-        set => SetProperty(ref _isShowFeedErrorInverse, value);
-    }
 
     private bool _isEntryDetaileVisible = false;
     public bool IsEntryDetailVisible
@@ -540,15 +512,104 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         set => SetProperty(ref _isEntryDetailPaneVisible, value);
     }
 
+    private bool _isFeedTreeLoaded = false;
+    public bool IsFeedTreeLoaded => _isFeedTreeLoaded;
+
     #endregion
 
-    #region == Error ==
+    #region == Errors ==
 
+    // Feed node error obj
     private ErrorObject? _errorObj;
     public ErrorObject? ErrorObj
     {
         get => _errorObj;
         set => SetProperty(ref _errorObj, value);
+    }
+
+    private bool _isShowFeedError = false;
+    public bool IsShowFeedError
+    {
+        get => _isShowFeedError;
+        set
+        {
+            SetProperty(ref _isShowFeedError, value);
+            IsNotShowFeedError = !value;
+        }
+    }
+
+    private bool _isNotShowFeedError = true;
+    public bool IsNotShowFeedError
+    {
+        get => _isNotShowFeedError;
+        set => SetProperty(ref _isNotShowFeedError, value);
+    }
+
+    // Main error
+    private ErrorObject? _errorMain;
+    public ErrorObject? ErrorMain
+    {
+        get => _errorMain;
+        set => SetProperty(ref _errorMain, value);
+    }
+
+    private string? _errorMainTitle;
+    public string? ErrorMainTitle
+    {
+        get => _errorMainTitle;
+        set => SetProperty(ref _errorMainTitle, value);
+    }
+
+    private string? _errorMainMessage;
+    public string? ErrorMainMessage
+    {
+        get => _errorMainMessage;
+        set => SetProperty(ref _errorMainMessage, value);
+    }
+
+    private bool _isMainErrorInfoBarVisible = false;
+    public bool IsMainErrorInfoBarVisible
+    {
+        get => _isMainErrorInfoBarVisible;
+        set
+        {
+            if ((value == true) && (_errorMain != null))
+            {
+                ErrorMainTitle = ErrorMain.ErrDescription;
+                ErrorMainMessage = ErrorMain.ErrText;
+            }
+            else if (value == false)
+            {
+                _errorMain = null;
+            }
+
+            SetProperty(ref _isMainErrorInfoBarVisible, value);
+        }
+    }
+
+    #endregion
+
+    #region == Warning ==
+
+    private string? _warningMainTitle;
+    public string? WarningMainTitle
+    {
+        get => _warningMainTitle;
+        set => SetProperty(ref _warningMainTitle, value);
+    }
+
+    private string? _warningMainMessage;
+    public string? WarningMainMessage
+    {
+        get => _warningMainMessage;
+        set => SetProperty(ref _warningMainMessage, value);
+    }
+
+    private bool _isMainWarningInfoBarVisible = false;
+    public bool IsMainWarningInfoBarVisible
+    {
+        get => _isMainWarningInfoBarVisible;
+        set => SetProperty(ref _isMainWarningInfoBarVisible, value);
     }
 
     #endregion
@@ -621,7 +682,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-
     public MainViewModel(INavigationService navigationService, IFileDialogService fileDialogService, IDataAccessService dataAccessService, IFeedClientService feedClientService)
     {
         _navigationService = navigationService;
@@ -657,10 +717,21 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 doc.Load(filePath);
 
                 _services.LoadXmlDoc(doc);
+
+                _isFeedTreeLoaded = true;
             }
             catch (Exception ex)
             {
-                // TODO:
+                ErrorMain = new ErrorObject();
+                ErrorMain.ErrType = ErrorObject.ErrTypes.XML;
+                ErrorMain.ErrCode = "";
+                ErrorMain.ErrText = ex.Message;
+                ErrorMain.ErrDescription = "Error loading \"Searvies.xml\"";
+                ErrorMain.ErrDatetime = DateTime.Now;
+                ErrorMain.ErrPlace = "MainViewModel::InitializeFeedTree";
+                ErrorMain.ErrPlaceParent = "MainViewModel()";
+                IsMainErrorInfoBarVisible = true;
+
                 Debug.WriteLine("Exception while loading service.xml:" + ex);
             }
         }
@@ -669,48 +740,23 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private async void InitializeDatabase()
     {
         // Init database.
-        try
+        var filePath = Path.Combine(App.AppDataFolder, "Feeds.db");
+        if (RuntimeHelper.IsMSIX)
         {
-            var filePath = Path.Combine(App.AppDataFolder, "Feeds.db");
-            if (RuntimeHelper.IsMSIX)
-            {
-                filePath = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "Feeds.db");
-            }
-
-            var res = await Task.FromResult(_dataAccessService.InitializeDatabase(filePath));
-            if (res.IsError)
-            {
-                // TODO:
-                //MainError = res.Error;
-                //IsShowMainErrorMessage = true;
-
-                Debug.WriteLine("SQLite DB init: " + res.Error.ErrText + ": " + res.Error.ErrDescription + " @" + res.Error.ErrPlace + "@" + res.Error.ErrPlaceParent);
-            }
-
+            filePath = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "Feeds.db");
         }
-        catch (System.Reflection.TargetInvocationException ex)
+
+        var res = await Task.FromResult(_dataAccessService.InitializeDatabase(filePath));
+        if (res.IsError)
         {
-            Debug.WriteLine("SQLite DB init: " + ex.ToString() + ": " + ex.Message);
-        }
-        catch (System.InvalidOperationException ex)
-        {
-            Debug.WriteLine("SQLite DB init: " + ex.ToString() + ": " + ex.Message);
-        }
-        catch (Exception e)
-        {
-            // TODO:
-            /*
-            MainError = new ErrorObject();
-            MainError.ErrType = ErrorObject.ErrTypes.DB;
-            MainError.ErrCode = "";
-            MainError.ErrText = e.ToString();
-            MainError.ErrDescription = e.Message;
-            MainError.ErrDatetime = DateTime.Now;
-            MainError.ErrPlace = "dataAccessModule.InitializeDatabase";
-            MainError.ErrPlaceParent = "MainViewModel()";
-            IsShowMainErrorMessage = true;
-            */
-            Debug.WriteLine("SQLite DB init: " + e.ToString() + ": " + e.Message);
+            ErrorMain = res.Error;
+            //ErrorMain.ErrType = ErrorObject.ErrTypes.DB;
+            //ErrorMain.ErrDatetime = DateTime.Now;
+            //ErrorMain.ErrPlace = "dataAccessModule::InitializeDatabase";
+            //ErrorMain.ErrPlaceParent = "MainViewModel()";
+            IsMainErrorInfoBarVisible = true;
+
+            Debug.WriteLine("SQLite DB init: " + res.Error.ErrText + ": " + res.Error.ErrDescription + " @" + res.Error.ErrPlace + "@" + res.Error.ErrPlaceParent);
         }
     }
 
@@ -785,6 +831,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     public void SaveServiceXml()
     {
+        if (!IsFeedTreeLoaded)
+            return;
+
         var filePath = Path.Combine(App.AppDataFolder, "Searvies.xml");
         if (RuntimeHelper.IsMSIX)
         {
@@ -1764,12 +1813,13 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     {
         if (feedlink == null) return;
 
-        if (FeedDupeCheck(feedlink.FeedUri.AbsoluteUri))
+        if (IsFeedDupeCheck(feedlink.FeedUri.AbsoluteUri))
         {
-            Debug.WriteLine("FeedDupeCheck:" + feedlink.FeedUri.AbsoluteUri);
+            Debug.WriteLine("IsFeedDupeCheck == true:" + feedlink.FeedUri.AbsoluteUri);
 
-
-            // TODO: alart user
+            WarningMainTitle = "Specified feed already exists";
+            WarningMainMessage = feedlink.FeedUri.AbsoluteUri;
+            IsMainWarningInfoBarVisible = true;
             return;
         }
 
@@ -1782,7 +1832,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
             App.CurrentDispatcherQueue?.TryEnqueue(() =>
             {
-                // TODO: alart user
+                ErrorMain = resInsert.Error;
+                IsMainErrorInfoBarVisible = true;
             });
         }
         else
@@ -1814,7 +1865,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
     }
 
-    private bool FeedDupeCheck(string feedUri)
+    private bool IsFeedDupeCheck(string feedUri)
     {
         return FeedDupeCheckRecursiveLoop(Services, feedUri);
     }
@@ -1958,7 +2009,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
         DeleteNodeTree(SelectedTreeViewItem, nodeToBeDeleted);
 
-
         App.CurrentDispatcherQueue?.TryEnqueue(() =>
         {
             foreach (var hoge in nodeToBeDeleted)
@@ -1970,7 +2020,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 }
                 else
                 {
-                    Debug.WriteLine("DeleteNodeTree: (hoge.Parent is null)");
+                    //Debug.WriteLine("DeleteNodeTree: (hoge.Parent is null)");
+                    _services.Children.Remove(hoge);
                 }
             }
 
@@ -2104,21 +2155,18 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
             //MainError = null;
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            /*
-            MainError = new ErrorObject();
-            MainError.ErrType = ErrorObject.ErrTypes.Other;
-            MainError.ErrCode = "";
-            MainError.ErrText = e.ToString();
-            MainError.ErrDescription = e.Message;
-            MainError.ErrDatetime = DateTime.Now;
-            MainError.ErrPlace = "OpmlImportCommand_Execute.LoadXmlDoc";
-            MainError.ErrPlaceParent = "MainViewModel()";
-
-            IsShowMainErrorMessage = true;
-            */
-            Debug.WriteLine("OpmlImportAsync: " + e);
+            ErrorMain = new ErrorObject();
+            ErrorMain.ErrType = ErrorObject.ErrTypes.XML;
+            ErrorMain.ErrCode = "";
+            ErrorMain.ErrText = ex.Message;
+            ErrorMain.ErrDescription = $"Error loading {file.Name}";
+            ErrorMain.ErrDatetime = DateTime.Now;
+            ErrorMain.ErrPlace = "MainViewModel::InitializeFeedTree";
+            ErrorMain.ErrPlaceParent = "MainViewModel()";
+            IsMainErrorInfoBarVisible = true;
+            Debug.WriteLine("OpmlImportAsync: " + ex);
             return;
         }
 
@@ -2134,16 +2182,30 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             {
                 if ((nt is NodeFeed) || (nt is NodeFolder))
                 {
-                    ProcessNodeChild(nt, dupeFeeds);
+                    OpmlImportProcessNodeChild(nt, dupeFeeds);
                 }
             }
 
-            foreach (NodeFeed hoge in dupeFeeds)
+            if (dupeFeeds.Count > 0)
             {
-                if (hoge.Parent != null)
+                var s = "";
+                foreach (NodeFeed hoge in dupeFeeds)
                 {
-                    hoge.Parent.Children.Remove(hoge);
+                    if (hoge.Parent != null)
+                    {
+                        hoge.Parent.Children.Remove(hoge);
+                    }
+
+                    if (!string.IsNullOrEmpty(s))
+                    {
+                        s += Environment.NewLine;
+                    }
+                    s += "Skipped "+hoge.EndPoint;
                 }
+
+                WarningMainTitle = "One or more feed(s) already exist(s)";
+                WarningMainMessage = s;
+                IsMainWarningInfoBarVisible = true;
             }
 
             Services.Insert(0, dummyFolder);
@@ -2152,14 +2214,14 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         SaveServiceXml();
     }
 
-    private void ProcessNodeChild(NodeTree nt, List<NodeFeed> dupeFeeds)
+    private void OpmlImportProcessNodeChild(NodeTree nt, List<NodeFeed> dupeFeeds)
     {
         if (nt is NodeFeed feed)
         {
-            if (FeedDupeCheck(feed.EndPoint.AbsoluteUri))
+            if (IsFeedDupeCheck(feed.EndPoint.AbsoluteUri))
             {
                 // TODO: alart user?
-                Debug.WriteLine("FeedDupeCheck:" + feed.EndPoint.AbsoluteUri);
+                Debug.WriteLine("IsFeedDupeCheck == true:" + feed.EndPoint.AbsoluteUri);
 
                 dupeFeeds.Add(feed);
 
@@ -2177,13 +2239,14 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
                     App.CurrentDispatcherQueue?.TryEnqueue(() =>
                     {
-                        // TODO: alart user
+                        feed.ErrorDatabase = resInsert.Error;
                     });
                 }
                 else
                 {
-                    feed.Client = _feedClientService.BaseClient;
+
                 }
+                feed.Client = _feedClientService.BaseClient;
             }
         }
         else if (nt is NodeFolder folder)
@@ -2192,7 +2255,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             {
                 foreach (NodeTree ntc in nt.Children)
                 {
-                    ProcessNodeChild(ntc, dupeFeeds);
+                    OpmlImportProcessNodeChild(ntc, dupeFeeds);
                 }
             }
         }
@@ -2361,6 +2424,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
+    #region == Other command methods ==
+
+    // Sets uri source to MediaPlayerElement for playback.
     [RelayCommand]
     private void DownloadAudioFile()
     {
@@ -2400,9 +2466,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         MediaSource = null;
     }
 
-
-    #region == Other command methods ==
-
+    // not used?
     [RelayCommand]
     private void DetailsPaneShowHide()
     {
@@ -2410,6 +2474,5 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     }
 
     #endregion
-
 
 }

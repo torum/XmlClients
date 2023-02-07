@@ -16,10 +16,10 @@ public class ErrorObject
     // HTTP error code?
     public string? ErrCode { get; set; } 
 
-    // eg Error title, or type of Exception, API error code translated via dictionaly.
+    // eg Error title, or type of Exception, .
     public string? ErrDescription { get; set; }
 
-    // Raw exception error messages.
+    // Raw exception error messages, API error text translated via dictionary.
     public string? ErrText { get; set;}
 
     // eg method name, or PATH info for REST
