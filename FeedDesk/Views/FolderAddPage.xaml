@@ -32,7 +32,7 @@
 
             <StackPanel Margin="50,12,0,0" HorizontalAlignment="Left">
 
-                <TextBlock Text="Folder Item" Margin="0,0,0,12" Style="{StaticResource PageTitleStyle}" />
+                <TextBlock Text="New Folder" Margin="0,0,0,12" Style="{StaticResource PageTitleStyle}" />
 
                 <StackPanel Margin="12,6,0,0">
 

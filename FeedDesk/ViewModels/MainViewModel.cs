@@ -1,19 +1,18 @@
 ﻿using System.Collections.ObjectModel;
 using System.Xml;
-using FeedDesk.Contracts.Services;
-using FeedDesk.Contracts.ViewModels;
 using BlogWrite.Core.Contracts.Services;
 using BlogWrite.Core.Helpers;
 using BlogWrite.Core.Models;
 using BlogWrite.Core.Models.Clients;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using FeedDesk.Contracts.Services;
+using FeedDesk.Contracts.ViewModels;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
-using WinRT.Interop;
-using Windows.Media.Core;
-using static System.Net.Mime.MediaTypeNames;
 using Windows.ApplicationModel.DataTransfer;
+using Windows.Media.Core;
+using WinRT.Interop;
 
 namespace FeedDesk.ViewModels;
 
@@ -53,10 +52,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             // Clear error if shown.
             ErrorObj = null;
             IsShowFeedError = false;
-
-            // Clear DB error if shown.
-            //DatabaseError = null;
-            //IsShowDatabaseErrorMessage = false;
 
             if (_selectedTreeViewItem != null)
             {
@@ -109,13 +104,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                     ErrorObj = nds.ErrorHttp;
                     IsShowFeedError = true;
                 }
-                else
+                else if (nds.ErrorDatabase != null)
                 {
-                    if (nds.ErrorDatabase != null)
-                    {
-                        ErrorObj = nds.ErrorDatabase;
-                        IsShowFeedError = true;
-                    }
+                    ErrorObj = nds.ErrorDatabase;
+                    IsShowFeedError = true;
                 }
 
                 //
@@ -229,6 +221,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             if (_selectedListViewItem == null)
             {
                 IsEntryDetailVisible = false;
+
                 return;
             }
             else
@@ -297,6 +290,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             }
         }
     }
+    
     /*
     private string? _selectedEntrySummary;
     public string? SelectedEntrySummary
@@ -305,6 +299,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         set => SetProperty(ref _selectedEntrySummary, value);
     }
     */
+
     private string? _selectedEntryContentText;
     public string? SelectedEntryContentText
     {
@@ -505,12 +500,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         set => SetProperty(ref _isEntryDetaileVisible, value);
     }
 
-    private bool _isEntryDetailPaneVisible = true;
-    public bool IsEntryDetailPaneVisible
-    {
-        get => _isEntryDetailPaneVisible;
-        set => SetProperty(ref _isEntryDetailPaneVisible, value);
-    }
 
     private bool _isFeedTreeLoaded = false;
     public bool IsFeedTreeLoaded => _isFeedTreeLoaded;
@@ -739,7 +728,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     private async void InitializeDatabase()
     {
-        // Init database.
         var filePath = Path.Combine(App.AppDataFolder, "Feeds.db");
         if (RuntimeHelper.IsMSIX)
         {
@@ -750,10 +738,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         if (res.IsError)
         {
             ErrorMain = res.Error;
-            //ErrorMain.ErrType = ErrorObject.ErrTypes.DB;
-            //ErrorMain.ErrDatetime = DateTime.Now;
-            //ErrorMain.ErrPlace = "dataAccessModule::InitializeDatabase";
-            //ErrorMain.ErrPlaceParent = "MainViewModel()";
             IsMainErrorInfoBarVisible = true;
 
             Debug.WriteLine("SQLite DB init: " + res.Error.ErrText + ": " + res.Error.ErrDescription + " @" + res.Error.ErrPlace + "@" + res.Error.ErrPlaceParent);
@@ -831,6 +815,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     public void SaveServiceXml()
     {
+        // This may be a bad idea.
         if (!IsFeedTreeLoaded)
             return;
 
@@ -897,13 +882,13 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                     //Debug.WriteLine("LoadEntries success: " + feed.Name);
 
                     // Clear error
-                    feed.ErrorDatabase = null;
+                    //feed.ErrorDatabase = null;
 
                     // Update the count
                     feed.EntryNewCount = res.UnreadCount;
 
-                    if (feed.Status != NodeFeed.DownloadStatus.error)
-                        feed.Status = NodeFeed.DownloadStatus.normal;
+                    //if (feed.Status != NodeFeed.DownloadStatus.error)
+                    //    feed.Status = NodeFeed.DownloadStatus.normal;
 
                     //feed.List = new ObservableCollection<EntryItem>(res.SelectedEntries);
 
@@ -976,10 +961,13 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 App.CurrentDispatcherQueue?.TryEnqueue(() =>
                 {
                     // Clear error
-                    folder.ErrorDatabase = null;
+                    //folder.ErrorDatabase = null;
 
                     // Update the count
                     folder.EntryNewCount = res.UnreadCount;
+
+                    //if (folder.Status != NodeFeed.DownloadStatus.error)
+                    //    folder.Status = NodeFeed.DownloadStatus.normal;
 
                     if (folder == _selectedTreeViewItem)
                     {
@@ -1311,6 +1299,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         App.CurrentDispatcherQueue?.TryEnqueue(() =>
         {
             feed.IsBusy = true;
+
+            // reset errors here.
+            feed.ErrorDatabase = null;
 
             //Debug.WriteLine("Saving entries: " + feed.Name);
             feed.Status = NodeFeed.DownloadStatus.saving;
@@ -1809,7 +1800,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     [RelayCommand]
     private void FeedAdd() => _navigationService.NavigateTo(typeof(FeedAddViewModel).FullName!, null);
 
-    public void AddFeed(FeedLink feedlink)
+    private void AddFeed(FeedLink feedlink)
     {
         if (feedlink == null) return;
 
@@ -1859,6 +1850,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 Services.Insert(0, a);//.Add(a);
             }
 
+            _isFeedTreeLoaded = true;
             SaveServiceXml();
 
             //Task.Run(() => GetEntriesAsync(a));
@@ -1963,7 +1955,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
     }
 
-
     [RelayCommand(CanExecute = nameof(CanFolderAdd))]
     private void FolderAdd()
     {
@@ -2000,14 +1991,21 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     }
 
     [RelayCommand(CanExecute = nameof(CanFeedRemove))]
-    private void FeedRemove()
+    private void NodeRemove()
     {
         if (SelectedTreeViewItem is null)
             return;
 
+        if (SelectedTreeViewItem.IsBusy)
+        {
+            // TODO: let users know.
+            Debug.WriteLine("DeleteNodeTree: IsBusy.");
+            return;
+        }
+
         List<NodeTree> nodeToBeDeleted = new();
 
-        DeleteNodeTree(SelectedTreeViewItem, nodeToBeDeleted);
+        DeleteNodes(SelectedTreeViewItem, nodeToBeDeleted);
 
         App.CurrentDispatcherQueue?.TryEnqueue(() =>
         {
@@ -2031,7 +2029,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         SaveServiceXml();
     }
 
-    private async void DeleteNodeTree(NodeTree nt, List<NodeTree> nodeToBeDeleted)
+    private async void DeleteNodes(NodeTree nt, List<NodeTree> nodeToBeDeleted)
     {
         if (nt.IsBusy)
         {
@@ -2095,7 +2093,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             {
                 foreach (var ndc in folder.Children)
                 {
-                    DeleteNodeTree(ndc, nodeToBeDeleted);
+                    DeleteNodes(ndc, nodeToBeDeleted);
                 }
             }
 
@@ -2117,7 +2115,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private bool CanFeedRefreshAll()
     {
         return Services.Count > 0;
-
     }
 
     [RelayCommand(CanExecute = nameof(CanFeedRefresh))]
@@ -2209,6 +2206,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             }
 
             Services.Insert(0, dummyFolder);
+            _isFeedTreeLoaded = true;
         }
 
         SaveServiceXml();
@@ -2466,12 +2464,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         MediaSource = null;
     }
 
-    // not used?
-    [RelayCommand]
-    private void DetailsPaneShowHide()
-    {
-        IsEntryDetailPaneVisible = !IsEntryDetailPaneVisible;
-    }
 
     #endregion
 

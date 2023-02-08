@@ -52,13 +52,12 @@ public class ThemeSelectorService : IThemeSelectorService
         {
             return cacheTheme;
         }
- 
         return ElementTheme.Default;
     }
 
     private async Task SaveThemeInSettingsAsync(ElementTheme theme)
     {
-        await _localSettingsService.SaveSettingAsync(SettingsKey, theme.ToString());
+        //await _localSettingsService.SaveSettingAsync(SettingsKey, theme.ToString());
         await Task.CompletedTask;
     }
 }

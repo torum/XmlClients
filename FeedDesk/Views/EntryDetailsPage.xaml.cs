@@ -33,7 +33,7 @@ public sealed partial class EntryDetailsPage : Page
     {
         ViewModel = App.GetService<EntryDetailsViewModel>();
         InitializeComponent();
-        ViewModel.WebViewService.Initialize(WebView);
+        //ViewModel.WebViewService.Initialize(WebView);
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)

@@ -187,7 +187,7 @@
     <value>Default</value>
   </data>
   <data name="Settings_About.Text" xml:space="preserve">
-    <value>About this application</value>
+    <value>About FeedDesk</value>
   </data>
   <data name="Settings_AboutDescription.Text" xml:space="preserve">
     <value>TODO: app description.</value>
@@ -202,25 +202,11 @@
     <value>Settings</value>
     <comment>Page title for SettingsPage</comment>
   </data>
-  <data name="AppNotificationSamplePayload" xml:space="preserve">
-    <value>&lt;toast launch="action=ToastClick"&gt;
-  &lt;visual&gt;
-    &lt;binding template="ToastGeneric"&gt;
-      &lt;text&gt;App Notification&lt;/text&gt;
-      &lt;text&gt;&lt;/text&gt;
-      &lt;image placement="appLogoOverride" hint-crop="circle" src="{0}Assets/WindowIcon.ico"/&gt;
-    &lt;/binding&gt;
-  &lt;/visual&gt;
-  &lt;actions&gt;
-    &lt;action content="Settings" arguments="action=Settings"/&gt;
-  &lt;/actions&gt;
-&lt;/toast&gt;</value>
-  </data>
   <data name="AppName" xml:space="preserve">
     <value>FeedDesk</value>
   </data>
   <data name="Setting" xml:space="preserve">
-    <value>Setting</value>
+    <value>Settings</value>
   </data>
   <data name="ShellMenuBarItem_Edit.Title" xml:space="preserve">
     <value>Edit</value>
@@ -254,5 +240,11 @@
   </data>
   <data name="ShellMenuFlyoutItem_View_Feeds.Text" xml:space="preserve">
     <value>Feeds</value>
+  </data>
+  <data name="ShellMenuBarItem_Entry.Title" xml:space="preserve">
+    <value>Entry</value>
+  </data>
+  <data name="ShellMenuBarItem_Feed.Title" xml:space="preserve">
+    <value>Feed</value>
   </data>
 </root>

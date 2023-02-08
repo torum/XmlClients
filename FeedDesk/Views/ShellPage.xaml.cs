@@ -19,9 +19,16 @@ public sealed partial class ShellPage : Page
         get;
     }
 
+    public MainViewModel MainViewModel
+    {
+        get;
+    }
+
     public ShellPage(ShellViewModel viewModel)
     {
         ViewModel = viewModel;
+
+        MainViewModel = App.GetService<MainViewModel>();
 
         try
         {
@@ -49,9 +56,6 @@ public sealed partial class ShellPage : Page
 
         App.MainWindow.Activated += MainWindow_Activated;
         App.MainWindow.Closed += MainWindow_Closed;
-
-        //var navigationService = App.GetService<INavigationService>();
-        //navigationService.Frame = NavigationFrame;
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
@@ -67,12 +71,6 @@ public sealed partial class ShellPage : Page
 
         // give some time to let window draw itself.
         //await Task.Delay(100);
-
-        // Needed to be here.
-        //var navigationService = App.GetService<INavigationService>();
-        ////navigationService.Frame = NavigationFrame;
-        //navigationService.NavigateTo(typeof(FeedsViewModel).FullName!, null);
-
     }
 
     private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
@@ -92,16 +90,13 @@ public sealed partial class ShellPage : Page
 
     private void MainWindow_Closed(object sender, WindowEventArgs args)
     {
-        var hoge = App.GetService<MainViewModel>();
+        var vm = App.GetService<MainViewModel>();
 
-        if (hoge.IsFeedTreeLoaded)
-        {
-            // Save service tree.
-            hoge.SaveServiceXml();
-        }
+        // Save service tree.
+        vm.SaveServiceXml();
 
         // Dispose httpclient.
-        hoge.CleanUp();
+        vm.CleanUp();
     }
 
     private static KeyboardAccelerator BuildKeyboardAccelerator(VirtualKey key, VirtualKeyModifiers? modifiers = null)
@@ -126,6 +121,7 @@ public sealed partial class ShellPage : Page
 
         args.Handled = result;
     }
+    /*
 
     private void ShellMenuBarSettingsButton_PointerEntered(object sender, PointerRoutedEventArgs e)
     {
@@ -146,6 +142,7 @@ public sealed partial class ShellPage : Page
     {
         AnimatedIcon.SetState((UIElement)sender, "Normal");
     }
+    */
 
     private void NavigationViewControl_DisplayModeChanged(NavigationView sender, NavigationViewDisplayModeChangedEventArgs args)
     {

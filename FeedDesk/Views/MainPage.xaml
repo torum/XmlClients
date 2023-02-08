@@ -164,11 +164,11 @@
                                         </PathIcon.Data>
                                     </PathIcon>
                                 </AppBarButton.Icon>
-
+<!--
                                 <AppBarButton.KeyboardAccelerators>
                                     <KeyboardAccelerator Modifiers="Control" Key="N"/>
                                 </AppBarButton.KeyboardAccelerators>
-
+-->
                                 <AppBarButton.Flyout>
                                     <MenuFlyout>
                                         <MenuFlyoutItem Text="Feed" Command="{x:Bind ViewModel.FeedAddCommand}">
@@ -219,11 +219,11 @@
                                             M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z</PathIcon.Data>
                                     </PathIcon>
                                 </AppBarButton.Icon>
-
+<!--
                                 <AppBarButton.KeyboardAccelerators>
                                     <KeyboardAccelerator Modifiers="Control" Key="R"/>
                                 </AppBarButton.KeyboardAccelerators>
-
+-->
                             </AppBarButton>
 
 
@@ -301,7 +301,7 @@
 
                             <MenuFlyoutSeparator/>
 
-                            <MenuFlyoutItem Text="Remove" Icon="Remove" Command="{x:Bind ViewModel.FeedRemoveCommand}">
+                            <MenuFlyoutItem Text="Remove" Icon="Remove" Command="{x:Bind ViewModel.NodeRemoveCommand}">
                                 <MenuFlyoutItem.KeyboardAccelerators>
                                     <KeyboardAccelerator Key="Delete" />
                                 </MenuFlyoutItem.KeyboardAccelerators>
@@ -395,7 +395,7 @@
 
                             <TextBox Header="Description:" Text="{x:Bind ViewModel.ErrorObj.ErrDescription, Mode=OneWay}" Background="Transparent" Opacity="0.7" Margin="0,12,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
 
-                            <TextBox Header="Error text:" Text="{x:Bind ViewModel.ErrorObj.ErrText, Mode=OneWay}" Background="Transparent" Opacity="0.7" Margin="0,12,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="Stretch"></TextBox>
+                            <TextBox Header="Error message:" Text="{x:Bind ViewModel.ErrorObj.ErrText, Mode=OneWay}" Background="Transparent" Opacity="0.7" Margin="0,12,0,0" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap" HorizontalAlignment="Stretch"></TextBox>
 
                             <TextBox Header="Location 1:"  Text="{x:Bind ViewModel.ErrorObj.ErrPlaceParent, Mode=OneWay}" Background="Transparent" Opacity="0.7" Margin="0,12,0,0" BorderThickness="0,0,0,0" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="False" HorizontalAlignment="Stretch"></TextBox>
 
@@ -445,11 +445,11 @@
                                                 </PathIcon.Data>
                                             </PathIcon>
                                         </AppBarButton.Icon>
-
+<!--
                                         <AppBarButton.KeyboardAccelerators>
                                             <KeyboardAccelerator Modifiers="Control" Key="A"/>
                                         </AppBarButton.KeyboardAccelerators>
-
+-->
                                     </AppBarButton>
 
                                     <AppBarButton Label="{x:Bind ViewModel.ToggleInboxAppButtonLabel, Mode=OneWay}" IsEnabled="{x:Bind ViewModel.IsToggleInboxAppButtonEnabled,Mode=OneWay}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9">
@@ -523,7 +523,7 @@
                         </Border>
 
                         <!-- Entries listView -->
-                        <ListView Grid.Row="1" Background="{ThemeResource NavigationViewContentBackground}" x:Name="ListViewEntryItem" ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedListViewItem, Mode=TwoWay}" IsDoubleTapEnabled="True" IsRightTapEnabled="True" SelectionMode="Single" Margin="0,0,0,0" Padding="0,0,0,0">
+                        <ListView Grid.Row="1" Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}" x:Name="ListViewEntryItem" ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedListViewItem, Mode=TwoWay}" IsDoubleTapEnabled="True" IsRightTapEnabled="True" SelectionMode="Single" Margin="0,0,0,0" Padding="0,0,0,0">
                             <ListView.Resources>
                                 <MenuFlyout x:Key="ListItemContextMenu">
 
@@ -583,8 +583,8 @@
                 </Border>
 
                 <!-- Details pane -->
-                <Border x:Name="DetailsPane" Grid.Row="0" Grid.Column="1" Background="{ThemeResource NavigationViewContentBackground}" Visibility="{x:Bind ViewModel.IsEntryDetailPaneVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}" Margin="0" CornerRadius="{ThemeResource NavigationViewContentChildGridCornerRadius}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
-                    <ScrollViewer>
+                <Border x:Name="DetailsPane" Grid.Row="0" Grid.Column="1" Background="{ThemeResource SolidBackgroundFillColorQuarternaryBrush}" Margin="0" CornerRadius="{ThemeResource NavigationViewContentChildGridCornerRadius}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
 
                         <StackPanel Margin="24,12,24,24" Visibility="{x:Bind ViewModel.IsEntryDetailVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
 

@@ -118,7 +118,7 @@ public abstract class EntryItem : Node
         }
     }
 
-    // in UTC
+    // UTC
     private DateTime _published = default;
     public DateTime Published
     {
@@ -139,7 +139,7 @@ public abstract class EntryItem : Node
         {
             if (_published != default)
             {
-                return TimeAgo(_published);//_published.ToString(System.Globalization.CultureInfo.CurrentCulture);
+                return TimeAgo(_published.ToLocalTime());//_published.ToString(System.Globalization.CultureInfo.CurrentCulture);
             }
             else
             {
@@ -154,7 +154,7 @@ public abstract class EntryItem : Node
         {
             if (_published != default)
             {
-                return _published.ToString(System.Globalization.CultureInfo.CurrentCulture);
+                return _published.ToLocalTime().ToString(System.Globalization.CultureInfo.CurrentCulture);
             }
             else
             {
@@ -163,6 +163,7 @@ public abstract class EntryItem : Node
         }
     }
 
+    // UTC
     private DateTime _updated = default;
     public DateTime Updated
     {

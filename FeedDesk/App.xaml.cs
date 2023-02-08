@@ -94,7 +94,6 @@ public partial class App : Application
 
             // Core Services
             services.AddSingleton<IFileService, FileService>();
-
             services.AddTransient<IFileDialogService, FileDialogService>();
             services.AddSingleton<IDataAccessService, DataAccessService>();
             services.AddSingleton<IFeedClientService, FeedClientService>();

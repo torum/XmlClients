@@ -31,14 +31,15 @@ Desktop feed reader.
 
 ### Feed reader
 
-- [ ] Database file management view (menu>tools)
-- [ ] Check datetime is in UTC. Check published(required check) and updated.
 - [ ] MainMenu shortcuts key binding.
-
+- [ ] Finish Settings page.
+- [ ] Theme setting save and restore.
+- [ ] Internationalization
 
 ## Planning
 
 ### Feed reader
+- [ ] Database file management view (menu>tools)
 - [ ] 元記事の内容が更新された場合、それを反映させたい。
 - [ ] エントリを選択したら、DBのisVisited(isRead)フラグを更新する。
 - [ ] "Read lator" or saved or boolmark or whatever.
@@ -54,7 +55,7 @@ Desktop feed reader.
 
 
 ### Other
-- [ ] Internationalization
+
 - [ ] Settings
 - [ ] Themes
 

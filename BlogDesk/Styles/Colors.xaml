@@ -5,8 +5,6 @@
         <ResourceDictionary x:Key="Dark">
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary>
-                    <Color x:Key="RegionColor">#FF000000</Color>
-                    <SolidColorBrush x:Key="RegionBrush" Color="{StaticResource RegionColor}" />
                     <!-- 
                     <SolidColorBrush x:Key="SolidBackgroundFillColorTertiaryBrush2" Color="#2E2D2C" /> -->
                     <SolidColorBrush x:Key="SolidBackgroundFillColorTertiaryBrush2" Color="#333333" />
