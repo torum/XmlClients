@@ -1,14 +1,14 @@
 
----------------------------------------
 
-## Feed reader app
+# FeedDesk
+A desktop feed reader.
 
 
 ## Download:
 
  
-## GitHub
-[https://github.com/torum/BlogWrite](https://github.com/torum/BlogWrite)
+## GitHub project page
+[https://github.com/torum/BlogWrite/FeedDesk](https://github.com/torum/BlogWrite/FeedDesk)
 
 ## Privacy olicy:
 * This application does not collect nor send any information.
