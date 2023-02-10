@@ -23,7 +23,9 @@ TBA
 
 ## Screenshots:
 
+![FeedDesk](https://github.com/torum/BlogWrite/blob/master/docs/images/FeedDesk-Screenshot-Dark.png?raw=true) 
 
+![FeedDesk](https://github.com/torum/BlogWrite/blob/master/docs/images/FeedDesk-Screenshot-Light.png?raw=true) 
 
 ## GitHub Project Page:
 
