@@ -1,10 +1,10 @@
 
-
 # FeedDesk
 A desktop feed reader. (work in progess)
 
 
 ## Download:
+TBA
 
 ## Privacy olicy:
 * This application does not collect nor send any information.
@@ -14,7 +14,6 @@ A desktop feed reader. (work in progess)
 
 
 
+## GitHub Project Page
 
-##GitHub Project Page
-
-[https://github.com/torum/BlogWrite/](https://github.com/torum/BlogWrite/).
+[https://github.com/torum/BlogWrite/](https://github.com/torum/BlogWrite/)
