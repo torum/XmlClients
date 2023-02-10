@@ -1,9 +1,7 @@
 encoding: UTF-8
-remote_theme: pages-themes/slate@v0.2.0
-plugins:
-- jekyll-remote-theme
+theme: jekyll-theme-slate
 title: BitWallpaper
 description: Cryptocurrency live chart wallpaper apps
-show_downloads:false
+
 
 
