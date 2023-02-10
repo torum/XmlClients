@@ -25,6 +25,6 @@ NA
 
 ## GitHub Project Page:
 
-[https://github.com/torum/BlogWrite/](https://github.com/torum/BlogWrite/)
+Visit the [project page](https://github.com/torum/BlogWrite/). Any feedback or help are always welcome.
 
  
