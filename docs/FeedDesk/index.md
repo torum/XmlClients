@@ -1,14 +1,10 @@
 
 
 # FeedDesk
-A desktop feed reader.
+A desktop feed reader. (work in progess)
 
 
 ## Download:
-
- 
-## GitHub project page
-[https://github.com/torum/BlogWrite/FeedDesk](https://github.com/torum/BlogWrite/FeedDesk)
 
 ## Privacy olicy:
 * This application does not collect nor send any information.
@@ -17,3 +13,8 @@ A desktop feed reader.
 ## Screenshots:
 
 
+
+
+##GitHub Project Page
+
+[https://github.com/torum/BlogWrite/](https://github.com/torum/BlogWrite/).
