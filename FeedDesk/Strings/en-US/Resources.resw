@@ -123,10 +123,6 @@
   <data name="AppDescription" xml:space="preserve">
     <value>FeedDesk</value>
   </data>
-  <data name="Main_Title.Text" xml:space="preserve">
-    <value>Main</value>
-    <comment>Page title for MainPage</comment>
-  </data>
   <data name="WebView_Loading.Text" xml:space="preserve">
     <value>Loading...</value>
   </data>
@@ -160,17 +156,6 @@
   <data name="OpenInBrowserButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Open in browser</value>
   </data>
-  <data name="ListDetails_NoSelection.Text" xml:space="preserve">
-    <value>Select an item from the list.</value>
-  </data>
-  <data name="ContentGrid_Title.Text" xml:space="preserve">
-    <value>ContentGrid</value>
-    <comment>Page title for ContentGridPage</comment>
-  </data>
-  <data name="DataGrid_Title.Text" xml:space="preserve">
-    <value>DataGrid</value>
-    <comment>Page title for DataGridPage</comment>
-  </data>
   <data name="Settings_Personalization.Text" xml:space="preserve">
     <value>Personalization</value>
   </data>
@@ -187,20 +172,19 @@
     <value>Default</value>
   </data>
   <data name="Settings_About.Text" xml:space="preserve">
-    <value>About FeedDesk</value>
+    <value>FeedDesk</value>
   </data>
   <data name="Settings_AboutDescription.Text" xml:space="preserve">
-    <value>TODO: app description.</value>
+    <value>A desktop feed reader.</value>
   </data>
   <data name="SettingsPage_PrivacyTermsLink.Content" xml:space="preserve">
     <value>Privacy Statement</value>
   </data>
   <data name="SettingsPage_PrivacyTermsLink.NavigateUri" xml:space="preserve">
-    <value>https://YourPrivacyUrlGoesHere/</value>
+    <value>https://torum.github.io/BlogWrite/FeedDesk/</value>
   </data>
   <data name="Settings_Title.Text" xml:space="preserve">
     <value>Settings</value>
-    <comment>Page title for SettingsPage</comment>
   </data>
   <data name="AppName" xml:space="preserve">
     <value>FeedDesk</value>
@@ -246,5 +230,17 @@
   </data>
   <data name="ShellMenuBarItem_Feed.Title" xml:space="preserve">
     <value>Feed</value>
+  </data>
+  <data name="ShellMenuBarItem_Help_Project_Page.Text" xml:space="preserve">
+    <value>Project Page</value>
+  </data>
+  <data name="ShellMenuBarItem_Help_Project_GitHub.Text" xml:space="preserve">
+    <value>GitHub Page</value>
+  </data>
+  <data name="Version" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="SettingsPage_PrivacyTerms.Text" xml:space="preserve">
+    <value>This application does not collect nor send any information.</value>
   </data>
 </root>

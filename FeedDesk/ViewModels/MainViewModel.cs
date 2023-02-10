@@ -732,6 +732,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         if (RuntimeHelper.IsMSIX)
         {
             filePath = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "Feeds.db");
+            //Debug.WriteLine(Windows.Storage.ApplicationData.Current.LocalFolder.Path);
         }
 
         var res = await Task.FromResult(_dataAccessService.InitializeDatabase(filePath));
@@ -1981,6 +1982,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
         if (targetNode is not null)
         {
+            _isFeedTreeLoaded = true;
             _navigationService.NavigateTo(typeof(FolderAddViewModel).FullName!, targetNode);
         }
     }
@@ -2364,10 +2366,35 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         return true;
     }
 
+    [RelayCommand(CanExecute = nameof(CanEntryCopyUrl))]
+    private void EntryCopyUrl()
+    {
+        if (SelectedListViewItem is not null)
+        {
+            if (SelectedListViewItem.AltHtmlUri is not null)
+            {
+                DataPackage data = new DataPackage();
+                data.SetText(SelectedListViewItem.AltHtmlUri.AbsoluteUri);
+                Clipboard.SetContent(data);
+            }
+        }
+    }
+
+    private bool CanEntryCopyUrl()
+    {
+        if (SelectedListViewItem is null)
+            return false;
+
+        if (SelectedListViewItem.AltHtmlUri is null)
+            return false;
+
+        return true;
+    }
+
     [RelayCommand(CanExecute = nameof(CanToggleShowAllEntries))]
     private void ToggleShowAllEntries()
     {
-        if (_selectedTreeViewItem is null)
+        if (SelectedTreeViewItem is null)
             return;
 
         IsShowAllEntries = !IsShowAllEntries;
@@ -2375,12 +2402,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         if (SelectedTreeViewItem is NodeFeed feed)
         {
             feed.IsDisplayUnarchivedOnly = !IsShowAllEntries;
-            Task nowait = Task.Run(() => LoadEntriesAsync(_selectedTreeViewItem));
+            Task nowait = Task.Run(() => LoadEntriesAsync(SelectedTreeViewItem));
         }
         else if (SelectedTreeViewItem is NodeFolder folder)
         {
             folder.IsDisplayUnarchivedOnly = !IsShowAllEntries;
-            Task nowait = Task.Run(() => LoadEntriesAsync(_selectedTreeViewItem));
+            Task nowait = Task.Run(() => LoadEntriesAsync(SelectedTreeViewItem));
         }
     }
 
@@ -2395,7 +2422,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     [RelayCommand(CanExecute = nameof(CanToggleShowInboxEntries))]
     private void ToggleShowInboxEntries()
     {
-        if (_selectedTreeViewItem is null)
+        if (SelectedTreeViewItem is null)
             return;
 
         IsShowInboxEntries = !IsShowInboxEntries;
@@ -2403,12 +2430,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         if (SelectedTreeViewItem is NodeFeed feed)
         {
             feed.IsDisplayUnarchivedOnly = IsShowInboxEntries;
-            Task nowait = Task.Run(() => LoadEntriesAsync(_selectedTreeViewItem));
+            Task nowait = Task.Run(() => LoadEntriesAsync(SelectedTreeViewItem));
         }
         else if (SelectedTreeViewItem is NodeFolder folder)
         {
             folder.IsDisplayUnarchivedOnly = IsShowInboxEntries;
-            Task nowait = Task.Run(() => LoadEntriesAsync(_selectedTreeViewItem));
+            Task nowait = Task.Run(() => LoadEntriesAsync(SelectedTreeViewItem));
         }
     }
 
@@ -2428,13 +2455,13 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     [RelayCommand]
     private void DownloadAudioFile()
     {
-        if (_selectedListViewItem is null)
+        if (SelectedListViewItem is null)
             return;
 
-        if (_selectedListViewItem.AudioUri != null)
+        if (SelectedListViewItem.AudioUri != null)
         {
             IsMediaPlayerVisible = true;
-            MediaSource = MediaSource.CreateFromUri(_selectedListViewItem.AudioUri);
+            MediaSource = MediaSource.CreateFromUri(SelectedListViewItem.AudioUri);
         }
         else
         {
@@ -2446,13 +2473,13 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     [RelayCommand]
     private void CopyAudioFileUrlToClipboard()
     {
-        if (_selectedListViewItem is null)
+        if (SelectedListViewItem is null)
             return;
 
-        if (_selectedListViewItem.AudioUri != null)
+        if (SelectedListViewItem.AudioUri != null)
         {
             DataPackage data = new DataPackage();
-            data.SetText(_selectedListViewItem.AudioUri.AbsoluteUri);
+            data.SetText(SelectedListViewItem.AudioUri.AbsoluteUri);
             Clipboard.SetContent(data);
         }
     }

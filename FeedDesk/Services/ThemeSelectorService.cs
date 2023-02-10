@@ -2,6 +2,8 @@
 using BlogWrite.Core.Helpers;
 
 using Microsoft.UI.Xaml;
+using Windows.Storage;
+using Newtonsoft.Json.Linq;
 
 namespace FeedDesk.Services;
 
@@ -11,16 +13,16 @@ public class ThemeSelectorService : IThemeSelectorService
 
     public ElementTheme Theme { get; set; } = ElementTheme.Default;
 
-    private readonly ILocalSettingsService _localSettingsService;
+    //private readonly ILocalSettingsService _localSettingsService;
 
-    public ThemeSelectorService(ILocalSettingsService localSettingsService)
+    public ThemeSelectorService()//ILocalSettingsService localSettingsService
     {
-        _localSettingsService = localSettingsService;
+        //_localSettingsService = localSettingsService;
     }
 
     public async Task InitializeAsync()
     {
-        //Theme = await LoadThemeFromSettingsAsync();
+        Theme = LoadThemeFromSettingsAsync();
         await Task.CompletedTask;
     }
 
@@ -29,7 +31,7 @@ public class ThemeSelectorService : IThemeSelectorService
         Theme = theme;
 
         await SetRequestedThemeAsync();
-        //await SaveThemeInSettingsAsync(Theme);
+        await SaveThemeInSettingsAsync(Theme);
     }
 
     public async Task SetRequestedThemeAsync()
@@ -44,13 +46,28 @@ public class ThemeSelectorService : IThemeSelectorService
         await Task.CompletedTask;
     }
 
-    private async Task<ElementTheme> LoadThemeFromSettingsAsync()
+    private ElementTheme LoadThemeFromSettingsAsync()
     {
+        /*
         var themeName = await _localSettingsService.ReadSettingAsync<string>(SettingsKey);
 
         if (Enum.TryParse(themeName, out ElementTheme cacheTheme))
         {
             return cacheTheme;
+        }
+        
+        */
+
+        if (RuntimeHelper.IsMSIX)
+        {
+            if (ApplicationData.Current.LocalSettings.Values.TryGetValue(SettingsKey, out var obj))
+            {
+                var themeName = (string)obj;
+                if (Enum.TryParse(themeName, out ElementTheme cacheTheme))
+                {
+                    return cacheTheme;
+                }
+            }
         }
         return ElementTheme.Default;
     }
@@ -58,6 +75,12 @@ public class ThemeSelectorService : IThemeSelectorService
     private async Task SaveThemeInSettingsAsync(ElementTheme theme)
     {
         //await _localSettingsService.SaveSettingAsync(SettingsKey, theme.ToString());
+
+        if (RuntimeHelper.IsMSIX)
+        {
+            ApplicationData.Current.LocalSettings.Values[SettingsKey] = theme.ToString();
+        }
+
         await Task.CompletedTask;
     }
 }

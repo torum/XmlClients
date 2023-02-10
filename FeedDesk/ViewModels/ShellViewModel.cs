@@ -2,7 +2,6 @@
 using System.Windows.Input;
 using System.Xml;
 using FeedDesk.Contracts.Services;
-using FeedDesk.Models;
 using FeedDesk.Services;
 using FeedDesk.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -26,6 +25,15 @@ public class ShellViewModel : ObservableRecipient
         get;
     }
 
+    public ICommand MenuHelpProjectPageCommand
+    {
+        get;
+    }
+
+    public ICommand MenuHelpProjectGitHubCommand
+    {
+        get;
+    }
 
     public ICommand MenuGoToMainCommand
     {
@@ -67,6 +75,8 @@ public class ShellViewModel : ObservableRecipient
         MenuFileExitCommand = new RelayCommand(OnMenuFileExit);
         MenuSettingsCommand = new RelayCommand(OnMenuSettings);
         MenuGoToMainCommand = new RelayCommand(OnMenuGoToMain);
+        MenuHelpProjectPageCommand = new RelayCommand(OnMenuHelpProjectPageCommand);
+        MenuHelpProjectGitHubCommand = new RelayCommand(OnMenuHelpProjectGitHubCommand);
 
     }
 
@@ -94,5 +104,19 @@ public class ShellViewModel : ObservableRecipient
     private void OnMenuSettings() => NavigationService.NavigateTo(typeof(SettingsViewModel).FullName!);
 
     private void OnMenuGoToMain() => NavigationService.NavigateTo(typeof(MainViewModel).FullName!);
+
+    private async void OnMenuHelpProjectPageCommand()
+    {
+        Uri projectUri = new Uri("https://torum.github.io/BlogWrite/FeedDesk/");
+        
+        await Windows.System.Launcher.LaunchUriAsync(projectUri);
+    }
+
+    private async void OnMenuHelpProjectGitHubCommand()
+    {
+        Uri projectUri = new Uri("https://github.com/torum/BlogWrite");
+
+        await Windows.System.Launcher.LaunchUriAsync(projectUri);
+    }
 
 }

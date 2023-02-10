@@ -1184,7 +1184,7 @@ public class DataAccessService : IDataAccessService
 
     public SqliteDataAccessResultWrapper UpdateAllEntriesAsArchived(List<string> feedIds)
     {
-        SqliteDataAccessResultWrapper res = new SqliteDataAccessResultWrapper();
+        var res = new SqliteDataAccessResultWrapper();
 
         if (feedIds is null)
             return res;

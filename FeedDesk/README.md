@@ -1,15 +1,21 @@
-﻿## FeedDesk
+﻿
+## [FeedDesk](https://torum.github.io/BlogWrite/FeedDesk/)
+A desktop feed reader. (work in progress)
 
-Desktop feed reader.
+### Implements following formats:  
 
-## Implements following standards  
+* Atom 0.3
+* [The Atom Syndication Format](https://tools.ietf.org/html/rfc4287) (Atom 1.0)
+* [RDF Site Summary](https://www.w3.org/2001/09/rdfprimer/rss.html) (RSS 1.0)
+* [Really Simple Syndication](https://validator.w3.org/feed/docs/rss2.html) (RSS 2.0)
 
-* [The Atom Syndication Format](https://tools.ietf.org/html/rfc4287) (Atom 1.0) and Atom 0.3
-* [RDF Site Summary](https://www.w3.org/2001/09/rdfprimer/rss.html) (RSS 1.0) and [Really Simple Syndication](https://validator.w3.org/feed/docs/rss2.html) (RSS 2.0)
-
+### Other feature
+* Display enclosed or embeded images.
+* Supports podcasts and in-app playback.
 
 ## Change log
-
+* v1.0.0.10 (2023/2/10)
+ Initial release. "minimum viable product (mvp)"
 * v1.0.0.8 (2023/2/3)
  Podcast support.
 * v1.0.0.7 (2023/1/21)
@@ -21,43 +27,39 @@ Desktop feed reader.
 * v1.0.0.3 (2023/1/11)
  Finishing up feed updates.
 * v1.0.0.2 (2023/1/8) 
- Updated WinUIEx and now uses local persistence file. Now, the MainWindow remembers its size and pos. (previous ver did not support unpackaged app)
+ Updated WinUIEx and now uses local persistence file.
 * v1.0.0.1 (2023/1/8) 
  Very basic feed reader functionality. 
 * v1.0.0.0 (2023/1/1) 
- Moved to WinUI3 from a WPF project. 
+ Switched to WinUI3 from a WPF project. 
 
 ## Things that currentry working on
 
-### Feed reader
-
-- [ ] MainMenu shortcuts key binding.
-- [ ] Finish Settings page.
-- [ ] Theme setting save and restore.
-- [ ] Internationalization
+- [ ] ...
 
 ## Planning
 
-### Feed reader
-- [ ] Database file management view (menu>tools)
-- [ ] 元記事の内容が更新された場合、それを反映させたい。
-- [ ] エントリを選択したら、DBのisVisited(isRead)フラグを更新する。
-- [ ] "Read lator" or saved or boolmark or whatever.
+### Core
+- [ ] "Read lator" or saved or boolmark or star or whatever.
+- [ ] Auto reflesh.
+- [ ] Update entry data when entry is updated.
+- [ ] Make use of "isRead" flag. 
+
+### UI
+- [ ] Internationalization.
 - [ ] Grouping display of entries. 
 - [ ] multiple viewing style (3 panes, cards, etc)
-- [ ] Auto reflesh.
 - [ ] A progressbar or some kind to notify refleshing is on going or not.
 
+### Tools
+- [ ] Database file management view (menu>tools)
 
 ### Sync 
 - [ ] Sync with Firefox Pocket or Instapaper etc for "read lator".
 - [ ] Sync with online feed readers such as Miniflux or creat one.
 
-
 ### Other
-
-- [ ] Settings
-- [ ] Themes
+- [ ] More options.
 
 
 

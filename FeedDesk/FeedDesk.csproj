@@ -14,7 +14,7 @@
 
 	  <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
 
-	  <AssemblyVersion>1.0.0.6</AssemblyVersion>
+	  <AssemblyVersion>1.0.0.10</AssemblyVersion>
 	  <FileVersion>$(AssemblyVersion)</FileVersion>
 	  <Version>$(AssemblyVersion)</Version>
 	  <PlatformTarget>x64</PlatformTarget>
@@ -22,6 +22,11 @@
 	  <Nullable>annotations</Nullable>
 	  <ApplicationIcon>FeedDesk3.ico</ApplicationIcon>
 	  <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+	  <Title>FeedDesk</Title>
+	  <Description>A desktop feed reader.</Description>
+	  <PackageProjectUrl>https://github.com/torum/BlogWrite</PackageProjectUrl>
+	  <RepositoryUrl>https://github.com/torum/BlogWrite</RepositoryUrl>
+	  <IncludeSymbols>False</IncludeSymbols>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="FeedDesk3.ico" />
@@ -46,9 +51,6 @@
     <Content Include="Assets\Square44x44Logo.scale-200.png" />
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
-    <Content Include="FeedDesk2.ico">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="FeedDesk3.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -123,6 +125,14 @@
     <Page Update="Views\ShellPage.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Models\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Icons\FeedDesk2.ico">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <!-- 

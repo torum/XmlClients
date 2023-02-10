@@ -9,7 +9,6 @@ using BlogWrite.Core.Helpers;
 using BlogWrite.Core.Services;
 using FeedDesk.Activation;
 using FeedDesk.Contracts.Services;
-using FeedDesk.Models;
 using FeedDesk.Services;
 using FeedDesk.ViewModels;
 using FeedDesk.Views;
@@ -84,7 +83,7 @@ public partial class App : Application
 
             // Services
             //services.AddSingleton<IAppNotificationService, AppNotificationService>();
-            services.AddSingleton<ILocalSettingsService, LocalSettingsService>();
+            //services.AddSingleton<ILocalSettingsService, LocalSettingsService>();
             services.AddSingleton<IThemeSelectorService, ThemeSelectorService>();
             //services.AddTransient<IWebViewService, WebViewService>();
             services.AddSingleton<IActivationService, ActivationService>();
@@ -93,7 +92,7 @@ public partial class App : Application
             //services.AddTransient<INavigationViewService, NavigationViewService>();
 
             // Core Services
-            services.AddSingleton<IFileService, FileService>();
+            //services.AddSingleton<IFileService, FileService>();
             services.AddTransient<IFileDialogService, FileDialogService>();
             services.AddSingleton<IDataAccessService, DataAccessService>();
             services.AddSingleton<IFeedClientService, FeedClientService>();
