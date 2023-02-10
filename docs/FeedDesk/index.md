@@ -11,7 +11,7 @@ A desktop feed reader. (work in progess)
 * [Really Simple Syndication](https://validator.w3.org/feed/docs/rss2.html) (RSS 2.0)
 
 ## Other feature:
-* Display enclosed or embeded images.
+* Displays enclosed or embeded images.
 * Supports podcasts and in-app playback.
 
 ## Download:
