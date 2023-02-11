@@ -8,6 +8,7 @@
 	  <UseWinUI>true</UseWinUI>
 	  <Nullable>annotations</Nullable>
 	  <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+	  <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>

@@ -89,11 +89,16 @@ public class FeedEditViewModel : ObservableRecipient, INavigationAware
         {
             if (Feed != null)
             {
-                //Feed.Name = Name;
+                /* Not good when navigate go back.
                 var hoge = new NodeTreePropertyChangedArgs();
                 hoge.Name = Name;
                 hoge.Node = Feed;
                 _navigationService.NavigateTo(typeof(MainViewModel).FullName!, hoge);
+                */
+
+                var vm = App.GetService<MainViewModel>();
+                vm.UpdateFeed(Feed, Name);
+                _navigationService.NavigateTo(typeof(MainViewModel).FullName!, null);
             }
         }
     }

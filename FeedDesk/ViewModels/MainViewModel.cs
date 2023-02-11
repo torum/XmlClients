@@ -44,7 +44,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 return;
 
             //_selectedTreeViewItem = value;
-            SetProperty(ref _selectedTreeViewItem, value);
+            if (SetProperty(ref _selectedTreeViewItem, value))
+            {
+                EntryArchiveAllCommand.NotifyCanExecuteChanged();
+            }
 
             // Clear Listview selected Item.
             SelectedListViewItem = null;
@@ -60,10 +63,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             else
             {
                 IsToggleInboxAppButtonEnabled = false;
-            }
 
-            if (_selectedTreeViewItem == null)
+                Entries.Clear();
                 return;
+            }
 
             // Update Title bar info
             SelectedServiceName = _selectedTreeViewItem.Name;
@@ -776,12 +779,16 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     public void OnNavigatedTo(object parameter)
     {
+        Debug.WriteLine($"Navigated to.");
+        /*
         if (parameter is RegisterFeedEventArgs rfeArgs)
         {
+            Debug.WriteLine($"Navigated to with RegisterFeedEventArgs.");
             AddFeed(rfeArgs.FeedLinkData);
         }
         else if (parameter is NodeTreePropertyChangedArgs ntpcArgs)
         {
+            Debug.WriteLine($"Navigated to with NodeTreePropertyChangedArgs.");
             if (ntpcArgs.Node != null)
             {
                 if (ntpcArgs.Node is NodeFeed feed)
@@ -790,6 +797,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 }
             }
         }
+        */
     }
 
     public void OnNavigatedFrom()
@@ -1174,6 +1182,28 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
     }
 
+    private async void CheckParentSelectedAndLoadEntriesIfNotBusy(NodeTree nt)
+    {
+        if (nt != null)
+        {
+            if (nt.Parent is NodeFolder parentFolder)
+            {
+                if (parentFolder == SelectedTreeViewItem)
+                {
+                    if (parentFolder.IsBusyChildrenCount <= 0)
+                    {
+                        await LoadEntriesAsync(parentFolder);
+                    }
+                }
+                else
+                {
+                    CheckParentSelectedAndLoadEntriesIfNotBusy(parentFolder);
+                }
+
+            }
+        }
+    }
+
     // gets entries from web and return the list.
     private async Task<List<EntryItem>> GetEntryListAsync(NodeFeed feed)
     {
@@ -1428,28 +1458,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
         });
         */
-    }
-
-    private async void CheckParentSelectedAndLoadEntriesIfNotBusy(NodeTree nt)
-    {
-        if (nt != null)
-        {
-            if (nt.Parent is NodeFolder parentFolder)
-            {
-                if (parentFolder == SelectedTreeViewItem)
-                {
-                    if (parentFolder.IsBusyChildrenCount <= 0)
-                    {
-                        await LoadEntriesAsync(parentFolder);
-                    }
-                }
-                else
-                {
-                    CheckParentSelectedAndLoadEntriesIfNotBusy(parentFolder);
-                }
-
-            }
-        }
     }
 
     #endregion
@@ -1801,7 +1809,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     [RelayCommand]
     private void FeedAdd() => _navigationService.NavigateTo(typeof(FeedAddViewModel).FullName!, null);
 
-    private void AddFeed(FeedLink feedlink)
+    public void AddFeed(FeedLink feedlink)
     {
         if (feedlink == null) return;
 
@@ -1831,7 +1839,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         else
         {
             NodeFeed a = new(feedlink.Title, feedlink.FeedUri);
-            a.IsSelected = true;
 
             a.Title = feedlink.SiteTitle;
             a.HtmlUri = feedlink.SiteUri;
@@ -1839,17 +1846,45 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             a.Client = _feedClientService.BaseClient;
             a.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
 
-            if (SelectedTreeViewItem is NodeFolder)
+            if (SelectedTreeViewItem is null)
+            {
+                a.Parent = _services;
+                Services.Insert(0, a);//.Add(a);
+            }
+            else if (SelectedTreeViewItem is NodeFolder)
             {
                 a.Parent = SelectedTreeViewItem;
                 SelectedTreeViewItem.Children.Add(a);
                 SelectedTreeViewItem.IsExpanded = true;
             }
+            else if (SelectedTreeViewItem is NodeFeed)
+            {
+                if (SelectedTreeViewItem.Parent != null)
+                {
+                    if (SelectedTreeViewItem.Parent is NodeFolder folder)
+                    {
+                        a.Parent = folder;
+                        folder.Children.Add(a);
+                        folder.IsExpanded = true;
+                    }
+                    else
+                    {
+                        a.Parent = _services;
+                        Services.Insert(0, a);//.Add(a);
+                    }
+                }
+                else
+                {
+                    a.Parent = _services;
+                    Services.Insert(0, a);//.Add(a);
+                }
+            }
             else
             {
-                a.Parent = _services;
-                Services.Insert(0, a);//.Add(a);
+                return;
             }
+
+            a.IsSelected = true;
 
             _isFeedTreeLoaded = true;
             SaveServiceXml();
@@ -1904,7 +1939,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         return SelectedTreeViewItem is not null;
     }
 
-    private void UpdateFeed(NodeFeed feed, string name)
+    public void UpdateFeed(NodeFeed feed, string name)
     {
         if (feed is null)
             return;

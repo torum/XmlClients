@@ -591,14 +591,18 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
             if (!string.IsNullOrEmpty(SelectedItemTitleLabel))
                 (SelectedLinkItem as FeedLinkItem).FeedLinkData.Title = SelectedItemTitleLabel;
 
+            /* Not good when navigate go back.
             RegisterFeedEventArgs arg = new();
             arg.FeedLinkData = (SelectedLinkItem as FeedLinkItem).FeedLinkData;
 
             //RegisterFeed?.Invoke(this, arg);
 
             _navigationService.NavigateTo(typeof(MainViewModel).FullName!, arg);
+            */
 
-
+            var vm = App.GetService<MainViewModel>();
+            vm.AddFeed((SelectedLinkItem as FeedLinkItem).FeedLinkData);
+            _navigationService.NavigateTo(typeof(MainViewModel).FullName!, null);
         }
         else if (SelectedLinkItem is ServiceDocumentLinkItem)
         {

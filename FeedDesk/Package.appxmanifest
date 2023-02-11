@@ -4,16 +4,17 @@
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
-  IgnorableNamespaces="uap rescap">
+  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
+  IgnorableNamespaces="uap rescap mp">
 
   <Identity
-    Name="f30d92fa-c09d-46e8-ad26-961863a3bda4"
-    Publisher="CN=torum"
+    Name="60132torumyax.FeedDesk"
+    Publisher="CN=F3079A96-760D-4F53-9E00-374C09B6D4B1"
     Version="1.0.0.0" />
 
   <Properties>
     <DisplayName>FeedDesk</DisplayName>
-    <PublisherDisplayName>torum</PublisherDisplayName>
+    <PublisherDisplayName>toru_m</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
@@ -44,5 +45,7 @@
 
   <Capabilities>
     <rescap:Capability Name="runFullTrust" />
+    <Capability Name="internetClient"/>
   </Capabilities>
+
 </Package>

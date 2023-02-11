@@ -69,7 +69,7 @@
                             <StackPanel Margin="12,6,0,0">
                                 <TextBlock Text="Description:" Margin="{StaticResource XSmallTopMargin}"></TextBlock>
                                 <StackPanel Margin="12,6,0,0">
-                                    <TextBlock Text="{x:Bind ViewModel.Feed.Description,Mode=OneTime}" Margin="{StaticResource XSmallTopMargin}"></TextBlock>
+                                    <TextBlock Text="{x:Bind ViewModel.Feed.Description,Mode=OneTime}" TextWrapping="Wrap" Margin="{StaticResource XSmallTopMargin}"></TextBlock>
                                 </StackPanel>
                             </StackPanel>
 

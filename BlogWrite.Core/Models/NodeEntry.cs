@@ -178,14 +178,14 @@ public abstract class EntryItem : Node
         }
     }
 
-    private string _author = "-";
+    private string _author = "";
     public string Author
     {
         get
         {
             if (string.IsNullOrEmpty(_author))
             {
-                return "-";
+                return "";
             }
             else
             {
@@ -202,14 +202,14 @@ public abstract class EntryItem : Node
         }
     }
 
-    private string _category = "-";
+    private string _category = "";
     public string Category
     {
         get
         {
             if (string.IsNullOrEmpty(_category))
             {
-                return "-";
+                return "";
             }
             else
             {

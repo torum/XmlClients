@@ -46,61 +46,6 @@ public abstract class BaseClient : IDisposable
 
     public abstract Task<HttpClientEntryItemCollectionResultWrapper> GetEntries(Uri entriesUrl, string feedId);
 
-    public async Task<List<EntryItem>> GetImages(List<EntryItem> entryItems)
-    {
-        foreach (var entItem in entryItems)
-        {
-            //if (entItem.IsImageDownloaded)  continue;
-
-            //if (entItem.ImageUri != null)
-            //{
-                /*
-                Debug.WriteLine("Gettting Image: " + entItem.ImageUri.AbsoluteUri);
-
-                Byte[] bytes = await this.GetImage(entItem.ImageUri);
-                using var ms = new InMemoryRandomAccessStream();
-                using (var writer = new DataWriter(ms.GetOutputStreamAt(0)))
-                {
-                    writer.WriteBytes(bytes);
-                    writer.StoreAsync().GetResults();
-                }
-                var bitmap = new BitmapImage();
-                bitmap.SetSource(ms);
-
-                entItem.Image = bitmap;
-                */
-
-                /*
-                // 
-                Byte[] bytes = await this.GetImage(entItem.ImageUri);
-
-                if (bytes != Array.Empty<byte>())
-                {
-                    var imageSource = (BitmapSource)new ImageSourceConverter().ConvertFrom(bytes);  
-                    var width = 220d;
-                    var scale = width / imageSource.PixelWidth;
-                    //var height = 127d;
-                    //var scale = height / imageSource.PixelHeight;
-                    WriteableBitmap writable = new WriteableBitmap(new TransformedBitmap(imageSource, new ScaleTransform(scale, scale)));
-                    writable.Freeze();
-
-                    entItem.ImageByteArray = WritableBitmapImageToByteArray(writable);
-
-                    if (Application.Current != null)
-                    {
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            entItem.Image = BitmapImageFromBytes(bytes);
-                        });
-                    }
-                }
-                */
-            //}
-        }
-
-        return entryItems;
-    }
-
     private Byte[] WritableBitmapImageToByteArray(WriteableBitmap writableBitmapImage)
     {
         try

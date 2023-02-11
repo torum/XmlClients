@@ -341,7 +341,7 @@ public class FeedClientService : BaseClient, IFeedClientService
 
                                     ToDebugWindow(">> Exception @FeedClient@ XmlConvert.ToDateTime()"
                                         + Environment.NewLine +
-                                        "Atom feed(" + feedTitle + ") contain invalid feed atom:published: " + e.Message +
+                                        "Atom feed(" + feedTitle + ") contain invalid feed atom:updated: " + e.Message +
                                         Environment.NewLine);
                                 }
                             }
@@ -555,12 +555,15 @@ public class FeedClientService : BaseClient, IFeedClientService
 
     private async void FillEntryItemFromXmlRss(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager NsMgr)
     {
+        // Title (//rss/channel/item/title)
         XmlNode? entryTitle = entryNode.SelectSingleNode("title");
         entItem.Name = (entryTitle != null) ? entryTitle.InnerText : "";
 
+        // GUID (//rss/channel/item/guid)
         XmlNode? entryId = entryNode.SelectSingleNode("guid");
         entItem.EntryId = (entryId != null) ? entryId.InnerText : "";
 
+        // Link (//rss/channel/item/link)
         XmlNode? entryLinkUri = entryNode.SelectSingleNode("link");
         try
         {
@@ -580,6 +583,7 @@ public class FeedClientService : BaseClient, IFeedClientService
             if (entItem.AltHtmlUri != null)
                 entItem.EntryId = entItem.AltHtmlUri.AbsoluteUri;
 
+        // pubDate (//rss/channel/item/pubDate)
         XmlNode? entryPudDate = entryNode.SelectSingleNode("pubDate");
         if (entryPudDate != null)
         {
@@ -614,37 +618,64 @@ public class FeedClientService : BaseClient, IFeedClientService
             }
         }
 
-        var entryDcAuthor = "";
-        XmlNodeList? entryDcAuthors = entryNode.SelectNodes("dc:creator", NsMgr);
-        if (entryDcAuthors != null)
+        // author (//rss/channel/item/author)
+        var entryAuthor = "";
+        XmlNodeList? entryAuthors = entryNode.SelectNodes("author");
+        if (entryAuthors != null)
         {
-            foreach (XmlNode auth in entryDcAuthors)
+            foreach (XmlNode auth in entryAuthors)
             {
-                if (string.IsNullOrEmpty(entryDcAuthor))
-                    entryDcAuthor = auth.InnerText;
+                if (string.IsNullOrEmpty(entryAuthor))
+                    entryAuthor = auth.InnerText;
                 else
-                    entryDcAuthor += "/" + auth.InnerText;
+                    entryAuthor += "/" + auth.InnerText;
             }
-            entItem.Author = entryDcAuthor;
+            entItem.Author = entryAuthor;
         }
 
+        // dc:creator (//rss/channel/item/dc:creator)
         if (string.IsNullOrEmpty(entItem.Author))
         {
-            var entryAuthor = "";
-            XmlNodeList? entryAuthors = entryNode.SelectNodes("author", NsMgr);
-            if (entryAuthors != null)
+            var entryDcAuthor = "";
+            XmlNodeList? entryDcAuthors = entryNode.SelectNodes("dc:creator", NsMgr);
+            if (entryDcAuthors != null)
             {
-                foreach (XmlNode auth in entryAuthors)
+                foreach (XmlNode auth in entryDcAuthors)
                 {
-                    if (string.IsNullOrEmpty(entryAuthor))
-                        entryAuthor = auth.InnerText;
+                    if (string.IsNullOrEmpty(entryDcAuthor))
+                        entryDcAuthor = auth.InnerText;
                     else
-                        entryAuthor += "/" + auth.InnerText;
+                        entryDcAuthor += "/" + auth.InnerText;
                 }
-                entItem.Author = entryAuthor;
+                entItem.Author = entryDcAuthor;
             }
         }
 
+        // <itunes:author></itunes:author>
+        if (string.IsNullOrEmpty(entItem.Author))
+        {
+            var entryItunesAuthor = "";
+            XmlNodeList? entryItunesAuthors = entryNode.SelectNodes("itunes:author", NsMgr);
+            if (entryItunesAuthors != null)
+            {
+                foreach (XmlNode auth in entryItunesAuthors)
+                {
+                    if (string.IsNullOrEmpty(entryItunesAuthor))
+                        entryItunesAuthor = auth.InnerText;
+                    else
+                        entryItunesAuthor += "/" + auth.InnerText;
+                }
+                entItem.Author = entryItunesAuthor;
+            }
+        }
+
+        // 
+        if (string.IsNullOrEmpty(entItem.Author))
+        {
+            entItem.Author = "-";
+        }
+
+        // source (//rss/channel/item/source)
         var entrySource = "";
         XmlNode? entrySourceNode = entryNode.SelectSingleNode("source");
         if (entrySourceNode != null)
@@ -669,20 +700,9 @@ public class FeedClientService : BaseClient, IFeedClientService
             entItem.Source = entrySource;
         }
 
-        /*
-        if (string.IsNullOrEmpty(entItem.Author))
-        {
-            //if (entItem.AltHtmlUri != null)
-            //    entryAuthor = entItem.AltHtmlUri.Host;
-            if (!string.IsNullOrEmpty(entrySource))
-            {
-                entItem.Author = entrySource;
-            }
-        }
-        */
-
+        // category (//rss/channel/item/category)
         var entryCategory = "";
-        XmlNodeList? entryCategories = entryNode.SelectNodes("category", NsMgr);
+        XmlNodeList? entryCategories = entryNode.SelectNodes("category");
         if (entryCategories != null)
         {
             foreach (XmlNode cat in entryCategories)
@@ -695,17 +715,22 @@ public class FeedClientService : BaseClient, IFeedClientService
             entItem.Category = entryCategory;
         }
 
-        // gets imageUri from enclosure
-        XmlNode? enclosure = entryNode.SelectSingleNode("enclosure");
-        if (enclosure != null)
+        if (string.IsNullOrEmpty(entItem.Category))
         {
-            if (enclosure.Attributes["url"] != null)
-            {
-                string url = enclosure.Attributes["url"].Value;
+            entItem.Category = "-";
+        }
 
-                if (enclosure.Attributes["type"] != null)
+        // enclosure (//rss/channel/item/enclosure)
+        XmlNode? enclosureNode = entryNode.SelectSingleNode("enclosure");
+        if (enclosureNode != null)
+        {
+            if (enclosureNode.Attributes["url"] != null)
+            {
+                string url = enclosureNode.Attributes["url"].Value;
+
+                if (enclosureNode.Attributes["type"] != null)
                 {
-                    string imageType = enclosure.Attributes["type"].Value;
+                    string imageType = enclosureNode.Attributes["type"].Value;
 
                     if ((imageType == "image/jpg") || (imageType == "image/jpeg") || (imageType == "image/png") || (imageType == "image/gif"))
                     {
@@ -720,7 +745,8 @@ public class FeedClientService : BaseClient, IFeedClientService
                                 "RSS feed entry (" + entItem.Name + ") contain invalid entry > enclosure@link Uri: " + e.Message +
                                 Environment.NewLine);
                         }
-                    }else if (imageType == "audio/mpeg")
+                    }
+                    else if (imageType == "audio/mpeg")
                     {
                         try
                         {
@@ -738,7 +764,32 @@ public class FeedClientService : BaseClient, IFeedClientService
             }
         }
 
-        //comments
+        // <itunes:image href=""/>
+        if (entItem.ImageUri is null)
+        {
+            XmlNode? itunesImageNode = entryNode.SelectSingleNode("itunes:image", NsMgr);
+            if (itunesImageNode != null)
+            {
+                if (itunesImageNode.Attributes["href"] != null)
+                {
+                    string url = itunesImageNode.Attributes["href"].Value;
+                    try
+                    {
+                        entItem.ImageUri = new Uri(url);
+                    }
+                    catch (Exception e)
+                    {
+                        ToDebugWindow(">> Exception @FeedClient@FillEntryItemFromXmlRss:new Uri()"
+                            + Environment.NewLine +
+                            "RSS feed entry (" + entItem.Name + ") contain invalid entry > itunes:image@href Uri: " + e.Message +
+                            Environment.NewLine);
+                    }
+                }
+
+            }
+        }
+
+        // comments (//rss/channel/item/comments)
         XmlNode? entryCommentsNode = entryNode.SelectSingleNode("comments");
         if (entryCommentsNode != null)
         {
@@ -753,6 +804,7 @@ public class FeedClientService : BaseClient, IFeedClientService
             }
         }
 
+        // description (//rss/channel/item/description)
         entItem.ContentType = EntryItem.ContentTypes.none;
         XmlNode? sum = entryNode.SelectSingleNode("description");
         if (sum != null)
@@ -777,24 +829,6 @@ public class FeedClientService : BaseClient, IFeedClientService
                     if (entItem.ImageUri == null)
                         entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
                 }
-            }
-        }
-
-        if (string.IsNullOrEmpty(entItem.Author))
-        {
-            // itunes:author. Is this supporsed to be a single element or multiple?
-            var entryItunesAuthor = "";
-            XmlNodeList? entryItunesAuthors = entryNode.SelectNodes("itunes:author", NsMgr);
-            if (entryItunesAuthor != null)
-            {
-                foreach (XmlNode auth in entryItunesAuthors)
-                {
-                    if (string.IsNullOrEmpty(entryItunesAuthor))
-                        entryItunesAuthor = auth.InnerText;
-                    else
-                        entryItunesAuthor += "/" + auth.InnerText;
-                }
-                entItem.Author = entryItunesAuthor;
             }
         }
 
@@ -860,13 +894,15 @@ public class FeedClientService : BaseClient, IFeedClientService
                 else
                     entryAuthor += "/" + auth.InnerText;
             }
+            entItem.Author = entryAuthor;
         }
-        if (string.IsNullOrEmpty(entryAuthor))
+        if (string.IsNullOrEmpty(entItem.Author))
         {
             //if (entItem.AltHtmlUri != null)
             //    entryAuthor = entItem.AltHtmlUri.Host;
+
+            entItem.Author = "-";
         }
-        entItem.Author = entryAuthor;
 
         var entryCategory = "";
         XmlNodeList? entryCategories = entryNode.SelectNodes("dc:subject", NsMgr);
@@ -879,8 +915,13 @@ public class FeedClientService : BaseClient, IFeedClientService
                 else
                     entryCategory += "/" + cat.InnerText;
             }
+            entItem.Category = entryCategory;
         }
-        entItem.Category = entryCategory;
+
+        if (string.IsNullOrEmpty(entItem.Category))
+        {
+            entItem.Category = "-";
+        }
 
         // hatena imageurl
         XmlNode? hatenaImgUri = entryNode.SelectSingleNode("hatena:imageurl", NsMgr);
@@ -1087,15 +1128,15 @@ public class FeedClientService : BaseClient, IFeedClientService
                         entryAuthor += "/" + authName.InnerText;
                 }
             }
+            entItem.Author = entryAuthor;
         }
 
-        if (string.IsNullOrEmpty(entryAuthor))
+        if (string.IsNullOrEmpty(entItem.Author))
         {
             //if (altUri != null)
             //    entryAuthor = altUri.Host;
+            entItem.Author = "-";
         }
-
-        entItem.Author = entryAuthor;
 
         XmlNode? cont = entryNode.SelectSingleNode("atom:content", atomNsMgr);
         if (cont == null)
@@ -1173,8 +1214,11 @@ public class FeedClientService : BaseClient, IFeedClientService
 
         if (entItem.ContentType == EntryItem.ContentTypes.textHtml)
         {
-            // gets image Uri
-            entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
+            if (entItem.ImageUri is null)
+            {
+                // gets image Uri
+                entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
+            }
         }
     }
 
@@ -1188,7 +1232,9 @@ public class FeedClientService : BaseClient, IFeedClientService
         //entItem.EditUri = entry.EditUri;
         entItem.AltHtmlUri = entry.AltHtmlUri;
         entItem.Published = entry.Published;
+        entItem.Updated = entry.Updated;
         entItem.Author = entry.Author;
+        entItem.Category = entry.Category;
         entItem.Summary = entry.Summary;
         //entItem.SummaryPlainText = entry.SummaryPlainText;
         entItem.Content = entry.Content;
@@ -1212,18 +1258,21 @@ public class FeedClientService : BaseClient, IFeedClientService
     {
         AtomEntry entry = new AtomEntry("", feedId, this);
 
+        // title
         XmlNode? entryTitle = entryNode.SelectSingleNode("atom:title", atomNsMgr);
         if (entryTitle != null)
         {
             entry.Name = entryTitle.InnerText;
         }
 
+        // id
         XmlNode? entryID = entryNode.SelectSingleNode("atom:id", atomNsMgr);
         if (entryID != null)
         {
             entry.EntryId = entryID.InnerText;
         }
 
+        // link
         XmlNodeList? entryLinkUris = entryNode.SelectNodes("atom:link", atomNsMgr);
         string relAttr;
         string hrefAttr;
@@ -1398,6 +1447,7 @@ public class FeedClientService : BaseClient, IFeedClientService
         entry.EditUri = editUri;
         entry.AltHtmlUri = altUri;
 
+        // published
         XmlNode? entryPublished = entryNode.SelectSingleNode("atom:published", atomNsMgr);
         if (entryPublished != null)
         {
@@ -1419,6 +1469,29 @@ public class FeedClientService : BaseClient, IFeedClientService
             }
         }
 
+        // updated
+        XmlNode? entryUpdated = entryNode.SelectSingleNode("atom:updated", atomNsMgr);
+        if (entryUpdated != null)
+        {
+            if (!string.IsNullOrEmpty(entryUpdated.InnerText))
+            {
+                try
+                {
+                    entry.Updated = XmlConvert.ToDateTime(entryUpdated.InnerText, XmlDateTimeSerializationMode.Utc);
+                }
+                catch (Exception e)
+                {
+                    //Debug.WriteLine("Exception @XmlConvert.ToDateTime in the Atom 1.0 feed " + "(" + entry.Name + ")" + " : " + e.Message);
+
+                    ToDebugWindow(">> Exception @FeedClient@CreateAtomEntryFromXmlAtom: XmlConvert.ToDateTime()"
+                        + Environment.NewLine +
+                        "Atom feed entry(" + entry.Name + ") contain invalid entry atom:Updated: " + e.Message +
+                        Environment.NewLine);
+                }
+            }
+        }
+
+        // author 
         var entryAuthor = "";
         XmlNodeList? entryAuthors = entryNode.SelectNodes("atom:author", atomNsMgr);
         if (entryAuthors != null)
@@ -1434,15 +1507,55 @@ public class FeedClientService : BaseClient, IFeedClientService
                         entryAuthor += "/" + authName.InnerText;
                 }
             }
+            entry.Author = entryAuthor;
         }
 
-        if (string.IsNullOrEmpty(entryAuthor))
+        if (string.IsNullOrEmpty(entry.Author))
         {
             //if (altUri != null)
             //    entryAuthor = altUri.Host;
+            entry.Author = "-";
         }
 
-        entry.Author = entryAuthor;
+        // category 
+        var entryCategory = "";
+        XmlNodeList? entryCategories = entryNode.SelectNodes("atom:category", atomNsMgr);
+        if (entryCategories != null)
+        {
+            foreach (XmlNode cat in entryCategories)
+            {
+                if (cat.Attributes["term"] != null)
+                {
+                    if (string.IsNullOrEmpty(entryCategory))
+                        entryCategory = cat.Attributes["term"].Value;
+                    else
+                        entryCategory += "/" + cat.Attributes["term"].Value;
+                }
+            }
+            entry.Category = entryCategory;
+        }
+
+        if (string.IsNullOrEmpty(entry.Category))
+        {
+            entry.Category = "-";
+        }
+
+        // TODO: source 
+        var entrySource = "";
+        XmlNode? entrySourceNode = entryNode.SelectSingleNode("atom:source", atomNsMgr);
+        if (entrySourceNode != null)
+        {
+            if (string.IsNullOrEmpty(entrySource))
+            {
+                if (entrySourceNode.Attributes["title"] != null)
+                {
+                    entrySource = entrySourceNode.Attributes["title"].Value;
+
+                }
+            }
+            //entry.Source = entrySource;
+        }
+
 
         /*
 <?xml version="1.0" encoding="utf-8"?>
@@ -1481,9 +1594,7 @@ public class FeedClientService : BaseClient, IFeedClientService
         */
 
         // TODO:
-        //updated
         //app:edited
-        //category
 
         /*
         //app:control/app:draft(yes/no)
@@ -1605,32 +1716,35 @@ public class FeedClientService : BaseClient, IFeedClientService
             XmlNode? mediaContentNode = mediaNode.SelectSingleNode("media:content", atomNsMgr);
             if (mediaContentNode != null)
             {
-                var url = mediaContentNode.Attributes["url"].Value;
-                if (!string.IsNullOrEmpty(url))
+                if (mediaContentNode.Attributes["url"] != null)
                 {
-                    var type = mediaContentNode.Attributes["type"].Value;
-                    if (!string.IsNullOrEmpty(type))
+                    var url = mediaContentNode.Attributes["url"].Value;
+                    if (!string.IsNullOrEmpty(url))
                     {
-                        if (type == "application/x-shockwave-flash")
+                        var type = mediaContentNode.Attributes["type"].Value;
+                        if (!string.IsNullOrEmpty(type))
                         {
-                            // YouTube does this...
-                        }
-                        else if (type == "video/mp4")
-                        {
-                            //
-                        }
-                        else if (type == "audio/mp4")
-                        {
-                            //
-                        }
-                        else if (type == "audio/mpeg")
-                        {
-                            //mp3
-                            try
+                            if (type == "application/x-shockwave-flash")
                             {
-                                entry.AudioUri = new Uri(url);
+                                // YouTube does this...
                             }
-                            catch { }
+                            else if (type == "video/mp4")
+                            {
+                                //
+                            }
+                            else if (type == "audio/mp4")
+                            {
+                                //
+                            }
+                            else if (type == "audio/mpeg")
+                            {
+                                //mp3
+                                try
+                                {
+                                    entry.AudioUri = new Uri(url);
+                                }
+                                catch { }
+                            }
                         }
                     }
                 }
@@ -1639,14 +1753,17 @@ public class FeedClientService : BaseClient, IFeedClientService
             XmlNode? mediaThumbnailNode = mediaNode.SelectSingleNode("media:thumbnail", atomNsMgr);
             if (mediaThumbnailNode != null)
             {
-                var url = mediaThumbnailNode.Attributes["url"].Value;
-                if (!string.IsNullOrEmpty(url))
+                if (mediaThumbnailNode.Attributes["url"] != null)
                 {
-                    try
+                    var url = mediaThumbnailNode.Attributes["url"].Value;
+                    if (!string.IsNullOrEmpty(url))
                     {
-                        entry.ImageUri = new Uri(url);
+                        try
+                        {
+                            entry.ImageUri = new Uri(url);
+                        }
+                        catch { }
                     }
-                    catch { }
                 }
             }
 
