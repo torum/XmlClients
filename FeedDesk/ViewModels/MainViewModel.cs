@@ -779,7 +779,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     public void OnNavigatedTo(object parameter)
     {
-        Debug.WriteLine($"Navigated to.");
         /*
         if (parameter is RegisterFeedEventArgs rfeArgs)
         {
