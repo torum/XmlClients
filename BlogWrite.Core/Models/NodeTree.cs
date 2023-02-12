@@ -100,7 +100,7 @@ public abstract class NodeTree : Node
         }
     }
 
-    private int _entryNewCount;
+    private int _entryNewCount = 0;
     public int EntryNewCount
     {
         get => _entryNewCount;

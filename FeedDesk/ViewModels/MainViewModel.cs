@@ -1472,7 +1472,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         {
             App.CurrentDispatcherQueue?.TryEnqueue(() =>
             {
-                //IsWorking = true;
+                feed.IsBusy = true;
 
                 // TODO: not really saving
                 //feed.Status = NodeFeed.DownloadStatus.saving;
@@ -1499,7 +1499,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
                     feed.Status = NodeFeed.DownloadStatus.error;
 
-                    //IsWorking = false;
+                    feed.IsBusy = false;
                 });
 
                 return;
@@ -1548,7 +1548,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                         }
                     }
 
-                    //IsWorking = false;
+                    feed.IsBusy = false;
                     EntryArchiveAllCommand.NotifyCanExecuteChanged();
                 });
                 /*
@@ -1943,11 +1943,14 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         if (feed is null)
             return;
 
-        feed.Name = name;
+        if (feed.Name == name)
+            return;
 
         // update db.
         App.CurrentDispatcherQueue?.TryEnqueue(() =>
         {
+            feed.Name = name;
+
             feed.IsBusy = true;
 
             //Debug.WriteLine("Saving entries: " + feed.Name);
@@ -2051,6 +2054,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 {
                     hoge.Parent.Children.Remove(hoge);
                     hoge.IsBusy = false; // remove self from parent IsBusyChildrenCount
+
+                    // 
+                    if (hoge.Parent is NodeFolder parentFolder)
+                        MinusAllParentEntryCount(parentFolder, hoge.EntryNewCount);
                 }
                 else
                 {

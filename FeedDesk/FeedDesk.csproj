@@ -31,7 +31,7 @@
 	  <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
 	  <AppxSymbolPackageEnabled>True</AppxSymbolPackageEnabled>
 	  <GenerateTestArtifacts>True</GenerateTestArtifacts>
-	  <AppxBundle>Always</AppxBundle>
+	  <AppxBundle>Auto</AppxBundle>
 	  <AppxBundlePlatforms>x86|x64|arm64</AppxBundlePlatforms>
 	  <GenerateTemporaryStoreCertificate>True</GenerateTemporaryStoreCertificate>
 	  <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>

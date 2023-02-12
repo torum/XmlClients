@@ -28,6 +28,7 @@ public class FeedClientService : BaseClient, IFeedClientService
         Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
         Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/atom+xml"));
         Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rss+xml"));
+        Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rdf+xml"));
     }
 
     public async override Task<HttpClientEntryItemCollectionResultWrapper> GetEntries(Uri entriesUrl, string feedId)
@@ -1143,41 +1144,50 @@ public class FeedClientService : BaseClient, IFeedClientService
             entItem.Author = "-";
         }
 
+        entItem.ContentType = EntryItem.ContentTypes.none;
+
         XmlNode? cont = entryNode.SelectSingleNode("atom:content", atomNsMgr);
         if (cont == null)
         {
-            string contype = cont.Attributes["type"].Value;
-            if (!string.IsNullOrEmpty(contype))
+            if (cont.Attributes["type"] != null)
             {
-                //entItem.ContentTypeString = contype;
-
-                switch (contype)
+                string contype = cont.Attributes["type"].Value;
+                if (!string.IsNullOrEmpty(contype))
                 {
-                    case "text":
-                        entItem.ContentType = EntryItem.ContentTypes.text;
-                        break;
-                    case "html":
-                        entItem.ContentType = EntryItem.ContentTypes.textHtml;
-                        break;
-                    case "xhtml":
-                        entItem.ContentType = EntryItem.ContentTypes.textHtml;
-                        break;
-                    case "text/plain":
-                        entItem.ContentType = EntryItem.ContentTypes.text;
-                        break;
-                    case "text/html":
-                        entItem.ContentType = EntryItem.ContentTypes.textHtml;
-                        break;
-                    case "text/x-markdown":
-                        entItem.ContentType = EntryItem.ContentTypes.markdown;
-                        break;
-                    case "text/x-hatena-syntax":
-                        entItem.ContentType = EntryItem.ContentTypes.hatena;
-                        break;
-                    default:
-                        entItem.ContentType = EntryItem.ContentTypes.unknown;
-                        break;
+                    //entItem.ContentTypeString = contype;
+
+                    switch (contype)
+                    {
+                        case "text":
+                            entItem.ContentType = EntryItem.ContentTypes.text;
+                            break;
+                        case "html":
+                            entItem.ContentType = EntryItem.ContentTypes.textHtml;
+                            break;
+                        case "xhtml":
+                            entItem.ContentType = EntryItem.ContentTypes.textHtml;
+                            break;
+                        case "text/plain":
+                            entItem.ContentType = EntryItem.ContentTypes.text;
+                            break;
+                        case "text/html":
+                            entItem.ContentType = EntryItem.ContentTypes.textHtml;
+                            break;
+                        case "text/x-markdown":
+                            entItem.ContentType = EntryItem.ContentTypes.markdown;
+                            break;
+                        case "text/x-hatena-syntax":
+                            entItem.ContentType = EntryItem.ContentTypes.hatena;
+                            break;
+                        default:
+                            entItem.ContentType = EntryItem.ContentTypes.unknown;
+                            break;
+                    }
                 }
+            }
+            else
+            {
+                entItem.ContentType = EntryItem.ContentTypes.unknown;
             }
 
             entItem.Content = cont.InnerText;
@@ -1529,38 +1539,44 @@ public class FeedClientService : BaseClient, IFeedClientService
         XmlNode? cont = entryNode.SelectSingleNode("atom:content", atomNsMgr);
         if (cont != null)
         {
-            var contype = cont.Attributes["type"].Value;
-            if (!string.IsNullOrEmpty(contype))
+            if (cont.Attributes["type"] != null)
             {
-                //entry.ContentTypeString = contype;
-
-                switch (contype)
+                var contype = cont.Attributes["type"].Value; if (!string.IsNullOrEmpty(contype))
                 {
-                    case "text":
-                        entItem.ContentType = EntryItem.ContentTypes.text;
-                        break;
-                    case "html":
-                        entItem.ContentType = EntryItem.ContentTypes.textHtml;
-                        break;
-                    case "xhtml":
-                        entItem.ContentType = EntryItem.ContentTypes.textHtml;
-                        break;
-                    case "text/plain":
-                        entItem.ContentType = EntryItem.ContentTypes.text;
-                        break;
-                    case "text/html":
-                        entItem.ContentType = EntryItem.ContentTypes.textHtml;
-                        break;
-                    case "text/x-markdown":
-                        entItem.ContentType = EntryItem.ContentTypes.markdown;
-                        break;
-                    case "text/x-hatena-syntax":
-                        entItem.ContentType = EntryItem.ContentTypes.hatena;
-                        break;
-                    default:
-                        entItem.ContentType = EntryItem.ContentTypes.unknown;
-                        break;
+                    //entry.ContentTypeString = contype;
+
+                    switch (contype)
+                    {
+                        case "text":
+                            entItem.ContentType = EntryItem.ContentTypes.text;
+                            break;
+                        case "html":
+                            entItem.ContentType = EntryItem.ContentTypes.textHtml;
+                            break;
+                        case "xhtml":
+                            entItem.ContentType = EntryItem.ContentTypes.textHtml;
+                            break;
+                        case "text/plain":
+                            entItem.ContentType = EntryItem.ContentTypes.text;
+                            break;
+                        case "text/html":
+                            entItem.ContentType = EntryItem.ContentTypes.textHtml;
+                            break;
+                        case "text/x-markdown":
+                            entItem.ContentType = EntryItem.ContentTypes.markdown;
+                            break;
+                        case "text/x-hatena-syntax":
+                            entItem.ContentType = EntryItem.ContentTypes.hatena;
+                            break;
+                        default:
+                            entItem.ContentType = EntryItem.ContentTypes.unknown;
+                            break;
+                    }
                 }
+            }
+            else
+            {
+                entItem.ContentType = EntryItem.ContentTypes.unknown;
             }
 
             entItem.Content = cont.InnerText;

@@ -241,6 +241,6 @@
     <value>Version</value>
   </data>
   <data name="SettingsPage_PrivacyTerms.Text" xml:space="preserve">
-    <value>This application does not collect nor send any information.</value>
+    <value>This application does not collect nor send any personal information.</value>
   </data>
 </root>

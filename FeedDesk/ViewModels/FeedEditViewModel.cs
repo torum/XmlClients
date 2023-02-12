@@ -98,8 +98,9 @@ public class FeedEditViewModel : ObservableRecipient, INavigationAware
 
                 var vm = App.GetService<MainViewModel>();
                 vm.UpdateFeed(Feed, Name);
-                _navigationService.NavigateTo(typeof(MainViewModel).FullName!, null);
             }
+
+            _navigationService.NavigateTo(typeof(MainViewModel).FullName!, null);
         }
     }
 }

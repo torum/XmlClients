@@ -7,6 +7,7 @@ using System.Xml;
 using AngleSharp;
 using AngleSharp.Html.Parser;
 using AngleSharp.Xml.Parser;
+using Windows.Media.Protection.PlayReady;
 
 namespace BlogWrite.Core.Models;
 
@@ -244,6 +245,23 @@ public class ServiceDiscovery
     public ServiceDiscovery()
     {
         _httpClient = new HttpClient();
+
+
+        _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/html"));
+
+        // Atom service documetn
+        //_httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/atomsvc+xml"));
+        //_httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/atomcat+xml"));
+        
+        _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rsd+xml"));
+
+        _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/xml"));
+        _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
+        _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/atom+xml"));
+        _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rss+xml"));
+        _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rdf+xml"));
+
+        //Debug.WriteLine(_httpClient.DefaultRequestHeaders.ToString());
     }
 
     #region == Methods ==
@@ -371,6 +389,16 @@ public class ServiceDiscovery
                         ServiceResultErr re = new ServiceResultErr("Atom (UNDERDEVELOPENT).", string.Format("{0} is Atom. (UNDERDEVELOPENT)", contenTypeString));
                         return re;
                         */
+                    }
+                    else if (contenTypeString.StartsWith("atom;"))
+                    {
+                        // Ssme as "application/atom+xml", but GitHub returns this...
+
+                        UpdateStatus("- (Wrong Content-Type) Parsing Atom feed ...");
+
+                        ServiceResultBase feed = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
+
+                        return feed;
                     }
                     else if (contenTypeString.StartsWith("application/x.atom+xml"))
                     {

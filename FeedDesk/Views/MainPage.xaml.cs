@@ -151,7 +151,7 @@ public sealed partial class MainPage : Page
         foreach (NodeTree item in args.Items)
         {
             item.Parent = args.NewParentItem as NodeTree;
-            
+
             // dropped on rootnodes which means NewParentItem is null.
             item.Parent ??= ViewModel.Root;
         }
