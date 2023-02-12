@@ -363,8 +363,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         set => SetProperty(ref _isAudioLinkExists, value);
     }
 
-    private MediaSource _mediaSource;
-    public MediaSource MediaSource
+    private MediaSource? _mediaSource;
+    public MediaSource? MediaSource
     {
         get => _mediaSource;
         set => SetProperty(ref _mediaSource, value);
@@ -565,7 +565,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         get => _isMainErrorInfoBarVisible;
         set
         {
-            if ((value == true) && (_errorMain != null))
+            if ((value == true) && (ErrorMain != null))
             {
                 ErrorMainTitle = ErrorMain.ErrDescription;
                 ErrorMainMessage = ErrorMain.ErrText;
@@ -1338,7 +1338,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         });
 
         //var resInsert = await Task.FromResult(InsertEntriesLock(list));
-        var resInsert = _dataAccessService.InsertEntries(list,feed.Id, feed.Name,feed.Title,feed.Description,feed.Updated,feed.HtmlUri);
+        var resInsert = _dataAccessService.InsertEntries(list, feed.Id, feed.Name, feed.Title, feed.Description, feed.Updated, feed.HtmlUri!);
 
         // Result is DB Error
         if (resInsert.IsError)
@@ -1491,7 +1491,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 {
                     feed.ErrorDatabase = res.Error;
 
-                    if (feed == _selectedTreeViewItem)
+                    if (feed == SelectedTreeViewItem)
                     {
                         //DatabaseError = (nd as NodeFeed).ErrorDatabase;
                         //IsShowDatabaseErrorMessage = true;
@@ -1531,7 +1531,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                         }
                         feed.EntryNewCount = 0;
 
-                        if (feed == _selectedTreeViewItem)
+                        if (feed == SelectedTreeViewItem)
                         {
                             //DatabaseError = null;
                             //IsShowDatabaseErrorMessage = false;
@@ -1540,21 +1540,34 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                             Entries.Clear();
                             
                             // showing all entries. so realod.
+                            /*
                             if (!feed.IsDisplayUnarchivedOnly)
                             {
                                 Task nowait = Task.Run(() => LoadEntriesAsync(_selectedTreeViewItem));
                             } 
+                            */
                             //Task.Run(() => LoadEntries(_selectedNode));
                         }
                     }
 
                     feed.IsBusy = false;
+                    //EntryArchiveAllCommand.NotifyCanExecuteChanged();
+                });
+
+                if (res.AffectedCount > 0)
+                {
+                    if (feed == SelectedTreeViewItem)
+                    {
+                        if (!feed.IsDisplayUnarchivedOnly)
+                        {
+                            await LoadEntriesAsync(SelectedTreeViewItem);
+                        }
+                    }
+                }
+                App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                {
                     EntryArchiveAllCommand.NotifyCanExecuteChanged();
                 });
-                /*
-                if (nd == SelectedNode)
-                    await LoadEntriesAsync(_selectedNode);
-                */
             }
         }
         else if (nd is NodeFolder folder)
@@ -1602,22 +1615,31 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                         if (folder == _selectedTreeViewItem)
                         {
                             Entries.Clear();
-
+                            /*
                             if (!folder.IsDisplayUnarchivedOnly)
                             {
                                 Task nowait = Task.Run(() => LoadEntriesAsync(_selectedTreeViewItem));
                             }
+                            */
                         }
                     });
                 }
+                if (res.AffectedCount > 0)
+                {
+                    if (folder == SelectedTreeViewItem)
+                    {
+                        if (!folder.IsDisplayUnarchivedOnly)
+                        {
+                            await LoadEntriesAsync(SelectedTreeViewItem);
+                        }
+                    }
+                }
+                App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                {
+                    EntryArchiveAllCommand.NotifyCanExecuteChanged();
+                });
             }
 
-            App.CurrentDispatcherQueue?.TryEnqueue(() =>
-            {
-                //IsWorking = false;
-
-                EntryArchiveAllCommand.NotifyCanExecuteChanged();
-            });
         }
     }
 
@@ -1957,7 +1979,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             feed.Status = NodeFeed.DownloadStatus.saving;
         });
 
-        var resInsert = _dataAccessService.UpdateFeed(feed.Id,feed.EndPoint,feed.Name,feed.Title,feed.Description,feed.Updated,feed.HtmlUri);
+        var resInsert = _dataAccessService.UpdateFeed(feed.Id,feed.EndPoint,feed.Name,feed.Title,feed.Description,feed.Updated,feed.HtmlUri!);
 
         // Result is DB Error
         if (resInsert.IsError)
@@ -2271,7 +2293,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             else
             {
                 //
-                var resInsert = _dataAccessService.InsertFeed(feed.Id, feed.EndPoint, feed.Name, feed.Title, "", new DateTime(), feed.HtmlUri);
+                var resInsert = _dataAccessService.InsertFeed(feed.Id, feed.EndPoint, feed.Name, feed.Title, "", new DateTime(), feed.HtmlUri!);
 
                 // Result is DB Error
                 if (resInsert.IsError)

@@ -30,6 +30,12 @@ public class ErrorObject
 
     //
     public DateTime ErrDatetime { get; set; }
+
+    public ErrorObject()
+    {
+        //
+
+    }
 }
 
 // Result Wrapper Class
@@ -41,7 +47,7 @@ public abstract class ResultWrapper
 
 public class SqliteDataAccessResultWrapper: ResultWrapper
 {
-    public int AffectedCount;
+    public int AffectedCount = 0;
 }
 
 public class SqliteDataAccessInsertResultWrapper: SqliteDataAccessResultWrapper
@@ -51,7 +57,7 @@ public class SqliteDataAccessInsertResultWrapper: SqliteDataAccessResultWrapper
 
 public class SqliteDataAccessSelectResultWrapper: SqliteDataAccessResultWrapper
 {
-    public int UnreadCount;
+    public int UnreadCount = 0;
 
     public List<EntryItem> SelectedEntries = new();
 }
@@ -67,14 +73,14 @@ public class HttpClientEntryItemCollectionResultWrapper : ResultWrapper
 {
     // Atom //feed/title
     // RSS2.0 //rss/channel/title
-    public string? Title
+    public string Title
     {
         get; set;
     }
 
     // Atom //feed/subtitle
     // RSS2.0  //rss/channel/description
-    public string? Description
+    public string Description
     {
         get; set;
     }
@@ -101,4 +107,12 @@ public class HttpClientEntryItemCollectionResultWrapper : ResultWrapper
     // category (s)
 
     public List<EntryItem> Entries = new();
+
+    public HttpClientEntryItemCollectionResultWrapper()
+    {
+        Title = string.Empty;
+        Description = string.Empty;
+        Published = default;
+        Updated = default;
+    }
 }

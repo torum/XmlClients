@@ -19,7 +19,7 @@
 	  <Version>$(AssemblyVersion)</Version>
 	  <PlatformTarget>AnyCPU</PlatformTarget>
 	  <NeutralLanguage>en-US</NeutralLanguage>
-	  <Nullable>annotations</Nullable>
+	  <Nullable>enable</Nullable>
 	  <ApplicationIcon>FeedDesk3.ico</ApplicationIcon>
 	  <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
 	  <Title>FeedDesk</Title>

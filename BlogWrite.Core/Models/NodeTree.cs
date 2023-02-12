@@ -370,7 +370,7 @@ public abstract class NodeTree : Node
 
     private bool ContainsChildLoop(ObservableCollection<NodeTree> childList, NodeTree ntc)
     {
-        bool hasChild = false;
+        var hasChild = false;
 
         foreach (var c in childList)
         {
@@ -408,7 +408,7 @@ public class ExplorerItemTemplateSelector : DataTemplateSelector
 
         if (item is not NodeTree) return base.SelectTemplateCore(item);
 
-        var explorerItem = (NodeTree)item;
+        //var explorerItem = (NodeTree)item;
         /*
         if (explorerItem is NodeFeed)
         {
@@ -582,7 +582,7 @@ public class NodeFeed : NodeService
 
     // Atom //feed/title
     // RSS2.0 //rss/channel/title
-    private string _title = "";
+    private string _title = string.Empty;
     public string Title
     {
         get => _title;
@@ -598,8 +598,8 @@ public class NodeFeed : NodeService
 
     // Atom //feed/subtitle
     // RSS2.0  //rss/channel/description
-    private string? _description;
-    public string? Description
+    private string _description = string.Empty;
+    public string Description
     {
         get => _description;
         set
@@ -614,8 +614,8 @@ public class NodeFeed : NodeService
 
     // not really used.
     // RSS2.0 //rss/channnel/copyright
-    private string? _copyright;
-    public string? Copyright
+    private string _copyright = string.Empty;
+    public string Copyright
     {
         get => _copyright;
         set
@@ -702,7 +702,7 @@ public class NodeFeed : NodeService
         error
     }
 
-    private DownloadStatus _status;
+    private DownloadStatus _status = DownloadStatus.normal;
     public DownloadStatus Status
     {
         get => _status;
@@ -819,7 +819,7 @@ public class NodeAtomPubEntryCollection : NodeEntryCollection
     //image/png
     //image/jpeg
     //image/gif
-    public Collection<string> AcceptTypes = new Collection<string>();
+    public Collection<string> AcceptTypes = new();
 
     public NodeAtomPubEntryCollection(string name, Uri uri, string id) : base(name, uri, id)
     {

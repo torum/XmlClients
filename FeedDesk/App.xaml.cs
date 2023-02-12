@@ -202,9 +202,10 @@ public partial class App : Application
         catch (Exception) { }
     }
 
-    private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+    private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
-        var exception = e.Exception.InnerException as Exception;
+        if (e.Exception.InnerException is not Exception exception)
+            return;
 
         Debug.WriteLine("TaskScheduler_UnobservedTaskException: " + exception.Message);
         AppendErrorLog("TaskScheduler_UnobservedTaskException", exception.Message);
@@ -215,7 +216,8 @@ public partial class App : Application
 
     private void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
     {
-        var exception = e.ExceptionObject as Exception;
+        if (e.ExceptionObject is not Exception exception)
+            return;
 
         if (exception is TaskCanceledException)
         {
@@ -280,11 +282,13 @@ public partial class App : Application
             {
                 if (File.Exists(filename))
                 {
-                    var jo = System.Text.Json.Nodes.JsonObject.Parse(File.ReadAllText(filename)) as JsonObject;
-                    foreach (var node in jo)
+                    if (JsonNode.Parse(File.ReadAllText(filename)) is JsonObject jo)
                     {
-                        if (node.Value is JsonValue jvalue && jvalue.TryGetValue<string>(out string value))
-                            _data[node.Key] = value;
+                        foreach (var node in jo)
+                        {
+                            if (node.Value is JsonValue jvalue && jvalue.TryGetValue<string>(out var value))
+                                _data[node.Key] = value;
+                        }
                     }
                 }
             }
