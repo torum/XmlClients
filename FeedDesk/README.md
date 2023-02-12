@@ -35,7 +35,10 @@ A desktop feed reader. (work in progress)
 
 ## Things that currentry working on
 
-- [ ] ...
+- [ ] More refactoring...
+- [ ] Internationalization.
+- [ ] Basic Auth.
+- [ ] Database file management page (menu>tools), delete data and vacume.
 
 ## Planning
 
@@ -46,13 +49,10 @@ A desktop feed reader. (work in progress)
 - [ ] Make use of "isRead" flag. 
 
 ### UI
-- [ ] Internationalization.
+
 - [ ] Grouping display of entries. 
 - [ ] multiple viewing style (3 panes, cards, etc)
 - [ ] A progressbar or some kind to notify refleshing is on going or not.
-
-### Tools
-- [ ] Database file management view (menu>tools)
 
 ### Sync 
 - [ ] Sync with Firefox Pocket or Instapaper etc for "read lator".
