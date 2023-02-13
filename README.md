@@ -4,6 +4,9 @@ Originally started as a C#/WPF port of a blog editing client called "BlogWrite" 
 ## [FeedDesk](https://torum.github.io/BlogWrite/FeedDesk/)
 A desktop feed reader. (work in progress)
 
+## Download
+from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
+
 ### Implements following formats:  
 
 * Atom 0.3
