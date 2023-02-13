@@ -1,0 +1,10 @@
+﻿{
+    "profiles": {
+      "BlogDesk (Package)": {
+        "commandName": "MsixPackage"
+      },
+      "BlogDesk (Unpackaged)": {
+        "commandName": "Project"
+      }
+    }
+}

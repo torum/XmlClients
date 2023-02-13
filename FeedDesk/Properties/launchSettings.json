@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "FeedDesk (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "FeedDesk (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
