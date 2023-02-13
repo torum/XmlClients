@@ -15,7 +15,9 @@ A desktop feed reader. (work in progess)
 * Supports podcasts and in-app playback.
 
 ## Download:
-TBA
+
+from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
+
 
 ## Privacy olicy:
 * This application does not collect nor send any personal information.
