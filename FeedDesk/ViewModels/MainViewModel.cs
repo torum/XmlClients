@@ -1665,7 +1665,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     {
         if (folder is NodeFolder)
         {
-            folder.EntryNewCount -= minusCount;
+            if ((minusCount > 0) && (folder.EntryNewCount > minusCount))
+                folder.EntryNewCount -= minusCount;
 
             if (folder.Parent != null)
             {

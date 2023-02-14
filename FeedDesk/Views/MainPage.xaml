@@ -523,7 +523,7 @@
                         </Border>
 
                         <!-- Entries listView -->
-                        <ListView Grid.Row="1" Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}" x:Name="ListViewEntryItem" ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedListViewItem, Mode=TwoWay}" IsDoubleTapEnabled="True" IsRightTapEnabled="True" SelectionMode="Single" Margin="0,0,0,0" Padding="0,0,0,0">
+                        <ListView Grid.Row="1" PointerWheelChanged="ListViewEntryItem_PointerWheelChanged" Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}" x:Name="ListViewEntryItem" ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedListViewItem, Mode=TwoWay}" IsDoubleTapEnabled="True" IsRightTapEnabled="True" SelectionMode="Single" Margin="0,0,0,0" Padding="0,0,0,0">
                             <ListView.Resources>
                                 <MenuFlyout x:Key="ListItemContextMenu">
 

@@ -37,7 +37,7 @@
 
                         <TextBlock Text="New Feed" Margin="0,0,0,12" Style="{StaticResource PageTitleStyle}" />
 
-                        <Pivot Title="" Margin="0,-48,0,0" SelectedIndex="{x:Bind ViewModel.SelectedTabIndex, Mode=TwoWay}">
+                        <Pivot Title="" Margin="0,-48,0,0" MinWidth="300" SelectedIndex="{x:Bind ViewModel.SelectedTabIndex, Mode=TwoWay}">
                             <Pivot.Resources>
                                 <Style TargetType="PivotHeaderItem" BasedOn="{StaticResource DefaultPivotHeaderItemStyle}">
                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -49,12 +49,15 @@
 
                                     <TextBlock Text="Enter a URL of a feed or a website." />
 
-                                    <StackPanel MinWidth="300" HorizontalAlignment="Stretch" Margin="24,0,24,0">
+                                    <StackPanel Margin="24" HorizontalAlignment="Stretch">
 
-                                        <TextBox Header="URL:" PlaceholderText="https://...." Text="{x:Bind ViewModel.WebsiteOrEndpointUrl, Mode=TwoWay}" Margin="0,24,0,0" HorizontalAlignment="Stretch"/>
+                                        <TextBox Header="URL:" PlaceholderText="https://...." Text="{x:Bind ViewModel.WebsiteOrEndpointUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,24,0,0" HorizontalAlignment="Stretch"/>
 
-                                        <Button Content="Next" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoCommand}"></Button>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
 
+                                            <Button Content="Next" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoCommand}"></Button>
+
+                                        </StackPanel>
                                     </StackPanel>
                                     <!--
                             <Grid MinWidth="300" MaxWidth="850" HorizontalAlignment="Left" Margin="24,0,12,12" Visibility="{x:Bind ViewModel.IsShowError,Mode=OneWay}">
@@ -109,50 +112,51 @@
 
                                     <TextBlock Text="Select an item to add." />
 
-                                    <StackPanel Margin="12,24,12,12" HorizontalAlignment="Stretch" Background="{ThemeResource NavigationViewContentBackground}">
+                                    <StackPanel Margin="24" HorizontalAlignment="Stretch">
 
-                                        <ListView SelectionMode="Single" ItemsSource="{x:Bind ViewModel.LinkItems, Mode=OneWay}" MaxHeight="200" SelectedItem="{x:Bind ViewModel.SelectedLinkItem, Mode=TwoWay}">
-                                            <ListView.ItemTemplate>
-                                                <DataTemplate x:DataType="model:LinkItem">
+                                        <Border Background="{ThemeResource NavigationViewContentBackground}">
+                                            <ListView SelectionMode="Single" ItemsSource="{x:Bind ViewModel.LinkItems, Mode=OneWay}" MaxHeight="200" SelectedItem="{x:Bind ViewModel.SelectedLinkItem, Mode=TwoWay}">
+                                                <ListView.ItemTemplate>
+                                                    <DataTemplate x:DataType="model:LinkItem">
 
-                                                    <Grid Padding="12">
-                                                        <Grid.RowDefinitions>
-                                                            <RowDefinition Height="Auto" />
-                                                            <RowDefinition Height="Auto" />
-                                                            <RowDefinition Height="Auto" />
-                                                        </Grid.RowDefinitions>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <!--
+                                                        <Grid Padding="12">
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="Auto" />
+                                                                <RowDefinition Height="Auto" />
+                                                                <RowDefinition Height="Auto" />
+                                                            </Grid.RowDefinitions>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <!--
                                                 <Ellipse Grid.RowSpan="3" x:Name="Ellipse" Width ="24" Height="24" Margin="0,0,12,0" VerticalAlignment="Center" HorizontalAlignment="Center" Fill="{ThemeResource SystemControlBackgroundBaseMediumBrush}"/>
 -->
-                                                        <PathIcon Data="{Binding IconPath, Mode=OneWay}" Width ="24" Height="24" Margin="0,0,12,0"></PathIcon>
+                                                            <PathIcon Data="{Binding IconPath, Mode=OneWay}" Width ="24" Height="24" Margin="0,0,12,0"></PathIcon>
 
-                                                        <TextBlock Grid.Row="0" Grid.Column="1" FontWeight="Bold" Text="Type:" Padding="3"/>
-                                                        <TextBlock Grid.Row="0" Grid.Column="2" FontWeight="Normal" Text="{Binding TypeText, Mode=OneWay}" Padding="3"/>
+                                                            <TextBlock Grid.Row="0" Grid.Column="1" FontWeight="Bold" Text="Type:" Padding="3"/>
+                                                            <TextBlock Grid.Row="0" Grid.Column="2" FontWeight="Normal" Text="{Binding TypeText, Mode=OneWay}" Padding="3"/>
 
-                                                        <TextBlock Grid.Row="1" Grid.Column="1" FontWeight="Bold" Text="Title:" Padding="3"/>
-                                                        <TextBlock Grid.Row="1" Grid.Column="2" FontWeight="Normal" Text="{Binding Title, Mode=OneWay}" Padding="3"/>
+                                                            <TextBlock Grid.Row="1" Grid.Column="1" FontWeight="Bold" Text="Title:" Padding="3"/>
+                                                            <TextBlock Grid.Row="1" Grid.Column="2" FontWeight="Normal" Text="{Binding Title, Mode=OneWay}" Padding="3"/>
 
-                                                        <TextBlock Grid.Row="2" Grid.Column="1" FontWeight="Bold" Text="Url:" Padding="3"/>
-                                                        <TextBlock Grid.Row="2" Grid.Column="2" FontWeight="Normal" Text="{Binding DisplayUrl, Mode=OneWay}" Padding="3"/>
-                                                    </Grid>
+                                                            <TextBlock Grid.Row="2" Grid.Column="1" FontWeight="Bold" Text="Url:" Padding="3"/>
+                                                            <TextBlock Grid.Row="2" Grid.Column="2" FontWeight="Normal" Text="{Binding DisplayUrl, Mode=OneWay}" Padding="3"/>
+                                                        </Grid>
 
-                                                </DataTemplate>
-                                            </ListView.ItemTemplate>
-                                        </ListView>
+                                                    </DataTemplate>
+                                                </ListView.ItemTemplate>
+                                            </ListView>
+                                        </Border>
+                                        
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
 
+                                            <Button Content="Back" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoToFirstTabCommand}"></Button>
+                                            <Button Content="Next" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoSelectedCommand}"></Button>
 
-                                    </StackPanel>
-
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-
-                                        <Button Content="Back" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoToFirstTabCommand}"></Button>
-                                        <Button Content="Next" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoSelectedCommand}"></Button>
-
+                                        </StackPanel>
+                                        
                                     </StackPanel>
                                     
                                 </StackPanel>
@@ -161,46 +165,44 @@
                             <PivotItem Header="3. Authentication">
 
                             </PivotItem>
+                            
                             <PivotItem Header="4. Comfirm">
                                 <StackPanel Margin="0,12,0,0" HorizontalAlignment="Stretch">
 
                                     <TextBlock Text="Set a label and comfirm to add." />
 
-                                    <StackPanel HorizontalAlignment="Stretch" Margin="12,24,12,12">
+                                    <StackPanel Margin="24" HorizontalAlignment="Stretch">
 
-                                        <StackPanel>
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="*"/>
+                                            </Grid.RowDefinitions>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
 
-                                            <Grid>
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="Auto"/>
-                                                    <RowDefinition Height="*"/>
-                                                </Grid.RowDefinitions>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Type: " Margin="6" VerticalAlignment="Center"></TextBlock>
 
-                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Type: " Margin="6" VerticalAlignment="Center"></TextBlock>
+                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind ViewModel.SelectedItemType, Mode=OneWay}" Margin="6"></TextBlock>
 
-                                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind ViewModel.SelectedItemType, Mode=OneWay}" Margin="6"></TextBlock>
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Label: " Margin="6" VerticalAlignment="Center"></TextBlock>
 
-                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Label: " Margin="6" VerticalAlignment="Center"></TextBlock>
+                                            <TextBox Grid.Row="1" Grid.Column="1" Margin="6" HorizontalAlignment="Stretch" Text="{x:Bind ViewModel.SelectedItemTitleLabel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
 
-                                                <TextBox Grid.Row="1" Grid.Column="1" Margin="6" HorizontalAlignment="Stretch" Text="{x:Bind ViewModel.SelectedItemTitleLabel, Mode=TwoWay}"></TextBox>
+                                        </Grid>
 
-                                            </Grid>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
 
-                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-
-                                                <Button Content="Back" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoToThirdTabCommand}"></Button>
-                                                <Button Command="{x:Bind ViewModel.AddSelectedAndCloseCommand}" Content="Add" HorizontalAlignment="Right" Margin="12,24,12,12">
-                                                    <!--
+                                            <Button Content="Back" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoToThirdTabCommand}"></Button>
+                                            <Button Command="{x:Bind ViewModel.AddSelectedAndCloseCommand}" Content="Add" HorizontalAlignment="Right" Margin="12,24,12,12">
+                                                <!--
                                             <PathIcon Data="M17,13H13V17H11V13H7V11H11V7H13V11H17M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"></PathIcon>
                                             -->
-                                                </Button>
-                                            </StackPanel>
-
+                                            </Button>
                                         </StackPanel>
+
 
                                         <!--
                             <Grid>
@@ -265,10 +267,10 @@
                             </Grid>
                             -->
                                     </StackPanel>
+                                    
                                 </StackPanel>
-
-
                             </PivotItem>
+                            
                         </Pivot>
                         
                     </StackPanel>

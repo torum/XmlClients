@@ -285,7 +285,7 @@ public class ServiceDiscovery
                     return re;
                 }
 
-                string contenTypeString = HTTPResponse.Content.Headers.GetValues("Content-Type").FirstOrDefault();
+                var contenTypeString = HTTPResponse.Content.Headers.GetValues("Content-Type").FirstOrDefault();
 
                 if (!string.IsNullOrEmpty(contenTypeString))
                 {
@@ -392,7 +392,7 @@ public class ServiceDiscovery
                     }
                     else if (contenTypeString.StartsWith("atom;"))
                     {
-                        // Ssme as "application/atom+xml", but GitHub returns this...
+                        // Ssme as "application/atom+xml", GitHub returns this...
 
                         UpdateStatus("- (Wrong Content-Type) Parsing Atom feed ...");
 
@@ -445,7 +445,7 @@ public class ServiceDiscovery
                 else
                 {
                     UpdateStatus("- No Content-Type returned. ");
-                    ServiceResultErr re = new ServiceResultErr("Download failed", "No Content-Type reveived.");
+                    ServiceResultErr re = new ServiceResultErr("Download failed", "No Content-Type received.");
                     return re;
                 }
             }
@@ -696,7 +696,7 @@ public class ServiceDiscovery
 
         // gets page title
         var elementTitle = document.QuerySelector("html > head > title");
-        string siteTitle = "";
+        var siteTitle = "";
         if (elementTitle != null)
         {
             siteTitle = elementTitle.TextContent;
@@ -712,10 +712,10 @@ public class ServiceDiscovery
 
         foreach (var e in elements)
         {
-            string re = e.GetAttribute("rel");
-            string ty = e.GetAttribute("type");
-            string hf = e.GetAttribute("href");
-            string t = e.GetAttribute("title");
+            var re = e.GetAttribute("rel");
+            var ty = e.GetAttribute("type");
+            var hf = e.GetAttribute("href");
+            var t = e.GetAttribute("title");
 
             if (!string.IsNullOrEmpty(re))
             {
@@ -730,7 +730,18 @@ public class ServiceDiscovery
                             Uri _rsdUrl = null;
                             try
                             {
-                                _rsdUrl = new Uri(hf);
+                                //_rsdUrl = new Uri(hf);
+                                if (hf.StartsWith("http"))
+                                {
+                                    // Absolute uri.
+                                    _rsdUrl = new Uri(hf);
+                                }
+                                else
+                                {
+                                    // Relative uri (probably...)
+                                    // Uri(baseUri, relativeUriString)
+                                    _rsdUrl = new Uri(addr, hf);
+                                }
                             }
                             catch (Exception ex)
                             {
@@ -769,11 +780,23 @@ public class ServiceDiscovery
                         {
                             try
                             {
-                                var _atomFeedUrl = new Uri(hf);
+                                Uri _atomFeedUrl;
+                                if (hf.StartsWith("http"))
+                                {
+                                    // Absolute uri.
+                                    _atomFeedUrl = new Uri(hf);
+                                }
+                                else
+                                {
+                                    // Relative uri (probably...)
+                                    // Uri(baseUri, relativeUriString)
+                                    _atomFeedUrl = new Uri(addr, hf);
+                                }
+
+                                //var _atomFeedUrl = new Uri(hf);
 
                                 FeedLink fl = new(_atomFeedUrl, FeedLink.FeedKinds.Atom, t, addr, siteTitle);
                                 
-
                                 res.Feeds.Add(fl);
 
                                 UpdateStatus("Found a link to an Atom feed.");
@@ -787,7 +810,19 @@ public class ServiceDiscovery
                         {
                             try
                             {
-                                var _rssFeedUrl = new Uri(hf);
+                                Uri _rssFeedUrl;
+                                
+                                if (hf.StartsWith("http"))
+                                {
+                                    // Absolute uri.
+                                    _rssFeedUrl = new Uri(hf);
+                                }
+                                else
+                                {
+                                    // Relative uri (probably...)
+                                    // Uri(baseUri, relativeUriString)
+                                    _rssFeedUrl = new Uri(addr, hf);
+                                }
 
                                 FeedLink fl = new(_rssFeedUrl, FeedLink.FeedKinds.Rss, t, addr, siteTitle);
 
@@ -799,6 +834,7 @@ public class ServiceDiscovery
                             {
                                 Debug.WriteLine("Exception@ServiceDiscovery@ParseHTML on var _rssFeedUrl = new Uri(hf) : " + ex.Message);
                             }
+
                         }
                         else
                         {
@@ -827,7 +863,7 @@ public class ServiceDiscovery
         var parser = new XmlParser();
         var document = await parser.ParseDocumentAsync(source);
 
-        bool isOK = false;
+        var isOK = false;
         string feedTitle="", siteLink = "";
         Uri siteUri = null;
 
@@ -838,7 +874,7 @@ public class ServiceDiscovery
                 // Possibly RSS 2.0
                 if (document.DocumentElement.LocalName.Equals("rss"))
                 {
-                    string ver = document.DocumentElement.GetAttribute("version");
+                    var ver = document.DocumentElement.GetAttribute("version");
                     if (!string.IsNullOrEmpty(ver))
                     {
                         if (ver.Equals("2.0"))
@@ -897,7 +933,7 @@ public class ServiceDiscovery
                 // Possibly RSS 1.0
                 else if (document.DocumentElement.LocalName.Equals("RDF"))
                 {
-                    string ns = document.DocumentElement.GetAttribute("xmlns");
+                    var ns = document.DocumentElement.GetAttribute("xmlns");
 
                     if (!string.IsNullOrEmpty(ns))
                     {
@@ -947,7 +983,7 @@ public class ServiceDiscovery
                 // Possibly Atom 1.0 or 0.3 feed
                 else if (document.DocumentElement.LocalName.Equals("feed"))
                 {
-                    string ns = document.DocumentElement.GetAttribute("xmlns");
+                    var ns = document.DocumentElement.GetAttribute("xmlns");
 
                     if (!string.IsNullOrEmpty(ns))
                     {
@@ -1024,7 +1060,7 @@ public class ServiceDiscovery
     {
         var source = await content.ReadAsStreamAsync();
 
-        XmlDocument xdoc = new XmlDocument();
+        var xdoc = new XmlDocument();
         try
         {
             XmlReader reader = XmlReader.Create(source);
@@ -1039,13 +1075,13 @@ public class ServiceDiscovery
             return (xe as ServiceResultBase);
         }
 
-        XmlNamespaceManager atomNsMgr = new XmlNamespaceManager(xdoc.NameTable);
+        var atomNsMgr = new XmlNamespaceManager(xdoc.NameTable);
         atomNsMgr.AddNamespace("atom", "http://www.w3.org/2005/Atom");
         atomNsMgr.AddNamespace("app", "http://www.w3.org/2007/app");
 
         if ((xdoc.DocumentElement.Name == "app:service") || (xdoc.DocumentElement.Name == "service"))
         {
-            NodeService account = new NodeService("New Service (Atom Publishing Protocol)", userName, apiKey, addr, ApiTypes.atAtomPub, ServiceTypes.AtomPub);
+            var account = new NodeService("New Service (Atom Publishing Protocol)", userName, apiKey, addr, ApiTypes.atAtomPub, ServiceTypes.AtomPub);
 
             account.EndPoint = addr;
             account.ServiceType = ServiceTypes.AtomPub;
@@ -1054,25 +1090,25 @@ public class ServiceDiscovery
             account.Api = ApiTypes.atAtomPub;
             account.AuthType = authType;
 
-            XmlNodeList workspaceList = xdoc.DocumentElement.SelectNodes("app:workspace", atomNsMgr);
+            var workspaceList = xdoc.DocumentElement.SelectNodes("app:workspace", atomNsMgr);
             //XmlNodeList workspaceList = xdoc.SelectNodes("//service/app:workspace", atomNsMgr);
 
             if (workspaceList != null)
             {
                 foreach (XmlNode ws in workspaceList)
                 {
-                    NodeWorkspace workspace = new NodeWorkspace("Workspace Name");
+                    var workspace = new NodeWorkspace("Workspace Name");
                     workspace.IsExpanded = true;
                     workspace.Parent = account;
 
-                    XmlNode wtl = ws.SelectSingleNode("atom:title", atomNsMgr);
+                    var wtl = ws.SelectSingleNode("atom:title", atomNsMgr);
                     if (wtl != null)
                     {
                         if (string.IsNullOrEmpty(wtl.InnerText))
                             workspace.Name = wtl.InnerText;
                     }
                     
-                    XmlNodeList collectionList = ws.SelectNodes("app:collection", atomNsMgr);
+                    var collectionList = ws.SelectNodes("app:collection", atomNsMgr);
                     if (collectionList != null)
                     {
                         foreach (XmlNode col in collectionList)
@@ -1095,14 +1131,14 @@ public class ServiceDiscovery
                             collection.IsExpanded = true;
                             collection.Parent = workspace;
 
-                            XmlNode ctl = col.SelectSingleNode("atom:title", atomNsMgr);
+                            var ctl = col.SelectSingleNode("atom:title", atomNsMgr);
                             if (ctl != null)
                             {
                                 if (!string.IsNullOrEmpty(ctl.InnerText))
                                     collection.Name = ctl.InnerText;
                             }
 
-                            XmlNodeList accepts = col.SelectNodes("app:accept", atomNsMgr);
+                            var accepts = col.SelectNodes("app:accept", atomNsMgr);
                             if (accepts != null)
                             {
                                 foreach (XmlNode acp in accepts)
@@ -1126,19 +1162,19 @@ public class ServiceDiscovery
                                 collection.IsAcceptEntry = true;
                             }
 
-                            XmlNodeList categoriesList = col.SelectNodes("app:categories", atomNsMgr); 
+                            var categoriesList = col.SelectNodes("app:categories", atomNsMgr); 
                             if (categoriesList != null)
                             {
                                 foreach (XmlNode cats in categoriesList)
                                 {
-                                    NodeAtomPubCatetories categories = new NodeAtomPubCatetories("Categories");
+                                    var categories = new NodeAtomPubCatetories("Categories");
                                     categories.IsExpanded = true;
                                     categories.Parent = collection;
 
                                     Uri catHrefUri = null;
                                     if (cats.Attributes["href"] != null)
                                     {
-                                        string cathref = cats.Attributes["href"].Value;
+                                        var cathref = cats.Attributes["href"].Value;
                                         if (!string.IsNullOrEmpty(cathref))
                                         {
                                             try
@@ -1153,7 +1189,7 @@ public class ServiceDiscovery
 
                                     if (cats.Attributes["fixed"] != null)
                                     {
-                                        string catFix = cats.Attributes["fixed"].Value;
+                                        var catFix = cats.Attributes["fixed"].Value;
                                         if (!string.IsNullOrEmpty(catFix))
                                         {
                                             if (catFix == "yes")
@@ -1172,13 +1208,13 @@ public class ServiceDiscovery
                                     {
                                         foreach (XmlNode cat in categoryList)
                                         {
-                                            NodeAtomPubCategory category = new NodeAtomPubCategory("Category");
+                                            var category = new NodeAtomPubCategory("Category");
                                             category.IsExpanded = true;
                                             category.Parent = categories;
 
                                             if (cat.Attributes["term"] != null)
                                             {
-                                                string term = cat.Attributes["term"].Value;
+                                                var term = cat.Attributes["term"].Value;
                                                 if (!string.IsNullOrEmpty(term))
                                                 {
                                                     category.Term = term;
@@ -1187,7 +1223,7 @@ public class ServiceDiscovery
 
                                             if (cat.Attributes["scheme"] != null)
                                             {
-                                                string scheme = cat.Attributes["scheme"].Value;
+                                                var scheme = cat.Attributes["scheme"].Value;
                                                 if (!string.IsNullOrEmpty(scheme))
                                                 {
                                                     category.Scheme = scheme;
@@ -1210,12 +1246,12 @@ public class ServiceDiscovery
                 }
             }
 
-            ServiceResultAtomPub ap = new ServiceResultAtomPub(addr, authType, account);
+            var ap = new ServiceResultAtomPub(addr, authType, account);
 
             return (ap as ServiceResultBase);
         }
 
-        ServiceResultErr ret = new ServiceResultErr("Fail to read service document.", "No service element found in the Atom Service document:" + xdoc.OuterXml.ToString());
+        var ret = new ServiceResultErr("Fail to read service document.", "No service element found in the Atom Service document:" + xdoc.OuterXml.ToString());
 
         return (ret as ServiceResultBase);
     }

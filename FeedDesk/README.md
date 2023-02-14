@@ -10,10 +10,18 @@ A desktop feed reader. (work in progress)
 * [Really Simple Syndication](https://validator.w3.org/feed/docs/rss2.html) (RSS 2.0)
 
 ### Other feature
+* Feed Autodiscovery.
+* OPML import, export.
 * Display enclosed or embeded images.
-* Supports podcasts and in-app playback.
+* In-app playback of Podcast audio.
 
 ## Change log
+* v1.0.1 (2023/2/14)
+ Store App release.
+* v1.0.0.11 (2023/2/15)
+ Convert relative path to abusolute uri.
+ Add int value check after drag and drop.
+ Update AddFeed view.
 * v1.0.0.10 (2023/2/10)
  Initial release. "minimum viable product (mvp)"
 * v1.0.0.8 (2023/2/3)
@@ -35,10 +43,11 @@ A desktop feed reader. (work in progress)
 
 ## Things that currentry working on
 
-- [ ] More refactoring...
+- [ ] two fingered touchpad gestures for scrolling.
 - [ ] Internationalization.
 - [ ] Basic Auth.
 - [ ] Database file management page (menu>tools), delete data and vacume.
+- [ ] Refactoring...
 
 ## Planning
 
@@ -49,7 +58,6 @@ A desktop feed reader. (work in progress)
 - [ ] Make use of "isRead" flag. 
 
 ### UI
-
 - [ ] Grouping display of entries. 
 - [ ] multiple viewing style (3 panes, cards, etc)
 - [ ] A progressbar or some kind to notify refleshing is on going or not.

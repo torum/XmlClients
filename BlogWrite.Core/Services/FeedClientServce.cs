@@ -215,7 +215,7 @@ public class FeedClientService : BaseClient, IFeedClientService
                     {
                         FeedEntryItem ent = new FeedEntryItem("", feedId, this);
 
-                        FillEntryItemFromXmlRss(ent, l, NsMgr);
+                        FillEntryItemFromXmlRss(ent, l, NsMgr, entriesUrl);
 
                         if (!string.IsNullOrEmpty(ent.EntryId))
                             list.Add(ent);
@@ -267,7 +267,7 @@ public class FeedClientService : BaseClient, IFeedClientService
                     {
                         FeedEntryItem ent = new FeedEntryItem("", feedId, this);
 
-                        FillEntryItemFromXmlRdf(ent, l, NsMgr);
+                        FillEntryItemFromXmlRdf(ent, l, NsMgr, entriesUrl);
 
                         if (!string.IsNullOrEmpty(ent.EntryId))
                             list.Add(ent);
@@ -276,7 +276,7 @@ public class FeedClientService : BaseClient, IFeedClientService
                     // 
                     //await GetImages(list);
                 }
-                // Atom
+                // Atom 0.3 or 1.0
                 else if (xdoc.DocumentElement.LocalName.Equals("feed"))
                 {
                     // Atom 1.0
@@ -314,7 +314,18 @@ public class FeedClientService : BaseClient, IFeedClientService
                                         {
                                             try
                                             {
-                                                altUri = new Uri(hrefAttr);
+                                                //altUri = new Uri(hrefAttr);
+                                                if (hrefAttr.StartsWith("http"))
+                                                {
+                                                    // Absolute uri.
+                                                    altUri = new Uri(hrefAttr);
+                                                }
+                                                else
+                                                {
+                                                    // Relative uri (probably...)
+                                                    // Uri(baseUri, relativeUriString)
+                                                    altUri = new Uri(entriesUrl, hrefAttr);
+                                                }
                                             }
                                             catch (Exception e)
                                             {
@@ -366,7 +377,7 @@ public class FeedClientService : BaseClient, IFeedClientService
                             FeedEntryItem ent = new FeedEntryItem("", feedId, this);
                             //ent.Status = EditEntryItem.EditStatus.esNormal;
 
-                            FillEntryItemFromXmlAtom10(ent, l, atomNsMgr);
+                            FillEntryItemFromXmlAtom10(ent, l, atomNsMgr, entriesUrl);
 
                             if (!string.IsNullOrEmpty(ent.EntryId))
                                 list.Add(ent);
@@ -409,11 +420,22 @@ public class FeedClientService : BaseClient, IFeedClientService
                                         {
                                             try
                                             {
-                                                altUri = new Uri(hrefAttr);
+                                                //altUri = new Uri(hrefAttr);
+                                                if (hrefAttr.StartsWith("http"))
+                                                {
+                                                    // Absolute uri.
+                                                    altUri = new Uri(hrefAttr);
+                                                }
+                                                else
+                                                {
+                                                    // Relative uri (probably...)
+                                                    // Uri(baseUri, relativeUriString)
+                                                    altUri = new Uri(entriesUrl, hrefAttr);
+                                                }
                                             }
                                             catch (Exception e)
                                             {
-                                                Debug.WriteLine("Exception @new Uri(altUri) @ FeedClient Atom1.0" + "(" + feedTitle + ")" + " : " + e.Message);
+                                                Debug.WriteLine("Exception @new Uri(altUri) @ FeedClient Atom0.3" + "(" + feedTitle + ")" + " : " + e.Message);
 
                                                 ToDebugWindow(">> Exception @FeedClient@new Uri(altUri)"
                                                     + Environment.NewLine +
@@ -461,7 +483,7 @@ public class FeedClientService : BaseClient, IFeedClientService
                             FeedEntryItem ent = new FeedEntryItem("", feedId, this);
                             //ent.Status = EditEntryItem.EditStatus.esNormal;
 
-                            FillEntryItemFromXmlAtom03(ent, l, atomNsMgr);
+                            FillEntryItemFromXmlAtom03(ent, l, atomNsMgr, entriesUrl);
 
                             if (!string.IsNullOrEmpty(ent.EntryId))
                                 list.Add(ent);
@@ -559,7 +581,7 @@ public class FeedClientService : BaseClient, IFeedClientService
         return res;
     }
 
-    private async void FillEntryItemFromXmlRss(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager NsMgr)
+    private async void FillEntryItemFromXmlRss(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager NsMgr, Uri baseUri)
     {
         // Title (//rss/channel/item/title)
         XmlNode? entryTitle = entryNode.SelectSingleNode("title");
@@ -573,9 +595,26 @@ public class FeedClientService : BaseClient, IFeedClientService
         XmlNode? entryLinkUri = entryNode.SelectSingleNode("link");
         try
         {
+            /*
             if (entryLinkUri != null)
                 if (!string.IsNullOrEmpty(entryLinkUri.InnerText))
                     entItem.AltHtmlUri = new Uri(entryLinkUri.InnerText);
+            */
+            if (entryLinkUri != null)
+            {
+                var link = entryLinkUri.InnerText;
+                if (!string.IsNullOrEmpty(link))
+                {
+                    if (link.StartsWith("http"))
+                    {
+                        entItem.AltHtmlUri = new Uri(link);
+                    }
+                    else
+                    {
+                        entItem.AltHtmlUri = new Uri(baseUri, link);
+                    }
+                }
+            }
         }
         catch (Exception e)
         {
@@ -732,11 +771,11 @@ public class FeedClientService : BaseClient, IFeedClientService
         {
             if (enclosureNode.Attributes["url"] != null)
             {
-                string url = enclosureNode.Attributes["url"].Value;
+                var url = enclosureNode.Attributes["url"].Value;
 
                 if (enclosureNode.Attributes["type"] != null)
                 {
-                    string imageType = enclosureNode.Attributes["type"].Value;
+                    var imageType = enclosureNode.Attributes["type"].Value;
 
                     if ((imageType == "image/jpg") || (imageType == "image/jpeg") || (imageType == "image/png") || (imageType == "image/gif"))
                     {
@@ -778,7 +817,7 @@ public class FeedClientService : BaseClient, IFeedClientService
             {
                 if (itunesImageNode.Attributes["href"] != null)
                 {
-                    string url = itunesImageNode.Attributes["href"].Value;
+                    var url = itunesImageNode.Attributes["href"].Value;
                     try
                     {
                         entItem.ImageUri = new Uri(url);
@@ -841,7 +880,7 @@ public class FeedClientService : BaseClient, IFeedClientService
         entItem.Status = FeedEntryItem.ReadStatus.rsNew;
     }
 
-    private async void FillEntryItemFromXmlRdf(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager NsMgr)
+    private async void FillEntryItemFromXmlRdf(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager NsMgr, Uri baseUri)
     {
         XmlNode? entryTitle = entryNode.SelectSingleNode("rss:title", NsMgr);
         entItem.Name = (entryTitle != null) ? entryTitle.InnerText : "";
@@ -849,9 +888,26 @@ public class FeedClientService : BaseClient, IFeedClientService
         XmlNode? entryLinkUri = entryNode.SelectSingleNode("rss:link", NsMgr);
         try
         {
+            /*
             if (entryLinkUri != null)
                 if (!string.IsNullOrEmpty(entryLinkUri.InnerText))
                     entItem.AltHtmlUri = new Uri(entryLinkUri.InnerText);
+            */
+            if (entryLinkUri != null)
+            {
+                var link = entryLinkUri.InnerText;
+                if (!string.IsNullOrEmpty(link))
+                {
+                    if (link.StartsWith("http"))
+                    {
+                        entItem.AltHtmlUri = new Uri(link);
+                    }
+                    else
+                    {
+                        entItem.AltHtmlUri = new Uri(baseUri, link);
+                    }
+                }
+            }
         }
         catch (Exception e)
         {
@@ -994,7 +1050,7 @@ public class FeedClientService : BaseClient, IFeedClientService
         entItem.Status = FeedEntryItem.ReadStatus.rsNew;
     }
 
-    private async void FillEntryItemFromXmlAtom03(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr)
+    private async void FillEntryItemFromXmlAtom03(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr, Uri baseUri)
     {
         XmlNode? entryTitle = entryNode.SelectSingleNode("atom:title", atomNsMgr);
         if (entryTitle != null)
@@ -1046,7 +1102,15 @@ public class FeedClientService : BaseClient, IFeedClientService
                                     {
                                         try
                                         {
-                                            altUri = new Uri(hrefAttr);
+                                            //altUri = new Uri(hrefAttr);
+                                            if (hrefAttr.StartsWith("http"))
+                                            {
+                                                altUri = new Uri(hrefAttr);
+                                            }
+                                            else
+                                            {
+                                                altUri = new Uri(baseUri, hrefAttr);
+                                            }
                                         }
                                         catch (Exception e)
                                         {
@@ -1069,7 +1133,15 @@ public class FeedClientService : BaseClient, IFeedClientService
                                     {
                                         try
                                         {
-                                            altUri = new Uri(hrefAttr);
+                                            //altUri = new Uri(hrefAttr);
+                                            if (hrefAttr.StartsWith("http"))
+                                            {
+                                                altUri = new Uri(hrefAttr);
+                                            }
+                                            else
+                                            {
+                                                altUri = new Uri(baseUri, hrefAttr);
+                                            }
                                         }
                                         catch (Exception e)
                                         {
@@ -1082,7 +1154,15 @@ public class FeedClientService : BaseClient, IFeedClientService
                                     try
                                     {
                                         // I am not happy but let's assume it is html.
-                                        altUri = new Uri(hrefAttr);
+                                        //altUri = new Uri(hrefAttr);
+                                        if (hrefAttr.StartsWith("http"))
+                                        {
+                                            altUri = new Uri(hrefAttr);
+                                        }
+                                        else
+                                        {
+                                            altUri = new Uri(baseUri, hrefAttr);
+                                        }
                                     }
                                     catch (Exception e)
                                     {
@@ -1119,7 +1199,7 @@ public class FeedClientService : BaseClient, IFeedClientService
             }
         }
 
-        string entryAuthor = "";
+        var entryAuthor = "";
         XmlNodeList? entryAuthors = entryNode.SelectNodes("atom:author", atomNsMgr);
         if (entryAuthors != null)
         {
@@ -1151,7 +1231,7 @@ public class FeedClientService : BaseClient, IFeedClientService
         {
             if (cont.Attributes["type"] != null)
             {
-                string contype = cont.Attributes["type"].Value;
+                var contype = cont.Attributes["type"].Value;
                 if (!string.IsNullOrEmpty(contype))
                 {
                     //entItem.ContentTypeString = contype;
@@ -1208,7 +1288,7 @@ public class FeedClientService : BaseClient, IFeedClientService
         }
         else
         {
-            string s = entItem.Content;
+            var s = entItem.Content;
 
             if (!string.IsNullOrEmpty(s))
             {
@@ -1229,15 +1309,12 @@ public class FeedClientService : BaseClient, IFeedClientService
 
         if (entItem.ContentType == EntryItem.ContentTypes.textHtml)
         {
-            if (entItem.ImageUri is null)
-            {
-                // gets image Uri
-                entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
-            }
+            // gets image Uri
+            entItem.ImageUri ??= await GetImageUriFromHtml(entItem.Content);
         }
     }
 
-    private async void FillEntryItemFromXmlAtom10(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr)
+    private async void FillEntryItemFromXmlAtom10(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr, Uri baseUri)
     {
         // title
         XmlNode? entryTitle = entryNode.SelectSingleNode("atom:title", atomNsMgr);
@@ -1298,7 +1375,18 @@ public class FeedClientService : BaseClient, IFeedClientService
                                     {
                                         try
                                         {
-                                            altUri = new Uri(hrefAttr);
+                                            //altUri = new Uri(hrefAttr);
+                                            if (hrefAttr.StartsWith("http"))
+                                            {
+                                                // Absolute uri.
+                                                altUri = new Uri(hrefAttr);
+                                            }
+                                            else
+                                            {
+                                                // Relative uri (probably...)
+                                                // Uri(baseUri, relativeUriString)
+                                                altUri = new Uri(baseUri, hrefAttr);
+                                            }
                                         }
                                         catch (Exception e)
                                         {
@@ -1316,7 +1404,18 @@ public class FeedClientService : BaseClient, IFeedClientService
                                     try
                                     {
                                         // let's assume it is html.
-                                        altUri = new Uri(hrefAttr);
+                                        //altUri = new Uri(hrefAttr);
+                                        if (hrefAttr.StartsWith("http"))
+                                        {
+                                            // Absolute uri.
+                                            altUri = new Uri(hrefAttr);
+                                        }
+                                        else
+                                        {
+                                            // Relative uri (probably...)
+                                            // Uri(baseUri, relativeUriString)
+                                            altUri = new Uri(baseUri, hrefAttr);
+                                        }
                                     }
                                     catch (Exception e)
                                     {
@@ -1343,7 +1442,18 @@ public class FeedClientService : BaseClient, IFeedClientService
                                     {
                                         try
                                         {
-                                            entItem.ImageUri = new Uri(hrefAttr);
+                                            //entItem.ImageUri = new Uri(hrefAttr);
+                                            if (hrefAttr.StartsWith("http"))
+                                            {
+                                                // Absolute uri.
+                                                entItem.ImageUri = new Uri(hrefAttr);
+                                            }
+                                            else
+                                            {
+                                                // Relative uri (probably...)
+                                                // Uri(baseUri, relativeUriString)
+                                                entItem.ImageUri = new Uri(baseUri, hrefAttr);
+                                            }
                                         }
                                         catch (Exception e)
                                         {
@@ -1358,7 +1468,18 @@ public class FeedClientService : BaseClient, IFeedClientService
                                 {
                                     try
                                     {
-                                        entItem.AudioUri = new Uri(hrefAttr);
+                                        //entItem.AudioUri = new Uri(hrefAttr);
+                                        if (hrefAttr.StartsWith("http"))
+                                        {
+                                            // Absolute uri.
+                                            entItem.AudioUri = new Uri(hrefAttr);
+                                        }
+                                        else
+                                        {
+                                            // Relative uri (probably...)
+                                            // Uri(baseUri, relativeUriString)
+                                            entItem.AudioUri = new Uri(baseUri, hrefAttr);
+                                        }
                                     }
                                     catch (Exception e)
                                     {
@@ -1383,7 +1504,18 @@ public class FeedClientService : BaseClient, IFeedClientService
                                     {
                                         try
                                         {
-                                            altUri = new Uri(hrefAttr);
+                                            //altUri = new Uri(hrefAttr);
+                                            if (hrefAttr.StartsWith("http"))
+                                            {
+                                                // Absolute uri.
+                                                altUri = new Uri(hrefAttr);
+                                            }
+                                            else
+                                            {
+                                                // Relative uri (probably...)
+                                                // Uri(baseUri, relativeUriString)
+                                                altUri = new Uri(baseUri, hrefAttr);
+                                            }
                                         }
                                         catch (Exception e)
                                         {
@@ -1401,7 +1533,18 @@ public class FeedClientService : BaseClient, IFeedClientService
                                     try
                                     {
                                         // I am not happy but let's assume it is html.
-                                        altUri = new Uri(hrefAttr);
+                                        //altUri = new Uri(hrefAttr);
+                                        if (hrefAttr.StartsWith("http"))
+                                        {
+                                            // Absolute uri.
+                                            altUri = new Uri(hrefAttr);
+                                        }
+                                        else
+                                        {
+                                            // Relative uri (probably...)
+                                            // Uri(baseUri, relativeUriString)
+                                            altUri = new Uri(baseUri, hrefAttr);
+                                        }
                                     }
                                     catch (Exception e)
                                     {

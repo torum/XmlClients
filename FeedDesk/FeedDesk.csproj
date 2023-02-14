@@ -14,7 +14,7 @@
 
 	  <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
 
-	  <AssemblyVersion>1.0.0.10</AssemblyVersion>
+	  <AssemblyVersion>1.0.1</AssemblyVersion>
 	  <FileVersion>$(AssemblyVersion)</FileVersion>
 	  <Version>$(AssemblyVersion)</Version>
 	  <PlatformTarget>AnyCPU</PlatformTarget>
@@ -42,7 +42,6 @@
     <None Remove="Styles\FontSizes.xaml" />
     <None Remove="Styles\TextBlock.xaml" />
     <None Remove="Styles\Thickness.xaml" />
-    <None Remove="Views\EntryDetailsPage.xaml" />
     <None Remove="Views\FeedAddPage.xaml" />
     <None Remove="Views\FeedEditPage.xaml" />
     <None Remove="Views\FolderAddPage.xaml" />
@@ -103,10 +102,6 @@
     </Page>
     <Page Update="Styles\Thickness.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-    </Page>
-    <Page Update="Views\EntryDetailsPage.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-      <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\FeedAddPage.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>

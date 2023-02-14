@@ -1,18 +1,16 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows.Input;
-using FeedDesk.Contracts.Services;
-using FeedDesk.Contracts.ViewModels;
 using BlogWrite.Core.Models;
-
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using FeedDesk.Contracts.Services;
+using FeedDesk.Contracts.ViewModels;
 
 namespace FeedDesk.ViewModels;
 
 public class FeedAddViewModel : ObservableRecipient, INavigationAware
 {
     private readonly INavigationService _navigationService;
-    //private readonly ISampleDataService _sampleDataService;
 
     private readonly ServiceDiscovery _serviceDiscovery;
 
@@ -55,7 +53,14 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
     public string WebsiteOrEndpointUrl
     {
         get => _websiteOrEndpointUrl;
-        set => SetProperty(ref _websiteOrEndpointUrl, value.Trim());
+        //set => SetProperty(ref _websiteOrEndpointUrl, value.Trim());
+        set
+        {
+            if (SetProperty(ref _websiteOrEndpointUrl, value.Trim()))
+            {
+                GoCommand.NotifyCanExecuteChanged();
+            }
+        }
     }
 
     private string _userIdAtomPub = "";
@@ -79,21 +84,28 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
         set => SetProperty(ref _authType, value);
     }
 
-    private string _selectedItemType;
-    public string SelectedItemType
+    private string? _selectedItemType;
+    public string? SelectedItemType
     {
         get => _selectedItemType;
         set => SetProperty(ref _selectedItemType, value);
     }
 
-    private string _selectedItemTitleLabel;
-    public string SelectedItemTitleLabel
+    private string? _selectedItemTitleLabel;
+    public string? SelectedItemTitleLabel
     {
         get => _selectedItemTitleLabel;
-        set => SetProperty(ref _selectedItemTitleLabel, value);
+        //set => SetProperty(ref _selectedItemTitleLabel, value);
+        set
+        {
+            if (SetProperty(ref _selectedItemTitleLabel, value))
+            {
+                AddSelectedAndCloseCommand.NotifyCanExecuteChanged();
+            }
+        }
     }
 
-    private bool _isXmlRpc;
+    private bool _isXmlRpc = false;
     public bool IsXmlRpc
     {
         get => _isXmlRpc;
@@ -114,28 +126,28 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
         set => SetProperty(ref _passwordXmlRpc, value);
     }
 
-    private string _statusString;
+    private string _statusString = "";
     public string StatusText
     {
         get => _statusString;
         set => SetProperty(ref _statusString, value);
     }
 
-    private string _statusTitleString;
+    private string _statusTitleString = "";
     public string StatusTitleText
     {
         get => _statusTitleString;
         set => SetProperty(ref _statusTitleString, value);
     }
 
-    private string _statusLogString;
+    private string _statusLogString = "";
     public string StatusLogText
     {
         get => _statusLogString;
         set => SetProperty(ref _statusLogString, value);
     }
 
-    private int _selectedTabIndex;
+    private int _selectedTabIndex = 0;
     public int SelectedTabIndex
     {
         get => _selectedTabIndex;
@@ -149,11 +161,18 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
         set => SetProperty(ref _linkItems, value);
     }
 
-    private LinkItem _selectedLinkItem;
-    public LinkItem SelectedLinkItem
+    private LinkItem? _selectedLinkItem;
+    public LinkItem? SelectedLinkItem
     {
         get => _selectedLinkItem;
-        set => SetProperty(ref _selectedLinkItem, value);
+        //set => SetProperty(ref _selectedLinkItem, value);
+        set
+        {
+            if (SetProperty(ref _selectedLinkItem, value))
+            {
+                GoSelectedCommand.NotifyCanExecuteChanged();
+            }
+        }
     }
 
     #endregion
@@ -165,17 +184,17 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
         get;
     }
 
-    public ICommand GoCommand
+    public IRelayCommand GoCommand
     {
         get;
     }
 
-    public ICommand GoSelectedCommand
+    public IRelayCommand GoSelectedCommand
     {
         get;
     }
 
-    public ICommand AddSelectedAndCloseCommand
+    public IRelayCommand AddSelectedAndCloseCommand
     {
         get;
     }
@@ -203,23 +222,17 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    //public ObservableCollection<SampleOrder> Source { get; } = new ObservableCollection<SampleOrder>();
-
     public FeedAddViewModel(INavigationService navigationService)
     {
         _navigationService = navigationService;
-        //_sampleDataService = sampleDataService;
 
         _serviceDiscovery = new ServiceDiscovery();
         _serviceDiscovery.StatusUpdate += new ServiceDiscovery.ServiceDiscoveryStatusUpdate(OnStatusUpdate);
 
-
         GoBackCommand = new RelayCommand(OnGoBack);
-        GoCommand = new RelayCommand(OnGo);
-        GoSelectedCommand = new RelayCommand(OnGoSelected);
-        AddSelectedAndCloseCommand = new RelayCommand(OnAddSelectedAndClose);
-
-
+        GoCommand = new RelayCommand(OnGo, CanGo);
+        GoSelectedCommand = new RelayCommand(OnGoSelected, CanGoSelected);
+        AddSelectedAndCloseCommand = new RelayCommand(OnAddSelectedAndClose, CanAddSelectedAndClose);
 
         GoToFirstTabCommand = new RelayCommand(OnGoToFirstTab);
         GoToSecondTabCommand = new RelayCommand(OnGoToSecondTab);
@@ -264,13 +277,16 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
         {
             GoToAuthInputPage();
         }
+        else
+        {
+            GoToSelectFeedOrServicePage();
+        }
     }
 
     private void OnGoToFourthTab()
     {
         GoToServiceFoundPage();
     }
-
 
     #region == Methods ==
 
@@ -381,10 +397,10 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
                 return;
             }
 
-            if (sr is ServiceResultErr)
+            if (sr is ServiceResultErr sre)
             {
-                StatusTitleText = (sr as ServiceResultErr).ErrTitle;
-                StatusText = (sr as ServiceResultErr).ErrDescription;
+                StatusTitleText = sre.ErrTitle;
+                StatusText = sre.ErrDescription;
 
                 IsShowError = true;
                 IsShowLog = true;
@@ -406,14 +422,14 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
                 return;
             }
 
-            if (sr is ServiceResultHtmlPage)
+            if (sr is ServiceResultHtmlPage srhp)
             {
-                if (((sr as ServiceResultHtmlPage).Feeds.Count > 0) || ((sr as ServiceResultHtmlPage).Services.Count > 0))
+                if ((srhp.Feeds.Count > 0) || (srhp.Services.Count > 0))
                 {
                     // Feeds
-                    if ((sr as ServiceResultHtmlPage).Feeds.Count > 0)
+                    if (srhp.Feeds.Count > 0)
                     {
-                        foreach (var f in (sr as ServiceResultHtmlPage).Feeds)
+                        foreach (var f in srhp.Feeds)
                         {
                             FeedLinkItem li = new(f);
 
@@ -422,13 +438,13 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
                     }
 
                     // Services
-                    if ((sr as ServiceResultHtmlPage).Services.Count > 0)
+                    if (srhp.Services.Count > 0)
                     {
-                        foreach (var s in (sr as ServiceResultHtmlPage).Services)
+                        foreach (var s in srhp.Services)
                         {
-                            if (s is RsdLink)
+                            if (s is RsdLink rl)
                             {
-                                if ((s as RsdLink).Apis.Count > 0)
+                                if (rl.Apis.Count > 0)
                                 {
                                     ServiceDocumentLinkItem li = new(s);
 
@@ -463,9 +479,9 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
                     return;
                 }
             }
-            else if (sr is ServiceResultFeed)
+            else if (sr is ServiceResultFeed srf)
             {
-                FeedLink feed = (sr as ServiceResultFeed).FeedlinkInfo;
+                FeedLink feed = srf.FeedlinkInfo;
 
                 FeedLinkItem li = new(feed);
 
@@ -478,11 +494,11 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
 
                 IsBusy = false;
             }
-            else if (sr is ServiceResultRsd)
+            else if (sr is ServiceResultRsd srr)
             {
-                if ((sr as ServiceResultRsd).Rsd is RsdLink)
+                if (srr.Rsd is RsdLink)
                 {
-                    RsdLink hoge = (sr as ServiceResultRsd).Rsd;
+                    RsdLink hoge = srr.Rsd;
 
                     if (hoge.Apis.Count > 0)
                     {
@@ -533,36 +549,43 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
         IsBusy = false;
     }
 
+    private bool CanGo()
+    {
+        if (string.IsNullOrEmpty(WebsiteOrEndpointUrl))
+            return false;
+
+        if (!WebsiteOrEndpointUrl.StartsWith("http"))
+            return false;
+
+        return true;
+    }
+
     private void OnGoSelected()
     {
         if (SelectedLinkItem == null)
         {
-        
             return; 
         }
 
-        if (SelectedLinkItem == null)
-            return;
-
-        if (SelectedLinkItem is FeedLinkItem)
+        if (SelectedLinkItem is FeedLinkItem fli)
         {
-            SelectedItemTitleLabel = (SelectedLinkItem as FeedLinkItem).Title;
+            SelectedItemTitleLabel = fli.Title;
 
-            SelectedItemType = (SelectedLinkItem as FeedLinkItem).TypeText;
+            SelectedItemType = fli.TypeText;
 
             IsXmlRpc = false;
         }
-        else if (SelectedLinkItem is ServiceDocumentLinkItem)
+        else if (SelectedLinkItem is ServiceDocumentLinkItem sdli)
         {
-            SelectedItemTitleLabel = (SelectedLinkItem as ServiceDocumentLinkItem).Title;
+            SelectedItemTitleLabel = sdli.Title;
 
-            SelectedItemType = (SelectedLinkItem as ServiceDocumentLinkItem).TypeText;
+            SelectedItemType = sdli.TypeText;
 
-            if ((SelectedLinkItem as ServiceDocumentLinkItem).SearviceDocumentLinkData is RsdLink)
+            if (sdli.SearviceDocumentLinkData is RsdLink)
             {
                 IsXmlRpc = true;
             }
-            else if ((SelectedLinkItem as ServiceDocumentLinkItem).SearviceDocumentLinkData is AppLink)
+            else if (sdli.SearviceDocumentLinkData is AppLink)
             {
                 IsXmlRpc = false;
             }
@@ -571,6 +594,21 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
         GoToServiceFoundPage();
     }
 
+    private bool CanGoSelected()
+    {
+        if (SelectedLinkItem == null)
+        {
+            return false;
+        }
+
+        //
+        if (SelectedLinkItem is not FeedLinkItem)
+        {
+            return false;
+        }
+
+        return true;
+    }
 
     private void OnAddSelectedAndClose()
     {
@@ -586,10 +624,10 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
                 return;
         }
 
-        if (SelectedLinkItem is FeedLinkItem)
+        if (SelectedLinkItem is FeedLinkItem fli)
         {
             if (!string.IsNullOrEmpty(SelectedItemTitleLabel))
-                (SelectedLinkItem as FeedLinkItem).FeedLinkData.Title = SelectedItemTitleLabel;
+                fli.FeedLinkData.Title = SelectedItemTitleLabel;
 
             /* Not good when navigate go back.
             RegisterFeedEventArgs arg = new();
@@ -601,14 +639,14 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
             */
 
             var vm = App.GetService<MainViewModel>();
-            vm.AddFeed((SelectedLinkItem as FeedLinkItem).FeedLinkData);
+            vm.AddFeed(fli.FeedLinkData);
             _navigationService.NavigateTo(typeof(MainViewModel).FullName!, null);
         }
-        else if (SelectedLinkItem is ServiceDocumentLinkItem)
+        else if (SelectedLinkItem is ServiceDocumentLinkItem sdli)
         {
-            if ((SelectedLinkItem as ServiceDocumentLinkItem).SearviceDocumentLinkData is RsdLink)
+            if (sdli.SearviceDocumentLinkData is RsdLink rl)
             {
-                RsdLink sd = (SelectedLinkItem as ServiceDocumentLinkItem).SearviceDocumentLinkData as RsdLink;
+                RsdLink sd = rl;
 
                 if (!string.IsNullOrEmpty(SelectedItemTitleLabel))
                     sd.Title = SelectedItemTitleLabel;
@@ -623,9 +661,9 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
                 // TODO
                 //RegisterXmlRpc?.Invoke(this, arg);
             }
-            else if ((SelectedLinkItem as ServiceDocumentLinkItem).SearviceDocumentLinkData is AppLink)
+            else if (sdli.SearviceDocumentLinkData is AppLink al)
             {
-                AppLink sd = (SelectedLinkItem as ServiceDocumentLinkItem).SearviceDocumentLinkData as AppLink;
+                AppLink sd = al;
 
                 if (!string.IsNullOrEmpty(SelectedItemTitleLabel))
                     sd.NodeService.Name = SelectedItemTitleLabel;
@@ -640,4 +678,20 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
 
     }
 
+    private bool CanAddSelectedAndClose()
+    {
+        if (SelectedLinkItem == null)
+            return false;
+
+        if (string.IsNullOrEmpty(SelectedItemTitleLabel)) 
+            return false;
+
+        //
+        if (SelectedLinkItem is not FeedLinkItem)
+        {
+            return false;
+        }
+
+        return true;
+    }
 }

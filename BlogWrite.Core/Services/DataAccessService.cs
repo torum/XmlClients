@@ -1184,7 +1184,7 @@ public class DataAccessService : IDataAccessService
             connection.Open();
 
             using var cmd = connection.CreateCommand();
-            cmd.Transaction = connection.BeginTransaction();
+            //cmd.Transaction = connection.BeginTransaction();
 
             try
             {
@@ -1194,11 +1194,11 @@ public class DataAccessService : IDataAccessService
 
                 res.AffectedCount = cmd.ExecuteNonQuery();
 
-                cmd.Transaction.Commit();
+                //cmd.Transaction.Commit();
             }
             catch (Exception e)
             {
-                cmd.Transaction.Rollback();
+                //cmd.Transaction.Rollback();
 
                 res.IsError = true;
                 res.Error.ErrType = ErrorObject.ErrTypes.DB;
