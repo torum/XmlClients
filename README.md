@@ -16,6 +16,7 @@ from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
 
 ### Other feature
 * Feed Autodiscovery.
+* OPML import, export.
 * Display enclosed or embeded images.
 * Podcasts audio and in-app playback.
 
