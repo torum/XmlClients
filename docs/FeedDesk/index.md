@@ -11,11 +11,15 @@ A desktop feed reader. (work in progess)
 * [Really Simple Syndication](https://validator.w3.org/feed/docs/rss2.html) (RSS 2.0)
 
 ## Other feature:
-* Displays enclosed or embeded images.
-* Supports podcasts and in-app playback.
+* Feed Autodiscovery.
+* OPML import, export.
+* Display enclosed or embeded images.
+* Podcasts audio and in-app playback.
 
 ## Download:
-TBA
+
+from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
+
 
 ## Privacy olicy:
 * This application does not collect nor send any personal information.
