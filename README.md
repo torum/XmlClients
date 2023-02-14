@@ -15,8 +15,9 @@ from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
 * [Really Simple Syndication](https://validator.w3.org/feed/docs/rss2.html) (RSS 2.0)
 
 ### Other feature
+* Feed Autodiscovery.
 * Display enclosed or embeded images.
-* Supports podcasts and in-app playback.
+* Podcasts audio and in-app playback.
 
 ## Screenshots:
 
