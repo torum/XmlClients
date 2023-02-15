@@ -9,11 +9,16 @@ A desktop feed reader. (work in progress)
 from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
 
 ### Implements following formats:  
-
 * Atom 0.3
 * [The Atom Syndication Format](https://tools.ietf.org/html/rfc4287) (Atom 1.0)
 * [RDF Site Summary](https://www.w3.org/2001/09/rdfprimer/rss.html) (RSS 1.0)
 * [Really Simple Syndication](https://validator.w3.org/feed/docs/rss2.html) (RSS 2.0)
+
+### Supported extentions:
+* media
+* hatena
+* dc
+* iTunes
 
 ### Other feature
 * Feed Autodiscovery.
@@ -43,3 +48,25 @@ A desktop blogging client. (under development)
 ## Screenshots:
 
 N/A
+
+
+## Contributing
+Feel free to open issues and send PRs. 
+
+## Technologies & Frameworks
+* [.NET 6](https://github.com/dotnet/runtime)  
+* [WinUI3 (Windows App SDK)](https://github.com/microsoft/WindowsAppSDK) 
+* [Community Toolkit](https://github.com/CommunityToolkit) 
+* [WinUIEx](https://github.com/dotMorten/WinUIEx)
+* [Json.NET](https://github.com/JamesNK/Newtonsoft.Json)
+* [SQLite](https://github.com/sqlite/sqlite)
+
+## Getting Started
+
+### Requirements
+* Windows 10.0.19041.0 or higher
+
+### Building
+1. Visual Studio 2022 with support for .NET Desktop App UI development (and optionally .NET Universal App development)
+2. Clone this repository
+3. Open solution in Visual Studio and run
