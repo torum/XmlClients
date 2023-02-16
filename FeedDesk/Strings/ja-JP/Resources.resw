@@ -402,4 +402,10 @@
   <data name="FeedEntryItem_Published_Year" xml:space="preserve">
     <value>年</value>
   </data>
+  <data name="MainPage_DetailsPane_PlayAudio.Content" xml:space="preserve">
+    <value>オーディオを再生</value>
+  </data>
+  <data name="MainPage_DetailsPane_CopyURL.Content" xml:space="preserve">
+    <value>URLをコピー</value>
+  </data>
 </root>

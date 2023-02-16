@@ -135,4 +135,7 @@
   <data name="FeedEntryItem_Published_Year" xml:space="preserve">
     <value>y</value>
   </data>
+  <data name="FeedEntryItem_Publisher_Via" xml:space="preserve">
+    <value>via</value>
+  </data>
 </root>

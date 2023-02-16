@@ -402,4 +402,10 @@
   <data name="FeedEntryItem_Published_Year" xml:space="preserve">
     <value>y</value>
   </data>
+  <data name="MainPage_DetailsPane_CopyURL.Content" xml:space="preserve">
+    <value>Copy URL</value>
+  </data>
+  <data name="MainPage_DetailsPane_PlayAudio.Content" xml:space="preserve">
+    <value>Play Audio</value>
+  </data>
 </root>

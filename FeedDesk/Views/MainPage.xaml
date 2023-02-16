@@ -633,8 +633,8 @@
                                         <TextBlock Text="Audio" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailSubTitleStyle}" Opacity="0.9"/>
 
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,12,0,0" >
-                                            <Button Content="Play Audio File" Command="{x:Bind ViewModel.DownloadAudioFileCommand, Mode=OneWay}" Margin="0,0,0,0" />
-                                            <Button Content="Copy URL to Clipboard" Command="{x:Bind ViewModel.CopyAudioFileUrlToClipboardCommand, Mode=OneWay}" Margin="12,0,22,0"/>
+                                            <Button x:Uid="MainPage_DetailsPane_PlayAudio" Command="{x:Bind ViewModel.DownloadAudioFileCommand, Mode=OneWay}" Margin="0,0,0,0" />
+                                            <Button x:Uid="MainPage_DetailsPane_CopyURL" Command="{x:Bind ViewModel.CopyAudioFileUrlToClipboardCommand, Mode=OneWay}" Margin="12,0,22,0"/>
                                         </StackPanel>
                                     </StackPanel>
                                     <!--
