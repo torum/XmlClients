@@ -256,6 +256,22 @@ public class FeedClientService : BaseClient, IFeedClientService
                             Environment.NewLine);
                     }
 
+                    XmlNode? feedLastBuildDate = xdoc.DocumentElement.SelectSingleNode("rss:channel/dc:date", NsMgr);
+                    if (feedLastBuildDate != null)
+                    {
+                        var s = feedLastBuildDate.InnerText;
+                        if (!string.IsNullOrEmpty(s))
+                        {
+                            try
+                            {
+                                var date = DateTimeOffset.Parse(s);
+
+                                res.Updated = date.UtcDateTime;
+                            }
+                            catch {}
+                        }
+                    }
+
                     XmlNodeList? entryList = xdoc.SelectNodes("//rdf:RDF/rss:item", NsMgr);
                     if (entryList == null)
                     {
@@ -931,7 +947,8 @@ public class FeedClientService : BaseClient, IFeedClientService
             {
                 try
                 {
-                    entItem.Published = DateTime.Parse(s, null, System.Globalization.DateTimeStyles.RoundtripKind);
+                    var date = DateTimeOffset.Parse(s);
+                    entItem.Published = date.UtcDateTime;
                 }
                 catch (Exception e)
                 {
@@ -1190,7 +1207,7 @@ public class FeedClientService : BaseClient, IFeedClientService
             {
                 try
                 {
-                    entItem.Published = XmlConvert.ToDateTime(entryPublished.InnerText, XmlDateTimeSerializationMode.Local);
+                    entItem.Published = XmlConvert.ToDateTime(entryPublished.InnerText, XmlDateTimeSerializationMode.Utc);
                 }
                 catch (Exception e)
                 {

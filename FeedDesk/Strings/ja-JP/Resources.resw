@@ -408,4 +408,10 @@
   <data name="MainPage_DetailsPane_CopyURL.Content" xml:space="preserve">
     <value>URLをコピー</value>
   </data>
+  <data name="AppBarButton_Add_Feed.Label" xml:space="preserve">
+    <value>フィード</value>
+  </data>
+  <data name="AppBarButton_Add_Folder.Label" xml:space="preserve">
+    <value>フォルダー</value>
+  </data>
 </root>

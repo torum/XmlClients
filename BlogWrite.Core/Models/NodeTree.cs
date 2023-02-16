@@ -684,7 +684,7 @@ public class NodeFeed : NodeService
         {
             if (Updated != default)
             {
-                return Updated.ToString(System.Globalization.CultureInfo.CurrentUICulture);
+                return Updated.ToLocalTime().ToString(System.Globalization.CultureInfo.CurrentUICulture);
             }
             else
             {
