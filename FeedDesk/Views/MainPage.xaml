@@ -221,10 +221,10 @@
 
                 </Border>
 
-                <!-- Feeds treeview -->
+                <!-- Feeds treeview Background="{ThemeResource NavigationViewContentBackground}"  -->
                 <TreeView x:Name="TreeViewControl" Grid.Row="1"
                           VerticalAlignment="Stretch" 
-                          Background="{ThemeResource NavigationViewContentBackground}"  
+                           Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}" 
                           SelectionMode="Single" 
                           AllowDrop="True" 
                           CanReorderItems="True" 
