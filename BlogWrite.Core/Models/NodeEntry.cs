@@ -271,6 +271,51 @@ public abstract class EntryItem : Node
         }
     }
 
+    // rss item source@url (news source site info)
+    private string _source = "";
+    public string Source
+    {
+        get => _source;
+        set
+        {
+            if (_source == value)
+                return;
+
+            _source = value;
+            NotifyPropertyChanged(nameof(Source));
+        }
+    }
+
+    private Uri? _sourceUri;
+    public Uri? SourceUri
+    {
+        get => _sourceUri;
+        set
+        {
+            if (_sourceUri == value)
+                return;
+
+            _sourceUri = value;
+            NotifyPropertyChanged(nameof(SourceUri));
+        }
+    }
+
+
+    // comment uri for hatena and hacker news.
+    private Uri? _commentUri;
+    public Uri? CommentUri
+    {
+        get => _commentUri;
+        set
+        {
+            if (_commentUri == value)
+                return;
+
+            _commentUri = value;
+            NotifyPropertyChanged(nameof(CommentUri));
+        }
+    }
+
     /*
     private bool _isImageDownloaded = false;
     public bool IsImageDownloaded
@@ -432,83 +477,31 @@ public class FeedEntryItem : EntryItem
             NotifyPropertyChanged(nameof(IsArchived));
 
             if (IsArchived)
-                CommonStatus = "IsArchived";
+                CommonStatus = "IsArchived"; //?
 
-        }
-    }
-
-    // rss item source@url (news source site info)
-    private string _source = "";
-    public string Source
-    {
-        get => _source;
-        set
-        {
-            if (_source == value)
-                return;
-
-            _source = value;
-            NotifyPropertyChanged(nameof(Source));
-        }
-    }
-
-    private Uri? _sourceUri;
-    public Uri? SourceUri
-    {
-        get => _sourceUri;
-        set
-        {
-            if (_sourceUri == value)
-                return;
-
-            _sourceUri = value;
-            NotifyPropertyChanged(nameof(SourceUri));
         }
     }
 
     // not in spec. for internal/UI use.
-    private string _publisher = "";
+    //private string _publisher = "";
     public string Publisher
     {
         get
         {
-            if (string.IsNullOrEmpty(_source))
+            if (string.IsNullOrEmpty(Source))
             {
                 return _feedTitle;
             }
             else
             {
-                //return _source + " via " + _feedTitle;
-                return _source + " " + "FeedEntryItem_Publisher_Via".GetLocalized() + " " + _feedTitle;
+                return Source + " via " + _feedTitle;
+                // not gonna work..
+                //return _source + " " + "FeedEntryItem_Publisher_Via".GetLocalized() + " " + _feedTitle;
+                //return $"{Source} {"FeedEntryItem_Publisher_Via".GetLocalized()} {_feedTitle}";
             }
         }
-        set
-        {
-            if (_publisher == value)
-                return;
-
-            _publisher = value;
-            NotifyPropertyChanged(nameof(Publisher));
-        }
     }
 
-    // comment uri for hatena and hacker news.
-    private Uri? _commentUri;
-    public Uri? CommentUri
-    {
-        get => _commentUri;
-        set
-        {
-            if (_commentUri == value)
-                return;
-
-            _commentUri = value;
-            NotifyPropertyChanged(nameof(CommentUri));
-        }
-    }
-
-
-    // TODO: still using this?
     private string _feedTitle = "";
     public string FeedTitle
     {

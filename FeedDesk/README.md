@@ -46,7 +46,7 @@ A desktop feed reader. (work in progress)
  Switched to WinUI3 from a WPF project. 
 
 ## Things that currentry working on
-
+- [ ] Make use of "isRead" flag. 
 - [ ] Database file management page (menu>tools), clean(delete all data) and optimize(vacume).
 - [ ] Search.
 
@@ -56,10 +56,10 @@ A desktop feed reader. (work in progress)
 - [ ] "Read lator" or saved or boolmark or star or whatever.
 - [ ] Auto reflesh.
 - [ ] Update entry data when entry is updated.
-- [ ] Make use of "isRead" flag. 
 - [ ] Basic Auth.
 
 ### UI
+- [ ] FavIcon. 
 - [ ] Grouping display of entries. 
 - [ ] multiple viewing style (3 panes, cards, etc)
 
