@@ -16,6 +16,10 @@ A desktop feed reader. (work in progress)
 * In-app playback of Podcast audio.
 
 ## Change log
+* v1.0.3 (2023/2/16)
+ i18n. Added Japanese translation.
+* v1.0.2 (2023/2/15)
+ Store App release. AddFeed Page enhancement.
 * v1.0.1 (2023/2/14)
  Store App release.
 * v1.0.0.11 (2023/2/15)
@@ -43,11 +47,8 @@ A desktop feed reader. (work in progress)
 
 ## Things that currentry working on
 
-- [ ] two fingered touchpad gestures for scrolling.
-- [ ] Internationalization.
-- [ ] Basic Auth.
-- [ ] Database file management page (menu>tools), delete data and vacume.
-- [ ] Refactoring...
+- [ ] Database file management page (menu>tools), clean(delete all data) and optimize(vacume).
+- [ ] Search.
 
 ## Planning
 
@@ -56,11 +57,11 @@ A desktop feed reader. (work in progress)
 - [ ] Auto reflesh.
 - [ ] Update entry data when entry is updated.
 - [ ] Make use of "isRead" flag. 
+- [ ] Basic Auth.
 
 ### UI
 - [ ] Grouping display of entries. 
 - [ ] multiple viewing style (3 panes, cards, etc)
-- [ ] A progressbar or some kind to notify refleshing is on going or not.
 
 ### Sync 
 - [ ] Sync with Firefox Pocket or Instapaper etc for "read lator".
@@ -68,6 +69,10 @@ A desktop feed reader. (work in progress)
 
 ### Other
 - [ ] More options.
+- [ ] Refactoring...
+
+## Known issues
+* Two fingered touchpad gestures for scrolling. (WinUI3 issue)
 
 
 

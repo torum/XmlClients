@@ -121,82 +121,82 @@
     <value>FeedDesk</value>
   </data>
   <data name="Settings_Personalization.Text" xml:space="preserve">
-    <value>Personalization</value>
+    <value>パーソナライズ</value>
   </data>
   <data name="Settings_Theme.Text" xml:space="preserve">
-    <value>Theme</value>
+    <value>テーマ</value>
   </data>
   <data name="Settings_Theme_Light.Content" xml:space="preserve">
-    <value>Light</value>
+    <value>ライト</value>
   </data>
   <data name="Settings_Theme_Dark.Content" xml:space="preserve">
-    <value>Dark</value>
+    <value>ダーク</value>
   </data>
   <data name="Settings_Theme_Default.Content" xml:space="preserve">
-    <value>Use System Default</value>
+    <value>システム設定を使用</value>
   </data>
   <data name="Settings_About.Text" xml:space="preserve">
-    <value>About FeedDesk</value>
+    <value>FeedDeskについて</value>
   </data>
   <data name="Settings_About_AppDescription.Text" xml:space="preserve">
-    <value>FeedDesk is an open source feed reader developed by an individual who love feeds.</value>
+    <value>FeedDeskは個人が開発しているオープンソースのRSS/Atom フィードリーダーです。</value>
   </data>
   <data name="SettingsPage_PrivacyStatement.Text" xml:space="preserve">
-    <value>Privacy Statement</value>
+    <value>プライバシーステートメント</value>
   </data>
   <data name="Settings.Text" xml:space="preserve">
-    <value>Settings</value>
+    <value>設定</value>
   </data>
   <data name="AppName" xml:space="preserve">
     <value>FeedDesk</value>
   </data>
   <data name="ShellMenuBarItem_Edit.Title" xml:space="preserve">
-    <value>Edit</value>
+    <value>編集</value>
   </data>
   <data name="ShellMenuBarItem_File.Title" xml:space="preserve">
-    <value>File</value>
+    <value>ファイル</value>
   </data>
   <data name="ShellMenuBarItem_Help.Title" xml:space="preserve">
-    <value>Help</value>
+    <value>ヘルプ</value>
   </data>
   <data name="ShellMenuBarItem_Tool.Title" xml:space="preserve">
-    <value>Tool</value>
+    <value>ツール</value>
   </data>
   <data name="ShellMenuBarItem_View.Title" xml:space="preserve">
-    <value>View</value>
+    <value>表示</value>
   </data>
   <data name="ShellMenuBarItem_File_Exit.Text" xml:space="preserve">
-    <value>Exit</value>
+    <value>終了</value>
   </data>
   <data name="ShellMenuBarItem_File_Settings.Text" xml:space="preserve">
-    <value>Settings</value>
+    <value>設定</value>
   </data>
   <data name="ShellMenuBarItem_Entry.Title" xml:space="preserve">
-    <value>Entry</value>
+    <value>エントリー</value>
   </data>
   <data name="ShellMenuBarItem_Feed.Title" xml:space="preserve">
-    <value>Feed</value>
+    <value>フィード</value>
   </data>
   <data name="ShellMenuBarItem_Help_Project_Page.Text" xml:space="preserve">
-    <value>Project Page</value>
+    <value>プロジェクトページ</value>
   </data>
   <data name="ShellMenuBarItem_Help_Project_GitHub.Text" xml:space="preserve">
-    <value>GitHub Page</value>
+    <value>GitHub ページ</value>
   </data>
   <data name="Version" xml:space="preserve">
-    <value>Version</value>
+    <value>バージョン</value>
   </data>
   <data name="SettingsPage_PrivacyTerms.Text" xml:space="preserve">
-    <value>This application does not collect nor send any personal information.</value>
+    <value>本アプリケーションは、個人情報の収集または送信などは一切行いません。</value>
   </data>
   <data name="Settings_PivotItem_About.Header" xml:space="preserve">
-    <value>About</value>
+    <value>詳細</value>
   </data>
   <data name="Settings_PivotItem_Options.Header" xml:space="preserve">
-    <value>Options</value>
+    <value>オプション</value>
   </data>
   <data name="Settings_About_License.Text" xml:space="preserve">
-    <value>License</value>
+    <value>ライセンス</value>
   </data>
   <data name="Settings_About_Project_GitHub.Content" xml:space="preserve">
     <value>GitHub Page</value>
@@ -205,178 +205,178 @@
     <value>Project Page</value>
   </data>
   <data name="Settings_About_ThirdPartyComponents.Text" xml:space="preserve">
-    <value>Third Party Components</value>
+    <value>サードパーティー製ライブラリ</value>
   </data>
   <data name="ShellMenuBarItem_File_New.Text" xml:space="preserve">
-    <value>New</value>
+    <value>新規</value>
   </data>
   <data name="ShellMenuBarItem_File_New_Feed.Text" xml:space="preserve">
-    <value>Feed</value>
+    <value>フィード</value>
   </data>
   <data name="ShellMenuBarItem_File_New_Folder.Text" xml:space="preserve">
-    <value>Folder</value>
+    <value>フォルダー</value>
   </data>
   <data name="ShellMenuBarItem_File_OPML.Text" xml:space="preserve">
     <value>OPML</value>
   </data>
   <data name="ShellMenuBarItem_File_OPML_Export.Text" xml:space="preserve">
-    <value>Export</value>
+    <value>エクスポート</value>
   </data>
   <data name="ShellMenuBarItem_File_OPML_Import.Text" xml:space="preserve">
-    <value>Import</value>
+    <value>インポート</value>
   </data>
   <data name="AppBarButton_Add.Label" xml:space="preserve">
-    <value>Add</value>
+    <value>追加</value>
   </data>
   <data name="AppBarButton_Add_MenuFlyoutItem_Feed.Text" xml:space="preserve">
-    <value>Feed</value>
+    <value>フィード</value>
   </data>
   <data name="AppBarButton_Add_MenuFlyoutItem_Folder.Text" xml:space="preserve">
-    <value>Folder</value>
+    <value>フォルダー</value>
   </data>
   <data name="AppBarButton_Archive.Label" xml:space="preserve">
-    <value>Archive</value>
+    <value>アーカイブ</value>
   </data>
   <data name="AppBarButton_Refresh.Label" xml:space="preserve">
-    <value>Refresh</value>
+    <value>更新</value>
   </data>
   <data name="ShellMenuBarItem_Entry_ArchiveAll.Text" xml:space="preserve">
-    <value>Archive All</value>
+    <value>全てアーカイブ</value>
   </data>
   <data name="ShellMenuBarItem_Entry_SlectedEntry.Text" xml:space="preserve">
-    <value>Slected Entry</value>
+    <value>選択されたエントリー</value>
   </data>
   <data name="ShellMenuBarItem_Entry_SlectedEntry_CopyURL.Text" xml:space="preserve">
-    <value>Copy URL</value>
+    <value>URLをコピー</value>
   </data>
   <data name="ShellMenuBarItem_Entry_SlectedEntry_Open.Text" xml:space="preserve">
-    <value>Open</value>
+    <value>開く</value>
   </data>
   <data name="ShellMenuBarItem_Entry_View.Text" xml:space="preserve">
-    <value>View</value>
+    <value>表示</value>
   </data>
   <data name="ShellMenuBarItem_Entry_View_All.Text" xml:space="preserve">
-    <value>All</value>
+    <value>全て</value>
   </data>
   <data name="ShellMenuBarItem_Entry_View_Inbox.Text" xml:space="preserve">
-    <value>Inbox</value>
+    <value>インボックス</value>
   </data>
   <data name="ShellMenuBarItem_Feed_RefreshAll.Text" xml:space="preserve">
-    <value>Refresh All</value>
+    <value>すべて更新</value>
   </data>
   <data name="ShellMenuBarItem_Feed_SlectedFeed.Text" xml:space="preserve">
-    <value>Slected Feed</value>
+    <value>選択されたフィード</value>
   </data>
   <data name="ShellMenuBarItem_Feed_SlectedFeed_Edit.Text" xml:space="preserve">
-    <value>Edit</value>
+    <value>編集</value>
   </data>
   <data name="ShellMenuBarItem_Feed_SlectedFeed_Refresh.Text" xml:space="preserve">
-    <value>Refresh</value>
+    <value>更新</value>
   </data>
   <data name="ShellMenuBarItem_Feed_SlectedFeed_Remove.Text" xml:space="preserve">
-    <value>Remove</value>
+    <value>削除</value>
   </data>
   <data name="All" xml:space="preserve">
-    <value>All</value>
+    <value>全て</value>
   </data>
   <data name="FeedAddPage_Button_Add.Content" xml:space="preserve">
-    <value>Add</value>
+    <value>追加</value>
   </data>
   <data name="FeedAddPage_Button_Back.Content" xml:space="preserve">
-    <value>Back</value>
+    <value>戻る</value>
   </data>
   <data name="FeedAddPage_Button_Next.Content" xml:space="preserve">
-    <value>Next</value>
+    <value>次へ</value>
   </data>
   <data name="FeedAddPage_EnterAURL.Text" xml:space="preserve">
-    <value>Enter URL of a feed or a website.</value>
+    <value>フィードまたはウェブサイトのURLを入力してください。</value>
   </data>
   <data name="FeedAddPage_SelectAFeed.Text" xml:space="preserve">
-    <value>Select a feed to add.</value>
+    <value>フィードを選択してください。</value>
   </data>
   <data name="FeedAddPage_SetALabelAndAdd.Text" xml:space="preserve">
-    <value>Set label.</value>
+    <value>フィードの名前を設定して追加してください。</value>
   </data>
   <data name="FeedAddPage_Title_NewFeed.Text" xml:space="preserve">
-    <value>New Feed</value>
+    <value>新規フィード</value>
   </data>
   <data name="Inbox" xml:space="preserve">
-    <value>Inbox</value>
+    <value>インボックス</value>
   </data>
   <data name="MainPage_DetailsPane_Author.Text" xml:space="preserve">
-    <value>Author</value>
+    <value>作者</value>
   </data>
   <data name="MainPage_DetailsPane_Category.Text" xml:space="preserve">
-    <value>Category</value>
+    <value>カテゴリー</value>
   </data>
   <data name="MainPage_DetailsPane_CommentsPage.Content" xml:space="preserve">
-    <value>Cmments page</value>
+    <value>コメントページ</value>
   </data>
   <data name="MainPage_DetailsPane_Content.Text" xml:space="preserve">
-    <value>Content</value>
+    <value>コンテンツ</value>
   </data>
   <data name="MainPage_DetailsPane_Published.Text" xml:space="preserve">
-    <value>Published</value>
+    <value>公開日時</value>
   </data>
   <data name="MainPage_DetailsPane_Publisher.Text" xml:space="preserve">
-    <value>Publisher</value>
+    <value>パブリッシャー</value>
   </data>
   <data name="MainPage_DetailsPane_Summary.Text" xml:space="preserve">
-    <value>Summary</value>
+    <value>サマリー</value>
   </data>
   <data name="FeedEditPage_Button_Update.Content" xml:space="preserve">
-    <value>Update</value>
+    <value>更新</value>
   </data>
   <data name="FeedEditPage_Feed_Name.Text" xml:space="preserve">
-    <value>Name:</value>
+    <value>名前：</value>
   </data>
   <data name="FeedEditPage_Property.Text" xml:space="preserve">
-    <value>Property</value>
+    <value>プロパティ</value>
   </data>
   <data name="FeedEditPage_Title_EditFeed.Text" xml:space="preserve">
-    <value>Edit Feed</value>
+    <value>フィード編集</value>
   </data>
   <data name="FolderAddPage_Button_Add.Content" xml:space="preserve">
-    <value>Add</value>
+    <value>追加</value>
   </data>
   <data name="FolderAddPage_Button_Update.Content" xml:space="preserve">
-    <value>Update</value>
+    <value>更新</value>
   </data>
   <data name="FolderAddPage_Folder_Name.Text" xml:space="preserve">
-    <value>Name:</value>
+    <value>名前：</value>
   </data>
   <data name="FolderAddPage_Property.Text" xml:space="preserve">
-    <value>Property</value>
+    <value>プロパティ</value>
   </data>
   <data name="FolderAddPage_Title_AddFolder.Text" xml:space="preserve">
-    <value>New Folder</value>
+    <value>新規フォルダー</value>
   </data>
   <data name="FolderEditPage_Button_Update.Content" xml:space="preserve">
-    <value>Update</value>
+    <value>更新</value>
   </data>
   <data name="FolderEditPage_Folder_Name.Text" xml:space="preserve">
-    <value>Name:</value>
+    <value>名前：</value>
   </data>
   <data name="FolderEditPage_Property.Text" xml:space="preserve">
-    <value>Property</value>
+    <value>プロパティ</value>
   </data>
   <data name="FolderEditPage_Title_EditFolder.Text" xml:space="preserve">
-    <value>Edit Folder</value>
+    <value>フォルダー編集</value>
   </data>
   <data name="FeedEditPage_Feed_Description.Text" xml:space="preserve">
-    <value>Description:</value>
+    <value>説明：</value>
   </data>
   <data name="FeedEditPage_Feed_Link.Text" xml:space="preserve">
-    <value>Link:</value>
+    <value>リンク：</value>
   </data>
   <data name="FeedEditPage_Feed_Title.Text" xml:space="preserve">
-    <value>Title:</value>
+    <value>タイトル：</value>
   </data>
   <data name="FeedEditPage_Feed_Updated.Text" xml:space="preserve">
-    <value>Updated:</value>
+    <value>更新日時：</value>
   </data>
   <data name="FeedEditPage_Feed_Url.Text" xml:space="preserve">
-    <value>URL:</value>
+    <value>URL：</value>
   </data>
   <data name="FeedEntryItem_By.Text" xml:space="preserve">
     <value>By</value>
@@ -385,21 +385,21 @@
     <value>from</value>
   </data>
   <data name="FeedEntryItem_Published_Day" xml:space="preserve">
-    <value>d</value>
+    <value>日</value>
   </data>
   <data name="FeedEntryItem_Published_Hour" xml:space="preserve">
-    <value>h</value>
+    <value>時間</value>
   </data>
   <data name="FeedEntryItem_Published_Minute" xml:space="preserve">
-    <value>min</value>
+    <value>分</value>
   </data>
   <data name="FeedEntryItem_Published_Month" xml:space="preserve">
-    <value>mon</value>
+    <value>ヵ月</value>
   </data>
   <data name="FeedEntryItem_Published_Second" xml:space="preserve">
-    <value>s</value>
+    <value>秒</value>
   </data>
   <data name="FeedEntryItem_Published_Year" xml:space="preserve">
-    <value>y</value>
+    <value>年</value>
   </data>
 </root>

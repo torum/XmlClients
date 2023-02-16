@@ -1,5 +1,7 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using System.Xml;
+using BlogWrite.Core.Helpers;
 using BlogWrite.Core.Models.Clients;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -139,7 +141,7 @@ public abstract class EntryItem : Node
         {
             if (_published != default)
             {
-                return TimeAgo(_published.ToLocalTime());//_published.ToString(System.Globalization.CultureInfo.CurrentCulture);
+                return TimeAgo(_published.ToLocalTime());//_published.ToString(System.Globalization.CultureInfo.CurrentUICulture);
             }
             else
             {
@@ -154,7 +156,7 @@ public abstract class EntryItem : Node
         {
             if (_published != default)
             {
-                return _published.ToLocalTime().ToString(System.Globalization.CultureInfo.CurrentCulture);
+                return _published.ToLocalTime().ToString(System.Globalization.CultureInfo.CurrentUICulture);//System.Globalization.CultureInfo.CurrentUICulture
             }
             else
             {
@@ -347,37 +349,33 @@ public abstract class EntryItem : Node
 
         if (timeSpan <= TimeSpan.FromSeconds(60))
         {
-            result = string.Format("{0} seconds ago", timeSpan.Seconds);
+            //result = string.Format("{0}s", timeSpan.Seconds);
+            result = $"{timeSpan.Minutes}{"FeedEntryItem_Published_Second".GetLocalized()}";
         }
         else if (timeSpan <= TimeSpan.FromMinutes(60))
         {
-            result = timeSpan.Minutes > 1 ?
-                String.Format("about {0} minutes ago", timeSpan.Minutes) :
-                "about a minute ago";
+            //result = timeSpan.Minutes > 1 ?　String.Format("{0}min", timeSpan.Minutes) :　"1min";//"about a minute ago";
+            result = $"{timeSpan.Minutes}{"FeedEntryItem_Published_Minute".GetLocalized()}";
         }
         else if (timeSpan <= TimeSpan.FromHours(24))
         {
-            result = timeSpan.Hours > 1 ?
-                String.Format("about {0} hours ago", timeSpan.Hours) :
-                "about an hour ago";
+            //result = timeSpan.Hours > 1 ? String.Format("{0}h", timeSpan.Hours) : "1h";//"about an hour ago";
+            result = $"{timeSpan.Hours}{"FeedEntryItem_Published_Hour".GetLocalized()}";
         }
         else if (timeSpan <= TimeSpan.FromDays(30))
         {
-            result = timeSpan.Days > 1 ?
-                String.Format("about {0} days ago", timeSpan.Days) :
-                "yesterday";
+            //result = timeSpan.Days > 1 ?　String.Format("{0}d", timeSpan.Days) :　"1d";//"yesterday";
+            result = $"{timeSpan.Days}{"FeedEntryItem_Published_Day".GetLocalized()}";
         }
         else if (timeSpan <= TimeSpan.FromDays(365))
         {
-            result = timeSpan.Days > 30 ?
-                String.Format("about {0} months ago", timeSpan.Days / 30) :
-                "about a month ago";
+            //result = timeSpan.Days > 30 ?　String.Format("{0}mo", timeSpan.Days / 30) : "1mo";//"about a month ago";
+            result = timeSpan.Days > 30 ? $"{timeSpan.Days / 30}{"FeedEntryItem_Published_Month".GetLocalized()}" : $"1{"FeedEntryItem_Published_Month".GetLocalized()}";
         }
         else
         {
-            result = timeSpan.Days > 365 ?
-                String.Format("about {0} years ago", timeSpan.Days / 365) :
-                "about a year ago";
+            //result = timeSpan.Days > 365 ?　String.Format("{0}y", timeSpan.Days / 365) :　"1y";//"about a year ago";
+            result = timeSpan.Days > 365 ? $"{timeSpan.Days / 365}{"FeedEntryItem_Published_Year".GetLocalized()}" : $"1{"FeedEntryItem_Published_Year".GetLocalized()}";
         }
 
         return result;

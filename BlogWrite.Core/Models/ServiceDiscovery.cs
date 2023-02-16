@@ -305,7 +305,7 @@ public class ServiceDiscovery
                                 UpdateStatus("- No feed link found.");
 
                             if ((res as ServiceResultHtmlPage).Services.Count == 0)
-                                UpdateStatus("- No Service link found.");
+                                UpdateStatus("- No service link found.");
                         }
 
                         return res;

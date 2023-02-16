@@ -155,7 +155,7 @@
 
                         <StackPanel Grid.Column="0" Orientation="Horizontal">
 
-                            <AppBarButton Label="Add" IsCompact="False"  Opacity="0.9">
+                            <AppBarButton x:Uid="AppBarButton_Add" IsCompact="False"  Opacity="0.9">
 
                                 <AppBarButton.Icon>
                                     <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -171,7 +171,7 @@
 -->
                                 <AppBarButton.Flyout>
                                     <MenuFlyout>
-                                        <MenuFlyoutItem Text="Feed" Command="{x:Bind ViewModel.FeedAddCommand}">
+                                        <MenuFlyoutItem x:Uid="AppBarButton_Add_MenuFlyoutItem_Feed" Command="{x:Bind ViewModel.FeedAddCommand}">
                                             <MenuFlyoutItem.Icon>
                                                 <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                     <PathIcon.Data>
@@ -190,7 +190,7 @@
                                                 -->
                                             </MenuFlyoutItem.Icon>
                                         </MenuFlyoutItem>
-                                        <MenuFlyoutItem Text="Folder" Command="{x:Bind ViewModel.FolderAddCommand}">
+                                        <MenuFlyoutItem x:Uid="AppBarButton_Add_MenuFlyoutItem_Folder" Command="{x:Bind ViewModel.FolderAddCommand}">
                                             <MenuFlyoutItem.Icon>
                                                 <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                     <PathIcon.Data>
@@ -211,7 +211,7 @@
                             </AppBarButton>
                             -->
 
-                            <AppBarButton Label="Refresh" IsCompact="False" Command="{x:Bind ViewModel.FeedRefreshAllCommand}" Opacity="0.9">
+                            <AppBarButton x:Uid="AppBarButton_Refresh" IsCompact="False" Command="{x:Bind ViewModel.FeedRefreshAllCommand}" Opacity="0.9">
 
                                 <AppBarButton.Icon>
                                     <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -286,7 +286,7 @@
                     <TreeView.Resources>
                         <MenuFlyout x:Key="TreeItemContextMenu">
 
-                            <MenuFlyoutItem Text="Refresh" Command="{x:Bind ViewModel.FeedRefreshCommand}" >
+                            <MenuFlyoutItem Text="Refresh" x:Uid="ShellMenuBarItem_Feed_SlectedFeed_Refresh" Command="{x:Bind ViewModel.FeedRefreshCommand}" >
                                 <MenuFlyoutItem.Icon>
                                     <PathIcon Margin="0,0,0,0">
                                         <PathIcon.Data>
@@ -297,11 +297,11 @@
 
                             <MenuFlyoutSeparator/>
 
-                            <MenuFlyoutItem Text="Edit" Icon="Edit" Command="{x:Bind ViewModel.NodeEditCommand}"/>
+                            <MenuFlyoutItem x:Uid="ShellMenuBarItem_Feed_SlectedFeed_Edit" Icon="Edit" Command="{x:Bind ViewModel.NodeEditCommand}"/>
 
                             <MenuFlyoutSeparator/>
 
-                            <MenuFlyoutItem Text="Remove" Icon="Remove" Command="{x:Bind ViewModel.NodeRemoveCommand}">
+                            <MenuFlyoutItem x:Uid="ShellMenuBarItem_Feed_SlectedFeed_Remove" Icon="Remove" Command="{x:Bind ViewModel.NodeRemoveCommand}">
                                 <MenuFlyoutItem.KeyboardAccelerators>
                                     <KeyboardAccelerator Key="Delete" />
                                 </MenuFlyoutItem.KeyboardAccelerators>
@@ -437,7 +437,7 @@
 
                                 <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
 
-                                    <AppBarButton Label="Archive" Command="{x:Bind ViewModel.EntryArchiveAllCommand}" IsCompact="False" Opacity="0.9">
+                                    <AppBarButton x:Uid="AppBarButton_Archive" Command="{x:Bind ViewModel.EntryArchiveAllCommand}" IsCompact="False" Opacity="0.9">
                                         <AppBarButton.Icon>
                                             <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <PathIcon.Data>
@@ -458,12 +458,12 @@
                                         </AppBarButton.Icon>
                                         <AppBarButton.Flyout>
                                             <MenuFlyout>
-                                                <ToggleMenuFlyoutItem Text="Inbox" Command="{x:Bind ViewModel.ToggleShowInboxEntriesCommand, Mode=OneWay}" IsChecked="{x:Bind ViewModel.IsShowInboxEntries, Mode=OneWay}">
+                                                <ToggleMenuFlyoutItem x:Uid="ShellMenuBarItem_Entry_View_Inbox" Command="{x:Bind ViewModel.ToggleShowInboxEntriesCommand, Mode=OneWay}" IsChecked="{x:Bind ViewModel.IsShowInboxEntries, Mode=OneWay}">
                                                     <ToggleMenuFlyoutItem.Icon>
                                                         <PathIcon Data="M19,15H15A3,3 0 0,1 12,18A3,3 0 0,1 9,15H5V5H19M19,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3Z"/>
                                                     </ToggleMenuFlyoutItem.Icon>
                                                 </ToggleMenuFlyoutItem>
-                                                <ToggleMenuFlyoutItem Text="All" Command="{x:Bind ViewModel.ToggleShowAllEntriesCommand, Mode=OneWay}" IsChecked="{x:Bind ViewModel.IsShowAllEntries, Mode=OneWay}">
+                                                <ToggleMenuFlyoutItem x:Uid="ShellMenuBarItem_Entry_View_All" Command="{x:Bind ViewModel.ToggleShowAllEntriesCommand, Mode=OneWay}" IsChecked="{x:Bind ViewModel.IsShowAllEntries, Mode=OneWay}">
                                                     <ToggleMenuFlyoutItem.Icon>
                                                         <PathIcon Data="M14.5 11C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11H14.5M20 13.55V10H18V13.06C18.69 13.14 19.36 13.31 20 13.55M21 9H3V3H21V9M19 5H5V7H19V5M8.85 19H6V10H4V21H9.78C9.54 20.61 9.32 20.19 9.14 19.75L8.85 19M17 18C16.44 18 16 18.44 16 19S16.44 20 17 20 18 19.56 18 19 17.56 18 17 18M23 19C22.06 21.34 19.73 23 17 23S11.94 21.34 11 19C11.94 16.66 14.27 15 17 15S22.06 16.66 23 19M19.5 19C19.5 17.62 18.38 16.5 17 16.5S14.5 17.62 14.5 19 15.62 21.5 17 21.5 19.5 20.38 19.5 19Z"/>
                                                     </ToggleMenuFlyoutItem.Icon>
@@ -527,7 +527,7 @@
                             <ListView.Resources>
                                 <MenuFlyout x:Key="ListItemContextMenu">
 
-                                    <MenuFlyoutItem Text="Open" Command="{x:Bind ViewModel.EntryViewExternalCommand}">
+                                    <MenuFlyoutItem x:Uid="ShellMenuBarItem_Entry_SlectedEntry_Open" Command="{x:Bind ViewModel.EntryViewExternalCommand}">
                                         <MenuFlyoutItem.Icon>
                                             <PathIcon Margin="0,0,0,0">
                                                 <PathIcon.Data>
@@ -537,7 +537,7 @@
                                         </MenuFlyoutItem.Icon>
                                     </MenuFlyoutItem>
 
-                                    <MenuFlyoutItem Text="Copy URL" Command="{x:Bind ViewModel.EntryCopyUrlCommand}">
+                                    <MenuFlyoutItem x:Uid="ShellMenuBarItem_Entry_SlectedEntry_CopyURL" Command="{x:Bind ViewModel.EntryCopyUrlCommand}">
                                         <MenuFlyoutItem.Icon>
                                             <PathIcon Margin="0,0,0,0">
                                                 <PathIcon.Data>
@@ -573,12 +573,12 @@
 
                                         <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind Name}" x:Phase="1" Style="{ThemeResource NodeTextBlockStyle}" FontWeight="Medium" Padding="2" Margin="12,6,0,0" Opacity="0.9"/>
                                         <TextBlock Grid.Row="1" Grid.Column="1" Style="{ThemeResource CaptionTextBlockStyle}" Padding="2" Margin="12,0,0,0" Opacity=".7">
-                                                <Run Text="By"/>
+                                                <Run x:Uid="FeedEntryItem_By"/>
                                                 <Run Text="{x:Bind Author}"/>
-                                                <Run Text=" - "/>
-                                                <Run Text="{x:Bind PublishedDateTimeFormatedAbout}"/>
-                                                <Run Text=" from "/>
+                                                <Run x:Uid="FeedEntryItem_From"/>
                                                 <Run Text="{x:Bind Publisher}"/>
+                                                <Run Text="-"/>
+                                                <Run Text="{x:Bind PublishedDateTimeFormatedAbout}"/>
                                         </TextBlock>
                                         <!--                                         
                                             <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind Author}" x:Phase="2" Style="{ThemeResource BodyTextBlockStyle}" FontSize="{StaticResource NormalFontSize}" Margin="12,0,0,0" Opacity=".7"/>
@@ -610,11 +610,11 @@
 
                                     <TextBlock Visibility="{x:Bind ViewModel.IsNoAltLinkExists, Mode=OneWay}" Text="{x:Bind ViewModel.SelectedListViewItem.Name, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" Style="{ThemeResource TitleTextBlockStyle}" FontSize="{StaticResource LargeFontSize}" Opacity="0.9"/>
                                     <TextBlock Visibility="{x:Bind ViewModel.IsAltLinkExists, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" Style="{ThemeResource TitleTextBlockStyle}" FontSize="{StaticResource LargeFontSize}" Opacity="0.9">
-                                                <Hyperlink NavigateUri="{x:Bind ViewModel.SelectedListViewItem.AltHtmlUri, Mode=OneWay}"><Run Text="{x:Bind ViewModel.SelectedListViewItem.Name, Mode=OneWay}"></Run></Hyperlink>
+                                        <Hyperlink NavigateUri="{x:Bind ViewModel.SelectedListViewItem.AltHtmlUri, Mode=OneWay}"><Run Text="{x:Bind ViewModel.SelectedListViewItem.Name, Mode=OneWay}"></Run></Hyperlink>
                                     </TextBlock>
 
                                     <StackPanel Visibility="{x:Bind ViewModel.IsCommentPageLinkExists, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
-                                        <HyperlinkButton Content="Comments page" NavigateUri="{x:Bind ViewModel.SelectedListViewItem.CommentUri.AbsoluteUri, Mode=OneWay}" Margin="{StaticResource SmallTopMargin}" />
+                                        <HyperlinkButton x:Uid="MainPage_DetailsPane_CommentsPage" NavigateUri="{x:Bind ViewModel.SelectedListViewItem.CommentUri.AbsoluteUri, Mode=OneWay}" Margin="{StaticResource SmallTopMargin}" />
                                     </StackPanel>
 
                                     <StackPanel Visibility="{x:Bind ViewModel.IsImageLinkExists, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
@@ -624,8 +624,8 @@
                                                 <ImageBrush ImageSource="{x:Bind ViewModel.SelectedListViewItem.ImageUri.AbsoluteUri, Mode=OneWay}" Stretch="UniformToFill"/>
                                             </Border.Background>
                                             <!--
-                                                    <Image Source="{x:Bind ViewModel.SelectedListViewItem.ImageUri.AbsoluteUri, Mode=OneWay}" HorizontalAlignment="Stretch" Margin="0,12,0,0" MaxHeight="270" Opacity="0"/>
-                                                    -->
+                                            <Image Source="{x:Bind ViewModel.SelectedListViewItem.ImageUri.AbsoluteUri, Mode=OneWay}" HorizontalAlignment="Stretch" Margin="0,12,0,0" MaxHeight="270" Opacity="0"/>
+                                             -->
                                         </Border>
                                     </StackPanel>
 
@@ -650,40 +650,40 @@
                                             -->
 
                                     <StackPanel>
-                                        <TextBlock Text="Author" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
+                                        <TextBlock x:Uid="MainPage_DetailsPane_Author" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
                                         <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Author, Mode=OneWay}" Style="{StaticResource DetailBodyStyle}" />
                                     </StackPanel>
 
                                     <StackPanel>
-                                        <TextBlock Text="Category" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
+                                        <TextBlock x:Uid="MainPage_DetailsPane_Category" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
                                         <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Category, Mode=OneWay}" Style="{StaticResource DetailBodyStyle}" />
                                     </StackPanel>
 
                                     <StackPanel>
-                                        <TextBlock Text="Publisher" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
+                                        <TextBlock x:Uid="MainPage_DetailsPane_Publisher" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
                                         <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Publisher, Mode=OneWay}" Style="{StaticResource DetailBodyStyle}" />
                                     </StackPanel>
 
                                     <StackPanel>
-                                        <TextBlock Text="Published" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
+                                        <TextBlock x:Uid="MainPage_DetailsPane_Published" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
                                         <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.PublishedDateTimeFormated, Mode=OneWay}" Style="{StaticResource DetailBodyStyle}" />
                                     </StackPanel>
 
                                     <StackPanel>
-                                        <TextBlock Text="Summary" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource SubtitleTextBlockStyle}" Opacity="0.9"/>
+                                        <TextBlock x:Uid="MainPage_DetailsPane_Summary" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource SubtitleTextBlockStyle}" Opacity="0.9"/>
                                         <TextBlock Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailBodyStyle}" Text="{x:Bind ViewModel.SelectedListViewItem.Summary, Mode=OneWay}"/>
                                     </StackPanel>
 
                                     <StackPanel Visibility="{x:Bind ViewModel.IsContentText, Mode=OneWay}">
-                                        <TextBlock Text="Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource SubtitleTextBlockStyle}" Opacity="0.9"/>
+                                        <TextBlock x:Uid="MainPage_DetailsPane_Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource SubtitleTextBlockStyle}" Opacity="0.9"/>
                                         <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Content, Mode=OneWay}" TextWrapping="Wrap" Margin="{StaticResource MediumBottomMargin}" Style="{ThemeResource DetailBodyStyle}"/>
                                     </StackPanel>
-
+                                    <!--
                                     <StackPanel Visibility="{x:Bind ViewModel.IsContentHTML, Mode=OneWay}">
                                         <TextBlock Text="Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource SubtitleTextBlockStyle}" Opacity="0.9"/>
                                         <TextBlock Text="(The content type is HTML)" Margin="{StaticResource SmallTopMargin}"></TextBlock>
                                         <StackPanel Orientation="Horizontal">
-                                            <!--
+                                                    
                                                     <AppBarButton Label="View" Command="{x:Bind ViewModel.EntryViewInternalCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1" >
                                                         <AppBarButton.Icon>
                                                             <PathIcon>
@@ -693,9 +693,7 @@
                                                             </PathIcon>
                                                         </AppBarButton.Icon>
                                                     </AppBarButton>
--->
-                                            <!--
--->
+                                            
                                             <AppBarButton Label="Open" Command="{x:Bind ViewModel.EntryViewExternalCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.9">
                                                 <AppBarButton.Icon>
                                                     <PathIcon>
@@ -708,6 +706,7 @@
 
                                         </StackPanel>
                                     </StackPanel>
+                                    -->
 
                                     <StackPanel Margin="0,0,0,24"></StackPanel>
 

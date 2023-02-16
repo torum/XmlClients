@@ -33,19 +33,19 @@
 
                     <StackPanel Margin="50,12,50,0" HorizontalAlignment="Left">
 
-                        <TextBlock Text="Feed" Margin="0,0,0,12" Style="{StaticResource PageTitleStyle}" />
+                        <TextBlock x:Uid="FeedEditPage_Title_EditFeed" Margin="0,0,0,12" Style="{StaticResource PageTitleStyle}" />
 
                         <StackPanel Margin="12,6,0,0">
 
-                            <TextBlock Text="Property" Style="{ThemeResource SubtitleTextBlockStyle}" />
+                            <TextBlock x:Uid="FeedEditPage_Property" Style="{ThemeResource SubtitleTextBlockStyle}" />
 
                             <StackPanel Margin="12,6,0,0">
-                                <TextBlock Text="Name:" Style="{ThemeResource BodyTextBlockStyle}" Margin="{StaticResource XSmallTopMargin}"/>
+                                <TextBlock x:Uid="FeedEditPage_Feed_Name" Style="{ThemeResource BodyTextBlockStyle}" Margin="{StaticResource XSmallTopMargin}"/>
                                 <TextBox Text="{x:Bind ViewModel.Name, Mode=TwoWay}" Margin="{StaticResource XSmallTopMargin}" Width="300" MaxWidth="800" HorizontalAlignment="Left"></TextBox>
                             </StackPanel>
 
                             <StackPanel Margin="12,6,0,0">
-                                <Button Content="Update" Command="{x:Bind ViewModel.UpdateFeedItemPropertyCommand}" Margin="{StaticResource XSmallTopMargin}"></Button>
+                                <Button x:Uid="FeedEditPage_Button_Update" Command="{x:Bind ViewModel.UpdateFeedItemPropertyCommand}" Margin="{StaticResource XSmallTopMargin}"></Button>
                             </StackPanel>
 
                         </StackPanel>
@@ -55,31 +55,31 @@
                             <TextBlock Text="Data" Style="{ThemeResource SubtitleTextBlockStyle}" Margin="{StaticResource SmallTopMargin}" Visibility="Collapsed"/>
 
                             <StackPanel Margin="12,6,0,0">
-                                <TextBlock Text="URI:" Margin="{StaticResource XSmallTopMargin}"/>
+                                <TextBlock x:Uid="FeedEditPage_Feed_Url" Margin="{StaticResource XSmallTopMargin}"/>
                                 <HyperlinkButton NavigateUri="{x:Bind ViewModel.Feed.EndPoint, Mode=OneTime}" Content="{x:Bind ViewModel.Feed.EndPoint, Mode=OneTime}" Margin="{StaticResource XSmallTopMargin}" />
                             </StackPanel>
 
                             <StackPanel Margin="12,6,0,0">
-                                <TextBlock Text="Title:" Margin="{StaticResource XSmallTopMargin}"></TextBlock>
+                                <TextBlock x:Uid="FeedEditPage_Feed_Title" Margin="{StaticResource XSmallTopMargin}"></TextBlock>
                                 <StackPanel Margin="12,6,0,0">
                                     <TextBlock Text="{x:Bind ViewModel.Feed.Title,Mode=OneTime}" Margin="{StaticResource XSmallTopMargin}"></TextBlock>
                                 </StackPanel>
                             </StackPanel>
 
                             <StackPanel Margin="12,6,0,0">
-                                <TextBlock Text="Description:" Margin="{StaticResource XSmallTopMargin}"></TextBlock>
+                                <TextBlock x:Uid="FeedEditPage_Feed_Description" Margin="{StaticResource XSmallTopMargin}"></TextBlock>
                                 <StackPanel Margin="12,6,0,0">
                                     <TextBlock Text="{x:Bind ViewModel.Feed.Description,Mode=OneTime}" TextWrapping="Wrap" Margin="{StaticResource XSmallTopMargin}"></TextBlock>
                                 </StackPanel>
                             </StackPanel>
 
                             <StackPanel Margin="12,6,0,0">
-                                <TextBlock Text="Alt Link:" Margin="{StaticResource XSmallTopMargin}"></TextBlock>
+                                <TextBlock x:Uid="FeedEditPage_Feed_Link" Margin="{StaticResource XSmallTopMargin}"></TextBlock>
                                 <HyperlinkButton NavigateUri="{x:Bind ViewModel.Feed.HtmlUri.AbsoluteUri, Mode=OneTime}" Content="{x:Bind ViewModel.Feed.HtmlUri.AbsoluteUri, Mode=OneTime}" Margin="{StaticResource XSmallTopMargin}" />
                             </StackPanel>
 
                             <StackPanel Margin="12,6,0,0">
-                                <TextBlock Text="Updated:" Margin="{StaticResource XSmallTopMargin}"></TextBlock>
+                                <TextBlock x:Uid="FeedEditPage_Feed_Updated" Margin="{StaticResource XSmallTopMargin}"></TextBlock>
                                 <StackPanel Margin="12,6,0,0">
                                     <TextBlock Text="{x:Bind ViewModel.Feed.UpdatedDateTimeFormated,Mode=OneTime}" Margin="{StaticResource XSmallTopMargin}"></TextBlock>
                                 </StackPanel>

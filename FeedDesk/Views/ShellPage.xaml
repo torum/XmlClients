@@ -6,7 +6,6 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
     xmlns:helpers="using:BlogWrite.Core.Helpers"
-    xmlns:model="using:FeedDesk.Models"
     NavigationCacheMode="Required"
     Loaded="OnLoaded"
     Unloaded="OnUnloaded"
@@ -17,7 +16,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Margin="0,0,0,0" Height="29" VerticalAlignment="Top" HorizontalAlignment="Stretch">
+        <Grid Grid.Row="0" Margin="0,0,0,0" Height="29" VerticalAlignment="Top" HorizontalAlignment="Stretch" Background="{ThemeResource MenuBarBackground}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="29" />
                 <ColumnDefinition Width="Auto" />
@@ -30,7 +29,7 @@
                 <TextBlock x:Name="AppTitleBarText" VerticalAlignment="Center" TextWrapping="NoWrap" Style="{StaticResource CaptionTextBlockStyle}" Margin="6, 0, 0, 0" Visibility="Collapsed"/>
                 
             </StackPanel>
-            
+
             <Grid Grid.Row="0" Grid.Column="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -46,10 +45,10 @@
                             </MenuBarItem.KeyboardAccelerators>
                             
                             <MenuBarItem.Items>
-                                
-                                <MenuFlyoutSubItem Text="New">
 
-                                    <MenuFlyoutItem Text="Feed" Command="{x:Bind MainViewModel.FeedAddCommand}">
+                                <MenuFlyoutSubItem x:Uid="ShellMenuBarItem_File_New">
+
+                                    <MenuFlyoutItem x:Uid="ShellMenuBarItem_File_New_Feed" Command="{x:Bind MainViewModel.FeedAddCommand}">
                                         <MenuFlyoutItem.Icon>
                                             <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <PathIcon.Data>
@@ -62,7 +61,7 @@
                                         </MenuFlyoutItem.KeyboardAccelerators>
                                     </MenuFlyoutItem>
 
-                                    <MenuFlyoutItem Text="Folder" Command="{x:Bind MainViewModel.FolderAddCommand}">
+                                    <MenuFlyoutItem x:Uid="ShellMenuBarItem_File_New_Folder" Command="{x:Bind MainViewModel.FolderAddCommand}">
                                         <MenuFlyoutItem.Icon>
                                             <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <PathIcon.Data>
@@ -74,9 +73,9 @@
                                     
                                 </MenuFlyoutSubItem>
 
-                                <MenuFlyoutSubItem Text="OPML">
+                                <MenuFlyoutSubItem x:Uid="ShellMenuBarItem_File_OPML">
 
-                                    <MenuFlyoutItem Text="Import" Command="{x:Bind MainViewModel.OpmlImportCommand}">
+                                    <MenuFlyoutItem x:Uid="ShellMenuBarItem_File_OPML_Import" Command="{x:Bind MainViewModel.OpmlImportCommand}">
                                         <MenuFlyoutItem.Icon>
                                             <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <PathIcon.Data>
@@ -85,7 +84,7 @@
                                         </MenuFlyoutItem.Icon>
                                     </MenuFlyoutItem>
 
-                                    <MenuFlyoutItem Text="Export" Command="{x:Bind MainViewModel.OpmlExportCommand}">
+                                    <MenuFlyoutItem x:Uid="ShellMenuBarItem_File_OPML_Export" Command="{x:Bind MainViewModel.OpmlExportCommand}">
                                         <MenuFlyoutItem.Icon>
                                             <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <PathIcon.Data>
@@ -97,14 +96,17 @@
                                 </MenuFlyoutSubItem>
 
                                 <MenuFlyoutSeparator/>
-                                
-                                <MenuFlyoutItem x:Uid="ShellMenuFlyoutItem_File_Exit" Command="{x:Bind ViewModel.MenuFileExitCommand}">
+
+                                <MenuFlyoutItem x:Uid="ShellMenuBarItem_File_Exit" Command="{x:Bind ViewModel.MenuFileExitCommand}">
                                     <MenuFlyoutItem.Icon>
                                         <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                             <PathIcon.Data>
                                                 M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z</PathIcon.Data>
                                         </PathIcon>
                                     </MenuFlyoutItem.Icon>
+                                    <MenuFlyoutItem.KeyboardAccelerators>
+                                        <KeyboardAccelerator Modifiers="Menu" Key="F4"/>
+                                    </MenuFlyoutItem.KeyboardAccelerators>
                                 </MenuFlyoutItem>
                                 
                             </MenuBarItem.Items>
@@ -115,8 +117,8 @@
                             <MenuBarItem.KeyboardAccelerators>
                                 <KeyboardAccelerator Modifiers="Menu" Key="D"/>
                             </MenuBarItem.KeyboardAccelerators>
-                            
-                            <MenuFlyoutItem Text="Refresh All" Command="{x:Bind MainViewModel.FeedRefreshAllCommand}">
+
+                            <MenuFlyoutItem x:Uid="ShellMenuBarItem_Feed_RefreshAll" Command="{x:Bind MainViewModel.FeedRefreshAllCommand}">
                                 <MenuFlyoutItem.Icon>
                                     <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <PathIcon.Data>
@@ -131,9 +133,9 @@
 
                             <MenuFlyoutSeparator/>
 
-                            <MenuFlyoutSubItem Text="Slected Feed">
+                            <MenuFlyoutSubItem x:Uid="ShellMenuBarItem_Feed_SlectedFeed">
 
-                                <MenuFlyoutItem Text="Refresh" Command="{x:Bind MainViewModel.FeedRefreshCommand}">
+                                <MenuFlyoutItem x:Uid="ShellMenuBarItem_Feed_SlectedFeed_Refresh" Command="{x:Bind MainViewModel.FeedRefreshCommand}">
                                     <MenuFlyoutItem.Icon>
                                         <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                             <PathIcon.Data>
@@ -143,7 +145,7 @@
                                     </MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
 
-                                <MenuFlyoutItem Text="Edit" Command="{x:Bind MainViewModel.NodeEditCommand}">
+                                <MenuFlyoutItem x:Uid="ShellMenuBarItem_Feed_SlectedFeed_Edit" Command="{x:Bind MainViewModel.NodeEditCommand}">
                                     <MenuFlyoutItem.Icon>
                                         <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                             <PathIcon.Data>
@@ -158,7 +160,7 @@
 
                                 <MenuFlyoutSeparator/>
 
-                                <MenuFlyoutItem Text="Remove" Command="{x:Bind MainViewModel.NodeRemoveCommand}">
+                                <MenuFlyoutItem x:Uid="ShellMenuBarItem_Feed_SlectedFeed_Remove" Command="{x:Bind MainViewModel.NodeRemoveCommand}">
                                     <MenuFlyoutItem.Icon>
                                         <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                             <PathIcon.Data>
@@ -180,7 +182,7 @@
                                 <KeyboardAccelerator Modifiers="Menu" Key="E"/>
                             </MenuBarItem.KeyboardAccelerators>
 
-                            <MenuFlyoutItem Text="Archive All" Command="{x:Bind MainViewModel.EntryArchiveAllCommand}">
+                            <MenuFlyoutItem x:Uid="ShellMenuBarItem_Entry_ArchiveAll" Command="{x:Bind MainViewModel.EntryArchiveAllCommand}">
                                 <MenuFlyoutItem.Icon>
                                     <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <PathIcon.Data>
@@ -193,9 +195,9 @@
                                 </MenuFlyoutItem.KeyboardAccelerators>
                             </MenuFlyoutItem>
 
-                            <MenuFlyoutSubItem Text="View">
+                            <MenuFlyoutSubItem x:Uid="ShellMenuBarItem_Entry_View">
 
-                                <RadioMenuFlyoutItem Text="Inbox" Command="{x:Bind MainViewModel.ToggleShowInboxEntriesCommand}" IsChecked="{x:Bind MainViewModel.IsShowInboxEntries, Mode=OneWay}">
+                                <RadioMenuFlyoutItem x:Uid="ShellMenuBarItem_Entry_View_Inbox" Command="{x:Bind MainViewModel.ToggleShowInboxEntriesCommand}" IsChecked="{x:Bind MainViewModel.IsShowInboxEntries, Mode=OneWay}">
                                     <MenuFlyoutItem.Icon>
                                         <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                             <PathIcon.Data>
@@ -205,7 +207,7 @@
                                     </MenuFlyoutItem.Icon>
                                 </RadioMenuFlyoutItem>
 
-                                <RadioMenuFlyoutItem Text="All" Command="{x:Bind MainViewModel.ToggleShowInboxEntriesCommand}" IsChecked="{x:Bind MainViewModel.IsShowAllEntries, Mode=OneWay}">
+                                <RadioMenuFlyoutItem x:Uid="ShellMenuBarItem_Entry_View_All" Command="{x:Bind MainViewModel.ToggleShowInboxEntriesCommand}" IsChecked="{x:Bind MainViewModel.IsShowAllEntries, Mode=OneWay}">
                                     <MenuFlyoutItem.Icon>
                                         <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                             <PathIcon.Data>
@@ -218,9 +220,9 @@
                             
                             <MenuFlyoutSeparator/>
 
-                            <MenuFlyoutSubItem Text="Slected Entry">
+                            <MenuFlyoutSubItem x:Uid="ShellMenuBarItem_Entry_SlectedEntry">
 
-                                <MenuFlyoutItem Text="Open" Command="{x:Bind MainViewModel.EntryViewExternalCommand}">
+                                <MenuFlyoutItem x:Uid="ShellMenuBarItem_Entry_SlectedEntry_Open" Command="{x:Bind MainViewModel.EntryViewExternalCommand}">
                                     <MenuFlyoutItem.Icon>
                                         <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                             <PathIcon.Data>
@@ -233,7 +235,7 @@
                                     </MenuFlyoutItem.KeyboardAccelerators>
                                 </MenuFlyoutItem>
 
-                                <MenuFlyoutItem Text="Copy URL" Command="{x:Bind MainViewModel.EntryCopyUrlCommand}">
+                                <MenuFlyoutItem x:Uid="ShellMenuBarItem_Entry_SlectedEntry_CopyURL" Command="{x:Bind MainViewModel.EntryCopyUrlCommand}">
                                     <MenuFlyoutItem.Icon>
                                         <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                             <PathIcon.Data>
@@ -265,7 +267,7 @@
                                 </MenuFlyoutItem.Icon>
                             </MenuFlyoutItem>
 
-                            <MenuFlyoutItem x:Uid="ShellMenuFlyoutItem_File_Settings" Command="{x:Bind ViewModel.MenuSettingsCommand}">
+                            <MenuFlyoutItem x:Uid="ShellMenuBarItem_File_Settings" Command="{x:Bind ViewModel.MenuSettingsCommand}">
                                 <MenuFlyoutItem.Icon>
                                     <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <PathIcon.Data>
@@ -311,7 +313,7 @@
                  -->
             </Grid>
 
-            <Grid Grid.Row="0" Grid.Column="2" x:Name="AppTitleBar"></Grid>
+            <Grid Grid.Row="0" Grid.Column="2" x:Name="AppTitleBar" Background="{ThemeResource MenuBarBackground}"></Grid>
 
         </Grid>
 

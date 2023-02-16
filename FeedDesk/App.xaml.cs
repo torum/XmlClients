@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Text;
 using System.Text.Json.Nodes;
 using AngleSharp.Dom;
@@ -16,31 +17,30 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.ApplicationModel.Resources;
+using Windows.Globalization;
 
 namespace FeedDesk;
 
 public partial class App : Application
 {
-    //
+    // AppDataFolder
+    //private static readonly ResourceLoader _resourceLoader = new();
     private static readonly string _appName = "FeedDesk";//_resourceLoader.GetString("AppName");
     private static readonly string _appDeveloper = "torum";
     private static readonly string _envDataFolder = System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
     public static string AppDataFolder { get; } = _envDataFolder + System.IO.Path.DirectorySeparatorChar + _appDeveloper + System.IO.Path.DirectorySeparatorChar + _appName;
     public static string AppConfigFilePath { get; } = Path.Combine(AppDataFolder, _appName + ".config");
 
-    // 
+    // DispatcherQueue
     private static readonly Microsoft.UI.Dispatching.DispatcherQueue _currentDispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
     public static Microsoft.UI.Dispatching.DispatcherQueue CurrentDispatcherQueue => _currentDispatcherQueue;
 
-    //
-    private static readonly ResourceLoader _resourceLoader = new();
-
-    // 
+    // ErrorLog
     public bool IsSaveErrorLog = true;
     public string LogFilePath = System.Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + System.IO.Path.DirectorySeparatorChar + "FeedDesk_errors.txt";
     private readonly StringBuilder Errortxt = new();
 
-    //
+    // MainWindow
     public static WindowEx MainWindow { get; } = new MainWindow();
 
     public IHost Host
@@ -61,8 +61,11 @@ public partial class App : Application
 
     public App()
     {
-        //CultureInfo.CurrentUICulture = new CultureInfo( "ja-JP", false );
-        //CultureInfo.CurrentUICulture = new CultureInfo("en-US", false);
+        // Only works in packaged environment.
+        //Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = "en-US";
+        //System.Globalization.CultureInfo.CurrentUICulture = new System.Globalization.CultureInfo("en-US", false);
+        //Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = "ja-JP";
+        //System.Globalization.CultureInfo.CurrentUICulture = new System.Globalization.CultureInfo( "ja-JP", false );
 
         // Force theme
         //this.RequestedTheme = ApplicationTheme.Dark;
@@ -126,7 +129,6 @@ public partial class App : Application
 
         TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-
     }
 
     protected async override void OnLaunched(LaunchActivatedEventArgs args)

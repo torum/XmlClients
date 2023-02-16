@@ -32,19 +32,19 @@
 
             <StackPanel Margin="50,12,50,0" HorizontalAlignment="Left">
 
-                <TextBlock Text="Folder" Margin="0,0,0,12" Style="{StaticResource PageTitleStyle}" />
+                <TextBlock x:Uid="FolderEditPage_Title_EditFolder" Margin="0,0,0,12" Style="{StaticResource PageTitleStyle}" />
 
                 <StackPanel Margin="12,6,0,0">
 
-                    <TextBlock Text="Property" Style="{ThemeResource SubtitleTextBlockStyle}" />
+                    <TextBlock x:Uid="FolderEditPage_Property" Style="{ThemeResource SubtitleTextBlockStyle}" />
 
                     <StackPanel Margin="12,6,0,0">
-                        <TextBlock Text="Name:" Style="{ThemeResource BodyTextBlockStyle}" Margin="{StaticResource XSmallTopMargin}"/>
+                        <TextBlock x:Uid="FolderEditPage_Folder_Name" Style="{ThemeResource BodyTextBlockStyle}" Margin="{StaticResource XSmallTopMargin}"/>
                         <TextBox Text="{x:Bind ViewModel.Name, Mode=TwoWay}" Margin="{StaticResource XSmallTopMargin}" Width="300" MaxWidth="800" HorizontalAlignment="Left"></TextBox>
                     </StackPanel>
 
                     <StackPanel Margin="12,6,0,0">
-                        <Button Content="Update" Command="{x:Bind ViewModel.UpdateFolderItemPropertyCommand}" Margin="{StaticResource XSmallTopMargin}"></Button>
+                        <Button x:Uid="FolderEditPage_Button_Update" Command="{x:Bind ViewModel.UpdateFolderItemPropertyCommand}" Margin="{StaticResource XSmallTopMargin}"></Button>
                     </StackPanel>
                     
                 </StackPanel>

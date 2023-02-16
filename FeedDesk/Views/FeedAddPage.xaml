@@ -35,7 +35,7 @@
                 <Grid Grid.Row="1" Grid.Column="0">
                     <StackPanel Margin="50,12,50,0" HorizontalAlignment="Left">
 
-                        <TextBlock Text="New Feed" Margin="0,0,0,12" Style="{StaticResource PageTitleStyle}" />
+                        <TextBlock x:Uid="FeedAddPage_Title_NewFeed" Margin="0,0,0,12" Style="{StaticResource PageTitleStyle}" />
 
                         <Pivot Title="" Margin="0,-48,0,0" MinWidth="300" SelectedIndex="{x:Bind ViewModel.SelectedTabIndex, Mode=TwoWay}">
                             <Pivot.Resources>
@@ -47,15 +47,15 @@
                             <PivotItem Header="1. Input URL">
                                 <StackPanel Margin="0,12,0,0" HorizontalAlignment="Stretch">
 
-                                    <TextBlock Text="Enter a URL of a feed or a website." />
+                                    <TextBlock x:Uid="FeedAddPage_EnterAURL" />
 
                                     <StackPanel Margin="24" HorizontalAlignment="Stretch">
 
-                                        <TextBox Header="URL:" PlaceholderText="https://...." Text="{x:Bind ViewModel.WebsiteOrEndpointUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,24,0,0" HorizontalAlignment="Stretch"/>
+                                        <TextBox Header="URL:" PlaceholderText="https://...." Text="{x:Bind ViewModel.WebsiteOrEndpointUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Stretch"/>
 
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
 
-                                            <Button Content="Next" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoCommand}"></Button>
+                                            <Button x:Uid="FeedAddPage_Button_Next" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoCommand}"></Button>
 
                                         </StackPanel>
                                     </StackPanel>
@@ -110,7 +110,7 @@
                             <PivotItem Header="2. Select Feed">
                                 <StackPanel Margin="0,12,0,0" HorizontalAlignment="Stretch">
 
-                                    <TextBlock Text="Select an item to add." />
+                                    <TextBlock x:Uid="FeedAddPage_SelectAFeed"/>
 
                                     <StackPanel Margin="24" HorizontalAlignment="Stretch">
 
@@ -152,8 +152,8 @@
                                         
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
 
-                                            <Button Content="Back" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoToFirstTabCommand}"></Button>
-                                            <Button Content="Next" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoSelectedCommand}"></Button>
+                                            <Button x:Uid="FeedAddPage_Button_Back" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoToFirstTabCommand}"></Button>
+                                            <Button x:Uid="FeedAddPage_Button_Next" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoSelectedCommand}"></Button>
 
                                         </StackPanel>
                                         
@@ -169,7 +169,7 @@
                             <PivotItem Header="4. Comfirm">
                                 <StackPanel Margin="0,12,0,0" HorizontalAlignment="Stretch">
 
-                                    <TextBlock Text="Set a label and comfirm to add." />
+                                    <TextBlock x:Uid="FeedAddPage_SetALabelAndAdd" />
 
                                     <StackPanel Margin="24" HorizontalAlignment="Stretch">
 
@@ -195,8 +195,8 @@
 
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
 
-                                            <Button Content="Back" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoToThirdTabCommand}"></Button>
-                                            <Button Command="{x:Bind ViewModel.AddSelectedAndCloseCommand}" Content="Add" HorizontalAlignment="Right" Margin="12,24,12,12">
+                                            <Button x:Uid="FeedAddPage_Button_Back" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoToThirdTabCommand}"></Button>
+                                            <Button Command="{x:Bind ViewModel.AddSelectedAndCloseCommand}" x:Uid="FeedAddPage_Button_Add" HorizontalAlignment="Right" Margin="12,24,12,12">
                                                 <!--
                                             <PathIcon Data="M17,13H13V17H11V13H7V11H11V7H13V11H17M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"></PathIcon>
                                             -->
