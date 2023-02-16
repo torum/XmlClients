@@ -16,10 +16,12 @@ A desktop feed reader. (work in progress)
 * In-app playback of Podcast audio.
 
 ## Change log
+* v1.0.3.1 (2023/2/16)
+ Fixed DateTime issue regarding RDF dc:date.
 * v1.0.3 (2023/2/16)
- i18n. Added Japanese translation.
+ Store App release. i18n. Added Japanese translation.
 * v1.0.2 (2023/2/15)
- Store App release. AddFeed Page enhancement.
+ Store App release. Fixed some issue in AddFeed Page.
 * v1.0.1 (2023/2/14)
  Store App release.
 * v1.0.0.11 (2023/2/15)
