@@ -287,14 +287,14 @@
                                             </Grid.ColumnDefinitions>
 
                                             <Viewbox Grid.Row="0" Grid.Column="0" Margin="-4,0,0,0" Width="18" Height="18">
-                                                <PathIcon  Data="{x:Bind PathIcon, Mode=OneWay}" Opacity="0.7" Foreground="{ThemeResource FeedIconBrush}"></PathIcon>
+                                                <PathIcon  Data="{x:Bind PathIcon, Mode=OneWay}" Opacity="0.8" Foreground="{ThemeResource FeedIconBrush}"></PathIcon>
                                             </Viewbox>
 
                                             <TextBlock Grid.Row="0" Grid.Column="1" x:Name="NodeTextBlock" Text="{x:Bind Name, Mode=OneWay}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Padding="3" Style="{ThemeResource NodeTextBlockStyle}" IsHitTestVisible="False" Margin="6,0,0,0" Opacity="0.9"/>
 
                                             <TextBlock Grid.Row="0" Grid.Column="2" Text="{x:Bind SubNodeText, Mode=OneWay}" FontSize="{StaticResource NormalFontSize}" Margin="9 3 3 3" HorizontalAlignment="Right" Visibility="Collapsed"></TextBlock>
 
-                                            <InfoBadge Grid.Column="3" Style="{ThemeResource AttentionValueInfoBadgeStyle}" HorizontalAlignment="Right" VerticalAlignment="Center" Value="{x:Bind EntryNewCount, Mode=OneWay}" Visibility="{x:Bind IsEntryCountMoreThanZero, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}" Margin="0,0,12,0" Opacity="0.5"/>
+                                            <InfoBadge Grid.Column="3" Style="{ThemeResource AttentionValueInfoBadgeStyle}" HorizontalAlignment="Right" VerticalAlignment="Center" Value="{x:Bind EntryNewCount, Mode=OneWay}" Visibility="{x:Bind IsEntryCountMoreThanZero, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}" Margin="0,0,12,0" Opacity="0.7"/>
 
                                         </Grid>
                                     </Border>
@@ -526,7 +526,7 @@
                                         </Grid.ColumnDefinitions>
 
                                         <Viewbox Grid.RowSpan="2" Width ="20" Height="20">
-                                            <PathIcon Data="{x:Bind PathIcon}" Foreground="{ThemeResource SystemAccentColorLight2}" Width ="24" Height="24" Margin="6" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.9"></PathIcon>
+                                            <PathIcon Data="{x:Bind PathIcon, Mode=OneWay}" Foreground="{ThemeResource SystemAccentColorLight2}" Width ="24" Height="24" Margin="6" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.9"></PathIcon>
                                         </Viewbox>
 
                                         <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind Name}" x:Phase="1" Style="{ThemeResource NodeTextBlockStyle}" FontWeight="Medium" Padding="2" Margin="12,6,0,0" Opacity="0.9"/>
@@ -538,15 +538,15 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            
-                                            <TextBlock Grid.Column="0" Style="{ThemeResource CaptionTextBlockStyle}" Padding="2" Margin="12,0,0,6" Opacity=".7">
+
+                                            <TextBlock Grid.Column="0" Style="{ThemeResource CaptionTextBlockStyle}" Padding="2" Margin="12,0,0,6" Opacity=".7" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis">
                                                 <Run x:Uid="FeedEntryItem_By"/>
                                                 <Run Text="{x:Bind Author}"/>
                                                 <Run x:Uid="FeedEntryItem_From"/>
                                                 <Run Text="{x:Bind Publisher}"/>
                                             </TextBlock>
 
-                                            <TextBlock Grid.Column="1" Style="{ThemeResource CaptionTextBlockStyle}" Padding="2" Margin="12,0,0,6" Opacity=".7">
+                                            <TextBlock Grid.Column="1" Style="{ThemeResource CaptionTextBlockStyle}" Padding="2" Margin="12,0,0,6" Opacity=".7" MaxWidth="124" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis">
                                                 <Run Text="{x:Bind Host}"/>
                                             </TextBlock>
                                         </Grid>

@@ -4,6 +4,7 @@ using AngleSharp.Dom;
 using BlogWrite.Core.Contracts.Services;
 using BlogWrite.Core.Models;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using static BlogWrite.Core.Models.FeedEntryItem;
 
 namespace BlogWrite.Core.Services;
 
@@ -730,11 +731,11 @@ public class DataAccessService : IDataAccessService
             {
                 //cmd.CommandText = String.Format("SELECT * FROM entries INNER JOIN feeds USING (feed_id) WHERE feed_id = '{0}' AND archived = '{1}' ORDER BY published DESC LIMIT 1000", feedId, bool.FalseString);
 
-                cmd.CommandText = String.Format("SELECT feeds.name as feedName, entries.title as entryTitle, entries.entry_id as entryId, entries.url as entryUrl, entries.published as entryPublished, entries.updated as entryUpdated, entries.summary as entrySummary, entries.content as entryContent, entries.content_type as entryContentType, entries.image_url as entryImageUri, entries.audio_url as entryAudioUri, entries.source as entrySource, entries.source_url as entrySourceUri, entries.author as entryAuthor, entries.category as entryCategory, entries.comment_url as entryCommentUri, entries.archived as entryArchived FROM entries INNER JOIN feeds USING (feed_id) WHERE feed_id = '{0}' AND archived = '{1}' ORDER BY published DESC LIMIT 1000", feedId, bool.FalseString);
+                cmd.CommandText = String.Format("SELECT feeds.name as feedName, entries.title as entryTitle, entries.entry_id as entryId, entries.url as entryUrl, entries.published as entryPublished, entries.updated as entryUpdated, entries.summary as entrySummary, entries.content as entryContent, entries.content_type as entryContentType, entries.image_url as entryImageUri, entries.audio_url as entryAudioUri, entries.source as entrySource, entries.source_url as entrySourceUri, entries.author as entryAuthor, entries.category as entryCategory, entries.comment_url as entryCommentUri, entries.archived as entryArchived, entries.status as entryStatus FROM entries INNER JOIN feeds USING (feed_id) WHERE feed_id = '{0}' AND archived = '{1}' ORDER BY published DESC LIMIT 1000", feedId, bool.FalseString);
             }
             else
             {
-                cmd.CommandText = String.Format("SELECT feeds.name as feedName, entries.title as entryTitle, entries.entry_id as entryId, entries.url as entryUrl, entries.published as entryPublished, entries.updated as entryUpdated, entries.summary as entrySummary, entries.content as entryContent, entries.content_type as entryContentType, entries.image_url as entryImageUri, entries.audio_url as entryAudioUri, entries.source as entrySource, entries.source_url as entrySourceUri, entries.author as entryAuthor, entries.category as entryCategory, entries.comment_url as entryCommentUri, entries.archived as entryArchived FROM entries INNER JOIN feeds USING (feed_id) WHERE feed_id = '{0}' ORDER BY published DESC LIMIT 5000", feedId);
+                cmd.CommandText = String.Format("SELECT feeds.name as feedName, entries.title as entryTitle, entries.entry_id as entryId, entries.url as entryUrl, entries.published as entryPublished, entries.updated as entryUpdated, entries.summary as entrySummary, entries.content as entryContent, entries.content_type as entryContentType, entries.image_url as entryImageUri, entries.audio_url as entryAudioUri, entries.source as entrySource, entries.source_url as entrySourceUri, entries.author as entryAuthor, entries.category as entryCategory, entries.comment_url as entryCommentUri, entries.archived as entryArchived, entries.status as entryStatus FROM entries INNER JOIN feeds USING (feed_id) WHERE feed_id = '{0}' ORDER BY published DESC LIMIT 5000", feedId);
             }
 
             using var reader = cmd.ExecuteReader();
@@ -801,7 +802,6 @@ public class DataAccessService : IDataAccessService
                     entry.SourceUri = new Uri(su);
                 }
 
-
                 var u = Convert.ToString(reader["entryImageUri"]);
                 if (!string.IsNullOrEmpty(u))
                 {
@@ -853,11 +853,11 @@ public class DataAccessService : IDataAccessService
                 */
                 //entry.ImageId = Convert.ToString(reader["image_id"]);
 
-                /*
-                var status = Convert.ToString(reader["status"]);
+                var status = Convert.ToString(reader["entryStatus"]);
                 if (!string.IsNullOrEmpty(status))
+                {
                     entry.Status = entry.StatusTextToType(status);
-                */
+                }
 
                 entry.Author = Convert.ToString(reader["entryAuthor"]);
 
@@ -871,19 +871,22 @@ public class DataAccessService : IDataAccessService
                     else
                         entry.IsArchived = false;
                 }
-
-                //
+                
                 if (entry.IsArchived)
+                {
                     if (entry.Status == FeedEntryItem.ReadStatus.rsNew)
                         entry.Status = FeedEntryItem.ReadStatus.rsNormal;
 
+                    if (entry.Status == FeedEntryItem.ReadStatus.rsNewVisited)
+                        entry.Status = FeedEntryItem.ReadStatus.rsNormalVisited;
+                }
+                
                 if (!entry.IsArchived)
                 {
                     res.UnreadCount++;
                 }
 
                 //entry.Publisher = Convert.ToString(reader["name"]);
-
                 entry.FeedTitle = Convert.ToString(reader["feedName"]);
 
                 res.AffectedCount++;
@@ -956,7 +959,7 @@ public class DataAccessService : IDataAccessService
         if (feedIds.Count == 0)
             return res;
 
-        var before = "SELECT feeds.name as feedName, feeds.feed_id as feedId, entries.title as entryTitle, entries.entry_id as entryId, entries.url as entryUrl, entries.published as entryPublished, entries.updated as entryUpdated, entries.summary as entrySummary, entries.content as entryContent, entries.content_type as entryContentType, entries.image_url as entryImageUri, entries.audio_url as entryAudioUri, entries.source as entrySource, entries.source_url as entrySourceUri, entries.author as entryAuthor, entries.category as entryCategory, entries.comment_url as entryCommentUri, entries.archived as entryArchived FROM entries INNER JOIN feeds USING (feed_id) WHERE ";
+        var before = "SELECT feeds.name as feedName, feeds.feed_id as feedId, entries.title as entryTitle, entries.entry_id as entryId, entries.url as entryUrl, entries.published as entryPublished, entries.updated as entryUpdated, entries.summary as entrySummary, entries.content as entryContent, entries.content_type as entryContentType, entries.image_url as entryImageUri, entries.audio_url as entryAudioUri, entries.source as entrySource, entries.source_url as entrySourceUri, entries.author as entryAuthor, entries.category as entryCategory, entries.comment_url as entryCommentUri, entries.archived as entryArchived, entries.status as entryStatus FROM entries INNER JOIN feeds USING (feed_id) WHERE ";
 
         var middle = "(";
 
@@ -1100,6 +1103,11 @@ public class DataAccessService : IDataAccessService
                 if (!string.IsNullOrEmpty(status))
                     entry.Status = entry.StatusTextToType(status);
                 */
+                var status = Convert.ToString(reader["entryStatus"]);
+                if (!string.IsNullOrEmpty(status))
+                {
+                    entry.Status = entry.StatusTextToType(status);
+                }
 
                 entry.Source = Convert.ToString(reader["entrySource"]);
 
@@ -1122,10 +1130,14 @@ public class DataAccessService : IDataAccessService
                         entry.IsArchived = false;
                 }
 
-                //
                 if (entry.IsArchived)
+                {
                     if (entry.Status == FeedEntryItem.ReadStatus.rsNew)
                         entry.Status = FeedEntryItem.ReadStatus.rsNormal;
+
+                    if (entry.Status == FeedEntryItem.ReadStatus.rsNewVisited)
+                        entry.Status = FeedEntryItem.ReadStatus.rsNormalVisited;
+                }
 
                 if (!entry.IsArchived)
                 {
@@ -1271,6 +1283,94 @@ public class DataAccessService : IDataAccessService
             res.Error.ErrDatetime = DateTime.Now;
             res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
             res.Error.ErrPlaceParent = "DataAccess::UpdateAllEntriesAsRead";
+
+            return res;
+        }
+
+        //Debug.WriteLine(string.Format("{0} Entries from {1} Updated as read in the DB", c.ToString(), feedId));
+
+        return res;
+    }
+
+    public SqliteDataAccessResultWrapper UpdateEntryReadStatus(string entryId, ReadStatus readStatus)
+    {
+        var res = new SqliteDataAccessResultWrapper();
+
+        if (string.IsNullOrEmpty(entryId))
+        {
+            //res.IsError = true;
+            // TODO:
+            return res;
+        }
+
+        var sql = "UPDATE entries SET ";
+        sql += String.Format("status = '{0}'", readStatus.ToString());
+        sql += String.Format(" WHERE entry_id = '{0}'; ", entryId);
+
+        try
+        {
+            using var connection = new SQLiteConnection(connectionStringBuilder.ConnectionString);
+            connection.Open();
+
+            using var cmd = connection.CreateCommand();
+            //cmd.Transaction = connection.BeginTransaction();
+
+            try
+            {
+                cmd.CommandText = sql;
+
+                res.AffectedCount = cmd.ExecuteNonQuery();
+
+                //cmd.Transaction.Commit();
+            }
+            catch (Exception e)
+            {
+                //cmd.Transaction.Rollback();
+
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+                res.Error.ErrText = e.Message;
+                res.Error.ErrDescription = "Exception";
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open(),Transaction.Commit";
+                res.Error.ErrPlaceParent = "DataAccess::UpdateEntryReadStatus";
+
+                return res;
+            }
+        }
+        catch (System.InvalidOperationException ex)
+        {
+            res.IsError = true;
+            res.Error.ErrType = ErrorObject.ErrTypes.DB;
+            res.Error.ErrCode = "";
+            res.Error.ErrText = ex.Message;
+            res.Error.ErrDescription = "InvalidOperationException";
+            res.Error.ErrDatetime = DateTime.Now;
+            res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
+            res.Error.ErrPlaceParent = "DataAccess::UpdateEntryReadStatus";
+
+            return res;
+        }
+        catch (Exception e)
+        {
+            res.IsError = true;
+            res.Error.ErrType = ErrorObject.ErrTypes.DB;
+            res.Error.ErrCode = "";
+
+            if (e.InnerException != null)
+            {
+                res.Error.ErrDescription = "InnerException";
+                res.Error.ErrText = e.Message + " " + e.InnerException.Message;
+            }
+            else
+            {
+                res.Error.ErrDescription = "Exception";
+                res.Error.ErrText = e.Message;
+            }
+            res.Error.ErrDatetime = DateTime.Now;
+            res.Error.ErrPlace = "connection.Open(),BeginTransaction()";
+            res.Error.ErrPlaceParent = "DataAccess::UpdateEntryReadStatus";
 
             return res;
         }

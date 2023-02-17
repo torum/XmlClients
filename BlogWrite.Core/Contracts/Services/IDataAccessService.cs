@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using BlogWrite.Core.Models;
 using Windows.Storage;
 using Microsoft.UI.Xaml.Media.Imaging;
+using static BlogWrite.Core.Models.FeedEntryItem;
 
 namespace BlogWrite.Core.Contracts.Services;
 
@@ -31,11 +32,9 @@ public interface IDataAccessService
 
     //SqliteDataAccessInsertResultWrapper InsertImages(List<EntryItem> entries);
 
-
-    //SqliteDataAccessResultWrapper UpdateEntriesAsRead(List<EntryItem> entries);
-
-
     SqliteDataAccessResultWrapper UpdateAllEntriesAsArchived(List<string> feedIds);
+
+    SqliteDataAccessResultWrapper UpdateEntryReadStatus(string entryId, ReadStatus readStatus);
 
 
     //SqliteDataAccessResultWrapper UpdateEntryStatus(EntryItem entry);

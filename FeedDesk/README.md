@@ -51,14 +51,15 @@ A desktop feed reader. (work in progress)
 - [ ] Make use of "isRead" flag. 
 - [ ] Database file management page (menu>tools), clean(delete all data) and optimize(vacume).
 - [ ] Search.
+- [ ] HTML content rendering without webview2
 
 ## Planning
 
 ### Core
-- [ ] "Read lator" or saved or boolmark or star or whatever.
-- [ ] Auto reflesh.
+- [ ] "Read lator" or saved or boolmark or star or favorits or whatever.
 - [ ] Update entry data when entry is updated.
 - [ ] Basic Auth.
+- [ ] Auto reflesh.
 
 ### UI
 - [ ] FavIcon. 

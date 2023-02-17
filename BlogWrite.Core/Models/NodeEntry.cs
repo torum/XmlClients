@@ -28,10 +28,10 @@ public abstract class EntryItem : Node
     // A link to Entry's HTML webpage.
     public Uri? AltHtmlUri { get; set; }
 
-    private string _pathIcon;
+    private string _pathIcon = "M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z";
     public string PathIcon
     {
-        get => _pathIcon;// "M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z";
+        get => _pathIcon;
         set
         {
             if (_pathIcon == value)
@@ -446,18 +446,20 @@ public class FeedEntryItem : EntryItem
 {
     // Icon Path
     private static readonly string _rsNew = "M12 5C15.87 5 19 8.13 19 12C19 15.87 15.87 19 12 19C8.13 19 5 15.87 5 12C5 8.13 8.13 5 12 5M12 2C17.5 2 22 6.5 22 12C22 17.5 17.5 22 12 22C6.5 22 2 17.5 2 12C2 6.5 6.5 2 12 2M12 4C7.58 4 4 7.58 4 12C4 16.42 7.58 20 12 20C16.42 20 20 16.42 20 12C20 7.58 16.42 4 12 4Z";
+    private static readonly string _rsNewVisited = "M10,17L5,12L6.41,10.58L10,14.17L17.59,6.58L19,8M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z";
     private static readonly string _rsNormal = "M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z";
-    private static readonly string _rsVisited = "M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M12 20C7.59 20 4 16.41 4 12S7.59 4 12 4 20 7.59 20 12 16.41 20 12 20M16.59 7.58L10 14.17L7.41 11.59L6 13L10 17L18 9L16.59 7.58Z";
+    private static readonly string _rsNormalVisited = "M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M12 20C7.59 20 4 16.41 4 12S7.59 4 12 4 20 7.59 20 12 16.41 20 12 20M16.59 7.58L10 14.17L7.41 11.59L6 13L10 17L18 9L16.59 7.58Z";
 
     // internal read state
     public enum ReadStatus
     {
         rsNew,
+        rsNewVisited,
         rsNormal,
-        rsVisited
+        rsNormalVisited
     }
 
-    private ReadStatus _rs;
+    private ReadStatus _rs = ReadStatus.rsNormal;
     public ReadStatus Status
     {
         get => _rs;
@@ -471,9 +473,10 @@ public class FeedEntryItem : EntryItem
             PathIcon = _rs switch
             {
                 ReadStatus.rsNew => _rsNew,
+                ReadStatus.rsNewVisited => _rsNewVisited,
                 ReadStatus.rsNormal => _rsNormal,
-                ReadStatus.rsVisited => _rsVisited,
-                _ => _rsNew,
+                ReadStatus.rsNormalVisited => _rsNormalVisited,
+                _ => _rsNormal,
             };
         }
     }
@@ -562,9 +565,13 @@ public class FeedEntryItem : EntryItem
         {
             return ReadStatus.rsNormal;
         }
-        else if (status == ReadStatus.rsVisited.ToString())
+        else if (status == ReadStatus.rsNewVisited.ToString())
         {
-            return ReadStatus.rsVisited;
+            return ReadStatus.rsNewVisited;
+        }
+        else if (status == ReadStatus.rsNormalVisited.ToString())
+        {
+            return ReadStatus.rsNormalVisited;
         }
         else
         {

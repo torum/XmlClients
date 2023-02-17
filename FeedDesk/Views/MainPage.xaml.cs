@@ -83,11 +83,8 @@ public sealed partial class MainPage : Page
 
     private async void ListViewEntryItem_DoubleTappedAsync(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
     {
-        //
-        if (ListViewEntryItem.SelectedItem != null)
+        if (ListViewEntryItem.SelectedItem is EntryItem item)
         {
-            if (ListViewEntryItem.SelectedItem is EntryItem item)
-
             if (item != null)
             {
                 if (item.AltHtmlUri != null)
@@ -104,7 +101,10 @@ public sealed partial class MainPage : Page
         {
             if (((FrameworkElement)e.OriginalSource).DataContext is FeedEntryItem item)
             {
-                ListViewEntryItem.SelectedItem = item;
+                if (ListViewEntryItem.SelectedItem != item)
+                {
+                    ListViewEntryItem.SelectedItem = item;
+                }
             }
         }
     }

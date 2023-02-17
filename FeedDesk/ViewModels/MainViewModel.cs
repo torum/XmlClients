@@ -219,78 +219,86 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             if (SetProperty(ref _selectedListViewItem, value))
             {
                 EntryViewExternalCommand.NotifyCanExecuteChanged();
+
+                if (_selectedListViewItem == null)
+                {
+                    IsEntryDetailVisible = false;
+
+                    return;
+                }
+                else
+                {
+                    IsEntryDetailVisible = true;
+                }
+
+                //SelectedEntrySummary = _selectedListViewItem.Summary;
+
+                if ((_selectedListViewItem as EntryItem).ContentType == EntryItem.ContentTypes.text)
+                {
+                    IsContentText = true;
+                    //SelectedEntryContentText = (_selectedListViewItem as EntryItem).Content;
+                }
+                else
+                {
+                    IsContentText = false;
+                    //SelectedEntryContentText = "";
+                }
+
+                if ((_selectedListViewItem as EntryItem).ContentType == EntryItem.ContentTypes.textHtml)
+                {
+                    IsContentHTML = true;
+                    //SelectedEntryContentHTML = (_selectedListViewItem as EntryItem).Content;
+                }
+                else
+                {
+                    IsContentHTML = false;
+                    //SelectedEntryContentHTML = "";
+                }
+
+                if ((_selectedListViewItem as EntryItem).AltHtmlUri != null)
+                {
+                    IsAltLinkExists = true;
+                }
+                else
+                {
+                    IsAltLinkExists = false;
+                }
+
+                if (_selectedListViewItem.ImageUri != null)
+                {
+                    IsImageLinkExists = true;
+                }
+                else
+                {
+                    IsImageLinkExists = false;
+                }
+
+                if (_selectedListViewItem.AudioUri != null)
+                {
+                    IsAudioLinkExists = true;
+                }
+                else
+                {
+                    IsAudioLinkExists = false;
+                }
+
+                if (_selectedListViewItem.CommentUri != null)
+                {
+                    IsCommentPageLinkExists = true;
+                }
+                else
+                {
+                    IsCommentPageLinkExists = false;
+                }
+
+                //_selectedListViewItem.Status = FeedEntryItem.ReadStatus.rsVisited;
+
+                if ((_selectedListViewItem.Status != FeedEntryItem.ReadStatus.rsNewVisited) && (_selectedListViewItem.Status != FeedEntryItem.ReadStatus.rsNormalVisited))
+                {
+                    Task.Run(() => UpdateEntryStatusAsRead(SelectedTreeViewItem!, _selectedListViewItem));
+                }
             }
 
-            if (_selectedListViewItem == null)
-            {
-                IsEntryDetailVisible = false;
-
-                return;
-            }
-            else
-            {
-                IsEntryDetailVisible = true;
-            }
-
-            //SelectedEntrySummary = _selectedListViewItem.Summary;
-
-            if ((_selectedListViewItem as EntryItem).ContentType == EntryItem.ContentTypes.text)
-            {
-                IsContentText = true;
-                //SelectedEntryContentText = (_selectedListViewItem as EntryItem).Content;
-            }
-            else
-            {
-                IsContentText = false;
-                //SelectedEntryContentText = "";
-            }
-
-            if ((_selectedListViewItem as EntryItem).ContentType == EntryItem.ContentTypes.textHtml)
-            {
-                IsContentHTML = true;
-                //SelectedEntryContentHTML = (_selectedListViewItem as EntryItem).Content;
-            }
-            else
-            {
-                IsContentHTML = false;
-                //SelectedEntryContentHTML = "";
-            }
-
-            if ((_selectedListViewItem as EntryItem).AltHtmlUri != null)
-            {
-                IsAltLinkExists = true;
-            }
-            else
-            {
-                IsAltLinkExists = false;
-            }
-
-            if (_selectedListViewItem.ImageUri != null)
-            {
-                IsImageLinkExists = true;
-            }
-            else
-            {
-                IsImageLinkExists = false;
-            }
-
-            if (_selectedListViewItem.AudioUri != null)
-            {
-                IsAudioLinkExists = true;
-            }
-            else
-            {
-                IsAudioLinkExists = false;
-            }
-
-            if (_selectedListViewItem.CommentUri != null)
-            {
-                IsCommentPageLinkExists = true;
-            }
-            else
-            {
-                IsCommentPageLinkExists = false;
-            }
         }
     }
     
@@ -1766,62 +1774,75 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         */
     }
 
-    private void UpdateEntryStatus(NodeTree nd, FeedEntryItem entry)
+    private async Task UpdateEntryStatusAsRead(NodeTree nd, FeedEntryItem entry)
     {
-        /*
-        if (nd == null)
+        if ((nd == null) || (entry == null))
             return;
 
         if ((nd is not NodeFeed) && (nd is not NodeFolder))
             return;
 
-        if (Application.Current == null) { return; }
-        Application.Current.Dispatcher.Invoke(() =>
+        App.CurrentDispatcherQueue?.TryEnqueue(() =>
         {
-            IsBusy = true;
+            nd.IsBusy = true;
+
+            //entry.Status = FeedEntryItem.ReadStatus.rsVisited;
+            /*
+            if (SelectedListViewItem != null)
+            {
+                if (entry.EntryId == SelectedListViewItem.EntryId)
+                {
+                    entry.Status = FeedEntryItem.ReadStatus.rsVisited;
+                }
+            }
+            */
+
+            // TODO:
+            //feed.Status = NodeFeed.DownloadStatus.saving;
         });
 
-        SqliteDataAccessResultWrapper res = UpdateEntryStatusLock(entry);
+        var rs = FeedEntryItem.ReadStatus.rsNewVisited;
+        if (entry.IsArchived)
+        {
+            rs = FeedEntryItem.ReadStatus.rsNormalVisited;
+        }
+        else
+        {
+            rs = FeedEntryItem.ReadStatus.rsNewVisited;
+        }
+
+        var res = await Task.FromResult(_dataAccessService.UpdateEntryReadStatus(entry.EntryId, rs));
 
         if (res.IsError)
         {
-            if (Application.Current == null) { return; }
-            Application.Current.Dispatcher.Invoke(() =>
+            App.CurrentDispatcherQueue?.TryEnqueue(() =>
             {
-                if (nd is NodeFeed)
-                    (nd as NodeFeed).ErrorDatabase = res.Error;
+                nd.ErrorDatabase = res.Error;
 
-                if ((nd == SelectedNode) && (nd is NodeFeed))
+                if (nd == SelectedTreeViewItem)
                 {
-                    DatabaseError = (nd as NodeFeed).ErrorDatabase;
-                    IsShowDatabaseErrorMessage = true;
+                    //DatabaseError = (nd as NodeFeed).ErrorDatabase;
+                    //IsShowDatabaseErrorMessage = true;
                 }
 
-                IsBusy = false;
+                if (nd is NodeFeed feed)
+                    feed.Status = NodeFeed.DownloadStatus.error;
+
+                nd.IsBusy = false;
             });
 
             return;
         }
         else
         {
-            if (Application.Current == null) { return; }
-            Application.Current.Dispatcher.Invoke(() =>
+            App.CurrentDispatcherQueue?.TryEnqueue(() =>
             {
-                // Clear error
-                if (nd is NodeFeed)
-                    (nd as NodeFeed).ErrorDatabase = null;
+                entry.Status = rs;
 
-                if (nd == SelectedNode)
-                {
-                    DatabaseError = null;
-                    IsShowDatabaseErrorMessage = false;
-                }
-
-                IsBusy = false;
+                if (nd != null)
+                    nd.IsBusy = false;
             });
         }
-
-        */
     }
 
     #endregion

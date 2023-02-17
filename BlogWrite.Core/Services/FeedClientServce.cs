@@ -876,7 +876,7 @@ public class FeedClientService : BaseClient, IFeedClientService
                 entItem.ContentType = EntryItem.ContentTypes.unknown;
 
                 // Content
-                entItem.Content = await StripStyleAttributes(sum.InnerText);
+                entItem.Content = await StripStyleAttributes(s);
 
                 if (!string.IsNullOrEmpty(entItem.Content))
                 {
