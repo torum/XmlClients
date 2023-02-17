@@ -145,7 +145,14 @@ public abstract class EntryItem : Node
             }
             else
             {
-                return "-";
+                if (_updated != default)
+                {
+                    return TimeAgo(_updated.ToLocalTime());//_published.ToString(System.Globalization.CultureInfo.CurrentUICulture);
+                }
+                else
+                {
+                    return "-";
+                }
             }
         }
     }
@@ -156,11 +163,18 @@ public abstract class EntryItem : Node
         {
             if (_published != default)
             {
-                return _published.ToLocalTime().ToString(System.Globalization.CultureInfo.CurrentUICulture);//System.Globalization.CultureInfo.CurrentUICulture
+                return _published.ToLocalTime().ToString(System.Globalization.CultureInfo.CurrentUICulture);
             }
             else
             {
-                return "-";
+                if (_updated != default)
+                {
+                    return _updated.ToLocalTime().ToString(System.Globalization.CultureInfo.CurrentUICulture);
+                }
+                else
+                {
+                    return "-";
+                }
             }
         }
     }
@@ -512,6 +526,21 @@ public class FeedEntryItem : EntryItem
                 return;
             _feedTitle = value;
             NotifyPropertyChanged(nameof(FeedTitle));
+        }
+    }
+
+    public string Host
+    {
+        get
+        {
+            if (AltHtmlUri != null)
+            {
+                return AltHtmlUri.Host;
+            }
+            else
+            {
+                return "-";
+            }
         }
     }
 

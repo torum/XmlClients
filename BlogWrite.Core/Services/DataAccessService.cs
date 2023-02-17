@@ -73,6 +73,7 @@ public class DataAccessService : IDataAccessService
                         ")";
                     tableCmd.ExecuteNonQuery();
                     */
+
                     //tableCmd.CommandText = "ALTER TABLE entries ADD COLUMN category TEXT;";
                     //tableCmd.ExecuteNonQuery();
 
@@ -536,7 +537,21 @@ public class DataAccessService : IDataAccessService
                     else
                         cmd.Parameters.AddWithValue("@Title", string.Empty);
 
-                    cmd.Parameters.AddWithValue("@Published", entry.Published.ToString("yyyy-MM-dd HH:mm:ss"));
+                    if (entry.Published == default)
+                    {
+                        if (entry.Updated != default)
+                        {
+                            cmd.Parameters.AddWithValue("@Published", entry.Updated.ToString("yyyy-MM-dd HH:mm:ss"));
+                        }
+                        else
+                        {
+                            cmd.Parameters.AddWithValue("@Published", entry.Published.ToString("yyyy-MM-dd HH:mm:ss"));
+                        }
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("@Published", entry.Published.ToString("yyyy-MM-dd HH:mm:ss"));
+                    }
 
                     cmd.Parameters.AddWithValue("@Updated", entry.Updated.ToString("yyyy-MM-dd HH:mm:ss"));
 
@@ -617,8 +632,8 @@ public class DataAccessService : IDataAccessService
                     }
                 }
 
-                //
-                //cmd.CommandText = "SELECT COUNT(*) FROM tracks WHERE albumid = 10;";
+                // Experimental 
+                // Delete old entries LIMIT 1000.
                 cmd.CommandText = String.Format("DELETE FROM entries WHERE feed_id = '{0}' AND entry_id NOT IN (SELECT entry_id FROM entries WHERE feed_id = '{0}' ORDER BY published DESC LIMIT 1000);", feedId);
                 cmd.ExecuteNonQuery();
 
@@ -715,11 +730,11 @@ public class DataAccessService : IDataAccessService
             {
                 //cmd.CommandText = String.Format("SELECT * FROM entries INNER JOIN feeds USING (feed_id) WHERE feed_id = '{0}' AND archived = '{1}' ORDER BY published DESC LIMIT 1000", feedId, bool.FalseString);
 
-                cmd.CommandText = String.Format("SELECT feeds.name as feedName, entries.title as entryTitle, entries.entry_id as entryId, entries.url as entryUrl, entries.published as entryPublished, entries.summary as entrySummary, entries.content as entryContent, entries.content_type as entryContentType, entries.image_url as entryImageUri, entries.audio_url as entryAudioUri, entries.source as entrySource, entries.source_url as entrySourceUri, entries.author as entryAuthor, entries.category as entryCategory, entries.comment_url as entryCommentUri, entries.archived as entryArchived FROM entries INNER JOIN feeds USING (feed_id) WHERE feed_id = '{0}' AND archived = '{1}' ORDER BY published DESC LIMIT 1000", feedId, bool.FalseString);
+                cmd.CommandText = String.Format("SELECT feeds.name as feedName, entries.title as entryTitle, entries.entry_id as entryId, entries.url as entryUrl, entries.published as entryPublished, entries.updated as entryUpdated, entries.summary as entrySummary, entries.content as entryContent, entries.content_type as entryContentType, entries.image_url as entryImageUri, entries.audio_url as entryAudioUri, entries.source as entrySource, entries.source_url as entrySourceUri, entries.author as entryAuthor, entries.category as entryCategory, entries.comment_url as entryCommentUri, entries.archived as entryArchived FROM entries INNER JOIN feeds USING (feed_id) WHERE feed_id = '{0}' AND archived = '{1}' ORDER BY published DESC LIMIT 1000", feedId, bool.FalseString);
             }
             else
             {
-                cmd.CommandText = String.Format("SELECT feeds.name as feedName, entries.title as entryTitle, entries.entry_id as entryId, entries.url as entryUrl, entries.published as entryPublished, entries.summary as entrySummary, entries.content as entryContent, entries.content_type as entryContentType, entries.image_url as entryImageUri, entries.audio_url as entryAudioUri, entries.source as entrySource, entries.source_url as entrySourceUri, entries.author as entryAuthor, entries.category as entryCategory, entries.comment_url as entryCommentUri, entries.archived as entryArchived FROM entries INNER JOIN feeds USING (feed_id) WHERE feed_id = '{0}' ORDER BY published DESC LIMIT 5000", feedId);
+                cmd.CommandText = String.Format("SELECT feeds.name as feedName, entries.title as entryTitle, entries.entry_id as entryId, entries.url as entryUrl, entries.published as entryPublished, entries.updated as entryUpdated, entries.summary as entrySummary, entries.content as entryContent, entries.content_type as entryContentType, entries.image_url as entryImageUri, entries.audio_url as entryAudioUri, entries.source as entrySource, entries.source_url as entrySourceUri, entries.author as entryAuthor, entries.category as entryCategory, entries.comment_url as entryCommentUri, entries.archived as entryArchived FROM entries INNER JOIN feeds USING (feed_id) WHERE feed_id = '{0}' ORDER BY published DESC LIMIT 5000", feedId);
             }
 
             using var reader = cmd.ExecuteReader();
@@ -736,6 +751,12 @@ public class DataAccessService : IDataAccessService
                     entry.AltHtmlUri = new Uri(s);
 
                 entry.Published = DateTime.Parse(Convert.ToString(reader["entryPublished"]));
+
+                try
+                {
+                    entry.Updated = DateTime.Parse(Convert.ToString(reader["entryUpdated"]));
+                }
+                catch { }
 
                 entry.Summary = Convert.ToString(reader["entrySummary"]);
 
@@ -935,7 +956,7 @@ public class DataAccessService : IDataAccessService
         if (feedIds.Count == 0)
             return res;
 
-        var before = "SELECT feeds.name as feedName, feeds.feed_id as feedId, entries.title as entryTitle, entries.entry_id as entryId, entries.url as entryUrl, entries.published as entryPublished, entries.summary as entrySummary, entries.content as entryContent, entries.content_type as entryContentType, entries.image_url as entryImageUri, entries.audio_url as entryAudioUri, entries.source as entrySource, entries.source_url as entrySourceUri, entries.author as entryAuthor, entries.category as entryCategory, entries.comment_url as entryCommentUri, entries.archived as entryArchived FROM entries INNER JOIN feeds USING (feed_id) WHERE ";
+        var before = "SELECT feeds.name as feedName, feeds.feed_id as feedId, entries.title as entryTitle, entries.entry_id as entryId, entries.url as entryUrl, entries.published as entryPublished, entries.updated as entryUpdated, entries.summary as entrySummary, entries.content as entryContent, entries.content_type as entryContentType, entries.image_url as entryImageUri, entries.audio_url as entryAudioUri, entries.source as entrySource, entries.source_url as entrySourceUri, entries.author as entryAuthor, entries.category as entryCategory, entries.comment_url as entryCommentUri, entries.archived as entryArchived FROM entries INNER JOIN feeds USING (feed_id) WHERE ";
 
         var middle = "(";
 
@@ -986,6 +1007,12 @@ public class DataAccessService : IDataAccessService
                 }
 
                 entry.Published = DateTime.Parse(Convert.ToString(reader["entryPublished"]));
+
+                try
+                {
+                    entry.Updated = DateTime.Parse(Convert.ToString(reader["entryUpdated"]));
+                }
+                catch { }
 
                 entry.Summary = Convert.ToString(reader["entrySummary"]);
 

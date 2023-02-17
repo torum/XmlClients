@@ -751,7 +751,7 @@ public class FeedClientService : BaseClient, IFeedClientService
             {
                 if (entrySourceNode.Attributes["url"] != null)
                 {
-                    string urlSource = entrySourceNode.Attributes["url"].Value;
+                    var urlSource = entrySourceNode.Attributes["url"].Value;
                     try
                     {
                         entItem.SourceUri = new Uri(urlSource);
@@ -942,7 +942,7 @@ public class FeedClientService : BaseClient, IFeedClientService
         XmlNode? entryPudDate = entryNode.SelectSingleNode("dc:date", NsMgr);
         if (entryPudDate != null)
         {
-            string s = entryPudDate.InnerText;
+            var s = entryPudDate.InnerText;
             if (!string.IsNullOrEmpty(s))
             {
                 try
@@ -1687,7 +1687,7 @@ public class FeedClientService : BaseClient, IFeedClientService
             {
                 if (entrySourceNode.Attributes["title"] != null)
                 {
-                    entrySource = entrySourceNode.Attributes["title"].Value;
+                    //entrySource = entrySourceNode.Attributes["title"].Value;
 
                 }
             }
@@ -1848,6 +1848,27 @@ public class FeedClientService : BaseClient, IFeedClientService
                 if (mediaDescriptionNode != null)
                 {
                     entItem.Summary = mediaDescriptionNode.InnerText;
+                }
+            }
+        }
+
+
+        if (entItem.ImageUri == null)
+        {
+            XmlNode? mediaThumbnailNode = entryNode.SelectSingleNode("media:thumbnail", atomNsMgr);
+            if (mediaThumbnailNode != null)
+            {
+                if (mediaThumbnailNode.Attributes["url"] != null)
+                {
+                    var url = mediaThumbnailNode.Attributes["url"].Value;
+                    if (!string.IsNullOrEmpty(url))
+                    {
+                        try
+                        {
+                            entItem.ImageUri = new Uri(url);
+                        }
+                        catch { }
+                    }
                 }
             }
         }
