@@ -19,7 +19,7 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
     private readonly INavigationService _navigationService;
 
     private readonly IThemeSelectorService _themeSelectorService;
-    private ElementTheme _elementTheme;
+    private ElementTheme _elementTheme = ElementTheme.Default;
     private string _versionDescription;
 
     public ElementTheme ElementTheme
