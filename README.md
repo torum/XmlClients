@@ -2,7 +2,7 @@
 Work In Progress.  
 This project was originally started as a C#/WPF port of a blog editing client called "BlogWrite" developed in Delphi language. Currently, there are two apps called "FeedDesk" and "BlogDesk" developed in C#/WinUI3 and both use the same core source code. 
 
-## [FeedDesk](https://torum.github.io/BlogWrite/FeedDesk/)
+## [FeedDesk](https://github.com/torum/BlogWrite/tree/master/FeedDesk)
 A desktop feed reader. (work in progress)
 
 ### Download
@@ -33,7 +33,7 @@ from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
 
 ![FeedDesk](https://github.com/torum/BlogWrite/blob/master/docs/images/FeedDesk-Screenshot-Light.png?raw=true) 
 
-## [BlogDesk](https://torum.github.io/BlogWrite/BlogDesk/):
+## [BlogDesk](https://github.com/torum/BlogWrite/tree/master/BlogDesk):
 A desktop blogging client. (under development)
 
 ### Features
