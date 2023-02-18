@@ -127,132 +127,134 @@ public class ServiceTreeBuilder : NodeRoot
 
                         account.ViewType = vt;
 
-
                         var collectionList = s.SelectNodes("Collection");
-                        foreach (XmlNode c in collectionList)
+                        if (collectionList != null)
                         {
-                            var collectionName = c.Attributes["Name"].Value;
-                            var selectedc = string.IsNullOrEmpty(c.Attributes["Selected"].Value) ? "" : c.Attributes["Selected"].Value;
-                            var expandedc = string.IsNullOrEmpty(c.Attributes["Expanded"].Value) ? "" : c.Attributes["Expanded"].Value;
-                            bool isSelectedc = (selectedc == "true") ? true : false;
-                            bool isExpandedc = (expandedc == "true") ? true : false;
-
-                            string collectionHref = (c.Attributes["Href"] != null) ? c.Attributes["Href"].Value : "";
-
-                            string collectionId = (c.Attributes["Id"] != null) ? c.Attributes["Id"].Value : "";
-
-                            if ((!string.IsNullOrEmpty(collectionName)) && (!string.IsNullOrEmpty(collectionHref)))
+                            foreach (XmlNode c in collectionList)
                             {
-                                NodeEntryCollection entries = null;
+                                var collectionName = c.Attributes["Name"].Value;
+                                var selectedc = string.IsNullOrEmpty(c.Attributes["Selected"].Value) ? "" : c.Attributes["Selected"].Value;
+                                var expandedc = string.IsNullOrEmpty(c.Attributes["Expanded"].Value) ? "" : c.Attributes["Expanded"].Value;
+                                var isSelectedc = (selectedc == "true") ? true : false;
+                                var isExpandedc = (expandedc == "true") ? true : false;
 
-                                // TODO:
-                                switch (account.Api)
+                                var collectionHref = (c.Attributes["Href"] != null) ? c.Attributes["Href"].Value : "";
+
+                                var collectionId = (c.Attributes["Id"] != null) ? c.Attributes["Id"].Value : "";
+
+                                if ((!string.IsNullOrEmpty(collectionName)) && (!string.IsNullOrEmpty(collectionHref)))
                                 {
-                                    case ApiTypes.atAtomPub:
-                                        entries = new NodeAtomPubEntryCollection(collectionName, new Uri(collectionHref), collectionId);
-                                        break;
-                                    case ApiTypes.atXMLRPC_MovableType:
-                                        entries = new NodeXmlRpcEntryCollection(collectionName, new Uri(collectionHref), collectionId);
-                                        break;
-                                    case ApiTypes.atXMLRPC_WordPress:
-                                        entries = new NodeXmlRpcEntryCollection(collectionName, new Uri(collectionHref), collectionId);
-                                        break;
-                                        //case ApiTypes.atAtomAPI:
-                                        //    break;
-                                }
+                                    NodeEntryCollection? entries = null;
 
-                                if (entries == null)
-                                    continue;
-
-                                if (entries is NodeAtomPubEntryCollection)
-                                {
-                                    if (c.Attributes["CategoriesUri"] != null)
+                                    // TODO:
+                                    switch (account.Api)
                                     {
-                                        var catsUrl = c.Attributes["CategoriesUri"].Value;
-                                        if (!string.IsNullOrEmpty(catsUrl))
+                                        case ApiTypes.atAtomPub:
+                                            entries = new NodeAtomPubEntryCollection(collectionName, new Uri(collectionHref), collectionId);
+                                            break;
+                                        case ApiTypes.atXMLRPC_MovableType:
+                                            entries = new NodeXmlRpcEntryCollection(collectionName, new Uri(collectionHref), collectionId);
+                                            break;
+                                        case ApiTypes.atXMLRPC_WordPress:
+                                            entries = new NodeXmlRpcEntryCollection(collectionName, new Uri(collectionHref), collectionId);
+                                            break;
+                                            //case ApiTypes.atAtomAPI:
+                                            //    break;
+                                    }
+
+                                    if (entries == null)
+                                        continue;
+
+                                    if (entries is NodeAtomPubEntryCollection)
+                                    {
+                                        if (c.Attributes["CategoriesUri"] != null)
                                         {
-                                            try
+                                            var catsUrl = c.Attributes["CategoriesUri"].Value;
+                                            if (!string.IsNullOrEmpty(catsUrl))
                                             {
-                                                Uri catsUri = new(catsUrl);
-                                                (entries as NodeAtomPubEntryCollection).CategoriesUri = catsUri;
+                                                try
+                                                {
+                                                    Uri catsUri = new(catsUrl);
+                                                    (entries as NodeAtomPubEntryCollection).CategoriesUri = catsUri;
+                                                }
+                                                catch { }
                                             }
-                                            catch { }
                                         }
-                                    }
 
-                                    var catFixed = c.Attributes["IsCategoryFixed"].Value;
-                                    if (!string.IsNullOrEmpty(catFixed))
-                                    {
-                                        if (catFixed == "true")
+                                        var catFixed = c.Attributes["IsCategoryFixed"].Value;
+                                        if (!string.IsNullOrEmpty(catFixed))
                                         {
-                                            (entries as NodeAtomPubEntryCollection).IsCategoryFixed = true;
+                                            if (catFixed == "true")
+                                            {
+                                                (entries as NodeAtomPubEntryCollection).IsCategoryFixed = true;
+                                            }
+                                        }
+
+                                        XmlNodeList acceptList = c.SelectNodes("Accept");
+                                        foreach (XmlNode act in acceptList)
+                                        {
+                                            (entries as NodeAtomPubEntryCollection).AcceptTypes.Add(act.InnerText);
                                         }
                                     }
 
-                                    XmlNodeList acceptList = c.SelectNodes("Accept");
-                                    foreach (XmlNode act in acceptList)
+                                    XmlNodeList categoryList = c.SelectNodes("Category");
+                                    foreach (XmlNode t in categoryList)
                                     {
-                                        (entries as NodeAtomPubEntryCollection).AcceptTypes.Add(act.InnerText);
+                                        var categoryName = t.Attributes["Name"].Value;
+                                        var selectedt = string.IsNullOrEmpty(t.Attributes["Selected"].Value) ? "" : t.Attributes["Selected"].Value;
+                                        var expandedt = string.IsNullOrEmpty(t.Attributes["Expanded"].Value) ? "" : t.Attributes["Expanded"].Value;
+                                        var isSelectedt = (selectedc == "true") ? true : false;
+                                        var isExpandedt = (expandedc == "true") ? true : false;
+
+                                        if (!string.IsNullOrEmpty(categoryName))
+                                        {
+
+                                            NodeCategory category = null;
+
+                                            switch (account.Api)
+                                            {
+                                                case ApiTypes.atAtomPub:
+                                                    category = new NodeAtomPubCategory(categoryName);
+                                                    break;
+                                                case ApiTypes.atXMLRPC_MovableType:
+                                                    category = new NodeXmlRpcMTCategory(categoryName);
+                                                    break;
+                                                case ApiTypes.atXMLRPC_WordPress:
+                                                    category = new NodeXmlRpcWPCategory(categoryName);
+                                                    break;
+                                                    //case ApiTypes.atAtomAPI:
+                                                    //    break;
+                                            }
+
+                                            if (category == null)
+                                                return;
+
+                                            if (category is NodeAtomPubCategory)
+                                            {
+                                                (category as NodeAtomPubCategory).Term = categoryName;
+
+                                                var categoryScheme = t.Attributes["Scheme"].Value;
+                                                (category as NodeAtomPubCategory).Scheme = categoryScheme;
+                                            }
+
+
+                                            category.IsSelected = isSelectedc;
+                                            category.IsExpanded = isExpandedc;
+                                            category.Parent = entries;
+
+                                            entries.Children.Add(category);
+                                        }
                                     }
+
+                                    entries.IsSelected = isSelectedc;
+                                    entries.IsExpanded = isExpandedc;
+                                    entries.Parent = account;
+
+                                    account.Children.Add(entries);
                                 }
-
-                                XmlNodeList categoryList = c.SelectNodes("Category");
-                                foreach (XmlNode t in categoryList)
-                                {
-                                    var categoryName = t.Attributes["Name"].Value;
-                                    var selectedt = string.IsNullOrEmpty(t.Attributes["Selected"].Value) ? "" : t.Attributes["Selected"].Value;
-                                    var expandedt = string.IsNullOrEmpty(t.Attributes["Expanded"].Value) ? "" : t.Attributes["Expanded"].Value;
-                                    bool isSelectedt = (selectedc == "true") ? true : false;
-                                    bool isExpandedt = (expandedc == "true") ? true : false;
-
-                                    if (!string.IsNullOrEmpty(categoryName))
-                                    {
-
-                                        NodeCategory category = null;
-
-                                        switch (account.Api)
-                                        {
-                                            case ApiTypes.atAtomPub:
-                                                category = new NodeAtomPubCategory(categoryName);
-                                                break;
-                                            case ApiTypes.atXMLRPC_MovableType:
-                                                category = new NodeXmlRpcMTCategory(categoryName);
-                                                break;
-                                            case ApiTypes.atXMLRPC_WordPress:
-                                                category = new NodeXmlRpcWPCategory(categoryName);
-                                                break;
-                                                //case ApiTypes.atAtomAPI:
-                                                //    break;
-                                        }
-
-                                        if (category == null)
-                                            return;
-
-                                        if (category is NodeAtomPubCategory)
-                                        {
-                                            (category as NodeAtomPubCategory).Term = categoryName;
-
-                                            var categoryScheme = t.Attributes["Scheme"].Value;
-                                            (category as NodeAtomPubCategory).Scheme = categoryScheme;
-                                        }
-
-
-                                        category.IsSelected = isSelectedc;
-                                        category.IsExpanded = isExpandedc;
-                                        category.Parent = entries;
-
-                                        entries.Children.Add(category);
-                                    }
-                                }
-
-                                entries.IsSelected = isSelectedc;
-                                entries.IsExpanded = isExpandedc;
-                                entries.Parent = account;
-
-                                account.Children.Add(entries);
                             }
-                        }
 
+                        }
                         this.Children.Add(account);
                     }
                 }
@@ -294,15 +296,15 @@ public class ServiceTreeBuilder : NodeRoot
         {
             var selecteds = string.IsNullOrEmpty(node.Attributes["Selected"].Value) ? "" : node.Attributes["Selected"].Value;
             var expandeds = string.IsNullOrEmpty(node.Attributes["Expanded"].Value) ? "" : node.Attributes["Expanded"].Value;
-            bool isSelecteds = (selecteds == "true") ? true : false;
-            bool isExpandeds = (expandeds == "true") ? true : false;
+            var isSelecteds = (selecteds == "true") ? true : false;
+            var isExpandeds = (expandeds == "true") ? true : false;
 
             NodeFolder folder = new NodeFolder(folderName);
             folder.IsSelected = isSelecteds;
             folder.IsExpanded = isExpandeds;
             folder.Parent = this;
 
-            int unreadCount = 0;
+            var unreadCount = 0;
             var attr = node.Attributes["UnreadCount"];
             if (attr != null)
             {
@@ -311,7 +313,7 @@ public class ServiceTreeBuilder : NodeRoot
             }
             folder.EntryNewCount = unreadCount;
 
-            string viewType = (node.Attributes["ViewType"] != null) ? node.Attributes["ViewType"].Value : "Cards";
+            var viewType = (node.Attributes["ViewType"] != null) ? node.Attributes["ViewType"].Value : "Cards";
             ViewTypes vt;
             switch (viewType)
             {
@@ -388,7 +390,7 @@ public class ServiceTreeBuilder : NodeRoot
                 break;
         }
 
-        string viewType = (node.Attributes?["ViewType"] != null) ? node.Attributes?["ViewType"]?.Value : "Cards";
+        var viewType = (node.Attributes?["ViewType"] != null) ? node.Attributes?["ViewType"]?.Value : "Cards";
         ViewTypes vt;
         switch (viewType)
         {
@@ -475,7 +477,7 @@ public class ServiceTreeBuilder : NodeRoot
                     errHttpObj.ErrCode = string.IsNullOrEmpty(errNode.Attributes?["ErrCode"]?.Value) ? "" : errNode.Attributes?["ErrCode"]?.Value;
                 }
 
-                string eType = (errNode.Attributes?["ErrType"] != null) ? errNode.Attributes?["ErrType"]?.Value : "HTTP";
+                var eType = (errNode.Attributes?["ErrType"] != null) ? errNode.Attributes?["ErrType"]?.Value : "HTTP";
                 ErrTypes et;
                 switch (eType)
                 {
@@ -546,7 +548,7 @@ public class ServiceTreeBuilder : NodeRoot
                     errDbObj.ErrCode = string.IsNullOrEmpty(err.Attributes?["ErrCode"]?.Value) ? "" : err.Attributes?["ErrCode"]?.Value;
                 }
 
-                string eType = (err.Attributes?["ErrType"] != null) ? err.Attributes?["ErrType"]?.Value : "DB";
+                var eType = (err.Attributes?["ErrType"] != null) ? err.Attributes?["ErrType"]?.Value : "DB";
                 ErrTypes et;
                 switch (eType)
                 {

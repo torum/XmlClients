@@ -6,7 +6,7 @@
     <Platforms>x86;x64;arm64;AnyCPU</Platforms>
     <ImplicitUsings>enable</ImplicitUsings>
 	  <UseWinUI>true</UseWinUI>
-	  <Nullable>annotations</Nullable>
+	  <Nullable>enable</Nullable>
 	  <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
 	  <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>

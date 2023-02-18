@@ -1024,7 +1024,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     }
 
     // update specific feed or feeds in a folder.
-    private async void RefreshFeed()
+    private async Task RefreshFeed()
     {
         if (_selectedTreeViewItem is null)
             return;
@@ -1127,20 +1127,26 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
         else if (nt is NodeFolder folder)
         {
-            //await Task.Run(() => RefreshAllFeedsRecursiveLoop(folder.Children));
-            RefreshAllFeedsRecursiveLoop(folder);
+            var tasks = new List<Task>();
+            
+            await RefreshAllFeedsRecursiveLoop(tasks, folder);
+
+            await Task.WhenAll(tasks);
         }
     }
 
     // update all feeds.
-    private void RefreshAllFeeds()
+    private async Task RefreshAllFeeds()
     {
-        //Task.Run(() => RefreshAllFeedsRecursiveLoop(_services));
-        RefreshAllFeedsRecursiveLoop(_services);
+        var tasks = new List<Task>();
+        
+        await RefreshAllFeedsRecursiveLoop(tasks, _services);
+
+        await Task.WhenAll(tasks);
     }
 
     // update all feeds recursive loop.
-    private void RefreshAllFeedsRecursiveLoop(NodeTree nt)
+    private async Task<List<Task>> RefreshAllFeedsRecursiveLoop(List<Task> tasks, NodeTree nt)
     {
         if (nt.Children.Count > 0)
         {
@@ -1150,9 +1156,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 {
                     if (c is NodeFeed feed)
                     {
-                        Task.Run(async () =>
+                        tasks.Add(Task.Run(async () =>
                         {
-                            await Task.Delay(100);
+                            //await Task.Delay(100);
 
                             var now = DateTime.Now;
                             var last = feed.LastFetched;
@@ -1171,25 +1177,25 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
                                     await Task.Delay(100);
 
-                                    // 
-                                    CheckParentSelectedAndLoadEntriesIfNotBusy(feed);
+                                    // reload entries if selected.
+                                    await CheckParentSelectedAndLoadEntriesIfNotBusy(feed).ConfigureAwait(false);
                                 }
                             }
-                        });
+                        }));
                     }
                 }
 
                 if (c.Children.Count > 0)
                 {
-                    //Task.Run(() => LoadAllEntriesRecursiveLoop(c.Children));
-                    RefreshAllFeedsRecursiveLoop(c);
-
+                    await RefreshAllFeedsRecursiveLoop(tasks, c).ConfigureAwait(false);
                 }
             }
         }
+
+        return tasks;
     }
 
-    private async void CheckParentSelectedAndLoadEntriesIfNotBusy(NodeTree nt)
+    private async Task CheckParentSelectedAndLoadEntriesIfNotBusy(NodeTree nt)
     {
         if (nt != null)
         {
@@ -1204,7 +1210,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 }
                 else
                 {
-                    CheckParentSelectedAndLoadEntriesIfNotBusy(parentFolder);
+                    await CheckParentSelectedAndLoadEntriesIfNotBusy(parentFolder).ConfigureAwait(false);
                 }
 
             }
@@ -2074,7 +2080,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     }
 
     [RelayCommand(CanExecute = nameof(CanFeedRemove))]
-    private void NodeRemove()
+    private async void NodeRemove()
     {
         if (SelectedTreeViewItem is null)
             return;
@@ -2088,7 +2094,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
         List<NodeTree> nodeToBeDeleted = new();
 
-        DeleteNodes(SelectedTreeViewItem, nodeToBeDeleted);
+        await DeleteNodes(SelectedTreeViewItem, nodeToBeDeleted);
 
         App.CurrentDispatcherQueue?.TryEnqueue(() =>
         {
@@ -2116,7 +2122,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         SaveServiceXml();
     }
 
-    private async void DeleteNodes(NodeTree nt, List<NodeTree> nodeToBeDeleted)
+    private async Task DeleteNodes(NodeTree nt, List<NodeTree> nodeToBeDeleted)
     {
         if (nt.IsBusy)
         {
@@ -2180,7 +2186,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             {
                 foreach (var ndc in folder.Children)
                 {
-                    DeleteNodes(ndc, nodeToBeDeleted);
+                    await DeleteNodes(ndc, nodeToBeDeleted);
                 }
             }
 
@@ -2196,7 +2202,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     [RelayCommand(CanExecute = nameof(CanFeedRefreshAll))]
     private void FeedRefreshAll()
     {
-        RefreshAllFeeds();
+        _ = RefreshAllFeeds();
     }
 
     private bool CanFeedRefreshAll()
@@ -2207,7 +2213,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     [RelayCommand(CanExecute = nameof(CanFeedRefresh))]
     private void FeedRefresh()
     {
-        RefreshFeed();
+        _ = RefreshFeed();
     }
 
     private bool CanFeedRefresh()
@@ -2489,12 +2495,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         if (SelectedTreeViewItem is NodeFeed feed)
         {
             feed.IsDisplayUnarchivedOnly = !IsShowAllEntries;
-            Task nowait = Task.Run(() => LoadEntriesAsync(SelectedTreeViewItem));
+            Task.Run(() => LoadEntriesAsync(SelectedTreeViewItem));
         }
         else if (SelectedTreeViewItem is NodeFolder folder)
         {
             folder.IsDisplayUnarchivedOnly = !IsShowAllEntries;
-            Task nowait = Task.Run(() => LoadEntriesAsync(SelectedTreeViewItem));
+            Task.Run(() => LoadEntriesAsync(SelectedTreeViewItem));
         }
     }
 
@@ -2517,12 +2523,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         if (SelectedTreeViewItem is NodeFeed feed)
         {
             feed.IsDisplayUnarchivedOnly = IsShowInboxEntries;
-            Task nowait = Task.Run(() => LoadEntriesAsync(SelectedTreeViewItem));
+            Task.Run(() => LoadEntriesAsync(SelectedTreeViewItem));
         }
         else if (SelectedTreeViewItem is NodeFolder folder)
         {
             folder.IsDisplayUnarchivedOnly = IsShowInboxEntries;
-            Task nowait = Task.Run(() => LoadEntriesAsync(SelectedTreeViewItem));
+            Task.Run(() => LoadEntriesAsync(SelectedTreeViewItem));
         }
     }
 

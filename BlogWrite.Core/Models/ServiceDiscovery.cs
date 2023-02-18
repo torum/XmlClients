@@ -7,7 +7,6 @@ using System.Xml;
 using AngleSharp;
 using AngleSharp.Html.Parser;
 using AngleSharp.Xml.Parser;
-using Windows.Media.Protection.PlayReady;
 
 namespace BlogWrite.Core.Models;
 
@@ -232,7 +231,7 @@ public class ServiceResultXmlRpc : ServiceResult
 // Service Discovery class.
 public class ServiceDiscovery
 {
-    private readonly HttpClient? _httpClient;
+    private readonly HttpClient _httpClient;
 
     #region == Events ==
 
@@ -246,22 +245,25 @@ public class ServiceDiscovery
     {
         _httpClient = new HttpClient();
 
-
+        // Accept HTML 
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/html"));
 
-        // Atom service documetn
+        // Atom service document
         //_httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/atomsvc+xml"));
+        // Atom category document
         //_httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/atomcat+xml"));
         
+        // RSD file
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rsd+xml"));
 
+        // Generic XML
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/xml"));
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
+
+        // Feed
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/atom+xml"));
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rss+xml"));
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rdf+xml"));
-
-        //Debug.WriteLine(_httpClient.DefaultRequestHeaders.ToString());
     }
 
     #region == Methods ==
@@ -281,7 +283,7 @@ public class ServiceDiscovery
                 if (HTTPResponse.Content == null)
                 {
                     UpdateStatus("<< Content is emptty.");
-                    ServiceResultErr re = new ServiceResultErr("Received no content.", "Content empty.");
+                    var re = new ServiceResultErr("Received no content.", "Content empty.");
                     return re;
                 }
 
@@ -299,12 +301,12 @@ public class ServiceDiscovery
                         // HTML parse.
                         ServiceResultBase res = await ParseHtml(HTTPResponse.Content, addr);
 
-                        if (res is ServiceResultHtmlPage)
+                        if (res is ServiceResultHtmlPage srhp)
                         {
-                            if ((res as ServiceResultHtmlPage).Feeds.Count == 0)
+                            if (srhp.Feeds.Count == 0)
                                 UpdateStatus("- No feed link found.");
 
-                            if ((res as ServiceResultHtmlPage).Services.Count == 0)
+                            if (srhp.Services.Count == 0)
                                 UpdateStatus("- No service link found.");
                         }
 
@@ -500,7 +502,7 @@ public class ServiceDiscovery
             else
             {
                 // BASIC Auth
-                string s = userName + ":" + apiKey;
+                var s = userName + ":" + apiKey;
                 var byteArray = Encoding.UTF8.GetBytes(s);
                 webreq.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
             }
@@ -523,7 +525,7 @@ public class ServiceDiscovery
                     return re;
                 }
 
-                string contenTypeString = HTTPResponse.Content.Headers.GetValues("Content-Type").FirstOrDefault();
+                var contenTypeString = HTTPResponse.Content.Headers.GetValues("Content-Type").FirstOrDefault();
 
                 if (!string.IsNullOrEmpty(contenTypeString))
                 {
@@ -865,7 +867,7 @@ public class ServiceDiscovery
 
         var isOK = false;
         string feedTitle="", siteLink = "";
-        Uri siteUri = null;
+        Uri? siteUri = null;
 
         if (document != null)
         {
@@ -1079,7 +1081,7 @@ public class ServiceDiscovery
         atomNsMgr.AddNamespace("atom", "http://www.w3.org/2005/Atom");
         atomNsMgr.AddNamespace("app", "http://www.w3.org/2007/app");
 
-        if ((xdoc.DocumentElement.Name == "app:service") || (xdoc.DocumentElement.Name == "service"))
+        if (xdoc.DocumentElement.Name is "app:service" or "service")
         {
             var account = new NodeService("New Service (Atom Publishing Protocol)", userName, apiKey, addr, ApiTypes.atAtomPub, ServiceTypes.AtomPub);
 

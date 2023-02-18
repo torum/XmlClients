@@ -16,6 +16,10 @@ A desktop feed reader. (work in progress)
 * In-app playback of Podcast audio.
 
 ## Change log
+* v1.0.4 (2023/2/18)
+ Store App release.
+* v1.0.3.123 (2023/2/17)
+ Added NewVisited status. Added Atom:Media:Thumbnail@url. Improved readability of the entry listview.
 * v1.0.3.1 (2023/2/16)
  Fixed DateTime issue regarding RDF dc:date.
 * v1.0.3 (2023/2/16)
@@ -48,7 +52,6 @@ A desktop feed reader. (work in progress)
  Switched to WinUI3 from a WPF project. 
 
 ## Things that currentry working on
-- [ ] Make use of "isRead" flag. 
 - [ ] Database file management page (menu>tools), clean(delete all data) and optimize(vacume).
 - [ ] Search.
 - [ ] HTML content rendering without webview2
@@ -56,7 +59,7 @@ A desktop feed reader. (work in progress)
 ## Planning
 
 ### Core
-- [ ] "Read lator" or saved or boolmark or star or favorits or whatever.
+- [ ] "Read lator" or saved or boolmark or star or favorites or whatever.
 - [ ] Update entry data when entry is updated.
 - [ ] Basic Auth.
 - [ ] Auto reflesh.
