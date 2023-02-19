@@ -210,8 +210,13 @@ public class FeedClientService : BaseClient, IFeedClientService
                         return res;
                     }
 
+                    var i = 0;
                     foreach (XmlNode l in entryList)
                     {
+                        if (i >= 1000)
+                            continue;
+                        i++;
+
                         FeedEntryItem ent = new FeedEntryItem("", feedId, this);
 
                         FillEntryItemFromXmlRss(ent, l, NsMgr, entriesUrl);
@@ -278,8 +283,12 @@ public class FeedClientService : BaseClient, IFeedClientService
                         return res;
                     }
 
+                    var i = 0;
                     foreach (XmlNode l in entryList)
                     {
+                        if (i >= 1000)
+                            continue;
+                        i++;
                         FeedEntryItem ent = new FeedEntryItem("", feedId, this);
 
                         FillEntryItemFromXmlRdf(ent, l, NsMgr, entriesUrl);
@@ -390,8 +399,13 @@ public class FeedClientService : BaseClient, IFeedClientService
                             return res;
                         }
 
+                        var i = 0;
                         foreach (XmlNode l in entryList)
                         {
+                            if (i >= 1000)
+                                continue;
+                            i++;
+
                             FeedEntryItem ent = new FeedEntryItem("", feedId, this);
                             //ent.Status = EditEntryItem.EditStatus.esNormal;
 
@@ -499,8 +513,13 @@ public class FeedClientService : BaseClient, IFeedClientService
                             return res;
                         }
 
+                        var i = 0;
                         foreach (XmlNode l in entryList)
                         {
+                            if (i >= 1000)
+                                continue;
+                            i++;
+
                             FeedEntryItem ent = new FeedEntryItem("", feedId, this);
                             //ent.Status = EditEntryItem.EditStatus.esNormal;
 
@@ -1219,6 +1238,10 @@ public class FeedClientService : BaseClient, IFeedClientService
         //entItem.EditUri = editUri;
         entItem.AltHtmlUri = altUri;
 
+        if (string.IsNullOrEmpty(entItem.EntryId))
+            if (entItem.AltHtmlUri != null)
+                entItem.EntryId = entItem.AltHtmlUri.AbsoluteUri;
+
         XmlNode? entryPublished = entryNode.SelectSingleNode("atom:issued", atomNsMgr);
         if (entryPublished != null)
         {
@@ -1613,6 +1636,11 @@ public class FeedClientService : BaseClient, IFeedClientService
             }
             entItem.AltHtmlUri = altUri;
         }
+
+
+        if (string.IsNullOrEmpty(entItem.EntryId))
+            if (entItem.AltHtmlUri != null)
+                entItem.EntryId = entItem.AltHtmlUri.AbsoluteUri;
 
         // published
         XmlNode? entryPublished = entryNode.SelectSingleNode("atom:published", atomNsMgr);

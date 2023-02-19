@@ -1167,7 +1167,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                             var now = DateTime.Now;
                             var last = feed.LastFetched;
 
-                            if ((last > now.AddMinutes(-5)) && (last <= now))
+                            if ((last > now.AddMinutes(-3)) && (last <= now))
                             {
                                 //Debug.WriteLine("Skippig " + feed.Name + ": " + last.ToString());
                             }
@@ -1383,17 +1383,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
         else
         {
-            if (resInsert.InsertedEntries.Count > 0)
+            if (resInsert.AffectedCount > 0)
             {
-                var newItems = resInsert.InsertedEntries;
-                /*
-                newItems.Reverse();
-
-                foreach (var hoge in newItems)
-                {
-                    feed.List.Insert(0, hoge);
-                }
-                */
+                //var newItems = resInsert.InsertedEntries;
 
                 // Update Node Downloading Status
                 App.CurrentDispatcherQueue?.TryEnqueue(() =>
@@ -1401,7 +1393,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                     //Debug.WriteLine("Saving entries success: " + feed.Name);
 
                     //feed.EntryNewCount += newItems.Count;
-                    UpdateNewEntryCount(feed, newItems.Count);
+                    //UpdateNewEntryCount(feed, newItems.Count);
+                    UpdateNewEntryCount(feed, resInsert.AffectedCount);
 
                     if (feed.Status != NodeFeed.DownloadStatus.error)
                         feed.Status = NodeFeed.DownloadStatus.normal;
@@ -1441,10 +1434,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     private void UpdateNewEntryCount(NodeFeed feed, int newCount)
     {
-        feed.EntryNewCount += newCount;
-
         if (newCount > 0)
         {
+            feed.EntryNewCount += newCount;
+
             if (feed.Parent is NodeFolder folder)
             {
                 UpdateParentNewEntryCount(folder, newCount);
@@ -1462,13 +1455,17 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     {
         if (folder != null)
         {
-            folder.EntryNewCount += newCount;
-
-            if (folder.Parent is NodeFolder parentFolder)
+            if (newCount > 0)
             {
-                UpdateParentNewEntryCount(parentFolder, newCount);
+                folder.EntryNewCount += newCount;
+
+                if (folder.Parent is NodeFolder parentFolder)
+                {
+                    UpdateParentNewEntryCount(parentFolder, newCount);
+                }
             }
         }
+
         /*
         App.CurrentDispatcherQueue?.TryEnqueue(() =>
         {

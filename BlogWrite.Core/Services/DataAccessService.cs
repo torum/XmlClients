@@ -505,6 +505,11 @@ public class DataAccessService : IDataAccessService
                 cmd.CommandText = sql;
                 cmd.ExecuteNonQuery();
 
+                // Experimental 
+                // Delete old entries LIMIT 1000.
+                cmd.CommandText = string.Format("DELETE FROM entries WHERE feed_id = '{0}' AND entry_id NOT IN (SELECT entry_id FROM entries WHERE feed_id = '{0}' ORDER BY published DESC LIMIT 1000);", feedId);//ASC
+                cmd.ExecuteNonQuery();
+
                 foreach (var entry in entries)
                 {
                     if (entry is not FeedEntryItem)
@@ -522,16 +527,12 @@ public class DataAccessService : IDataAccessService
 
                     cmd.CommandText = sqlInsert;
 
-                    cmd.CommandType = CommandType.Text;
-
                     cmd.Parameters.Clear();
 
-                    //cmd.Parameters.AddWithValue("@Id", entry.Id);
+                    cmd.Parameters.AddWithValue("@FeedId", entry.ServiceId);// should be same as "feedId"
 
-                    cmd.Parameters.AddWithValue("@FeedId", entry.ServiceId);//feedId
-
-                    //cmd.Parameters.AddWithValue("@EntryId", entry.EntryId);
-                    cmd.Parameters.AddWithValue("@EntryId", entry.Id);
+                    //cmd.Parameters.AddWithValue("@EntryId", entry.EntryId);/ not good.
+                    cmd.Parameters.AddWithValue("@EntryId", entry.Id);// should be "entry.Id" here.
 
                     if (entry.AltHtmlUri != null)
                     {
@@ -559,7 +560,7 @@ public class DataAccessService : IDataAccessService
                         }
                         else
                         {
-                            cmd.Parameters.AddWithValue("@Published", entry.Published.ToString("yyyy-MM-dd HH:mm:ss"));
+                            cmd.Parameters.AddWithValue("@Published", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
                         }
                     }
                     else
@@ -683,12 +684,6 @@ public class DataAccessService : IDataAccessService
                     }
                 }
 
-                // Experimental 
-                // Delete old entries LIMIT 1000.
-                cmd.CommandText = string.Format("DELETE FROM entries WHERE feed_id = '{0}' AND entry_id NOT IN (SELECT entry_id FROM entries WHERE feed_id = '{0}' ORDER BY published DESC LIMIT 1000);", feedId);
-                cmd.ExecuteNonQuery();
-
-
                 //
                 cmd.Transaction.Commit();
             }
@@ -796,7 +791,7 @@ public class DataAccessService : IDataAccessService
                 var s = Convert.ToString(reader["entryTitle"]);
                 if (string.IsNullOrEmpty(s))
                 {
-                    s = "no title";
+                    s = "-";
                 }
                 var entry = new FeedEntryItem(s, feedId, null);
 
