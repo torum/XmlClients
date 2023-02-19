@@ -1,15 +1,11 @@
 ﻿using System.Reflection;
 using System.Windows.Input;
-
-using FeedDesk.Contracts.Services;
-using FeedDesk.Contracts.ViewModels;
 using BlogWrite.Core.Helpers;
-
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-
+using FeedDesk.Contracts.Services;
+using FeedDesk.Contracts.ViewModels;
 using Microsoft.UI.Xaml;
-
 using Windows.ApplicationModel;
 
 namespace FeedDesk.ViewModels;

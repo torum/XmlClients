@@ -1,6 +1,5 @@
 ﻿using System.Net.Http.Headers;
 using System.Xml;
-using AngleSharp.Dom;
 using BlogWrite.Core.Contracts.Services;
 using BlogWrite.Core.Helpers;
 using BlogWrite.Core.Models;
@@ -318,39 +317,42 @@ public class FeedClientService : BaseClient, IFeedClientService
                         {
                             foreach (XmlNode u in feedLinkUris)
                             {
-                                relAttr = (u.Attributes["rel"] != null) ? u.Attributes["rel"].Value : "";
-                                hrefAttr = (u.Attributes["href"] != null) ? u.Attributes["href"].Value : "";
-                                typeAttr = (u.Attributes["type"] != null) ? u.Attributes["type"].Value : "";
-
-                                if (!string.IsNullOrEmpty(hrefAttr))
+                                if (u.Attributes != null)
                                 {
-                                    if (relAttr.Equals("alternate") || relAttr == "")
-                                    {
-                                        if ((typeAttr == "text/html") || typeAttr == "")
-                                        {
-                                            try
-                                            {
-                                                //altUri = new Uri(hrefAttr);
-                                                if (hrefAttr.StartsWith("http"))
-                                                {
-                                                    // Absolute uri.
-                                                    altUri = new Uri(hrefAttr);
-                                                }
-                                                else
-                                                {
-                                                    // Relative uri (probably...)
-                                                    // Uri(baseUri, relativeUriString)
-                                                    altUri = new Uri(entriesUrl, hrefAttr);
-                                                }
-                                            }
-                                            catch (Exception e)
-                                            {
-                                                Debug.WriteLine("Exception @new Uri(altUri) @ FeedClient Atom1.0" + "(" + feedTitle + ")" + " : " + e.Message);
+                                    relAttr = (u.Attributes["rel"] != null) ? u.Attributes["rel"]!.Value : "";
+                                    hrefAttr = (u.Attributes["href"] != null) ? u.Attributes["href"]!.Value : "";
+                                    typeAttr = (u.Attributes["type"] != null) ? u.Attributes["type"]!.Value : "";
 
-                                                ToDebugWindow(">> Exception @FeedClient@new Uri(altUri)"
-                                                    + Environment.NewLine +
-                                                    "Atom feed (" + feedTitle + ") contain invalid atom:altUri: " + e.Message +
-                                                    Environment.NewLine);
+                                    if (!string.IsNullOrEmpty(hrefAttr))
+                                    {
+                                        if (relAttr.Equals("alternate") || relAttr == "")
+                                        {
+                                            if ((typeAttr == "text/html") || typeAttr == "")
+                                            {
+                                                try
+                                                {
+                                                    //altUri = new Uri(hrefAttr);
+                                                    if (hrefAttr.StartsWith("http"))
+                                                    {
+                                                        // Absolute uri.
+                                                        altUri = new Uri(hrefAttr);
+                                                    }
+                                                    else
+                                                    {
+                                                        // Relative uri (probably...)
+                                                        // Uri(baseUri, relativeUriString)
+                                                        altUri = new Uri(entriesUrl, hrefAttr);
+                                                    }
+                                                }
+                                                catch (Exception e)
+                                                {
+                                                    Debug.WriteLine("Exception @new Uri(altUri) @ FeedClient Atom1.0" + "(" + feedTitle + ")" + " : " + e.Message);
+
+                                                    ToDebugWindow(">> Exception @FeedClient@new Uri(altUri)"
+                                                        + Environment.NewLine +
+                                                        "Atom feed (" + feedTitle + ") contain invalid atom:altUri: " + e.Message +
+                                                        Environment.NewLine);
+                                                }
                                             }
                                         }
                                     }
@@ -424,39 +426,42 @@ public class FeedClientService : BaseClient, IFeedClientService
                         {
                             foreach (XmlNode u in feedLinkUris)
                             {
-                                relAttr = (u.Attributes["rel"] != null) ? u.Attributes["rel"].Value : "";
-                                hrefAttr = (u.Attributes["href"] != null) ? u.Attributes["href"].Value : "";
-                                typeAttr = (u.Attributes["type"] != null) ? u.Attributes["type"].Value : "";
-
-                                if (!string.IsNullOrEmpty(hrefAttr))
+                                if (u.Attributes != null)
                                 {
-                                    if (relAttr.Equals("alternate") || relAttr == "")
-                                    {
-                                        if ((typeAttr == "text/html") || typeAttr == "")
-                                        {
-                                            try
-                                            {
-                                                //altUri = new Uri(hrefAttr);
-                                                if (hrefAttr.StartsWith("http"))
-                                                {
-                                                    // Absolute uri.
-                                                    altUri = new Uri(hrefAttr);
-                                                }
-                                                else
-                                                {
-                                                    // Relative uri (probably...)
-                                                    // Uri(baseUri, relativeUriString)
-                                                    altUri = new Uri(entriesUrl, hrefAttr);
-                                                }
-                                            }
-                                            catch (Exception e)
-                                            {
-                                                Debug.WriteLine("Exception @new Uri(altUri) @ FeedClient Atom0.3" + "(" + feedTitle + ")" + " : " + e.Message);
+                                    relAttr = (u.Attributes["rel"] != null) ? u.Attributes["rel"]!.Value : "";
+                                    hrefAttr = (u.Attributes["href"] != null) ? u.Attributes["href"]!.Value : "";
+                                    typeAttr = (u.Attributes["type"] != null) ? u.Attributes["type"]!.Value : "";
 
-                                                ToDebugWindow(">> Exception @FeedClient@new Uri(altUri)"
-                                                    + Environment.NewLine +
-                                                    "Atom feed(" + feedTitle + ") contain invalid atom:altUri: " + e.Message +
-                                                    Environment.NewLine);
+                                    if (!string.IsNullOrEmpty(hrefAttr))
+                                    {
+                                        if (relAttr.Equals("alternate") || relAttr == "")
+                                        {
+                                            if ((typeAttr == "text/html") || typeAttr == "")
+                                            {
+                                                try
+                                                {
+                                                    //altUri = new Uri(hrefAttr);
+                                                    if (hrefAttr.StartsWith("http"))
+                                                    {
+                                                        // Absolute uri.
+                                                        altUri = new Uri(hrefAttr);
+                                                    }
+                                                    else
+                                                    {
+                                                        // Relative uri (probably...)
+                                                        // Uri(baseUri, relativeUriString)
+                                                        altUri = new Uri(entriesUrl, hrefAttr);
+                                                    }
+                                                }
+                                                catch (Exception e)
+                                                {
+                                                    Debug.WriteLine("Exception @new Uri(altUri) @ FeedClient Atom0.3" + "(" + feedTitle + ")" + " : " + e.Message);
+
+                                                    ToDebugWindow(">> Exception @FeedClient@new Uri(altUri)"
+                                                        + Environment.NewLine +
+                                                        "Atom feed(" + feedTitle + ") contain invalid atom:altUri: " + e.Message +
+                                                        Environment.NewLine);
+                                                }
                                             }
                                         }
                                     }
@@ -749,13 +754,17 @@ public class FeedClientService : BaseClient, IFeedClientService
 
             if (string.IsNullOrEmpty(entrySource))
             {
-                if (entrySourceNode.Attributes["url"] != null)
+                if (entrySourceNode.Attributes != null)
                 {
-                    var urlSource = entrySourceNode.Attributes["url"].Value;
-                    try
+                    if (entrySourceNode.Attributes["url"] != null)
                     {
-                        entItem.SourceUri = new Uri(urlSource);
-                    }catch { }
+                        var urlSource = entrySourceNode.Attributes["url"]!.Value;
+                        try
+                        {
+                            entItem.SourceUri = new Uri(urlSource);
+                        }
+                        catch { }
+                    }
                 }
             }
             entItem.Source = entrySource;
@@ -785,40 +794,43 @@ public class FeedClientService : BaseClient, IFeedClientService
         XmlNode? enclosureNode = entryNode.SelectSingleNode("enclosure");
         if (enclosureNode != null)
         {
-            if (enclosureNode.Attributes["url"] != null)
+            if (enclosureNode.Attributes != null)
             {
-                var url = enclosureNode.Attributes["url"].Value;
-
-                if (enclosureNode.Attributes["type"] != null)
+                if (enclosureNode.Attributes["url"] != null)
                 {
-                    var imageType = enclosureNode.Attributes["type"].Value;
+                    var url = enclosureNode.Attributes["url"]!.Value;
 
-                    if ((imageType == "image/jpg") || (imageType == "image/jpeg") || (imageType == "image/png") || (imageType == "image/gif"))
+                    if (enclosureNode.Attributes["type"] != null)
                     {
-                        try
+                        var imageType = enclosureNode.Attributes["type"]!.Value;
+
+                        if ((imageType == "image/jpg") || (imageType == "image/jpeg") || (imageType == "image/png") || (imageType == "image/gif"))
                         {
-                            entItem.ImageUri = new Uri(url);
+                            try
+                            {
+                                entItem.ImageUri = new Uri(url);
+                            }
+                            catch (Exception e)
+                            {
+                                ToDebugWindow(">> Exception @FeedClient@FillEntryItemFromXmlRss:new Uri()"
+                                    + Environment.NewLine +
+                                    "RSS feed entry (" + entItem.Name + ") contain invalid entry > enclosure@link Uri: " + e.Message +
+                                    Environment.NewLine);
+                            }
                         }
-                        catch (Exception e)
+                        else if (imageType == "audio/mpeg")
                         {
-                            ToDebugWindow(">> Exception @FeedClient@FillEntryItemFromXmlRss:new Uri()"
-                                + Environment.NewLine +
-                                "RSS feed entry (" + entItem.Name + ") contain invalid entry > enclosure@link Uri: " + e.Message +
-                                Environment.NewLine);
-                        }
-                    }
-                    else if (imageType == "audio/mpeg")
-                    {
-                        try
-                        {
-                            entItem.AudioUri = new Uri(url);
-                        }
-                        catch (Exception e)
-                        {
-                            ToDebugWindow(">> Exception @FeedClient@FillEntryItemFromXmlRss:new Uri()"
-                                + Environment.NewLine +
-                                "RSS feed entry (" + entItem.Name + ") contain invalid entry > enclosure@link Uri: " + e.Message +
-                                Environment.NewLine);
+                            try
+                            {
+                                entItem.AudioUri = new Uri(url);
+                            }
+                            catch (Exception e)
+                            {
+                                ToDebugWindow(">> Exception @FeedClient@FillEntryItemFromXmlRss:new Uri()"
+                                    + Environment.NewLine +
+                                    "RSS feed entry (" + entItem.Name + ") contain invalid entry > enclosure@link Uri: " + e.Message +
+                                    Environment.NewLine);
+                            }
                         }
                     }
                 }
@@ -831,22 +843,24 @@ public class FeedClientService : BaseClient, IFeedClientService
             XmlNode? itunesImageNode = entryNode.SelectSingleNode("itunes:image", NsMgr);
             if (itunesImageNode != null)
             {
-                if (itunesImageNode.Attributes["href"] != null)
+                if (itunesImageNode.Attributes != null)
                 {
-                    var url = itunesImageNode.Attributes["href"].Value;
-                    try
+                    if (itunesImageNode.Attributes["href"] != null)
                     {
-                        entItem.ImageUri = new Uri(url);
-                    }
-                    catch (Exception e)
-                    {
-                        ToDebugWindow(">> Exception @FeedClient@FillEntryItemFromXmlRss:new Uri()"
-                            + Environment.NewLine +
-                            "RSS feed entry (" + entItem.Name + ") contain invalid entry > itunes:image@href Uri: " + e.Message +
-                            Environment.NewLine);
+                        var url = itunesImageNode.Attributes["href"]!.Value;
+                        try
+                        {
+                            entItem.ImageUri = new Uri(url);
+                        }
+                        catch (Exception e)
+                        {
+                            ToDebugWindow(">> Exception @FeedClient@FillEntryItemFromXmlRss:new Uri()"
+                                + Environment.NewLine +
+                                "RSS feed entry (" + entItem.Name + ") contain invalid entry > itunes:image@href Uri: " + e.Message +
+                                Environment.NewLine);
+                        }
                     }
                 }
-
             }
         }
 
@@ -1086,15 +1100,20 @@ public class FeedClientService : BaseClient, IFeedClientService
         string hrefAttr;
         string typeAttr;
 
-        Uri altUri = null;
+        Uri? altUri = null;
 
         if (entryLinkUris != null)
         {
             foreach (XmlNode u in entryLinkUris)
             {
-                relAttr = (u.Attributes["rel"] != null) ? u.Attributes["rel"].Value : "";
-                hrefAttr = (u.Attributes["href"] != null) ? u.Attributes["href"].Value : "";
-                typeAttr = (u.Attributes["type"] != null) ? u.Attributes["type"].Value : "";
+                if (u.Attributes is null)
+                {
+                    continue;
+                }
+
+                relAttr = (u.Attributes["rel"] != null) ? u.Attributes["rel"]!.Value : "";
+                hrefAttr = (u.Attributes["href"] != null) ? u.Attributes["href"]!.Value : "";
+                typeAttr = (u.Attributes["type"] != null) ? u.Attributes["type"]!.Value : "";
 
                 if (!string.IsNullOrEmpty(hrefAttr))
                 {
@@ -1222,7 +1241,7 @@ public class FeedClientService : BaseClient, IFeedClientService
         {
             foreach (XmlNode auth in entryAuthors)
             {
-                XmlNode authName = auth.SelectSingleNode("atom:name", atomNsMgr);
+                XmlNode? authName = auth.SelectSingleNode("atom:name", atomNsMgr);
                 if (authName != null)
                 {
                     if (string.IsNullOrEmpty(entryAuthor))
@@ -1244,48 +1263,56 @@ public class FeedClientService : BaseClient, IFeedClientService
         entItem.ContentType = EntryItem.ContentTypes.none;
 
         XmlNode? cont = entryNode.SelectSingleNode("atom:content", atomNsMgr);
-        if (cont == null)
+        if (cont != null)
         {
-            if (cont.Attributes["type"] != null)
+            if (cont.Attributes != null)
             {
-                var contype = cont.Attributes["type"].Value;
-                if (!string.IsNullOrEmpty(contype))
+                if (cont.Attributes["type"] != null)
                 {
-                    //entItem.ContentTypeString = contype;
-
-                    switch (contype)
+                    var contype = cont.Attributes["type"]!.Value;
+                    if (!string.IsNullOrEmpty(contype))
                     {
-                        case "text":
-                            entItem.ContentType = EntryItem.ContentTypes.text;
-                            break;
-                        case "html":
-                            entItem.ContentType = EntryItem.ContentTypes.textHtml;
-                            break;
-                        case "xhtml":
-                            entItem.ContentType = EntryItem.ContentTypes.textHtml;
-                            break;
-                        case "text/plain":
-                            entItem.ContentType = EntryItem.ContentTypes.text;
-                            break;
-                        case "text/html":
-                            entItem.ContentType = EntryItem.ContentTypes.textHtml;
-                            break;
-                        case "text/x-markdown":
-                            entItem.ContentType = EntryItem.ContentTypes.markdown;
-                            break;
-                        case "text/x-hatena-syntax":
-                            entItem.ContentType = EntryItem.ContentTypes.hatena;
-                            break;
-                        default:
-                            entItem.ContentType = EntryItem.ContentTypes.unknown;
-                            break;
+                        //entItem.ContentTypeString = contype;
+
+                        switch (contype)
+                        {
+                            case "text":
+                                entItem.ContentType = EntryItem.ContentTypes.text;
+                                break;
+                            case "html":
+                                entItem.ContentType = EntryItem.ContentTypes.textHtml;
+                                break;
+                            case "xhtml":
+                                entItem.ContentType = EntryItem.ContentTypes.textHtml;
+                                break;
+                            case "text/plain":
+                                entItem.ContentType = EntryItem.ContentTypes.text;
+                                break;
+                            case "text/html":
+                                entItem.ContentType = EntryItem.ContentTypes.textHtml;
+                                break;
+                            case "text/x-markdown":
+                                entItem.ContentType = EntryItem.ContentTypes.markdown;
+                                break;
+                            case "text/x-hatena-syntax":
+                                entItem.ContentType = EntryItem.ContentTypes.hatena;
+                                break;
+                            default:
+                                entItem.ContentType = EntryItem.ContentTypes.unknown;
+                                break;
+                        }
                     }
+                }
+                else
+                {
+                    entItem.ContentType = EntryItem.ContentTypes.unknown;
                 }
             }
             else
             {
                 entItem.ContentType = EntryItem.ContentTypes.unknown;
             }
+
 
             entItem.Content = cont.InnerText;
         }
@@ -1358,9 +1385,11 @@ public class FeedClientService : BaseClient, IFeedClientService
         {
             foreach (XmlNode u in entryLinkUris)
             {
-                relAttr = (u.Attributes["rel"] != null) ? u.Attributes["rel"].Value : "";
-                hrefAttr = (u.Attributes["href"] != null) ? u.Attributes["href"].Value : "";
-                typeAttr = (u.Attributes["type"] != null) ? u.Attributes["type"].Value : "";
+                if (u.Attributes == null) { continue; }
+
+                relAttr = (u.Attributes["rel"] != null) ? u.Attributes["rel"]!.Value : "";
+                hrefAttr = (u.Attributes["href"] != null) ? u.Attributes["href"]!.Value : "";
+                typeAttr = (u.Attributes["type"] != null) ? u.Attributes["type"]!.Value : "";
 
                 if (!string.IsNullOrEmpty(hrefAttr))
                 {
@@ -1662,12 +1691,14 @@ public class FeedClientService : BaseClient, IFeedClientService
         {
             foreach (XmlNode cat in entryCategories)
             {
+                if (cat.Attributes == null) { continue; }
+
                 if (cat.Attributes["term"] != null)
                 {
                     if (string.IsNullOrEmpty(entryCategory))
-                        entryCategory = cat.Attributes["term"].Value;
+                        entryCategory = cat.Attributes["term"]!.Value;
                     else
-                        entryCategory += "/" + cat.Attributes["term"].Value;
+                        entryCategory += "/" + cat.Attributes["term"]!.Value;
                 }
             }
             entItem.Category = entryCategory;
@@ -1685,10 +1716,13 @@ public class FeedClientService : BaseClient, IFeedClientService
         {
             if (string.IsNullOrEmpty(entrySource))
             {
-                if (entrySourceNode.Attributes["title"] != null)
+                if (entrySourceNode.Attributes != null)
                 {
-                    //entrySource = entrySourceNode.Attributes["title"].Value;
+                    if (entrySourceNode.Attributes["title"] != null)
+                    {
+                        //entrySource = entrySourceNode.Attributes["title"].Value;
 
+                    }
                 }
             }
             //entry.Source = entrySource;
@@ -1699,39 +1733,46 @@ public class FeedClientService : BaseClient, IFeedClientService
         XmlNode? cont = entryNode.SelectSingleNode("atom:content", atomNsMgr);
         if (cont != null)
         {
-            if (cont.Attributes["type"] != null)
+            if (cont.Attributes != null)
             {
-                var contype = cont.Attributes["type"].Value; if (!string.IsNullOrEmpty(contype))
+                if (cont.Attributes["type"] != null)
                 {
-                    //entry.ContentTypeString = contype;
-
-                    switch (contype)
+                    var contype = cont.Attributes["type"]!.Value; if (!string.IsNullOrEmpty(contype))
                     {
-                        case "text":
-                            entItem.ContentType = EntryItem.ContentTypes.text;
-                            break;
-                        case "html":
-                            entItem.ContentType = EntryItem.ContentTypes.textHtml;
-                            break;
-                        case "xhtml":
-                            entItem.ContentType = EntryItem.ContentTypes.textHtml;
-                            break;
-                        case "text/plain":
-                            entItem.ContentType = EntryItem.ContentTypes.text;
-                            break;
-                        case "text/html":
-                            entItem.ContentType = EntryItem.ContentTypes.textHtml;
-                            break;
-                        case "text/x-markdown":
-                            entItem.ContentType = EntryItem.ContentTypes.markdown;
-                            break;
-                        case "text/x-hatena-syntax":
-                            entItem.ContentType = EntryItem.ContentTypes.hatena;
-                            break;
-                        default:
-                            entItem.ContentType = EntryItem.ContentTypes.unknown;
-                            break;
+                        //entry.ContentTypeString = contype;
+
+                        switch (contype)
+                        {
+                            case "text":
+                                entItem.ContentType = EntryItem.ContentTypes.text;
+                                break;
+                            case "html":
+                                entItem.ContentType = EntryItem.ContentTypes.textHtml;
+                                break;
+                            case "xhtml":
+                                entItem.ContentType = EntryItem.ContentTypes.textHtml;
+                                break;
+                            case "text/plain":
+                                entItem.ContentType = EntryItem.ContentTypes.text;
+                                break;
+                            case "text/html":
+                                entItem.ContentType = EntryItem.ContentTypes.textHtml;
+                                break;
+                            case "text/x-markdown":
+                                entItem.ContentType = EntryItem.ContentTypes.markdown;
+                                break;
+                            case "text/x-hatena-syntax":
+                                entItem.ContentType = EntryItem.ContentTypes.hatena;
+                                break;
+                            default:
+                                entItem.ContentType = EntryItem.ContentTypes.unknown;
+                                break;
+                        }
                     }
+                }
+                else
+                {
+                    entItem.ContentType = EntryItem.ContentTypes.unknown;
                 }
             }
             else
@@ -1791,34 +1832,40 @@ public class FeedClientService : BaseClient, IFeedClientService
             XmlNode? mediaContentNode = mediaNode.SelectSingleNode("media:content", atomNsMgr);
             if (mediaContentNode != null)
             {
-                if (mediaContentNode.Attributes["url"] != null)
+                if (mediaContentNode.Attributes != null)
                 {
-                    var url = mediaContentNode.Attributes["url"].Value;
-                    if (!string.IsNullOrEmpty(url))
+                    if (mediaContentNode.Attributes["url"] != null)
                     {
-                        var type = mediaContentNode.Attributes["type"].Value;
-                        if (!string.IsNullOrEmpty(type))
+                        var url = mediaContentNode.Attributes["url"]!.Value;
+                        if (!string.IsNullOrEmpty(url))
                         {
-                            if (type == "application/x-shockwave-flash")
+                            if (mediaContentNode.Attributes["type"] != null)
                             {
-                                // YouTube does this...
-                            }
-                            else if (type == "video/mp4")
-                            {
-                                //
-                            }
-                            else if (type == "audio/mp4")
-                            {
-                                //
-                            }
-                            else if (type == "audio/mpeg")
-                            {
-                                //mp3
-                                try
+                                var type = mediaContentNode.Attributes["type"]!.Value;
+                                if (!string.IsNullOrEmpty(type))
                                 {
-                                    entItem.AudioUri = new Uri(url);
+                                    if (type == "application/x-shockwave-flash")
+                                    {
+                                        // YouTube does this...
+                                    }
+                                    else if (type == "video/mp4")
+                                    {
+                                        //
+                                    }
+                                    else if (type == "audio/mp4")
+                                    {
+                                        //
+                                    }
+                                    else if (type == "audio/mpeg")
+                                    {
+                                        //mp3
+                                        try
+                                        {
+                                            entItem.AudioUri = new Uri(url);
+                                        }
+                                        catch { }
+                                    }
                                 }
-                                catch { }
                             }
                         }
                     }
@@ -1828,16 +1875,19 @@ public class FeedClientService : BaseClient, IFeedClientService
             XmlNode? mediaThumbnailNode = mediaNode.SelectSingleNode("media:thumbnail", atomNsMgr);
             if (mediaThumbnailNode != null)
             {
-                if (mediaThumbnailNode.Attributes["url"] != null)
+                if (mediaThumbnailNode.Attributes != null)
                 {
-                    var url = mediaThumbnailNode.Attributes["url"].Value;
-                    if (!string.IsNullOrEmpty(url))
+                    if (mediaThumbnailNode.Attributes["url"] != null)
                     {
-                        try
+                        var url = mediaThumbnailNode.Attributes["url"]!.Value;
+                        if (!string.IsNullOrEmpty(url))
                         {
-                            entItem.ImageUri = new Uri(url);
+                            try
+                            {
+                                entItem.ImageUri = new Uri(url);
+                            }
+                            catch { }
                         }
-                        catch { }
                     }
                 }
             }
@@ -1858,16 +1908,19 @@ public class FeedClientService : BaseClient, IFeedClientService
             XmlNode? mediaThumbnailNode = entryNode.SelectSingleNode("media:thumbnail", atomNsMgr);
             if (mediaThumbnailNode != null)
             {
-                if (mediaThumbnailNode.Attributes["url"] != null)
+                if (mediaThumbnailNode.Attributes != null)
                 {
-                    var url = mediaThumbnailNode.Attributes["url"].Value;
-                    if (!string.IsNullOrEmpty(url))
+                    if (mediaThumbnailNode.Attributes["url"] != null)
                     {
-                        try
+                        var url = mediaThumbnailNode.Attributes["url"]!.Value;
+                        if (!string.IsNullOrEmpty(url))
                         {
-                            entItem.ImageUri = new Uri(url);
+                            try
+                            {
+                                entItem.ImageUri = new Uri(url);
+                            }
+                            catch { }
                         }
-                        catch { }
                     }
                 }
             }

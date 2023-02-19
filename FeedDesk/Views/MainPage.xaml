@@ -221,10 +221,12 @@
 
                 </Border>
 
-                <!-- Feeds treeview Background="{ThemeResource NavigationViewContentBackground}"  -->
+                <!-- Feeds treeview
+                            Background="{ThemeResource NavigationViewContentBackground}"  
+                            Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}"  -->
                 <TreeView x:Name="TreeViewControl" Grid.Row="1"
                           VerticalAlignment="Stretch" 
-                           Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}" 
+                           BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}"
                           SelectionMode="Single" 
                           AllowDrop="True" 
                           CanReorderItems="True" 
@@ -479,8 +481,9 @@
                             </Grid>
                         </Border>
 
-                        <!-- Entries listView -->
-                        <ListView Grid.Row="1" PointerWheelChanged="ListViewEntryItem_PointerWheelChanged" Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}" x:Name="ListViewEntryItem" ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedListViewItem, Mode=TwoWay}" IsDoubleTapEnabled="True" IsRightTapEnabled="True" SelectionMode="Single" Margin="0,0,0,0" Padding="0,0,0,0">
+                        <!-- Entries listView
+                         Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}" -->
+                        <ListView Grid.Row="1" PointerWheelChanged="ListViewEntryItem_PointerWheelChanged" x:Name="ListViewEntryItem" Background="{ThemeResource NavigationViewContentBackground}" ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedListViewItem, Mode=TwoWay}" IsDoubleTapEnabled="True" IsRightTapEnabled="True" SelectionMode="Single" Margin="0,0,0,0" Padding="0,0,0,0">
                             <ListView.Resources>
                                 <MenuFlyout x:Key="ListItemContextMenu">
 
@@ -617,31 +620,31 @@
 
                                     <StackPanel>
                                         <TextBlock x:Uid="MainPage_DetailsPane_Author" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Author, Mode=OneWay}" Style="{StaticResource DetailBodyStyle}" />
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Author, Mode=OneWay}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
                                     </StackPanel>
 
                                     <StackPanel>
                                         <TextBlock x:Uid="MainPage_DetailsPane_Category" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Category, Mode=OneWay}" Style="{StaticResource DetailBodyStyle}" />
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Category, Mode=OneWay}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
                                     </StackPanel>
 
                                     <StackPanel>
                                         <TextBlock x:Uid="MainPage_DetailsPane_Publisher" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Publisher, Mode=OneWay}" Style="{StaticResource DetailBodyStyle}" />
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Publisher, Mode=OneWay}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
                                     </StackPanel>
 
                                     <StackPanel>
                                         <TextBlock x:Uid="MainPage_DetailsPane_Published" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.PublishedDateTimeFormated, Mode=OneWay}" Style="{StaticResource DetailBodyStyle}" />
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.PublishedDateTimeFormated, Mode=OneWay}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
                                     </StackPanel>
 
                                     <StackPanel>
-                                        <TextBlock x:Uid="MainPage_DetailsPane_Summary" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource SubtitleTextBlockStyle}" Opacity="0.9"/>
-                                        <TextBlock Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailBodyStyle}" Text="{x:Bind ViewModel.SelectedListViewItem.Summary, Mode=OneWay}"/>
+                                        <TextBlock x:Uid="MainPage_DetailsPane_Summary" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailSubTitleStyle}"/>
+                                        <TextBlock Style="{ThemeResource DetailBodyStyle}" TextWrapping="Wrap" Text="{x:Bind ViewModel.SelectedListViewItem.Summary, Mode=OneWay}"/>
                                     </StackPanel>
 
                                     <StackPanel Visibility="{x:Bind ViewModel.IsContentText, Mode=OneWay}">
-                                        <TextBlock x:Uid="MainPage_DetailsPane_Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource SubtitleTextBlockStyle}" Opacity="0.9"/>
+                                        <TextBlock x:Uid="MainPage_DetailsPane_Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailSubTitleStyle}"/>
                                         <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Content, Mode=OneWay}" TextWrapping="Wrap" Margin="{StaticResource MediumBottomMargin}" Style="{ThemeResource DetailBodyStyle}"/>
                                     </StackPanel>
                                     <!--

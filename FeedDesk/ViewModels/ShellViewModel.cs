@@ -1,14 +1,8 @@
-﻿using System.Collections.ObjectModel;
-using System.Windows.Input;
-using System.Xml;
-using FeedDesk.Contracts.Services;
-using FeedDesk.Services;
-using FeedDesk.Views;
+﻿using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-
+using FeedDesk.Contracts.Services;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Navigation;
 
 namespace FeedDesk.ViewModels;

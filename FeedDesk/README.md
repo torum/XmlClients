@@ -16,6 +16,9 @@ A desktop feed reader. (work in progress)
 * In-app playback of Podcast audio.
 
 ## Change log
+* v1.0.5 (2023/2/19)
+ Store App release. 
+ Removed Arm version from packages since System.Data.SQLite does not support Arm.
 * v1.0.4 (2023/2/18)
  Store App release.
 * v1.0.3.123 (2023/2/17)

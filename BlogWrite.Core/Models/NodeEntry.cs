@@ -20,10 +20,10 @@ public abstract class EntryItem : Node
     public string ServiceId { get; protected set; }
 
     // Entry' ID provided by services. In XML-RPC, this is the "postid" 
-    public string EntryId { get; set; }
+    public string? EntryId { get; set; }
 
     // Pointer to the NodeEntryCollection. Used in an Editor window to post entry etc.
-    public NodeEntryCollection NodeEntry { get; set; }
+    public NodeEntryCollection? NodeEntry { get; set; }
 
     // A link to Entry's HTML webpage.
     public Uri? AltHtmlUri { get; set; }
@@ -44,18 +44,18 @@ public abstract class EntryItem : Node
 
     public string Title
     {
-        get => this.Name;
+        get => Name;
         set
         {
-            if (this.Name == value)
+            if (Name == value)
                 return;
 
-            this.Name = value;
+            Name = value;
             NotifyPropertyChanged(nameof(Title));
         }
     }
 
-    private string _summary;
+    private string _summary = "";
     public string Summary
     {
         get => _summary;
@@ -394,7 +394,7 @@ public abstract class EntryItem : Node
 
     public BaseClient? Client { get; } = null;
 
-    public EntryItem(string title, string serviceId, BaseClient bc) : base(title)
+    public EntryItem(string title, string serviceId, BaseClient? bc) : base(title)
     {
         Client = bc;
         ServiceId = serviceId;
@@ -547,7 +547,7 @@ public class FeedEntryItem : EntryItem
         }
     }
 
-    public FeedEntryItem(string title, string serviceId, BaseClient bc) : base(title, serviceId, bc)
+    public FeedEntryItem(string title, string serviceId, BaseClient? bc) : base(title, serviceId, bc)
     {
         PathIcon = _rsNew;
 
@@ -655,14 +655,14 @@ public class EditEntryItem : EntryItem
 public abstract class EntryFull : EditEntryItem
 {
     // Entry's PostUri. In XML-RPC, this is xmlrpcUri same as EditUri.
-    public Uri PostUri { get; set; }
+    public Uri? PostUri { get; set; }
 
     // Entry's EditUri. In XML-RPC, this is xmlrpcUri.
-    public Uri EditUri { get; set; }
+    public Uri? EditUri { get; set; }
 
-    public EntryFull EntryBody { get; set; }
+    public EntryFull? EntryBody { get; set; }
 
-    protected EntryFull(string title, string serviceId, BaseClient bc) : base(title, serviceId, bc)
+    protected EntryFull(string title, string serviceId, BaseClient? bc) : base(title, serviceId, bc)
     {
 
     }
@@ -671,10 +671,10 @@ public abstract class EntryFull : EditEntryItem
 // Atom Blog Entry class, which represents Atom Entry.
 public class AtomEntry : EntryFull
 {
-    public string ContentTypeString { get; set; }
-    public string ETag { get; set; }
+    public string? ContentTypeString { get; set; }
+    public string? ETag { get; set; }
 
-    public AtomEntry(string title, string serviceId, BaseClient bc) : base(title, serviceId, bc)
+    public AtomEntry(string title, string serviceId, BaseClient? bc) : base(title, serviceId, bc)
     {
 
     }

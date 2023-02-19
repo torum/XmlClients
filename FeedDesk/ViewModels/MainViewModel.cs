@@ -854,7 +854,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private async Task<List<EntryItem>> LoadEntriesAsync(NodeTree nt)
     {
         if (nt == null)
+        {
             return new List<EntryItem>();
+        }
 
         // don't clear Entries here.
 
@@ -1027,7 +1029,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private async Task RefreshFeed()
     {
         if (_selectedTreeViewItem is null)
+        {
             return;
+        }
 
         if ((_selectedTreeViewItem is NodeFeed) || _selectedTreeViewItem is NodeFolder)
         {

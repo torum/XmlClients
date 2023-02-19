@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using BlogWrite.Core.Models;
-using Windows.Storage;
-using Microsoft.UI.Xaml.Media.Imaging;
+﻿using BlogWrite.Core.Models;
 using static BlogWrite.Core.Models.FeedEntryItem;
 
 namespace BlogWrite.Core.Contracts.Services;
@@ -34,7 +27,7 @@ public interface IDataAccessService
 
     SqliteDataAccessResultWrapper UpdateAllEntriesAsArchived(List<string> feedIds);
 
-    SqliteDataAccessResultWrapper UpdateEntryReadStatus(string entryId, ReadStatus readStatus);
+    SqliteDataAccessResultWrapper UpdateEntryReadStatus(string? entryId, ReadStatus readStatus);
 
 
     //SqliteDataAccessResultWrapper UpdateEntryStatus(EntryItem entry);

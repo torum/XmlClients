@@ -3,6 +3,7 @@ using System.Data.SQLite;
 using AngleSharp.Dom;
 using BlogWrite.Core.Contracts.Services;
 using BlogWrite.Core.Models;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using static BlogWrite.Core.Models.FeedEntryItem;
 
@@ -173,7 +174,7 @@ public class DataAccessService : IDataAccessService
     {
         var res = new SqliteDataAccessResultWrapper();
 
-        if (string.IsNullOrEmpty(feedId))
+        if (string.IsNullOrEmpty(feedId) || (feedUri == null))
         {
             res.IsError = true;
             // TODO:
@@ -491,15 +492,15 @@ public class DataAccessService : IDataAccessService
             {
                 // update feed info.
                 var sql = "UPDATE feeds SET ";
-                sql += String.Format("name = '{0}', ", EscapeSingleQuote(feedName));
-                sql += String.Format("title = '{0}', ", EscapeSingleQuote(feedTitle));
-                sql += String.Format("description = '{0}', ", EscapeSingleQuote(feedDescription));
-                sql += String.Format("updated = '{0}'", updated.ToString("yyyy-MM-dd HH:mm:ss"));
+                sql += string.Format("name = '{0}', ", EscapeSingleQuote(feedName));
+                sql += string.Format("title = '{0}', ", EscapeSingleQuote(feedTitle));
+                sql += string.Format("description = '{0}', ", EscapeSingleQuote(feedDescription));
+                sql += string.Format("updated = '{0}'", updated.ToString("yyyy-MM-dd HH:mm:ss"));
                 if (htmlUri != null)
                 {
-                    sql += String.Format(", html_url = '{0}'", htmlUri.AbsoluteUri);
+                    sql += string.Format(", html_url = '{0}'", htmlUri.AbsoluteUri);
                 }
-                sql += String.Format(" WHERE feed_id = '{0}'; ", feedId);
+                sql += string.Format(" WHERE feed_id = '{0}'; ", feedId);
 
                 cmd.CommandText = sql;
                 cmd.ExecuteNonQuery();
@@ -507,11 +508,15 @@ public class DataAccessService : IDataAccessService
                 foreach (var entry in entries)
                 {
                     if (entry is not FeedEntryItem)
+                    {
                         continue;
+                    }
 
                     //if ((entry.EntryId == null) || (entry.AltHtmlUri == null))
                     if (entry.EntryId == null)
+                    {
                         continue;
+                    }
 
                     var sqlInsert = "INSERT OR IGNORE INTO entries (entry_id, feed_id, url, title, published, updated, author, category, summary, content, content_type, image_url, audio_url, source, source_url, comment_url, status, archived) VALUES (@EntryId, @FeedId, @AltHtmlUri, @Title, @Published, @Updated, @Author, @Category, @Summary, @Content, @ContentType, @ImageUri, @AudioUri, @Source, @SourceUri, @CommentUri, @Status, @IsArchived)";
 
@@ -529,14 +534,22 @@ public class DataAccessService : IDataAccessService
                     cmd.Parameters.AddWithValue("@EntryId", entry.Id);
 
                     if (entry.AltHtmlUri != null)
+                    {
                         cmd.Parameters.AddWithValue("@AltHtmlUri", entry.AltHtmlUri.AbsoluteUri);
+                    }
                     else
+                    {
                         cmd.Parameters.AddWithValue("@AltHtmlUri", string.Empty);
+                    }
 
                     if (entry.Title != null)
+                    {
                         cmd.Parameters.AddWithValue("@Title", entry.Title);
+                    }
                     else
+                    {
                         cmd.Parameters.AddWithValue("@Title", string.Empty);
+                    }
 
                     if (entry.Published == default)
                     {
@@ -556,25 +569,42 @@ public class DataAccessService : IDataAccessService
 
                     cmd.Parameters.AddWithValue("@Updated", entry.Updated.ToString("yyyy-MM-dd HH:mm:ss"));
 
-                    if (entry.Author != null)
+                    if (entry.Author != null) 
+                    {
+
                         cmd.Parameters.AddWithValue("@Author", entry.Author);
+                    }
                     else
+                    {
                         cmd.Parameters.AddWithValue("@Author", string.Empty);
+                    }
 
                     if (entry.Category != null)
+                    {
                         cmd.Parameters.AddWithValue("@Category", entry.Category);
+                    }
                     else
+                    {
                         cmd.Parameters.AddWithValue("@Category", string.Empty);
+                    }
 
                     if (entry.Summary != null)
+                    {
                         cmd.Parameters.AddWithValue("@Summary", entry.Summary);
+                    }
                     else
+                    {
                         cmd.Parameters.AddWithValue("@Summary", string.Empty);
+                    }
 
                     if (entry.Content != null)
+                    {
                         cmd.Parameters.AddWithValue("@Content", entry.Content);
+                    }
                     else
+                    {
                         cmd.Parameters.AddWithValue("@Content", string.Empty);
+                    }
 
                     cmd.Parameters.AddWithValue("@ContentType", entry.ContentType.ToString());
 
@@ -586,33 +616,53 @@ public class DataAccessService : IDataAccessService
                     */
 
                     if (entry.ImageUri != null)
+                    {
                         cmd.Parameters.AddWithValue("@ImageUri", entry.ImageUri.AbsoluteUri);
+                    }
                     else
+                    {
                         cmd.Parameters.AddWithValue("@ImageUri", string.Empty);
+                    }
 
                     if (entry.AudioUri != null)
+                    {
                         cmd.Parameters.AddWithValue("@AudioUri", entry.AudioUri.AbsoluteUri);
+                    }
                     else
+                    {
                         cmd.Parameters.AddWithValue("@AudioUri", string.Empty);
+                    }
 
                     //
 
                     if (entry is FeedEntryItem fei)
                     {
                         if (fei.Source != null)
+                        {
                             cmd.Parameters.AddWithValue("@Source", fei.Source);
+                        }
                         else
+                        {
                             cmd.Parameters.AddWithValue("@Source", string.Empty);
+                        }
 
                         if (fei.SourceUri != null)
+                        {
                             cmd.Parameters.AddWithValue("@SourceUri", fei.SourceUri.AbsoluteUri);
+                        }
                         else
+                        {
                             cmd.Parameters.AddWithValue("@SourceUri", string.Empty);
+                        }
 
                         if (fei.CommentUri != null)
+                        {
                             cmd.Parameters.AddWithValue("@CommentUri", fei.CommentUri.AbsoluteUri);
+                        }
                         else
+                        {
                             cmd.Parameters.AddWithValue("@CommentUri", string.Empty);
+                        }
 
                         cmd.Parameters.AddWithValue("@Status", fei.Status.ToString());
                         cmd.Parameters.AddWithValue("@IsArchived", bool.FalseString);//(entry as FeedEntryItem).IsArchived.ToString()
@@ -635,7 +685,7 @@ public class DataAccessService : IDataAccessService
 
                 // Experimental 
                 // Delete old entries LIMIT 1000.
-                cmd.CommandText = String.Format("DELETE FROM entries WHERE feed_id = '{0}' AND entry_id NOT IN (SELECT entry_id FROM entries WHERE feed_id = '{0}' ORDER BY published DESC LIMIT 1000);", feedId);
+                cmd.CommandText = string.Format("DELETE FROM entries WHERE feed_id = '{0}' AND entry_id NOT IN (SELECT entry_id FROM entries WHERE feed_id = '{0}' ORDER BY published DESC LIMIT 1000);", feedId);
                 cmd.ExecuteNonQuery();
 
 
@@ -719,7 +769,9 @@ public class DataAccessService : IDataAccessService
         var res = new SqliteDataAccessSelectResultWrapper();
 
         if (string.IsNullOrEmpty(feedId))
+        {
             return res;
+        }
 
         try
         {
@@ -741,27 +793,52 @@ public class DataAccessService : IDataAccessService
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {
-                FeedEntryItem entry = new FeedEntryItem(Convert.ToString(reader["entryTitle"]), feedId, null);
-
-                //entry.MyNodeFeed = ndf;
+                var s = Convert.ToString(reader["entryTitle"]);
+                if (string.IsNullOrEmpty(s))
+                {
+                    s = "no title";
+                }
+                var entry = new FeedEntryItem(s, feedId, null);
 
                 entry.EntryId = Convert.ToString(reader["entryId"]);
 
-                var s = Convert.ToString(reader["entryUrl"]);
+                s = Convert.ToString(reader["entryUrl"]);
                 if (!string.IsNullOrEmpty(s))
-                    entry.AltHtmlUri = new Uri(s);
-
-                entry.Published = DateTime.Parse(Convert.ToString(reader["entryPublished"]));
-
-                try
                 {
-                    entry.Updated = DateTime.Parse(Convert.ToString(reader["entryUpdated"]));
+                    entry.AltHtmlUri = new Uri(s);
                 }
-                catch { }
 
-                entry.Summary = Convert.ToString(reader["entrySummary"]);
+                s = Convert.ToString(reader["entryPublished"]);
+                if (!string.IsNullOrEmpty(s)) 
+                {
+                    try
+                    {
+                        entry.Published = DateTime.Parse(s);
+                    }
+                    catch { }
+                }
 
-                entry.Content = Convert.ToString(reader["entryContent"]);
+                s = Convert.ToString(reader["entryUpdated"]);
+                if (!string.IsNullOrEmpty(s))
+                {
+                    try
+                    {
+                        entry.Updated = DateTime.Parse(s);
+                    }
+                    catch { }
+                }
+
+                s = Convert.ToString(reader["entrySummary"]);
+                if (!string.IsNullOrEmpty(s))
+                {
+                    entry.Summary = s;
+                }
+
+                s = Convert.ToString(reader["entryContent"]);
+                if (!string.IsNullOrEmpty(s))
+                {
+                    entry.Content = s;
+                }
 
                 var t = Convert.ToString(reader["entryContentType"]);
                 if (t == "textHtml")
@@ -1292,20 +1369,20 @@ public class DataAccessService : IDataAccessService
         return res;
     }
 
-    public SqliteDataAccessResultWrapper UpdateEntryReadStatus(string entryId, ReadStatus readStatus)
+    public SqliteDataAccessResultWrapper UpdateEntryReadStatus(string? entryId, ReadStatus readStatus)
     {
         var res = new SqliteDataAccessResultWrapper();
 
         if (string.IsNullOrEmpty(entryId))
         {
-            //res.IsError = true;
+            res.IsError = true;
             // TODO:
             return res;
         }
 
         var sql = "UPDATE entries SET ";
-        sql += String.Format("status = '{0}'", readStatus.ToString());
-        sql += String.Format(" WHERE entry_id = '{0}'; ", entryId);
+        sql += string.Format("status = '{0}'", readStatus.ToString());
+        sql += string.Format(" WHERE entry_id = '{0}'; ", entryId);
 
         try
         {
