@@ -1,6 +1,5 @@
 # BlogWrite project
-Work In Progress.  
-This project was originally started as a C#/WPF port of a blog editing client called "BlogWrite" developed in Delphi language. Currently, there are two apps called "FeedDesk" and "BlogDesk" developed in C#/WinUI3 and both use the same core source code. 
+Work In Progress. This project was originally started as a C#/WPF port of a blog editing client called "BlogWrite" developed in Delphi language. Currently, there are two apps called "FeedDesk" and "BlogDesk" developed in C#/WinUI3 and both use the same core source code. 
 
 ## [FeedDesk](https://github.com/torum/BlogWrite/tree/master/FeedDesk)
 A desktop feed reader. (work in progress)
@@ -42,7 +41,7 @@ Feel free to open issues and send PRs.
 * [Community Toolkit](https://github.com/CommunityToolkit) 
 * [WinUIEx](https://github.com/dotMorten/WinUIEx)
 * [Json.NET](https://github.com/JamesNK/Newtonsoft.Json)
-* [SQLite](https://github.com/sqlite/sqlite)
+* [SQLite](https://github.com/sqlite/sqlite) ([System.Data.SQLite](https://system.data.sqlite.org/index.html/doc/trunk/www/index.wiki))
 
 ## Getting Started
 
@@ -73,3 +72,9 @@ A desktop blogging client. (under development)
 
 N/A
 
+## Technologies, Frameworks, Libraries
+* [.NET 6](https://github.com/dotnet/runtime)  
+* [WinUI3 (Windows App SDK)](https://github.com/microsoft/WindowsAppSDK) 
+* [Community Toolkit](https://github.com/CommunityToolkit) 
+* [WinUIEx](https://github.com/dotMorten/WinUIEx)
+* [WebView2](https://github.com/MicrosoftEdge)
