@@ -295,7 +295,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 if ((_selectedListViewItem.Status != FeedEntryItem.ReadStatus.rsNewVisited) && (_selectedListViewItem.Status != FeedEntryItem.ReadStatus.rsNormalVisited))
                 {
                     //Task.Run(() => UpdateEntryStatusAsReadAsync(SelectedTreeViewItem!, _selectedListViewItem));
-                    _ = UpdateEntryStatusAsReadAwaiter(SelectedTreeViewItem!, _selectedListViewItem);
+                    UpdateEntryStatusAsReadAwaiter(SelectedTreeViewItem!, _selectedListViewItem);
                 }
             }
 
@@ -1769,9 +1769,11 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         */
     }
 
-    private async Task UpdateEntryStatusAsReadAwaiter(NodeTree nd, FeedEntryItem entry)
+    private void UpdateEntryStatusAsReadAwaiter(NodeTree nd, FeedEntryItem entry)
     {
-        await UpdateEntryStatusAsReadAsync(nd,entry).ConfigureAwait(false);
+        Task.Run(() => UpdateEntryStatusAsReadAsync(nd, entry).ConfigureAwait(false));
+        // This may freeze UI in certain situations.
+        //await UpdateEntryStatusAsReadAsync(nd,entry).ConfigureAwait(false);
     }
 
     private async Task UpdateEntryStatusAsReadAsync(NodeTree nd, FeedEntryItem entry)
@@ -2390,7 +2392,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     #region == Entry Listview commands  ==
 
     [RelayCommand(CanExecute = nameof(CanEntryArchiveAll))]
-    private async Task EntryArchiveAll()
+    private void EntryArchiveAll()
     {
         if (SelectedTreeViewItem is null)
             return;
@@ -2398,8 +2400,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         if (!((SelectedTreeViewItem is NodeFeed) || (SelectedTreeViewItem is NodeFolder)))
             return;
 
-        //Task.Run(() => ArchiveAllAsync(SelectedTreeViewItem));
-        await ArchiveAllAsync(SelectedTreeViewItem).ConfigureAwait(false);
+        Task.Run(() => ArchiveAllAsync(SelectedTreeViewItem).ConfigureAwait(false));
+        // This may freeze UI in certain situations.
+        //await ArchiveAllAsync(SelectedTreeViewItem).ConfigureAwait(false);
     }
 
     private bool CanEntryArchiveAll()
