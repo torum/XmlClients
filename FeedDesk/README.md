@@ -1,6 +1,6 @@
 ﻿
 ## [FeedDesk](https://torum.github.io/BlogWrite/FeedDesk/)
-A desktop feed reader. (work in progress)
+A desktop feed reader. (work in progress) 
 
 ### Implements following formats:  
 
@@ -14,6 +14,32 @@ A desktop feed reader. (work in progress)
 * OPML import, export.
 * Display enclosed or embeded images.
 * In-app playback of Podcast audio.
+
+## Contributing
+Feel free to open issues and send PRs. 
+
+## Technologies, Frameworks, Libraries
+* [.NET 6](https://github.com/dotnet/runtime)  
+* [WinUI3 (Windows App SDK)](https://github.com/microsoft/WindowsAppSDK) 
+* [Community Toolkit](https://github.com/CommunityToolkit) 
+* [WinUIEx](https://github.com/dotMorten/WinUIEx)
+* [SQLite](https://github.com/sqlite/sqlite) ([System.Data.SQLite](https://system.data.sqlite.org/index.html/doc/trunk/www/index.wiki))
+
+## Getting Started
+
+### Requirements
+* Windows 10.0.19041.0 or higher
+
+### Building
+1. Visual Studio 2022 with support for .NET Desktop App UI development (and optionally .NET Universal App development)
+2. Clone this repository
+3. Open solution in Visual Studio
+4. Select FeedDesk project, then compile and run.
+
+
+## Download app
+from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
+
 
 ## Change log
 * v1.0.5 (2023/2/19)
@@ -62,7 +88,7 @@ A desktop feed reader. (work in progress)
 ## Planning
 
 ### Core
-- [ ] "Read lator" or saved or boolmark or star or favorites or whatever.
+- [ ] "Favorites" or saved or boolmark or star or Read lator or whatever.
 - [ ] Update entry data when entry is updated.
 - [ ] Basic Auth.
 - [ ] Auto reflesh.

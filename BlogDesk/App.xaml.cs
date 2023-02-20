@@ -80,7 +80,7 @@ public partial class App : Application
 
             // Services
             //services.AddSingleton<IAppNotificationService, AppNotificationService>();
-            services.AddSingleton<ILocalSettingsService, LocalSettingsService>();
+            //services.AddSingleton<ILocalSettingsService, LocalSettingsService>();
             services.AddSingleton<IThemeSelectorService, ThemeSelectorService>();
             services.AddTransient<IWebViewService, WebViewService>();
             services.AddSingleton<IActivationService, ActivationService>();
@@ -89,7 +89,7 @@ public partial class App : Application
             //services.AddTransient<INavigationViewService, NavigationViewService>();
 
             // Core Services
-            services.AddSingleton<IFileService, FileService>();
+            //services.AddSingleton<IFileService, FileService>();
 
             //services.AddTransient<IFileDialogService, FileDialogService>();
             //services.AddSingleton<IDataAccessService, DataAccessService>();
