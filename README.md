@@ -4,7 +4,7 @@ Work In Progress. This project was originally started as a C#/WPF port of a blog
 ## [FeedDesk](https://github.com/torum/BlogWrite/tree/master/FeedDesk)
 A desktop feed reader. (work in progress)
 
-### Download
+### Download app
 from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
 
 ### Features
@@ -40,7 +40,6 @@ Feel free to open issues and send PRs.
 * [WinUI3 (Windows App SDK)](https://github.com/microsoft/WindowsAppSDK) 
 * [Community Toolkit](https://github.com/CommunityToolkit) 
 * [WinUIEx](https://github.com/dotMorten/WinUIEx)
-* [Json.NET](https://github.com/JamesNK/Newtonsoft.Json)
 * [SQLite](https://github.com/sqlite/sqlite) ([System.Data.SQLite](https://system.data.sqlite.org/index.html/doc/trunk/www/index.wiki))
 
 ## Getting Started
