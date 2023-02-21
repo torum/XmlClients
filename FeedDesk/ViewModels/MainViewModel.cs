@@ -2585,7 +2585,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         MediaSource = null;
     }
 
-
     #endregion
 
 }

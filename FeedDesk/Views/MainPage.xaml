@@ -134,7 +134,6 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <!-- Feeds menu buttons -->
@@ -149,47 +148,9 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <CommandBar Grid.Column="0" IsOpen="False" DefaultLabelPosition="Bottom" Margin="0" OverflowButtonVisibility="Collapsed">
-
-                        </CommandBar>
-
                         <StackPanel Grid.Column="0" Orientation="Horizontal">
 
-                            <!--
-                            <AppBarButton x:Uid="AppBarButton_Add" IsCompact="False" Opacity="0.9">
-                                <AppBarButton.Icon>
-                                    <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <PathIcon.Data>
-                                            M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z
-                                        </PathIcon.Data>
-                                    </PathIcon>
-                                </AppBarButton.Icon>
-                                
-                                <AppBarButton.Flyout>
-                                    <MenuFlyout>
-                                        <MenuFlyoutItem x:Uid="AppBarButton_Add_MenuFlyoutItem_Feed" Command="{x:Bind ViewModel.FeedAddCommand}">
-                                            <MenuFlyoutItem.Icon>
-                                                <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <PathIcon.Data>
-                                                        M6.18,15.64A2.18,2.18 0 0,1 8.36,17.82C8.36,19 7.38,20 6.18,20C5,20 4,19 4,17.82A2.18,2.18 0 0,1 6.18,15.64M4,4.44A15.56,15.56 0 0,1 19.56,20H16.73A12.73,12.73 0 0,0 4,7.27V4.44M4,10.1A9.9,9.9 0 0,1 13.9,20H11.07A7.07,7.07 0 0,0 4,12.93V10.1Z
-                                                    </PathIcon.Data>
-                                                </PathIcon>
-                                            </MenuFlyoutItem.Icon>
-                                        </MenuFlyoutItem>
-                                        <MenuFlyoutItem x:Uid="AppBarButton_Add_MenuFlyoutItem_Folder" Command="{x:Bind ViewModel.FolderAddCommand}">
-                                            <MenuFlyoutItem.Icon>
-                                                <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <PathIcon.Data>
-                                                        M13 19C13 19.34 13.04 19.67 13.09 20H4C2.9 20 2 19.11 2 18V6C2 4.89 2.89 4 4 4H10L12 6H20C21.1 6 22 6.89 22 8V13.81C21.39 13.46 20.72 13.22 20 13.09V8H4V18H13.09C13.04 18.33 13 18.66 13 19M20 18V15H18V18H15V20H18V23H20V20H23V18H20Z</PathIcon.Data>
-                                                </PathIcon>
-                                            </MenuFlyoutItem.Icon>
-                                        </MenuFlyoutItem>
-                                    </MenuFlyout>
-                                </AppBarButton.Flyout>
-
-                            </AppBarButton>
-                            -->
-                            <AppBarButton x:Uid="AppBarButton_Add_Feed" IsCompact="False" Opacity="0.8" Command="{x:Bind ViewModel.FeedAddCommand}">
+                            <AppBarButton x:Uid="AppBarButton_Add_Feed" IsCompact="False" Opacity="0.8" Command="{x:Bind ViewModel.FeedAddCommand}" IsTabStop="False">
                                 <AppBarButton.Icon>
                                     <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <PathIcon.Data>
@@ -199,7 +160,7 @@
                                 </AppBarButton.Icon>
                             </AppBarButton>
 
-                            <AppBarButton x:Uid="AppBarButton_Add_Folder" IsCompact="False" Opacity="0.8" Command="{x:Bind ViewModel.FolderAddCommand}">
+                            <AppBarButton x:Uid="AppBarButton_Add_Folder" IsCompact="False" Opacity="0.8" Command="{x:Bind ViewModel.FolderAddCommand}" IsTabStop="False">
                                 <AppBarButton.Icon>
                                     <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <PathIcon.Data>M13 19C13 19.34 13.04 19.67 13.09 20H4C2.9 20 2 19.11 2 18V6C2 4.89 2.89 4 4 4H10L12 6H20C21.1 6 22 6.89 22 8V13.81C21.39 13.46 20.72 13.22 20 13.09V8H4V18H13.09C13.04 18.33 13 18.66 13 19M20 18V15H18V18H15V20H18V23H20V20H23V18H20Z</PathIcon.Data>
@@ -207,7 +168,7 @@
                                 </AppBarButton.Icon>
                             </AppBarButton>
 
-                            <AppBarButton x:Uid="AppBarButton_Refresh" IsCompact="False" Command="{x:Bind ViewModel.FeedRefreshAllCommand}" Opacity="0.8">
+                            <AppBarButton x:Uid="AppBarButton_Refresh" IsCompact="False" Command="{x:Bind ViewModel.FeedRefreshAllCommand}" Opacity="0.8" IsTabStop="False">
                                 <AppBarButton.Icon>
                                     <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <PathIcon.Data>
@@ -307,13 +268,6 @@
 
                 </TreeView>
 
-                <!-- Debug pane -->
-                <Grid Grid.Row="2" Margin="0" Visibility="{x:Bind ViewModel.IsDebugWindowEnabled, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
-                    <TextBox x:Name="DebugTextBox" Text="{x:Bind ViewModel.DebugEventLog, Mode=OneWay}" TextWrapping="NoWrap" AcceptsReturn="True" IsSpellCheckEnabled="False" CornerRadius="0,0,0,0" HorizontalAlignment="Stretch" Padding="6 6 24 6" VerticalAlignment="Stretch" Margin="0" MinHeight="120" MaxHeight="120" Height="120" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Auto">
-
-                    </TextBox>
-                </Grid>
-
             </Grid>
         </Border>
 
@@ -396,7 +350,7 @@
 
                                 <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
 
-                                    <AppBarButton x:Uid="AppBarButton_Archive" Command="{x:Bind ViewModel.EntryArchiveAllCommand}" IsCompact="False" Opacity="0.8">
+                                    <AppBarButton x:Uid="AppBarButton_Archive" Command="{x:Bind ViewModel.EntryArchiveAllCommand}" IsCompact="False" Opacity="0.8" IsTabStop="False">
                                         <AppBarButton.Icon>
                                             <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <PathIcon.Data>
@@ -411,7 +365,7 @@
 -->
                                     </AppBarButton>
 
-                                    <AppBarButton Label="{x:Bind ViewModel.ToggleInboxAppButtonLabel, Mode=OneWay}" IsEnabled="{x:Bind ViewModel.IsToggleInboxAppButtonEnabled,Mode=OneWay}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.8">
+                                    <AppBarButton Label="{x:Bind ViewModel.ToggleInboxAppButtonLabel, Mode=OneWay}" IsEnabled="{x:Bind ViewModel.IsToggleInboxAppButtonEnabled,Mode=OneWay}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.8" IsTabStop="False">
                                         <AppBarButton.Icon>
                                             <PathIcon Data="{x:Bind ViewModel.ToggleInboxAppButtonIcon, Mode=OneWay}"/>
                                         </AppBarButton.Icon>
@@ -437,22 +391,6 @@
 
                                 </StackPanel>
 
-                                <CommandBar Grid.Column="0" IsOpen="False" DefaultLabelPosition="Right" HorizontalAlignment="Stretch" Margin="0" Visibility="Collapsed">
-
-                                    <AppBarButton Label="Archive" Command="{x:Bind ViewModel.EntryArchiveAllCommand}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="1">
-                                        <AppBarButton.Icon>
-                                            <PathIcon>
-                                                <PathIcon.Data>
-                                                    M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M5 5V7H19V5M10.5 11V14H8L12 18L16 14H13.5V11</PathIcon.Data>
-                                            </PathIcon>
-                                        </AppBarButton.Icon>
-                                    </AppBarButton>
-
-                                    <!--
-                                        <AppBarButton x:Name="PanelOpenClose" Command="{x:Bind ViewModel.DetailsPaneShowHideCommand}" Icon="ClosePane" Label="Show" IsCompact="False" VerticalAlignment="Bottom" Margin="0" Padding="0" Opacity="1">
-                                        </AppBarButton>
-                                        -->
-                                </CommandBar>
                                 <!--
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
 
@@ -483,7 +421,7 @@
 
                         <!-- Entries listView
                          Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}" -->
-                        <ListView Grid.Row="1" PointerWheelChanged="ListViewEntryItem_PointerWheelChanged" x:Name="ListViewEntryItem" Background="{ThemeResource NavigationViewContentBackground}" ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedListViewItem, Mode=TwoWay}" IsDoubleTapEnabled="True" IsRightTapEnabled="True" SelectionMode="Single" Margin="0,0,0,0" Padding="0,0,0,0">
+                        <ListView Grid.Row="1" x:Name="ListViewEntryItem" Background="{ThemeResource NavigationViewContentBackground}" ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedListViewItem, Mode=TwoWay}" IsDoubleTapEnabled="True" IsRightTapEnabled="True" SelectionMode="Single" Margin="0,0,0,0" Padding="0,0,0,0">
                             <ListView.Resources>
                                 <MenuFlyout x:Key="ListItemContextMenu">
 
@@ -708,6 +646,10 @@
             </Button>
 
         </Grid>
-        
+
+        <!-- Debug pane -->
+        <Grid Grid.Row="3" Margin="0" Grid.ColumnSpan="2" Visibility="{x:Bind ViewModel.IsDebugWindowEnabled, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
+            <TextBox x:Name="DebugTextBox" Text="{x:Bind ViewModel.DebugEventLog, Mode=OneWay}" TextWrapping="NoWrap" AcceptsReturn="True" IsSpellCheckEnabled="False" CornerRadius="0,0,0,0" HorizontalAlignment="Stretch" Padding="6 6 24 6" VerticalAlignment="Stretch" Margin="0" MinHeight="200" MaxHeight="200" Height="200" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
+        </Grid>
     </Grid>
 </Page>

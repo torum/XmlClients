@@ -168,17 +168,4 @@ public sealed partial class MainPage : Page
             item.IsSelected = true;
         }
     }
-
-    private void ListViewEntryItem_PointerWheelChanged(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-        // TODO: Two fingered touchpad gestures for scrolling.
-        /*
-        var pointer = e.GetCurrentPoint(sender);
-        var isHorizontalScroll = pointer.Properties.IsHorizontalMouseWheel;
-        var scrollDelta = pointer.Properties.MouseWheelDelta;
-
-        // Perform the scrolling
-        e.Handled = true;
-        */
-    }
 }
