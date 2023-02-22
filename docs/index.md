@@ -10,10 +10,13 @@ A desktop feed reader. (work in progress)
 
 ### Screenshots:
 
-![FeedDesk](https://github.com/torum/BlogWrite/blob/master/docs/images/FeedDesk-Screenshot-Dark.png?raw=true) 
+![FeedDesk](https://github.com/torum/BlogWrite/blob/master/docs/images/FeedDesk-Screenshot1-Dark.png?raw=true) 
 
-![FeedDesk](https://github.com/torum/BlogWrite/blob/master/docs/images/FeedDesk-Screenshot-Light.png?raw=true) 
+![FeedDesk](https://github.com/torum/BlogWrite/blob/master/docs/images/FeedDesk-Screenshot1-Light.png?raw=true) 
 
+![FeedDesk](https://github.com/torum/BlogWrite/blob/master/docs/images/FeedDesk-Screenshot1-Dark-Text.png?raw=true) 
+
+![FeedDesk](https://github.com/torum/BlogWrite/blob/master/docs/images/FeedDesk-Screenshot1-Dark-Podcast.png?raw=true) 
 
 ## [BlogDesk](https://torum.github.io/BlogWrite/BlogDesk/)
 A desktop blogging client. (under development)
