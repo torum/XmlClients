@@ -232,6 +232,16 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
                 //SelectedEntrySummary = _selectedListViewItem.Summary;
 
+                //
+                if (string.IsNullOrEmpty(_selectedListViewItem.Summary.Trim()))
+                {
+                    IsSummaryExists = false;
+                }
+                else
+                {
+                    IsSummaryExists = true;
+                }
+
                 if ((_selectedListViewItem as EntryItem).ContentType == EntryItem.ContentTypes.text)
                 {
                     IsContentText = true;
@@ -323,6 +333,13 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     {
         get => _selectedEntryContentHTML;
         set => SetProperty(ref _selectedEntryContentHTML, value);
+    }
+
+    private bool _isSummaryExists;
+    public bool IsSummaryExists
+    {
+        get => _isSummaryExists;
+        set => SetProperty(ref _isSummaryExists, value);
     }
 
     private bool _isContentText;
@@ -1165,12 +1182,15 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
                                 if (list.Count > 0)
                                 {
-                                    await SaveEntryListAsync(list, feed).ConfigureAwait(false);
+                                    var res = await SaveEntryListAsync(list, feed).ConfigureAwait(false);
 
                                     await Task.Delay(100);
 
-                                    // reload entries if selected.
-                                    await CheckParentSelectedAndLoadEntriesIfNotBusy(feed).ConfigureAwait(false);
+                                    if (res.Count > 0)
+                                    {
+                                        // reload entries if selected.
+                                        await CheckParentSelectedAndLoadEntriesIfNotBusy(feed).ConfigureAwait(false);
+                                    }
                                 }
                             }
                         }));

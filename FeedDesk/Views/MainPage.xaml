@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="using:BlogWrite.Core.Models"
+    xmlns:helper="using:BlogWrite.Core.Helpers"
     xmlns:local="using:FeedDesk.Views"
     xmlns:controls="using:Microsoft.UI.Xaml.Controls"
     NavigationCacheMode="Required"
@@ -576,9 +577,9 @@
                                         <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.PublishedDateTimeFormated, Mode=OneWay}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
                                     </StackPanel>
 
-                                    <StackPanel>
+                                    <StackPanel Visibility="{x:Bind ViewModel.IsSummaryExists, Mode=OneWay}">
                                         <TextBlock x:Uid="MainPage_DetailsPane_Summary" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailSubTitleStyle}"/>
-                                        <RichTextBlock local:HtmlProperties.Html="{x:Bind ViewModel.SelectedListViewItem.Summary, Mode=OneWay}" IsTextSelectionEnabled="True" Margin="0,0,0,24" Style="{ThemeResource DetailBodyRichTextBlockStyle}"/>
+                                        <RichTextBlock helper:HtmlProperties.Html="{x:Bind ViewModel.SelectedListViewItem.Summary, Mode=OneWay}" IsTextSelectionEnabled="True" Margin="0,0,0,24" Style="{ThemeResource DetailBodyRichTextBlockStyle}"/>
                                         <!-- 
                                         <TextBlock Style="{ThemeResource DetailBodyStyle}" TextWrapping="Wrap" Text="{x:Bind ViewModel.SelectedListViewItem.Summary, Mode=OneWay}"/>
                                          -->
@@ -591,7 +592,7 @@
 
                                     <StackPanel Visibility="{x:Bind ViewModel.IsContentHTML, Mode=OneWay}">
                                         <TextBlock x:Uid="MainPage_DetailsPane_Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailSubTitleStyle}"/>
-                                        <RichTextBlock local:HtmlProperties.Html="{x:Bind ViewModel.SelectedListViewItem.Content, Mode=OneWay}" IsTextSelectionEnabled="True" Margin="0,0,0,24" Style="{ThemeResource DetailBodyRichTextBlockStyle}"/>
+                                        <RichTextBlock helper:HtmlProperties.Html="{x:Bind ViewModel.SelectedListViewItem.Content, Mode=OneWay}" IsTextSelectionEnabled="True" Margin="0,0,0,24" Style="{ThemeResource DetailBodyRichTextBlockStyle}" HorizontalAlignment="Left" HorizontalTextAlignment="Left"/>
                                     </StackPanel>
                                     
                                     

@@ -236,6 +236,7 @@ public class FeedClientService : BaseClient, IFeedClientService
                     NsMgr.AddNamespace("rss", "http://purl.org/rss/1.0/");
                     NsMgr.AddNamespace("dc", "http://purl.org/dc/elements/1.1/");
                     NsMgr.AddNamespace("hatena", "http://www.hatena.ne.jp/info/xmlns#");
+                    NsMgr.AddNamespace("content", "http://purl.org/rss/1.0/modules/content/");
 
                     XmlNode? feedTitle = xdoc.DocumentElement.SelectSingleNode("rss:channel/rss:title", NsMgr);
                     res.Title = (feedTitle != null) ? feedTitle.InnerText : "";
@@ -621,7 +622,7 @@ public class FeedClientService : BaseClient, IFeedClientService
         return res;
     }
 
-    private async void FillEntryItemFromXmlRss(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager NsMgr, Uri baseUri)
+    private void FillEntryItemFromXmlRss(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager NsMgr, Uri baseUri)
     {
         // Title (//rss/channel/item/title)
         XmlNode? entryTitle = entryNode.SelectSingleNode("title");
@@ -909,19 +910,19 @@ public class FeedClientService : BaseClient, IFeedClientService
                 entItem.ContentType = EntryItem.ContentTypes.unknown;
 
                 // Content
-                entItem.Content = await StripStyleAttributes(s);
-
-                if (!string.IsNullOrEmpty(entItem.Content))
+                //entItem.Content = await StripStyleAttributes(s);
+                entItem.Summary = s;
+                if (!string.IsNullOrEmpty(s))
                 {
                     // Summary
-                    entItem.Summary = await StripHtmlTags(entItem.Content);
+                    //entItem.Summary = await StripHtmlTags(entItem.Content);
                     //entItem.Summary = Truncate(entItem.Summary, 230);
 
                     //entItem.SummaryPlainText = Truncate(entItem.Summary, 78);
 
                     // gets image Uri
-                    if (entItem.ImageUri == null)
-                        entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
+                    //if (entItem.ImageUri == null)
+                    //    entItem.ImageUri = await GetImageUriFromHtml(s);
                 }
             }
         }
@@ -929,7 +930,7 @@ public class FeedClientService : BaseClient, IFeedClientService
         entItem.Status = FeedEntryItem.ReadStatus.rsNew;
     }
 
-    private async void FillEntryItemFromXmlRdf(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager NsMgr, Uri baseUri)
+    private void FillEntryItemFromXmlRdf(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager NsMgr, Uri baseUri)
     {
         XmlNode? entryTitle = entryNode.SelectSingleNode("rss:title", NsMgr);
         entItem.Name = (entryTitle != null) ? entryTitle.InnerText : "";
@@ -1081,19 +1082,35 @@ public class FeedClientService : BaseClient, IFeedClientService
                 entItem.ContentType = EntryItem.ContentTypes.unknown;
 
                 // Content
-                entItem.Content = await StripStyleAttributes(sum.InnerText);
-
-                if (!string.IsNullOrEmpty(entItem.Content))
+                //entItem.Content = await StripStyleAttributes(sum.InnerText);
+                //entItem.Content = sum.InnerText;
+                entItem.Summary = sum.InnerText;
+                if (!string.IsNullOrEmpty(s))
                 {
                     // Summary
-                    entItem.Summary = await StripHtmlTags(entItem.Content);
+                    //entItem.Summary = await StripHtmlTags(entItem.Content);
 
                     //entItem.SummaryPlainText = Truncate(entItem.SummaryPlainText, 78);
                 }
 
                 // gets image Uri
-                if (entItem.ImageUri == null)
-                    entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
+                //if (entItem.ImageUri == null)
+                //    entItem.ImageUri = await GetImageUriFromHtml(s);
+            }
+        }
+
+        XmlNode? con = entryNode.SelectSingleNode("content:encoded", NsMgr);
+        if (con != null)
+        {
+            var s = con.InnerText;
+            if (!string.IsNullOrEmpty(s))
+            {
+                entItem.ContentType = EntryItem.ContentTypes.textHtml;
+                entItem.Content = s;
+
+                // gets image Uri
+                //if (entItem.ImageUri == null)
+                //    entItem.ImageUri = await GetImageUriFromHtml(s);
             }
         }
 
@@ -1336,7 +1353,6 @@ public class FeedClientService : BaseClient, IFeedClientService
                 entItem.ContentType = EntryItem.ContentTypes.unknown;
             }
 
-
             entItem.Content = cont.InnerText;
         }
 
@@ -1344,12 +1360,12 @@ public class FeedClientService : BaseClient, IFeedClientService
         if (sum != null)
         {
             entItem.Summary = await StripStyleAttributes(sum.InnerText);
+            entItem.Summary = sum.InnerText;
             //entry.ContentType = EntryFull.ContentTypes.textHtml;
 
             if (!string.IsNullOrEmpty(entItem.Summary))
             {
-                entItem.Summary = await StripHtmlTags(entItem.Summary);
-
+                //entItem.Summary = await StripHtmlTags(entItem.Summary);
                 //entItem.SummaryPlainText = Truncate(sum.InnerText, 78);
             }
         }
@@ -1361,12 +1377,12 @@ public class FeedClientService : BaseClient, IFeedClientService
             {
                 if (entItem.ContentType == EntryItem.ContentTypes.textHtml)
                 {
-                    entItem.Summary = await StripHtmlTags(s);
+                    //entItem.Summary = await StripHtmlTags(s);
                     //entItem.SummaryPlainText = Truncate(s, 78);
                 }
                 else if (entItem.ContentType == EntryItem.ContentTypes.text)
                 {
-                    entItem.Summary = s;
+                    //entItem.Summary = s;
                     //entItem.SummaryPlainText = Truncate(s, 78);
                 }
             }
@@ -1377,11 +1393,11 @@ public class FeedClientService : BaseClient, IFeedClientService
         if (entItem.ContentType == EntryItem.ContentTypes.textHtml)
         {
             // gets image Uri
-            entItem.ImageUri ??= await GetImageUriFromHtml(entItem.Content);
+            //entItem.ImageUri ??= await GetImageUriFromHtml(entItem.Content);
         }
     }
 
-    private async void FillEntryItemFromXmlAtom10(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr, Uri baseUri)
+    private void FillEntryItemFromXmlAtom10(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr, Uri baseUri)
     {
         // title
         XmlNode? entryTitle = entryNode.SelectSingleNode("atom:title", atomNsMgr);
@@ -1765,7 +1781,8 @@ public class FeedClientService : BaseClient, IFeedClientService
             {
                 if (cont.Attributes["type"] != null)
                 {
-                    var contype = cont.Attributes["type"]!.Value; if (!string.IsNullOrEmpty(contype))
+                    var contype = cont.Attributes["type"]!.Value; 
+                    if (!string.IsNullOrEmpty(contype))
                     {
                         //entry.ContentTypeString = contype;
 
@@ -1808,6 +1825,7 @@ public class FeedClientService : BaseClient, IFeedClientService
                 entItem.ContentType = EntryItem.ContentTypes.unknown;
             }
 
+            // TODO: if xhtml, use innerXML
             entItem.Content = cont.InnerText;
         }
 
@@ -1815,13 +1833,13 @@ public class FeedClientService : BaseClient, IFeedClientService
         XmlNode? sum = entryNode.SelectSingleNode("atom:summary", atomNsMgr);
         if (sum != null)
         {
-            entItem.Summary = await StripStyleAttributes(sum.InnerText);
+            //entItem.Summary = await StripStyleAttributes(sum.InnerText);
+            entItem.Summary = sum.InnerText;
             //entry.ContentType = EntryFull.ContentTypes.textHtml;
 
             if (!string.IsNullOrEmpty(entItem.Summary))
             {
-                entItem.Summary = await StripHtmlTags(entItem.Summary);
-
+                //entItem.Summary = await StripHtmlTags(entItem.Summary);
                 //entItem.SummaryPlainText = Truncate(sum.InnerText, 78);
             }
         }
@@ -1833,12 +1851,12 @@ public class FeedClientService : BaseClient, IFeedClientService
             {
                 if (entItem.ContentType == EntryItem.ContentTypes.textHtml)
                 {
-                    entItem.Summary = await StripHtmlTags(s);
-                    //entItem.SummaryPlainText = Truncate(s, 78);
+                    //entItem.Summary = await StripHtmlTags(s);
+                    //entItem.Summary = s;
                 }
                 else if (entItem.ContentType == EntryItem.ContentTypes.text)
                 {
-                    entItem.Summary = s;
+                    //entItem.Summary = s;
                     //entItem.SummaryPlainText = Truncate(s, 78);
                 }
             }
@@ -1958,8 +1976,8 @@ public class FeedClientService : BaseClient, IFeedClientService
         if (entItem.ContentType == EntryItem.ContentTypes.textHtml)
         {
             // gets image Uri
-            if (entItem.ImageUri == null)
-                entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
+            //if (entItem.ImageUri == null)
+            //    entItem.ImageUri = await GetImageUriFromHtml(entItem.Content);
         }
 
         entItem.Status = FeedEntryItem.ReadStatus.rsNew;

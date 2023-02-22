@@ -66,8 +66,11 @@ public abstract class EntryItem : Node
 
             _summary = value;
             NotifyPropertyChanged(nameof(Summary));
+            NotifyPropertyChanged(nameof(SummaryPlainText));
         }
     }
+
+    public string SummaryPlainText => Windows.Data.Html.HtmlUtilities.ConvertToText(_summary);
 
     public string SummaryShort
     {

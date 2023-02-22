@@ -83,7 +83,7 @@ from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
  Switched to WinUI3 from a WPF project. 
 
 ## Things that currentry working on
-- [ ] HTML content rendering without webview2. Better handling of tags and layout.
+- [ ] HTML content rendering without webview2. Better handling of tags and layout. Remove AngleSharp and use HTMLAgilityPack because AngleSharp spits some exception.
 - [ ] Database file management page (menu>tools), clean(delete all data) and optimize(vacume).
 - [ ] Full Text Search.
 

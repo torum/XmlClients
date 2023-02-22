@@ -1,6 +1,4 @@
 ﻿using System.Net;
-using BlogWrite.Core.Models;
-using System.Xml.Linq;
 using HtmlAgilityPack;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
@@ -10,10 +8,8 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
-using Windows.Media.Protection;
-using static System.Reflection.Metadata.BlobBuilder;
 
-namespace FeedDesk.Views;
+namespace BlogWrite.Core.Helpers;
 
 // Code adapted from https://blogs.msdn.microsoft.com/tess/2013/05/13/displaying-html-content-in-a-richtextblock/
 // https://github.com/xleon/HTML2XAML/blob/master/XAMLHtml/XAMLHtml.cs
@@ -63,33 +59,32 @@ public class HtmlProperties : DependencyObject
         richText.Blocks.Clear();
         _currentObject = richText;
 
-        App.CurrentDispatcherQueue?.TryEnqueue(() =>
+        try
         {
-            try
+            //Generate blocks
+            if (e.NewValue is string xhtml)
             {
-                //Generate blocks
-                if (e.NewValue is string xhtml)
-                {
-                    var blocks = GenerateBlocksForHtml(xhtml);
-                    _currentObject = null;
+                var blocks = GenerateBlocksForHtml(xhtml);
+                _currentObject = null;
 
-                    //Add the blocks to the RichTextBlock
-                    
-                    foreach (var b in blocks)
-                    {
-                        richText.Blocks.Add(b);
-                    }
+                //Add the blocks to the RichTextBlock
+
+                foreach (var b in blocks)
+                {
+                    richText.Blocks.Add(b);
                 }
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("HtmlChanged: " + ex.ToString());
-            }
-        });
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("HtmlChanged: " + ex.ToString());
+        }
     }
 
     private static List<Block> GenerateBlocksForHtml(string xhtml)
     {
+        //Debug.WriteLine(xhtml);
+
         var blocks = new List<Block>();
 
         if (string.IsNullOrEmpty(xhtml))
@@ -97,8 +92,6 @@ public class HtmlProperties : DependencyObject
             blocks.Add(new Paragraph());
             return blocks;
         }
-
-        //Debug.WriteLine(xhtml);
 
         try
         {
@@ -125,6 +118,7 @@ public class HtmlProperties : DependencyObject
     // TODO this method seams to be removing necessary spaces in #text nodes
     private static string CleanText(string input)
     {
+        // TODO:
         /*
         var clean = Windows.Data.Html.HtmlUtilities.ConvertToText(input);
         //clean = System.Net.WebUtility.HtmlEncode(clean);
@@ -134,16 +128,12 @@ public class HtmlProperties : DependencyObject
         }
         return clean;
         */
-
-
-
         return ReplaceHtmlEntities(input);
     }
 
     private static string ReplaceHtmlEntities(string input)
     {
-        input = input.Replace("&#32;", " ");
-        return input.Replace("&nbsp;", " ");
+        return WebUtility.HtmlDecode(input);
     }
 
     private static void AddChildren(Paragraph p, HtmlNode node)
@@ -219,6 +209,9 @@ public class HtmlProperties : DependencyObject
                     return new LineBreak();
                 case "script":
                     return null;
+                case "style":
+                    return null;
+                // TODO:
                 //case "blockquote":
                 //    return GenerateBlockquote(node);
                 case "span":
@@ -258,7 +251,7 @@ public class HtmlProperties : DependencyObject
         var inlineUiContainer = new InlineUIContainer();
         var ellipse = new Ellipse
         {
-            Fill = _currentObject.Foreground ?? new SolidColorBrush(Colors.Black),
+            Fill = _currentObject?.Foreground ?? new SolidColorBrush(Colors.Black),
             Width = 6,
             Height = 6,
             Margin = new Thickness(-30, 0, 0, 1)
@@ -284,28 +277,28 @@ public class HtmlProperties : DependencyObject
             {
                 Stretch = Stretch.Uniform,
                 VerticalAlignment = VerticalAlignment.Top,
-                HorizontalAlignment = HorizontalAlignment.Left,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
             };
 
             if (sourceWidth != null || sourceHeight != null)
             {
-                image.MaxWidth = ImageMaxPixelWidth;
+                //image.MaxWidth = ImageMaxPixelWidth;
                 if (sourceWidth != null)
                 {
-                    image.MaxWidth = double.Parse(sourceWidth);
-                    image.Width = double.Parse(sourceWidth);
+                    //image.MaxWidth = double.Parse(sourceWidth);
+                    //image.Width = double.Parse(sourceWidth);
                 }
 
                 image.MaxHeight = ImageMaxPixelHeight;
                 if (sourceHeight != null)
                 {
-                    image.MaxHeight = double.Parse(sourceHeight);
+                    //image.MaxHeight = double.Parse(sourceHeight);
                     image.Height = double.Parse(sourceHeight);
                 }
             }
             else
             {
-                image.MaxWidth = ImageMaxPixelWidth;
+                //image.MaxWidth = ImageMaxPixelWidth;
                 image.MaxHeight = ImageMaxPixelHeight;
 
                 image.ImageOpened += ImageOpened;
@@ -318,12 +311,13 @@ public class HtmlProperties : DependencyObject
 
             inlineUiContainer.Child = image;
 
+            span.Inlines.Add(new LineBreak());
             span.Inlines.Add(inlineUiContainer);
             span.Inlines.Add(new LineBreak());
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex.Message);
+            Debug.WriteLine("GenerateImage: " + ex.Message);
         }
         return span;
     }
@@ -381,12 +375,26 @@ public class HtmlProperties : DependencyObject
 
         try
         {
-            var hyperlinkButton = new Hyperlink();
-            hyperlinkButton.NavigateUri = new Uri(node.Attributes["href"].Value, UriKind.Absolute);
-            hyperlinkButton.Inlines.Add(new Run { Text = CleanText(node.InnerText) });
-            var span = new Span();
-            span.Inlines.Add(hyperlinkButton);
-            return span;
+            var href = node.Attributes["href"].Value;
+            if (!string.IsNullOrEmpty(href))
+            {
+                if (href.StartsWith("http"))
+                {
+                    var hyperlinkButton = new Hyperlink();
+                    hyperlinkButton.NavigateUri = new Uri(node.Attributes["href"].Value, UriKind.Absolute);
+                    hyperlinkButton.Inlines.Add(new Run { Text = CleanText(node.InnerText) });
+                    var span = new Span();
+                    span.Inlines.Add(hyperlinkButton);
+                    return span;
+                }
+                else
+                {
+                    // TODO: handle baseUrl
+                    Debug.WriteLine("GenerateHyperLink Relative Uri!!");
+                }
+            }
+
+            return null;
 /*
             var span = new Span();
             var inlineUiContainer = new InlineUIContainer();
