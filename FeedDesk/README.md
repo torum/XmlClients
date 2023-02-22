@@ -42,7 +42,11 @@ from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
 
 
 ## Change log
-* v1.0.6 (2023/2/22)
+* v1.0.7 (2023/2/24)
+ Store App release. 
+* v1.0.6.123 (2023/2/23)
+ HTML Content rendering in RichTextBlock.
+* v1.0.6.1 (2023/2/22)
  Better keyboad navigation, a few bug fixes.
 * v1.0.5 (2023/2/19)
  Store App release. 
@@ -83,7 +87,7 @@ from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
  Switched to WinUI3 from a WPF project. 
 
 ## Things that currentry working on
-- [ ] HTML content rendering without webview2. Better handling of tags and layout. Remove AngleSharp and use HTMLAgilityPack because AngleSharp spits some exception.
+- [ ] Remove AngleSharp and use HTMLAgilityPack because AngleSharp spits some exception.
 - [ ] Database file management page (menu>tools), clean(delete all data) and optimize(vacume).
 - [ ] Full Text Search.
 

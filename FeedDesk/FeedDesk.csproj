@@ -14,7 +14,7 @@
 
 	  <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
 
-	  <AssemblyVersion>1.0.6.0</AssemblyVersion>
+	  <AssemblyVersion>1.0.7.0</AssemblyVersion>
 	  <FileVersion>$(AssemblyVersion)</FileVersion>
 	  <Version>$(AssemblyVersion)</Version>
 	  <PlatformTarget>AnyCPU</PlatformTarget>
