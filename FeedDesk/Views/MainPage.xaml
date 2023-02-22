@@ -578,17 +578,20 @@
 
                                     <StackPanel>
                                         <TextBlock x:Uid="MainPage_DetailsPane_Summary" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailSubTitleStyle}"/>
+                                        <RichTextBlock local:HtmlProperties.Html="{x:Bind ViewModel.SelectedListViewItem.Summary, Mode=OneWay}" IsTextSelectionEnabled="True" Margin="0,0,0,24" Style="{ThemeResource DetailBodyRichTextBlockStyle}"/>
+                                        <!-- 
                                         <TextBlock Style="{ThemeResource DetailBodyStyle}" TextWrapping="Wrap" Text="{x:Bind ViewModel.SelectedListViewItem.Summary, Mode=OneWay}"/>
+                                         -->
                                     </StackPanel>
 
                                     <StackPanel Visibility="{x:Bind ViewModel.IsContentText, Mode=OneWay}">
                                         <TextBlock x:Uid="MainPage_DetailsPane_Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailSubTitleStyle}"/>
-                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Content, Mode=OneWay}" TextWrapping="Wrap" Margin="{StaticResource MediumBottomMargin}" Style="{ThemeResource DetailBodyStyle}"/>
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Content, Mode=OneWay}" TextWrapping="Wrap" Margin="0,0,0,24" Style="{ThemeResource DetailBodyStyle}"/>
                                     </StackPanel>
 
                                     <StackPanel Visibility="{x:Bind ViewModel.IsContentHTML, Mode=OneWay}">
-                                        <TextBlock x:Uid="MainPage_DetailsPane_Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailSubTitleStyle}" Opacity="0.9"/>
-                                        <RichTextBlock local:HtmlProperties.Html="{x:Bind ViewModel.SelectedListViewItem.Content, Mode=OneWay}" Margin="0,0,0,24" Style="{ThemeResource DetailBodyRichTextBlockStyle}"/>
+                                        <TextBlock x:Uid="MainPage_DetailsPane_Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailSubTitleStyle}"/>
+                                        <RichTextBlock local:HtmlProperties.Html="{x:Bind ViewModel.SelectedListViewItem.Content, Mode=OneWay}" IsTextSelectionEnabled="True" Margin="0,0,0,24" Style="{ThemeResource DetailBodyRichTextBlockStyle}"/>
                                     </StackPanel>
                                     
                                     

@@ -83,9 +83,9 @@ from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
  Switched to WinUI3 from a WPF project. 
 
 ## Things that currentry working on
+- [ ] HTML content rendering without webview2. Better handling of tags and layout.
 - [ ] Database file management page (menu>tools), clean(delete all data) and optimize(vacume).
-- [ ] Search.
-- [ ] HTML content rendering without webview2
+- [ ] Full Text Search.
 
 ## Planning
 
@@ -97,7 +97,7 @@ from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
 
 ### UI
 - [ ] FavIcon. 
-- [ ] Grouping display of entries. 
+- [ ] Grouping display of entries. (date or publisher)
 - [ ] multiple viewing style (3 panes, cards, etc)
 
 ### Sync 
@@ -105,11 +105,11 @@ from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
 - [ ] Sync with online feed readers such as Miniflux or creat one.
 
 ### Other
-- [ ] More options.
+- [ ] More options...
 - [ ] Refactoring...
 
 ## Known issues
-* Two fingered touchpad gestures for scrolling. (WinUI3 issue)
+* Synaptics touchpad's two fingered scrolling gesture doesn't work. (WinUI3 issue > https://github.com/microsoft/microsoft-ui-xaml/issues/2482)
 
 
 
