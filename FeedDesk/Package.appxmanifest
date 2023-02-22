@@ -10,7 +10,7 @@
   <Identity
     Name="60132torumyax.FeedDesk"
     Publisher="CN=F3079A96-760D-4F53-9E00-374C09B6D4B1"
-    Version="1.0.5.0" />
+    Version="1.0.6.0" />
 
   <Properties>
     <DisplayName>FeedDesk</DisplayName>
@@ -38,6 +38,7 @@
         Square44x44Logo="Assets\Square44x44Logo.png">
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"  Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png"/>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
+        <uap:LockScreen BadgeLogo="Assets\BadgeLogo.png"  Notification="badgeAndTileText"/>
       </uap:VisualElements>
     </Application>
   </Applications>

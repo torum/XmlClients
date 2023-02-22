@@ -42,6 +42,8 @@ from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
 
 
 ## Change log
+* v1.0.6 (2023/2/22)
+ Better keyboad navigation, a few bug fixes.
 * v1.0.5 (2023/2/19)
  Store App release. 
  Removed Arm version from packages since System.Data.SQLite does not support Arm.

@@ -101,8 +101,8 @@ public partial class App : Application
             services.AddSingleton<IFeedClientService, FeedClientService>();
 
             // Views and ViewModels
-            services.AddTransient<SettingsViewModel>();
-            services.AddTransient<SettingsPage>();
+            services.AddSingleton<SettingsViewModel>();
+            services.AddSingleton<SettingsPage>();
             //services.AddTransient<EntryDetailsViewModel>();
             //services.AddTransient<EntryDetailsPage>();
             services.AddTransient<FeedAddViewModel>();

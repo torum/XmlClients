@@ -150,7 +150,7 @@
 
                         <StackPanel Grid.Column="0" Orientation="Horizontal">
 
-                            <AppBarButton x:Uid="AppBarButton_Add_Feed" IsCompact="False" Opacity="0.8" Command="{x:Bind ViewModel.FeedAddCommand}" IsTabStop="False">
+                            <AppBarButton x:Uid="AppBarButton_Add_Feed" ToolTipService.ToolTip="Ctrl+N" IsCompact="False" Opacity="0.8" Command="{x:Bind ViewModel.FeedAddCommand}" IsTabStop="False">
                                 <AppBarButton.Icon>
                                     <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <PathIcon.Data>
@@ -168,7 +168,7 @@
                                 </AppBarButton.Icon>
                             </AppBarButton>
 
-                            <AppBarButton x:Uid="AppBarButton_Refresh" IsCompact="False" Command="{x:Bind ViewModel.FeedRefreshAllCommand}" Opacity="0.8" IsTabStop="False">
+                            <AppBarButton x:Uid="AppBarButton_Refresh" ToolTipService.ToolTip="Ctrl+R" IsCompact="False" Command="{x:Bind ViewModel.FeedRefreshAllCommand}" Opacity="0.8" IsTabStop="False">
                                 <AppBarButton.Icon>
                                     <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <PathIcon.Data>
@@ -350,7 +350,7 @@
 
                                 <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
 
-                                    <AppBarButton x:Uid="AppBarButton_Archive" Command="{x:Bind ViewModel.EntryArchiveAllCommand}" IsCompact="False" Opacity="0.8" IsTabStop="False">
+                                    <AppBarButton x:Uid="AppBarButton_Archive" Command="{x:Bind ViewModel.EntryArchiveAllCommand}" ToolTipService.ToolTip="Ctrl+A" IsCompact="False" Opacity="0.8" IsTabStop="False">
                                         <AppBarButton.Icon>
                                             <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <PathIcon.Data>
@@ -526,7 +526,7 @@
 
                                     <StackPanel Visibility="{x:Bind ViewModel.IsImageLinkExists, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
                                         <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.ImageUri.AbsoluteUri, Mode=OneWay}" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource BodyTextBlockStyle}" Visibility="Collapsed"/>
-                                        <Border CornerRadius="6" HorizontalAlignment="Stretch" Margin="0,12,0,0" Height="270" MaxHeight="270">
+                                        <Border CornerRadius="6" HorizontalAlignment="Stretch" Margin="0,18,0,0" Height="270" MaxHeight="270">
                                             <Border.Background>
                                                 <ImageBrush ImageSource="{x:Bind ViewModel.SelectedListViewItem.ImageUri.AbsoluteUri, Mode=OneWay}" Stretch="UniformToFill"/>
                                             </Border.Background>
@@ -585,6 +585,13 @@
                                         <TextBlock x:Uid="MainPage_DetailsPane_Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailSubTitleStyle}"/>
                                         <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Content, Mode=OneWay}" TextWrapping="Wrap" Margin="{StaticResource MediumBottomMargin}" Style="{ThemeResource DetailBodyStyle}"/>
                                     </StackPanel>
+
+                                    <StackPanel Visibility="{x:Bind ViewModel.IsContentHTML, Mode=OneWay}">
+                                        <TextBlock x:Uid="MainPage_DetailsPane_Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailSubTitleStyle}" Opacity="0.9"/>
+                                        <RichTextBlock local:HtmlProperties.Html="{x:Bind ViewModel.SelectedListViewItem.Content, Mode=OneWay}" Margin="0,0,0,24" Style="{ThemeResource DetailBodyRichTextBlockStyle}"/>
+                                    </StackPanel>
+                                    
+                                    
                                     <!--
                                     <StackPanel Visibility="{x:Bind ViewModel.IsContentHTML, Mode=OneWay}">
                                         <TextBlock Text="Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource SubtitleTextBlockStyle}" Opacity="0.9"/>
@@ -632,19 +639,18 @@
 
         <!-- Media Player -->
         <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Visibility="{x:Bind ViewModel.IsMediaPlayerVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
-
-            <Border Height="Auto">
-                <StackPanel HorizontalAlignment="Center" Margin="24,2,24,0">
-                    <MediaPlayerElement Source="{x:Bind ViewModel.MediaSource, Mode=OneWay}" HorizontalAlignment="Center" MaxWidth="740" AutoPlay="False" AreTransportControlsEnabled="True" />
-                </StackPanel>
+            <Border Grid.Row="0" BorderThickness="0,1,0,0" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}">
+                <Grid>
+                    <StackPanel HorizontalAlignment="Center" Margin="24,2,24,0">
+                        <MediaPlayerElement Source="{x:Bind ViewModel.MediaSource, Mode=OneWay}" HorizontalAlignment="Center" MaxWidth="740" AutoPlay="False" AreTransportControlsEnabled="True" />
+                    </StackPanel>
+                    <Button Margin="6" Padding="6" VerticalAlignment="Top" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" Command="{x:Bind ViewModel.CloseMediaPlayerCommand}">
+                        <Viewbox Width="14" Height="14" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.7">
+                            <PathIcon Margin="-4,-4,0,0" Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"></PathIcon>
+                        </Viewbox>
+                    </Button>
+                </Grid>
             </Border>
-
-            <Button Margin="6" Padding="6" VerticalAlignment="Top" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" Command="{x:Bind ViewModel.CloseMediaPlayerCommand}">
-                <Viewbox Width="14" Height="14" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.7">
-                    <PathIcon Margin="-4,-4,0,0" Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"></PathIcon>
-                </Viewbox>
-            </Button>
-
         </Grid>
 
         <!-- Debug pane -->

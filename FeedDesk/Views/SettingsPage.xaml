@@ -6,7 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:helpers="using:BlogWrite.Core.Helpers"
     xmlns:xaml="using:Microsoft.UI.Xaml"
-    NavigationCacheMode="Disabled"
+    NavigationCacheMode="Required"
     mc:Ignorable="d" Background="{ThemeResource NavigationViewContentBackground}">
     <Grid x:Name="ContentArea">
         <Grid.RowDefinitions>
