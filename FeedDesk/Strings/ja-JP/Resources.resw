@@ -414,4 +414,7 @@
   <data name="AppBarButton_Add_Folder.Label" xml:space="preserve">
     <value>フォルダー</value>
   </data>
+  <data name="FeedEditPage_Button_CheckFeedValidity.Content" xml:space="preserve">
+    <value>フィードの正当性チェック</value>
+  </data>
 </root>

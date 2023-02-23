@@ -110,27 +110,30 @@ public class HtmlProperties : DependencyObject
                     }
                     else if (node.Name.ToLower() == "blockquote")
                     {
-                        // TODO: check
                         var paragraph = new Paragraph();
                         paragraph.Margin = new Thickness(48,0,0,0);
                         //paragraph.TextIndent = 48;
                         AddChildren(paragraph, node);
                         blocks.Add(paragraph);
                     }
+                    else if (node.Name.ToLower() == "a")
+                    {
+                        var paragraph = new Paragraph();
+                        var link = GenerateHyperLink(node);
+                        if (link is not null)
+                        {
+                            paragraph.Inlines.Add(link);
+                            blocks.Add(paragraph);
+                        }
+                    }
                     else
                     {
-                        // TODO:
                         var paragraph = new Paragraph();
                         AddChildren(paragraph, node);
                         blocks.Add(paragraph);
                     }
 
                 }
-
-                /*
-                var block = GenerateParagraph(doc.DocumentNode);
-                blocks.Add(block);
-                */
             }
         }
         catch (Exception ex)
@@ -595,6 +598,7 @@ public class HtmlProperties : DependencyObject
             span.Inlines.Add(new LineBreak());
         return span;
     }
+
     private static Span GenerateH4(HtmlNode node)
     {
         var span = H3SpanFactory?.Invoke() ?? new Span() ;

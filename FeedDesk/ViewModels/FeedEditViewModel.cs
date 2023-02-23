@@ -1,4 +1,5 @@
-﻿using System.Windows.Input;
+﻿using System.Web;
+using System.Windows.Input;
 using BlogWrite.Core.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -41,6 +42,10 @@ public class FeedEditViewModel : ObservableRecipient, INavigationAware
         get;
     }
 
+    public ICommand CheckIfFeedIsValidUsingValidatorCommand
+    {
+        get;
+    }
 
     #endregion
 
@@ -50,6 +55,7 @@ public class FeedEditViewModel : ObservableRecipient, INavigationAware
 
         GoBackCommand = new RelayCommand(OnGoBack);
         UpdateFeedItemPropertyCommand = new RelayCommand(OnUpdateFeedItemProperty);
+        CheckIfFeedIsValidUsingValidatorCommand = new RelayCommand(OnCheckIfFeedIsValidUsingValidator);
 
         Feed = null;
         Name = "";
@@ -82,6 +88,18 @@ public class FeedEditViewModel : ObservableRecipient, INavigationAware
         }
     }
 
+    private void OnCheckIfFeedIsValidUsingValidator()
+    {
+        if (Feed is null)
+            return;
+
+        if (Feed.EndPoint is not null)
+        {
+            Uri hoge = new Uri("https://validator.w3.org/feed/check.cgi?url=" + HttpUtility.UrlEncode(Feed.EndPoint.AbsoluteUri));
+
+            Task.Run(() => Windows.System.Launcher.LaunchUriAsync(hoge)) ;
+        }
+    }
 
     private void OnUpdateFeedItemProperty()
     {

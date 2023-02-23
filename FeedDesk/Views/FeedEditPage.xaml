@@ -57,6 +57,9 @@
                             <StackPanel Margin="12,6,0,0">
                                 <TextBlock x:Uid="FeedEditPage_Feed_Url" Margin="{StaticResource XSmallTopMargin}"/>
                                 <HyperlinkButton NavigateUri="{x:Bind ViewModel.Feed.EndPoint, Mode=OneTime}" Content="{x:Bind ViewModel.Feed.EndPoint, Mode=OneTime}" Margin="{StaticResource XSmallTopMargin}" />
+
+                                <Button x:Uid="FeedEditPage_Button_CheckFeedValidity" Command="{x:Bind ViewModel.CheckIfFeedIsValidUsingValidatorCommand}" Margin="{StaticResource XSmallTopMargin}"></Button>
+
                             </StackPanel>
 
                             <StackPanel Margin="12,6,0,0">

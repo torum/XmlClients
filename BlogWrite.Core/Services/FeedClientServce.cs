@@ -66,6 +66,11 @@ public class FeedClientService : BaseClient, IFeedClientService
                     + Environment.NewLine + s + Environment.NewLine
                     + Environment.NewLine);
                 */
+                /*
+                var str = await HTTPResponseMessage.Content.ReadAsStringAsync();
+                Debug.WriteLine(str);
+                */
+
                 ToDebugWindow(">> HTTP Request: GET "
                     + entriesUrl.AbsoluteUri
                     + Environment.NewLine
