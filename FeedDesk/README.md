@@ -23,6 +23,7 @@ Feel free to open issues and send PRs.
 * [WinUI3 (Windows App SDK)](https://github.com/microsoft/WindowsAppSDK) 
 * [Community Toolkit](https://github.com/CommunityToolkit) 
 * [WinUIEx](https://github.com/dotMorten/WinUIEx)
+* [Html Agility Pack](https://github.com/zzzprojects/html-agility-pack)
 * [SQLite](https://github.com/sqlite/sqlite) ([System.Data.SQLite](https://system.data.sqlite.org/index.html/doc/trunk/www/index.wiki))
 
 ## Getting Started
@@ -36,12 +37,12 @@ Feel free to open issues and send PRs.
 3. Open solution in Visual Studio
 4. Select FeedDesk project, then compile and run.
 
-
 ## Download app
 from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
 
-
 ## Change log
+* v1.0.7.123 (2023/2/25)
+ Improving HTML Content rendering in RichTextBlock.
 * v1.0.7 (2023/2/24)
  Store App release. 
 * v1.0.6.123 (2023/2/23)
@@ -87,15 +88,15 @@ from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
  Switched to WinUI3 from a WPF project. 
 
 ## Things that currentry working on
-- [ ] Remove AngleSharp and use HTMLAgilityPack because AngleSharp spits some exception.
+- [ ] Update entry data when entry is updated.
 - [ ] Database file management page (menu>tools), clean(delete all data) and optimize(vacume).
 - [ ] Full Text Search.
+- [ ] Remove AngleSharp and use HTMLAgilityPack because AngleSharp spits some exception.
 
 ## Planning
 
 ### Core
 - [ ] "Favorites" or saved or boolmark or star or Read lator or whatever.
-- [ ] Update entry data when entry is updated.
 - [ ] Basic Auth.
 - [ ] Auto reflesh.
 

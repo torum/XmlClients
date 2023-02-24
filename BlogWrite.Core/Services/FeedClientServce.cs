@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Net;
+using System.Net.Http.Headers;
 using System.Xml;
 using BlogWrite.Core.Contracts.Services;
 using BlogWrite.Core.Helpers;
@@ -640,7 +641,7 @@ public class FeedClientService : BaseClient, IFeedClientService
     {
         // Title (//rss/channel/item/title)
         XmlNode? entryTitle = entryNode.SelectSingleNode("title");
-        entItem.Name = (entryTitle != null) ? entryTitle.InnerText : "";
+        entItem.Name = (entryTitle != null) ? WebUtility.HtmlDecode(entryTitle.InnerText) : "";
 
         // GUID (//rss/channel/item/guid)
         XmlNode? entryId = entryNode.SelectSingleNode("guid");
@@ -986,7 +987,7 @@ public class FeedClientService : BaseClient, IFeedClientService
     private void FillEntryItemFromXmlRdf(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager NsMgr, Uri baseUri)
     {
         XmlNode? entryTitle = entryNode.SelectSingleNode("rss:title", NsMgr);
-        entItem.Name = (entryTitle != null) ? entryTitle.InnerText : "";
+        entItem.Name = (entryTitle != null) ? WebUtility.HtmlDecode(entryTitle.InnerText) : "";
 
         XmlNode? entryLinkUri = entryNode.SelectSingleNode("rss:link", NsMgr);
         try
@@ -1198,7 +1199,7 @@ public class FeedClientService : BaseClient, IFeedClientService
         XmlNode? entryTitle = entryNode.SelectSingleNode("atom:title", atomNsMgr);
         if (entryTitle != null)
         {
-            entItem.Name = entryTitle.InnerText;
+            entItem.Name = WebUtility.HtmlDecode(entryTitle.InnerText);
         }
 
         XmlNode? entryID = entryNode.SelectSingleNode("atom:id", atomNsMgr);
@@ -1478,7 +1479,7 @@ public class FeedClientService : BaseClient, IFeedClientService
         XmlNode? entryTitle = entryNode.SelectSingleNode("atom:title", atomNsMgr);
         if (entryTitle != null)
         {
-            entItem.Name = entryTitle.InnerText;
+            entItem.Name = WebUtility.HtmlDecode(entryTitle.InnerText);
         }
 
         // id

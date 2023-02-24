@@ -20,24 +20,29 @@
     <Style x:Key="NodeTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
         <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="FontSize" Value="{StaticResource NormalFontSize}" />
+        <Setter Property="LineHeight" Value="17"/>
+        <Setter Property="Opacity" Value="0.9" />
     </Style>
-    
-    <Style x:Key="ListTitleStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="MaxLines" Value="1" />
-        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    <Style x:Key="NodeEntryTitleTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource NodeTextBlockStyle}">
+        <Setter Property="FontWeight" Value="Medium" />
+    </Style>
+    <Style x:Key="NodeFeedTitleTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource NodeTextBlockStyle}">
+        <Setter Property="FontWeight" Value="Normal" />
     </Style>
 
-    <Style x:Key="ListSubTitleStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
-        <Setter Property="FontSize" Value="14" />
+    <Style x:Key="NodeEntryTitleCaptionTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+        <Setter Property="FontSize" Value="{StaticResource XSmallFontSize}" />
         <Setter Property="FontWeight" Value="Normal" />
-        <Setter Property="MaxLines" Value="1" />
-        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        <Setter Property="Opacity" Value="0.7" />
+    </Style>
+    <Style x:Key="NodeEntryCaptionTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+        <Setter Property="FontSize" Value="{StaticResource SmallFontSize}" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="Opacity" Value="0.7" />
     </Style>
 
     <Style x:Key="DetailSubTitleStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
-        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontSize" Value="{StaticResource XMediumFontSize}" />
         <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="Opacity" Value="0.9" />
     </Style>
@@ -46,13 +51,13 @@
         <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="FontSize" Value="{StaticResource XNormalFontSize}" />
         <Setter Property="LineHeight" Value="21"/>
-        <Setter Property="Opacity" Value="0.7" />
+        <Setter Property="Opacity" Value="0.8" />
     </Style>
 
     <Style x:Key="DetailBodyStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
         <Setter Property="FontWeight" Value="Normal" />
-        <Setter Property="FontSize" Value="{StaticResource XNormalFontSize}" />
-        <Setter Property="LineHeight" Value="21"/>
+        <Setter Property="FontSize" Value="{StaticResource NormalFontSize}" />
+        <Setter Property="LineHeight" Value="17"/>
         <Setter Property="Opacity" Value="0.8" />
     </Style>
 
@@ -64,7 +69,7 @@
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="FontFamily" Value="XamlAutoFontFamily" />
         <Setter Property="FontWeight" Value="Normal" />
-        <Setter Property="FontSize" Value="{StaticResource XNormalFontSize}" />
+        <Setter Property="FontSize" Value="{StaticResource NormalFontSize}" />
         <Setter Property="LineHeight" Value="21"/>
         <Setter Property="Opacity" Value="0.8" />
     </Style>

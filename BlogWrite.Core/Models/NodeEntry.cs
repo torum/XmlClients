@@ -72,26 +72,6 @@ public abstract class EntryItem : Node
 
     public string SummaryPlainText => Windows.Data.Html.HtmlUtilities.ConvertToText(_summary);
 
-    public string SummaryShort
-    {
-        get
-        {
-            var maxLength = 220;
-            if (string.IsNullOrEmpty(_summary)) return _summary;
-            return _summary.Length <= maxLength ? _summary : _summary.Substring(0, maxLength) + " ...";
-        }
-    }
-
-    public string SummaryVeryShort
-    {
-        get
-        {
-            var maxLength = 100;
-            if (string.IsNullOrEmpty(_summary)) return _summary;
-            return _summary.Length <= maxLength ? _summary : _summary.Substring(0, maxLength) + " ...";
-        }
-    }
-
     public enum ContentTypes
     {
         none,
@@ -118,7 +98,6 @@ public abstract class EntryItem : Node
                 return;
 
             _content = value;
-
             NotifyPropertyChanged(nameof(Content));
         }
     }

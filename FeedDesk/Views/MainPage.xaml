@@ -116,7 +116,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*" MinWidth="212"/>
+            <ColumnDefinition Width="2*" MinWidth="212" MaxWidth="380"/>
             <ColumnDefinition Width="7*"/>
         </Grid.ColumnDefinitions>
 
@@ -254,9 +254,7 @@
                                                 <PathIcon  Data="{x:Bind PathIcon, Mode=OneWay}" Opacity="0.8" Foreground="{ThemeResource FeedIconBrush}"></PathIcon>
                                             </Viewbox>
 
-                                            <TextBlock Grid.Row="0" Grid.Column="1" x:Name="NodeTextBlock" Text="{x:Bind Name, Mode=OneWay}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Padding="3" Style="{ThemeResource NodeTextBlockStyle}" IsHitTestVisible="False" Margin="6,0,0,0" Opacity="0.9"/>
-
-                                            <TextBlock Grid.Row="0" Grid.Column="2" Text="{x:Bind SubNodeText, Mode=OneWay}" FontSize="{StaticResource NormalFontSize}" Margin="9 3 3 3" HorizontalAlignment="Right" Visibility="Collapsed"></TextBlock>
+                                            <TextBlock Grid.Row="0" Grid.Column="1" x:Name="NodeTextBlock" Text="{x:Bind Name, Mode=OneWay}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Padding="3" Style="{ThemeResource NodeFeedTitleTextBlockStyle}" IsHitTestVisible="False" Margin="6,0,0,0"/>
 
                                             <InfoBadge Grid.Column="3" Style="{ThemeResource AttentionValueInfoBadgeStyle}" HorizontalAlignment="Right" VerticalAlignment="Center" Value="{x:Bind EntryNewCount, Mode=OneWay}" Visibility="{x:Bind IsEntryCountMoreThanZero, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}" Margin="0,0,12,0" Opacity="0.7"/>
 
@@ -330,7 +328,7 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="3*" x:Name="col1"/>
+                    <ColumnDefinition Width="3*" x:Name="col1" MaxWidth="520"/>
                     <ColumnDefinition Width="4*" x:Name="col2" />
                 </Grid.ColumnDefinitions>
 
@@ -471,9 +469,9 @@
                                             <PathIcon Data="{x:Bind PathIcon, Mode=OneWay}" Foreground="{ThemeResource SystemAccentColorLight2}" Width ="24" Height="24" Margin="6" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.9"></PathIcon>
                                         </Viewbox>
 
-                                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind Name}" x:Phase="1" Style="{ThemeResource NodeTextBlockStyle}" FontWeight="Medium" Padding="2" Margin="12,6,0,0" Opacity="0.9"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind Name}" x:Phase="1" Style="{ThemeResource NodeEntryTitleTextBlockStyle}" Padding="2" Margin="12,6,0,0"/>
 
-                                        <TextBlock Grid.Row="0" Grid.Column="2" Text="{x:Bind PublishedDateTimeFormatedAbout}" x:Phase="1" HorizontalAlignment="Right" Style="{ThemeResource CaptionTextBlockStyle}" Padding="2" Margin="6,6,0,0" Opacity=".7"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="2" Text="{x:Bind PublishedDateTimeFormatedAbout}" x:Phase="1" HorizontalAlignment="Right" Style="{ThemeResource NodeEntryTitleCaptionTextBlockStyle}" Padding="2" Margin="6,6,0,0"/>
 
                                         <Grid Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2">
                                             <Grid.ColumnDefinitions>
@@ -481,14 +479,14 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
 
-                                            <TextBlock Grid.Column="0" Style="{ThemeResource CaptionTextBlockStyle}" Padding="2" Margin="12,0,0,6" Opacity=".7" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis">
+                                            <TextBlock Grid.Column="0" Style="{ThemeResource NodeEntryCaptionTextBlockStyle}" Padding="2" Margin="12,0,0,6" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis">
                                                 <Run x:Uid="FeedEntryItem_By"/>
                                                 <Run Text="{x:Bind Author}"/>
                                                 <Run x:Uid="FeedEntryItem_From"/>
                                                 <Run Text="{x:Bind Publisher}"/>
                                             </TextBlock>
 
-                                            <TextBlock Grid.Column="1" Style="{ThemeResource CaptionTextBlockStyle}" Padding="2" Margin="12,0,0,6" Opacity=".7" MaxWidth="124" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis">
+                                            <TextBlock Grid.Column="1" Style="{ThemeResource NodeEntryCaptionTextBlockStyle}" Padding="2" Margin="12,0,0,6" MaxWidth="124" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis">
                                                 <Run Text="{x:Bind Host}"/>
                                             </TextBlock>
                                         </Grid>
@@ -504,7 +502,7 @@
                 <Border x:Name="DetailsPane" Grid.Row="0" Grid.Column="1" Background="{ThemeResource NavigationViewContentBackground}" Margin="0" CornerRadius="{ThemeResource NavigationViewContentChildGridCornerRadius}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
                     <ScrollViewer Visibility="{x:Bind ViewModel.IsEntryDetailVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
 
-                        <StackPanel Margin="24,12,24,24" Visibility="{x:Bind ViewModel.IsEntryDetailVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
+                        <StackPanel Margin="24,12,24,24" MaxWidth="980" Visibility="{x:Bind ViewModel.IsEntryDetailVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
 
                             <RelativePanel HorizontalAlignment="Left" VerticalAlignment="Top" RelativePanel.AlignTopWithPanel="True" RelativePanel.AlignLeftWithPanel="True">
 
@@ -559,27 +557,27 @@
 
                                     <StackPanel>
                                         <TextBlock x:Uid="MainPage_DetailsPane_Author" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Author, Mode=OneWay}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Author, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
                                     </StackPanel>
 
                                     <StackPanel>
                                         <TextBlock x:Uid="MainPage_DetailsPane_Category" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Category, Mode=OneWay}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Category, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
                                     </StackPanel>
 
                                     <StackPanel>
                                         <TextBlock x:Uid="MainPage_DetailsPane_Publisher" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Publisher, Mode=OneWay}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Publisher, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
                                     </StackPanel>
 
                                     <StackPanel>
                                         <TextBlock x:Uid="MainPage_DetailsPane_Published" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.PublishedDateTimeFormated, Mode=OneWay}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.PublishedDateTimeFormated, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
                                     </StackPanel>
 
                                     <StackPanel Visibility="{x:Bind ViewModel.IsSummaryExists, Mode=OneWay}">
                                         <TextBlock x:Uid="MainPage_DetailsPane_Summary" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailSubTitleStyle}"/>
-                                        <RichTextBlock helper:HtmlProperties.Html="{x:Bind ViewModel.SelectedListViewItem.Summary, Mode=OneWay}" Padding="2,6,0,6" Margin="0" IsTextSelectionEnabled="True" Style="{ThemeResource DetailBodyRichTextBlockStyle}" HorizontalAlignment="Stretch" HorizontalTextAlignment="Left"/>
+                                        <RichTextBlock helper:HtmlProperties.Html="{x:Bind ViewModel.SelectedListViewItem.Summary, Mode=OneWay}" Padding="2,4,0,6" Margin="0" IsTextSelectionEnabled="True" Style="{ThemeResource DetailBodyRichTextBlockStyle}" HorizontalAlignment="Stretch" HorizontalTextAlignment="Left"/>
                                         <!-- 
                                         <TextBlock Style="{ThemeResource DetailBodyStyle}" TextWrapping="Wrap" Text="{x:Bind ViewModel.SelectedListViewItem.Summary, Mode=OneWay}"/>
                                          -->
@@ -592,7 +590,7 @@
 
                                     <StackPanel Visibility="{x:Bind ViewModel.IsContentHTML, Mode=OneWay}">
                                         <TextBlock x:Uid="MainPage_DetailsPane_Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailSubTitleStyle}"/>
-                                        <RichTextBlock helper:HtmlProperties.Html="{x:Bind ViewModel.SelectedListViewItem.Content, Mode=OneWay}" Padding="2,6,0,6" Margin="0" IsTextSelectionEnabled="True" Style="{ThemeResource DetailBodyRichTextBlockStyle}" HorizontalAlignment="Stretch" HorizontalTextAlignment="Left"/>
+                                        <RichTextBlock helper:HtmlProperties.Html="{x:Bind ViewModel.SelectedListViewItem.Content, Mode=OneWay}" Padding="2,4,0,6" Margin="0" IsTextSelectionEnabled="True" Style="{ThemeResource DetailBodyRichTextBlockStyle}" HorizontalAlignment="Stretch" HorizontalTextAlignment="Left"/>
                                     </StackPanel>
 
                                     <!--

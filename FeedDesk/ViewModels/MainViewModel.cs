@@ -242,35 +242,33 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                     IsSummaryExists = true;
                 }
 
-                if (string.IsNullOrEmpty(_selectedListViewItem.Content))
-                {
-                    //
-                }
-                else
-                {
-                    IsSummaryExists = false;
-                }
-
                 if ((_selectedListViewItem as EntryItem).ContentType == EntryItem.ContentTypes.text)
                 {
                     IsContentText = true;
-                    //SelectedEntryContentText = (_selectedListViewItem as EntryItem).Content;
+
+                    if (!string.IsNullOrEmpty(_selectedListViewItem.Content.Trim()))
+                    {
+                        IsSummaryExists = false;
+                    }
                 }
                 else
                 {
                     IsContentText = false;
-                    //SelectedEntryContentText = "";
                 }
 
-                if ((_selectedListViewItem as EntryItem).ContentType == EntryItem.ContentTypes.textHtml)
+                if (((_selectedListViewItem as EntryItem).ContentType == EntryItem.ContentTypes.textHtml) ||
+                    ((_selectedListViewItem as EntryItem).ContentType == EntryItem.ContentTypes.unknown))
                 {
                     IsContentHTML = true;
-                    //SelectedEntryContentHTML = (_selectedListViewItem as EntryItem).Content;
+
+                    if (!string.IsNullOrEmpty(_selectedListViewItem.Content.Trim()))
+                    {
+                        IsSummaryExists = false;
+                    }
                 }
                 else
                 {
                     IsContentHTML = false;
-                    //SelectedEntryContentHTML = "";
                 }
 
                 if ((_selectedListViewItem as EntryItem).AltHtmlUri != null)
@@ -321,29 +319,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
     }
     
-    /*
-    private string? _selectedEntrySummary;
-    public string? SelectedEntrySummary
-    {
-        get => _selectedEntrySummary;
-        set => SetProperty(ref _selectedEntrySummary, value);
-    }
-    */
-
-    private string? _selectedEntryContentText;
-    public string? SelectedEntryContentText
-    {
-        get => _selectedEntryContentText;
-        set => SetProperty(ref _selectedEntryContentText, value);
-    }
-
-    private string? _selectedEntryContentHTML;
-    public string? SelectedEntryContentHTML
-    {
-        get => _selectedEntryContentHTML;
-        set => SetProperty(ref _selectedEntryContentHTML, value);
-    }
-
     private bool _isSummaryExists;
     public bool IsSummaryExists
     {

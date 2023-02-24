@@ -97,6 +97,9 @@ public sealed partial class ShellPage : Page
 
         // Dispose httpclient.
         vm.CleanUp();
+
+        // Save err log.
+        (App.Current as App)?.SaveErrorLogIfAny();
     }
 
     private static KeyboardAccelerator BuildKeyboardAccelerator(VirtualKey key, VirtualKeyModifiers? modifiers = null)
