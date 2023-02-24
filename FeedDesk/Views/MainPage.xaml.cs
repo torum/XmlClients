@@ -129,7 +129,7 @@ public sealed partial class MainPage : Page
             // only allow feed and folders
             if ((nt is NodeFeed) || (nt is NodeFolder))
             {
-                Debug.WriteLine("TreeView_DragItemsStarting: " + nt.Name);
+                //Debug.WriteLine("TreeView_DragItemsStarting: " + nt.Name);
 
                 if ((nt.IsBusy) || (nt.IsBusyChildrenCount > 0) || (ViewModel.Root.IsBusyChildrenCount > 0))
                 {

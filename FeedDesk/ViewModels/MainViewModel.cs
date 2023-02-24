@@ -1924,34 +1924,42 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
         else
         {
-            NodeFeed a = new(feedlink.Title, feedlink.FeedUri);
-
-            a.Title = feedlink.SiteTitle;
-            a.HtmlUri = feedlink.SiteUri;
-
-            a.Client = _feedClientService.BaseClient;
-            a.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
-
-            if (SelectedTreeViewItem is null)
+            App.CurrentDispatcherQueue?.TryEnqueue(() =>
             {
-                a.Parent = _services;
-                Services.Insert(0, a);//.Add(a);
-            }
-            else if (SelectedTreeViewItem is NodeFolder)
-            {
-                a.Parent = SelectedTreeViewItem;
-                SelectedTreeViewItem.Children.Add(a);
-                SelectedTreeViewItem.IsExpanded = true;
-            }
-            else if (SelectedTreeViewItem is NodeFeed)
-            {
-                if (SelectedTreeViewItem.Parent != null)
+                NodeFeed a = new(feedlink.Title, feedlink.FeedUri);
+
+                a.Title = feedlink.SiteTitle;
+                a.HtmlUri = feedlink.SiteUri;
+
+                a.Client = _feedClientService.BaseClient;
+                a.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
+
+                if (SelectedTreeViewItem is null)
                 {
-                    if (SelectedTreeViewItem.Parent is NodeFolder folder)
+                    a.Parent = _services;
+                    Services.Insert(0, a);//.Add(a);
+                }
+                else if (SelectedTreeViewItem is NodeFolder)
+                {
+                    a.Parent = SelectedTreeViewItem;
+                    SelectedTreeViewItem.Children.Add(a);
+                    SelectedTreeViewItem.IsExpanded = true;
+                }
+                else if (SelectedTreeViewItem is NodeFeed)
+                {
+                    if (SelectedTreeViewItem.Parent != null)
                     {
-                        a.Parent = folder;
-                        folder.Children.Add(a);
-                        folder.IsExpanded = true;
+                        if (SelectedTreeViewItem.Parent is NodeFolder folder)
+                        {
+                            a.Parent = folder;
+                            folder.Children.Add(a);
+                            folder.IsExpanded = true;
+                        }
+                        else
+                        {
+                            a.Parent = _services;
+                            Services.Insert(0, a);//.Add(a);
+                        }
                     }
                     else
                     {
@@ -1961,21 +1969,17 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 }
                 else
                 {
-                    a.Parent = _services;
-                    Services.Insert(0, a);//.Add(a);
+                    return;
                 }
-            }
-            else
-            {
-                return;
-            }
 
-            a.IsSelected = true;
+                a.IsSelected = true;
 
-            _isFeedTreeLoaded = true;
-            SaveServiceXml();
+                FeedRefreshAllCommand.NotifyCanExecuteChanged();
 
-            //Task.Run(() => GetEntriesAsync(a));
+                _isFeedTreeLoaded = true;
+                SaveServiceXml();
+            });
+
         }
     }
 
@@ -2156,9 +2160,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             }
 
             Entries.Clear();
+
+            FeedRefreshAllCommand.NotifyCanExecuteChanged();
+
+            SaveServiceXml();
         });
 
-        SaveServiceXml();
     }
 
     private async Task DeleteNodes(NodeTree nt, List<NodeTree> nodeToBeDeleted)
@@ -2211,11 +2218,14 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
                     return;
                 });
-
             }
             else
             {
-                feed.IsBusy = false;
+                App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                {
+                    feed.IsBusy = false;
+                });
+
                 nodeToBeDeleted.Add(feed);
             }
         }
@@ -2339,6 +2349,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
             Services.Insert(0, dummyFolder);
             _isFeedTreeLoaded = true;
+
+            FeedRefreshAllCommand.NotifyCanExecuteChanged();
         }
 
         SaveServiceXml();

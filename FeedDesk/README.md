@@ -41,8 +41,10 @@ Feel free to open issues and send PRs.
 from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
 
 ## Change log
+* v1.0.8 (2023/2/26)
+ Store App release. 
 * v1.0.7.123 (2023/2/25)
- Improving HTML Content rendering in RichTextBlock.
+ Improving HTML Content rendering in RichTextBlock. Fixed D&D newEntryCount.
 * v1.0.7 (2023/2/24)
  Store App release. 
 * v1.0.6.123 (2023/2/23)
