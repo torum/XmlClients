@@ -449,7 +449,19 @@ public class NodeRoot : NodeTree
 // NodeFolder for NodeFeeds (Node/NodeTree)
 public class NodeFolder : NodeTree
 {
-    //public ObservableCollection<EntryItem> ListAll { get; set; } = new ObservableCollection<EntryItem>();
+    protected bool _isPendingReload;
+    public bool IsPendingReload
+    {
+        get => _isPendingReload;
+        set
+        {
+            if (_isPendingReload == value)
+                return;
+
+            _isPendingReload = value;
+            NotifyPropertyChanged(nameof(IsPendingReload));
+        }
+    }
 
     public NodeFolder(string name) : base(name)
     {
