@@ -1201,6 +1201,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                                         await CheckParentSelectedAndLoadEntriesIfNotBusy(feed).ConfigureAwait(false);
                                     }
                                 }
+
+                                await CheckParentSelectedAndLoadEntriesIfPending(feed).ConfigureAwait(false);
                             }
                         }));
                     }
@@ -1228,12 +1230,43 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                     {
                         await LoadEntriesAsync(parentFolder).ConfigureAwait(false);
                     }
+                    else
+                    {
+                        App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                        {
+                            parentFolder.IsPendingReload = true;
+                        });
+                    }
                 }
                 else
                 {
                     await CheckParentSelectedAndLoadEntriesIfNotBusy(parentFolder).ConfigureAwait(false);
                 }
+            }
+        }
+    }
 
+    private async Task CheckParentSelectedAndLoadEntriesIfPending(NodeTree nt)
+    {
+        if (nt != null)
+        {
+            if (nt.Parent is NodeFolder parentFolder)
+            {
+                if (parentFolder == SelectedTreeViewItem)
+                {
+                    if ((parentFolder.IsPendingReload) && (parentFolder.IsBusyChildrenCount <= 0))
+                    {
+                        App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                        {
+                            parentFolder.IsPendingReload = false;
+                        });
+                        await LoadEntriesAsync(parentFolder).ConfigureAwait(false);
+                    }
+                }
+                else
+                {
+                    await CheckParentSelectedAndLoadEntriesIfPending(parentFolder).ConfigureAwait(false);
+                }
             }
         }
     }
