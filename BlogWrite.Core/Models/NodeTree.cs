@@ -251,7 +251,6 @@ public abstract class NodeTree : Node
         }
     }
 
-
     private void incIsBusyCount(NodeTree parentNode)
     {
         if (parentNode != null)
@@ -274,7 +273,8 @@ public abstract class NodeTree : Node
         {
             if ((parentNode is NodeFolder) || (parentNode is NodeRoot) || (parentNode is ServiceTreeBuilder))
             {
-                parentNode.IsBusyChildrenCount -= 1;
+                if (parentNode.IsBusyChildrenCount > 0)
+                    parentNode.IsBusyChildrenCount -= 1;
 
                 if (parentNode.Parent != null)
                 {

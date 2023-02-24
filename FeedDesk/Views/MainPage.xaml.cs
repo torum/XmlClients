@@ -117,20 +117,41 @@ public sealed partial class MainPage : Page
 
     private void TreeView_DragItemsStarting(TreeView sender, TreeViewDragItemsStartingEventArgs args)
     {
-        // TODO: If busy downloading.
-        //args.Cancel = true;
-
         if (args.Items.Count > 0)
         {
-            if (args.Items[0] is not NodeTree)
+
+            if (args.Items[0] is not NodeTree nt)
             {
                 args.Cancel = true;
                 return;
             }
 
             // only allow feed and folders
-            if ((args.Items[0] is NodeFeed) || (args.Items[0] is NodeFolder))
+            if ((nt is NodeFeed) || (nt is NodeFolder))
             {
+                Debug.WriteLine("TreeView_DragItemsStarting: " + nt.Name);
+
+                if ((nt.IsBusy) || (nt.IsBusyChildrenCount > 0) || (ViewModel.Root.IsBusyChildrenCount > 0))
+                {
+                    args.Cancel = true;
+                    return;
+                }
+
+
+
+                if (nt.Parent != null)
+                {
+                    if (nt.Parent is NodeFolder originalFolder)
+                    {
+                        if (originalFolder.EntryNewCount >= nt.EntryNewCount)
+                        {
+                            originalFolder.EntryNewCount -= nt.EntryNewCount;
+                        }
+                    }
+                }
+
+
+                DraggedItems.Add(nt);
 
             }
             else
@@ -140,20 +161,51 @@ public sealed partial class MainPage : Page
             }
         }
 
+        /*
         foreach (NodeTree item in args.Items)
         {
             DraggedItems.Add(item);
+            
+            break;
         }
+        */
     }
 
     private void TreeView_DragItemsCompleted(TreeView sender, TreeViewDragItemsCompletedEventArgs args)
     {
         foreach (NodeTree item in args.Items)
         {
-            item.Parent = args.NewParentItem as NodeTree;
 
-            // dropped on rootnodes which means NewParentItem is null.
-            item.Parent ??= ViewModel.Root;
+            /*
+            if (item.Parent != null)
+            {
+                if (item.Parent is NodeFolder originalFolder)
+                {
+                    if (originalFolder.EntryNewCount >= item.EntryNewCount)
+                    {
+                        originalFolder.EntryNewCount -= item.EntryNewCount;
+                    }
+                }
+            }
+            */
+
+            if (args.NewParentItem is NodeFolder newFolder)
+            {
+                item.Parent = newFolder;
+
+                newFolder.EntryNewCount += item.EntryNewCount;
+            }
+            else if (args.NewParentItem is ServiceTreeBuilder newRoot)
+            {
+                // This won't be called.
+                item.Parent = newRoot;
+            }
+            else if (args.NewParentItem is null)
+            {
+                item.Parent = ViewModel.Root;
+            }
+
+            break;
         }
 
         DraggedItems.Clear();

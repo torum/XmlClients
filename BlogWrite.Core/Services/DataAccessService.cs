@@ -359,7 +359,7 @@ public class DataAccessService : IDataAccessService
             return res;
         }
 
-        Debug.WriteLine(string.Format("{0} feed Deleted from DB", res.AffectedCount));
+        //Debug.WriteLine(string.Format("{0} feed Deleted from DB", res.AffectedCount));
 
         return res;
     }

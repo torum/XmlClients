@@ -32,7 +32,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
     }
 
-    public NodeRoot Root => _services;
+    public ServiceTreeBuilder Root => _services;
 
     private NodeTree? _selectedTreeViewItem;
     public NodeTree? SelectedTreeViewItem
@@ -2140,12 +2140,13 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             {
                 if (hoge.Parent != null)
                 {
-                    hoge.Parent.Children.Remove(hoge);
                     hoge.IsBusy = false; // remove self from parent IsBusyChildrenCount
 
                     // 
                     if (hoge.Parent is NodeFolder parentFolder)
                         MinusAllParentEntryCount(parentFolder, hoge.EntryNewCount);
+
+                    hoge.Parent.Children.Remove(hoge);
                 }
                 else
                 {
