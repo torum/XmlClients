@@ -1,8 +1,4 @@
-﻿using AngleSharp;
-using Microsoft.UI.Xaml.Media.Imaging;
-using Windows.Storage.Streams;
-
-namespace BlogWrite.Core.Models.Clients;
+﻿namespace BlogWrite.Core.Models.Clients;
 
 public abstract class BaseClient : IDisposable
 {
@@ -35,45 +31,13 @@ public abstract class BaseClient : IDisposable
     {
         if (disposing)
         {
-            if (_client != null)
-            {
-                _client.Dispose();
-            }
+            _client?.Dispose();
 
             _client = null;
         }
     }
 
     public abstract Task<HttpClientEntryItemCollectionResultWrapper> GetEntries(Uri entriesUrl, string feedId);
-
-    private Byte[] WritableBitmapImageToByteArray(WriteableBitmap writableBitmapImage)
-    {
-        try
-        {
-            var data = Array.Empty<byte>();
-            /*
-            BitmapEncoder encoder = new BmpBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create((BitmapSource)writableBitmapImage));
-            using (MemoryStream ms = new MemoryStream())
-            {
-                encoder.Save(ms);
-                data = ms.ToArray();
-            }
-            */
-            return data;
-        }
-        catch (Exception e)
-        {
-            if (e != null)
-            {
-                Debug.WriteLine(e.Message + " @BaseClient::WritableBitmapImageToByteArray");
-
-                ToDebugWindow("<< " + e.InnerException.ToString() + " @BaseClient::WritableBitmapImageToByteArray: " + e.Message + Environment.NewLine);
-
-            }
-            return Array.Empty<byte>();
-        }
-    }
 
     #region == Events ==
 
@@ -198,6 +162,19 @@ public abstract class BaseClient : IDisposable
         return err;
     }
 
+    protected ErrorObject HttpTimeoutException(ErrorObject err, string errText, string errPlace, string errPlaceParent)
+    {
+        err.ErrCode = "";
+        err.ErrType = ErrorObject.ErrTypes.HTTP; ;
+        err.ErrText = errText;
+        err.ErrDescription = "HTTP request error (Timeout).";
+        err.ErrPlace = errPlace;
+        err.ErrPlaceParent = errPlaceParent;
+        err.ErrDatetime = DateTime.Now;
+
+        return err;
+    }
+
     protected ErrorObject GenericException(ErrorObject err, string errCode, ErrorObject.ErrTypes errType, string errText, string errDescription, string errPlace, string errPlaceParent)
     {
         err.ErrCode = errCode;
@@ -209,110 +186,6 @@ public abstract class BaseClient : IDisposable
         err.ErrDatetime = DateTime.Now;
 
         return err;
-    }
-
-    #endregion
-
-    #region == Util methods ==
-
-    // <summary>Strips style attributes from HTML string. </summary>
-    protected static async Task<string> StripStyleAttributes(string s)
-    {
-        try
-        {
-            var context = BrowsingContext.New(Configuration.Default);
-            var document = await context.OpenAsync(req => req.Content(s));
-            //var blueListItemsLinq = document.QuerySelectorAll("*")
-            var ItemsLinq = document.All.Where(m => m.HasAttribute("style"));
-            foreach (var item in ItemsLinq)
-            {
-                item.RemoveAttribute("style");
-            }
-
-            // TODO: get "Body" element's chiled.
-            return document.DocumentElement.InnerHtml;
-
-        }
-        catch (Exception e)
-        {
-            Debug.WriteLine("Exception@StripStyleAttributes: " + e.Message);
-
-            return "";
-        }
-    }
-
-    // <summary>Strips HTML tags from HTML string. </summary>
-    protected static async Task<string> StripHtmlTags(string s)
-    {
-        try
-        {
-            var context = BrowsingContext.New(Configuration.Default);
-            var document = await context.OpenAsync(req => req.Content(s));
-
-            return document.DocumentElement.TextContent;
-        }
-        catch (Exception e)
-        {
-            Debug.WriteLine("Exception@StripHtmlTags: " + e.Message);
-
-            return "";
-        }
-    }
-
-    // <summary>GetImageUriFromHtml. </summary>
-    protected static async Task<Uri> GetImageUriFromHtml(string s)
-    {
-        Uri imageUri = null;
-        var context = BrowsingContext.New(Configuration.Default);
-        var document = await context.OpenAsync(req => req.Content(s));
-        var sl = document.DocumentElement.QuerySelector("img");
-        if (sl != null)
-        {
-            var imgSrc = sl.GetAttribute("src");
-            if (!string.IsNullOrEmpty(imgSrc))
-            {
-                try
-                {
-                    //Debug.WriteLine("imgSrc: " + imgSrc);
-                    imageUri = new Uri(imgSrc);
-                }
-                catch { }
-            }
-        }
-
-        return imageUri;
-    }
-
-    // <summary>BitmapImageFromBytes. </summary>
-    protected static BitmapImage BitmapImageFromBytes(Byte[] bytes)
-    {
-        try
-        {
-            using (var stream = new MemoryStream(bytes))
-            {
-                var bmimage = new BitmapImage();
-                /*
-                bmimage.BeginInit();
-                bmimage.CacheOption = BitmapCacheOption.OnLoad;
-                bmimage.StreamSource = stream;
-                bmimage.EndInit();
-                */
-                return bmimage;
-            }
-        }
-        catch (Exception e)
-        {
-            Debug.WriteLine(e.Message + " @BaseClient::BitmapImageFromBytes");
-
-            return null;
-        }
-    }
-
-    // <summary> Truncates string with maxLength. </summary>
-    protected static string Truncate(string value, int maxLength)
-    {
-        if (string.IsNullOrEmpty(value)) return value;
-        return value.Length <= maxLength ? value : value.Substring(0, maxLength) + " ...";
     }
 
     #endregion

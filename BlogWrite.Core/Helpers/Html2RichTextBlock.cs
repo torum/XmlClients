@@ -9,6 +9,8 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
+using static System.Net.Mime.MediaTypeNames;
+using Image = Microsoft.UI.Xaml.Controls.Image;
 
 namespace BlogWrite.Core.Helpers;
 
@@ -27,7 +29,7 @@ public class HtmlProperties : DependencyObject
 
     public static void SetHtml(DependencyObject obj, string value) => obj.SetValue(HtmlProperty, value);
 
-    public static string GetHtml(DependencyObject obj)  => (string)obj.GetValue(HtmlProperty);
+    public static string GetHtml(DependencyObject obj) => (string)obj.GetValue(HtmlProperty);
 
     public static Func<Span>? H1SpanFactory
     {
@@ -47,18 +49,35 @@ public class HtmlProperties : DependencyObject
         get; set;
     }
 
-    public static double ImageMaxPixelWidth { get; set; } = 800.0;
-    public static double ImageMaxPixelHeight { get; set; } = 350.0;
+    // TODO:
+    public static Uri? BaseUri
+    {
+        get; set;
+    }
+
+    public static Thickness ParagraphMargin { get; set; } = new Thickness(0, 12, 0, 12);
+    public static Thickness BlockquoteMargin { get; set; } = new Thickness(36, 6, 0, 6);
+    public static Thickness PreCodeMargin { get; set; } = new Thickness(24, 6, 0, 6);
+
+    public static FontFamily PreCodeFontFamily { get; set; } = new FontFamily("Courier New");//Consolas //new FontFamily("monospace");
+
+    public static int H1FontSize { get; set; } = 48;
+    public static int H2FontSize { get; set; } = 32;
+    public static int H3FontSize { get; set; } = 24;
+
+    public static double ImageMaxPixelWidth { get; set; } = 650.0;
+    public static double ImageMaxPixelHeight { get; set; } = 500.0;
 
     private static RichTextBlock? _currentObject;
 
     private static void HtmlChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         var richText = d as RichTextBlock;
-        if (richText == null) 
+        if (richText == null)
             return;
 
         richText.Blocks.Clear();
+
         _currentObject = richText;
 
         try
@@ -70,7 +89,6 @@ public class HtmlProperties : DependencyObject
                 _currentObject = null;
 
                 //Add the blocks to the RichTextBlock
-
                 foreach (var b in blocks)
                 {
                     richText.Blocks.Add(b);
@@ -103,37 +121,16 @@ public class HtmlProperties : DependencyObject
             {
                 foreach (var node in doc.DocumentNode.ChildNodes)
                 {
-                    if (node.Name.ToLower() == "p")
+                    var block = GenerateBlockForTopNode(node);
+                    if (block != null)
                     {
-                        var block = GenerateParagraph(node); 
                         blocks.Add(block);
                     }
-                    else if (node.Name.ToLower() == "blockquote")
-                    {
-                        var paragraph = new Paragraph();
-                        paragraph.Margin = new Thickness(48,0,0,0);
-                        //paragraph.TextIndent = 48;
-                        AddChildren(paragraph, node);
-                        blocks.Add(paragraph);
-                    }
-                    else if (node.Name.ToLower() == "a")
-                    {
-                        var paragraph = new Paragraph();
-                        var link = GenerateHyperLink(node);
-                        if (link is not null)
-                        {
-                            paragraph.Inlines.Add(link);
-                            blocks.Add(paragraph);
-                        }
-                    }
-                    else
-                    {
-                        var paragraph = new Paragraph();
-                        AddChildren(paragraph, node);
-                        blocks.Add(paragraph);
-                    }
-
                 }
+                /*
+                var block = GenerateParagraph(doc.DocumentNode);
+                blocks.Add(block);
+                */
             }
         }
         catch (Exception ex)
@@ -158,13 +155,179 @@ public class HtmlProperties : DependencyObject
         return WebUtility.HtmlDecode(input);
     }
 
+    private static Block? GenerateBlockForTopNode(HtmlNode node)
+    {
+        if ((node.Name.ToLower() == "p") || (node.Name.ToLower() == "div") || (node.Name.ToLower() == "span"))
+        {
+            var paragraph = GenerateParagraph(node);
+            return paragraph;
+        }
+        else if (node.Name.ToLower() == "blockquote")
+        {/*
+            var paragraph = new Paragraph();
+            // Indent
+            paragraph.Margin = BlockquoteMargin;
+            AddChildren(paragraph, node);
+            */
+            var paragraph = GenerateParagraph(node);
+            paragraph.Margin = BlockquoteMargin;
+            return paragraph;
+        }
+        else if (node.Name.ToLower() == "h1")
+        {
+            var paragraph = new Paragraph();
+            paragraph.Margin = ParagraphMargin;
+            var span = new Span { FontSize = H1FontSize };
+            var run = new Run { Text = CleanText(node.InnerText) };
+            span.Inlines.Add(run);
+            paragraph.Inlines.Add(span);
+            return paragraph;
+        }
+        else if (node.Name.ToLower() == "h2")
+        {
+            var paragraph = new Paragraph();
+            paragraph.Margin = ParagraphMargin;
+            var span = new Span { FontSize = H2FontSize };
+            var run = new Run { Text = CleanText(node.InnerText) };
+            span.Inlines.Add(run);
+            paragraph.Inlines.Add(span);
+            return paragraph;
+        }
+        else if (node.Name.ToLower() == "h3")
+        {
+            var paragraph = new Paragraph();
+            paragraph.Margin = ParagraphMargin;
+            var span = new Span { FontSize = H3FontSize };
+            var run = new Run { Text = CleanText(node.InnerText) };
+            span.Inlines.Add(run);
+            paragraph.Inlines.Add(span);
+            return paragraph;
+        }
+        else if (node.Name.ToLower() == "h4")
+        {
+            var paragraph = new Paragraph();
+            paragraph.Margin = ParagraphMargin;
+            var bold = new Bold();
+            var run = new Run { Text = CleanText(node.InnerText) };
+            bold.Inlines.Add(run);
+            paragraph.Inlines.Add(bold);
+            return paragraph;
+        }
+        else if (node.Name.ToLower() == "a")
+        {
+            var paragraph = new Paragraph();
+            paragraph.Margin = ParagraphMargin;
+            //var link = GenerateHyperLink(node);
+            var link = node.ChildNodes.Count >= 1 && (node.FirstChild.Name.ToLower() == "img")
+                        ? GenerateImageWithHyperLink(node)
+                        : GenerateHyperLink(node);
+            if (link is not null)
+            {
+                paragraph.Inlines.Add(link);
+                return paragraph;
+            }
+            else
+            {
+                return null;
+            }
+        }
+        else if (node.Name.ToLower() == "img")
+        {
+            var paragraph = new Paragraph();
+            paragraph.Margin = ParagraphMargin;
+            var img = GenerateImage(node);
+            if (img is not null)
+            {
+                //paragraph.Inlines.Add(new LineBreak());
+                paragraph.Inlines.Add(img);
+                return paragraph;
+            }
+            else
+            {
+                return null;
+            }
+        }
+        else if ((node.Name.ToLower() == "pre") || (node.Name.ToLower() == "code"))
+        {
+            var paragraph = GenerateParagraph(node);
+            paragraph.Margin = PreCodeMargin;
+            paragraph.FontFamily = PreCodeFontFamily;
+
+            return paragraph;
+        }
+        else if ((node.Name.ToLower() == "b") || (node.Name.ToLower() == "strong"))
+        {
+            var paragraph = new Paragraph();
+            paragraph.Margin = ParagraphMargin;
+            var bold = GenerateBold(node);
+            if (bold is not null)
+            {
+                paragraph.Inlines.Add(bold);
+                return paragraph;
+            }
+            else
+            {
+                return null;
+            }
+        }
+        else if (node.Name.ToLower() == "iframe")
+        {
+            var paragraph = new Paragraph();
+            paragraph.Margin = ParagraphMargin;
+            var ifr = GenerateIFrame(node);
+            if (ifr is not null)
+            {
+                paragraph.Inlines.Add(ifr);
+                return paragraph;
+            }
+            else
+            {
+                return null;
+            }
+        }
+        else if (node.Name.ToLower() == "#text")
+        {
+            if (!string.IsNullOrWhiteSpace(ReplaceHtmlEntities(node.InnerText)))
+            {
+                //Debug.WriteLine("#text: " + node.InnerText);
+                var paragraph = new Paragraph();
+                paragraph.Margin = ParagraphMargin;
+                paragraph.Inlines.Add(new Run { Text = CleanText(node.InnerText) });
+                return paragraph;
+            }
+            else
+            {
+                return null;
+            }
+        }
+        else if ((node.Name.ToLower() == "script") || (node.Name.ToLower() == "style") || (node.Name.ToLower() == "link"))
+        {
+            return null;
+        }
+        else
+        {
+            //Debug.WriteLine("else: " + node.Name);
+            var paragraph = GenerateParagraph(node);
+            return paragraph;
+            //blocks.Add(paragraph);
+        }
+    }
+
+    private static Block GenerateParagraph(HtmlNode node)
+    {
+        var paragraph = new Paragraph();
+        paragraph.Margin = ParagraphMargin;
+        AddChildren(paragraph, node);
+        return paragraph;
+    }
+
     private static void AddChildren(Paragraph p, HtmlNode node)
     {
         var added = false;
 
         foreach (var child in node.ChildNodes)
         {
-            var i = GenerateBlockForNode(child);
+            var i = GenerateInlineForNode(child);
             if (i != null)
             {
                 p.Inlines.Add(i);
@@ -173,7 +336,7 @@ public class HtmlProperties : DependencyObject
         }
         if (!added)
         {
-            if (node.InnerText.Trim() != "")
+            if (!string.IsNullOrWhiteSpace(ReplaceHtmlEntities(node.InnerText)))
                 p.Inlines.Add(new Run { Text = CleanText(node.InnerText) });
         }
     }
@@ -184,7 +347,7 @@ public class HtmlProperties : DependencyObject
 
         foreach (var child in node.ChildNodes)
         {
-            var i = GenerateBlockForNode(child);
+            var i = GenerateInlineForNode(child);
             if (i != null)
             {
                 s.Inlines.Add(i);
@@ -193,17 +356,20 @@ public class HtmlProperties : DependencyObject
         }
         if (!added)
         {
-            if (node.InnerText.Trim() != "")
+            if (!string.IsNullOrWhiteSpace(ReplaceHtmlEntities(node.InnerText)))
                 s.Inlines.Add(new Run { Text = CleanText(node.InnerText) });
         }
     }
 
-    private static Inline? GenerateBlockForNode(HtmlNode node)
+
+    private static Inline? GenerateInlineForNode(HtmlNode node)
     {
         try
         {
             switch (node.Name.ToLower())
             {
+                case "span":
+                    return GenerateSpan(node);
                 case "div":
                     return GenerateSpan(node);
                 case "p":
@@ -211,10 +377,11 @@ public class HtmlProperties : DependencyObject
                 case "img":
                     return GenerateImage(node);
                 case "a":
-                    return node.ChildNodes.Count >= 1 && (node.FirstChild.Name == "img")
-                        ? GenerateImage(node.FirstChild)
+                    return node.ChildNodes.Count >= 1 && (node.FirstChild.Name.ToLower() == "img")
+                        ? GenerateImageWithHyperLink(node)
                         : GenerateHyperLink(node);
-                    //return GenerateHyperLink(node);
+                case "ul":
+                    return GenerateUl(node);
                 case "li":
                     return GenerateLi(node);
                 case "b":
@@ -231,21 +398,21 @@ public class HtmlProperties : DependencyObject
                     return null;
                 case "style":
                     return null;
+                case "link":
+                    return null;
                 // TODO:
-                //case "blockquote":
-                //    return GenerateBlockquote(node);
+                case "blockquote":
+                    return GenerateInnerBlockquote(node);
                 // TODO:
-                //case "pre":
+                case "pre":
                 case "code":
-                    return GenerateCode(node);
-                case "span":
-                    return GenerateSpan(node);
+                    return GenerateInnerCode(node);
                 case "iframe":
                     return GenerateIFrame(node);
                 case "#text":
-                    if (!string.IsNullOrWhiteSpace(node.InnerText))
+                    if (!string.IsNullOrWhiteSpace(ReplaceHtmlEntities(node.InnerText)))
                         return new Run { Text = CleanText(node.InnerText) }; // CleanText is removing white spaces in this case
-                        //return new Run { Text = node.InnerText };
+                                                                             //return new Run { Text = node.InnerText };
                     break;
                 case "h1":
                     return GenerateH1(node);
@@ -255,10 +422,8 @@ public class HtmlProperties : DependencyObject
                     return GenerateH3(node);
                 case "h4":
                     return GenerateH4(node);
-                case "ul":
-                    return GenerateUl(node);
-
                 default:
+                    //return null;
                     return GenerateSpanWNewLine(node);
             }
         }
@@ -268,29 +433,6 @@ public class HtmlProperties : DependencyObject
         }
 
         return null;
-    }
-
-    private static Inline GenerateLi(HtmlNode node)
-    {
-        var span = new Span();
-        var inlineUiContainer = new InlineUIContainer();
-        
-        var ellipse = new Ellipse
-        {
-            Fill = _currentObject?.Foreground ?? new SolidColorBrush(Colors.Black),
-            Width = 6,
-            Height = 6,
-            Margin = new Thickness(-24, 0, 0, 1)
-        };
-        inlineUiContainer.Child = ellipse;
-
-        // Indent(tab)
-        span.Inlines.Add(new Run { Text = "\t" });
-
-        span.Inlines.Add(inlineUiContainer);
-        AddChildren(span, node);
-        span.Inlines.Add(new LineBreak());
-        return span;
     }
 
     private static Inline GenerateImage(HtmlNode node)
@@ -324,24 +466,103 @@ public class HtmlProperties : DependencyObject
                             //image.Width = double.Parse(sourceWidth);
                         }
 
-                        image.MaxHeight = ImageMaxPixelHeight;
+                        //image.MaxHeight = ImageMaxPixelHeight;
                         if (sourceHeight != null)
                         {
                             //image.MaxHeight = double.Parse(sourceHeight);
-                            image.Height = double.Parse(sourceHeight);
+                            //image.Height = double.Parse(sourceHeight);
                         }
                     }
-                    else
-                    {
-                        //image.MaxWidth = ImageMaxPixelWidth;
-                        image.MaxHeight = ImageMaxPixelHeight;
 
-                        image.ImageOpened += ImageOpened;
-                    }
+                    image.ImageOpened += ImageOpened;
+                    //image.MaxWidth = ImageMaxPixelWidth;
+                    //image.MaxHeight = ImageMaxPixelHeight;
 
                     image.ImageFailed += ImageFailed;
                     image.Tapped += ImageOnTapped;
 
+                    // hidden untill resize in ImageOpened.
+                    image.Visibility = Visibility.Collapsed;
+
+                    image.Source = new BitmapImage(new Uri(sourceUri, UriKind.Absolute));
+
+                    inlineUiContainer.Child = image;
+
+                    //span.Inlines.Add(new LineBreak());
+                    span.Inlines.Add(inlineUiContainer);
+                    span.Inlines.Add(new LineBreak());
+                }
+                else
+                {
+                    // TODO: 
+                    span.Inlines.Add(new Run { Text = $"[IMG (relative url)]({sourceUri})" });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("GenerateImage: " + ex.Message);
+        }
+        return span;
+    }
+
+    private static Inline? GenerateImageWithHyperLink(HtmlNode node)
+    {
+        // TODO:
+
+        if (node.FirstChild is null)
+        {
+            return null;
+        }
+
+        node = node.FirstChild;
+
+        var span = new Span();
+        try
+        {
+            if (node.Attributes["src"] != null)
+            {
+                var inlineUiContainer = new InlineUIContainer();
+                var sourceUri = WebUtility.HtmlDecode(node.Attributes["src"].Value);
+
+                if (sourceUri.StartsWith("http"))
+                {
+                    var sourceWidth = WebUtility.HtmlDecode(node.Attributes["width"]?.Value);
+                    var sourceHeight = WebUtility.HtmlDecode(node.Attributes["height"]?.Value);
+
+                    var image = new Image
+                    {
+                        Stretch = Stretch.Uniform,
+                        VerticalAlignment = VerticalAlignment.Top,
+                        HorizontalAlignment = HorizontalAlignment.Stretch,
+                    };
+
+                    if (sourceWidth != null || sourceHeight != null)
+                    {
+                        //image.MaxWidth = ImageMaxPixelWidth;
+                        if (sourceWidth != null)
+                        {
+                            //image.MaxWidth = double.Parse(sourceWidth);
+                            //image.Width = double.Parse(sourceWidth);
+                        }
+
+                        //image.MaxHeight = ImageMaxPixelHeight;
+                        if (sourceHeight != null)
+                        {
+                            //image.MaxHeight = double.Parse(sourceHeight);
+                            //image.Height = double.Parse(sourceHeight);
+                        }
+                    }
+
+                    image.ImageOpened += ImageOpened;
+                    //image.MaxWidth = ImageMaxPixelWidth;
+                    //image.MaxHeight = ImageMaxPixelHeight;
+
+                    image.ImageFailed += ImageFailed;
+                    image.Tapped += ImageOnTapped;
+
+                    // hidden untill resize in ImageOpened.
+                    image.Visibility = Visibility.Collapsed;
 
                     image.Source = new BitmapImage(new Uri(sourceUri, UriKind.Absolute));
 
@@ -367,16 +588,26 @@ public class HtmlProperties : DependencyObject
 
     private static void ImageOnTapped(object sender, TappedRoutedEventArgs tappedRoutedEventArgs) => OnImageTapped?.Invoke(sender, tappedRoutedEventArgs);
 
-    private static void ImageFailed(object sender, ExceptionRoutedEventArgs e) => Debug.WriteLine("image failed to load");
+    private static void ImageFailed(object sender, ExceptionRoutedEventArgs e)
+    {
+        Debug.WriteLine("image failed to load: " + e);
+    }
 
     private static void ImageOpened(object sender, RoutedEventArgs e)
     {
-        var img = sender as Image;
-        if (img == null) return;
+        if (sender is not Image img) return;
 
         var bimg = img.Source as BitmapImage;
-        if (bimg != null && (bimg.PixelWidth > ImageMaxPixelWidth || bimg.PixelHeight > ImageMaxPixelHeight))
+        if (bimg == null) return;
+
+        img.MaxHeight = bimg.PixelHeight;
+        img.MaxWidth = bimg.PixelWidth;
+
+        /*
+        if (bimg.PixelWidth > ImageMaxPixelWidth || bimg.PixelHeight > ImageMaxPixelHeight)
         {
+            //img.MaxWidth = ImageMaxPixelWidth;
+            //img.MaxHeight = ImageMaxPixelHeight;
             img.Width = ImageMaxPixelWidth;
             img.Height = ImageMaxPixelHeight;
 
@@ -393,11 +624,12 @@ public class HtmlProperties : DependencyObject
         }
         else
         {
-            if (bimg == null) return;
-
             img.Height = bimg.PixelHeight;
             img.Width = bimg.PixelWidth;
         }
+        */
+
+        img.Visibility = Visibility.Visible;
     }
 
     private static Inline? GenerateHyperLink(HtmlNode node)
@@ -441,17 +673,16 @@ public class HtmlProperties : DependencyObject
                 }
             }
 
-
             return null;
-/*
-            var span = new Span();
-            var inlineUiContainer = new InlineUIContainer();
-            var hyperlinkButton = new Hyperlink//new HyperlinkButton
-            {
-                NavigateUri = new Uri(node.Attributes["href"].Value, UriKind.Absolute),
-                //Content = CleanText(node.InnerText)
-            };
-            */
+            /*
+                        var span = new Span();
+                        var inlineUiContainer = new InlineUIContainer();
+                        var hyperlinkButton = new Hyperlink//new HyperlinkButton
+                        {
+                            NavigateUri = new Uri(node.Attributes["href"].Value, UriKind.Absolute),
+                            //Content = CleanText(node.InnerText)
+                        };
+                        */
             /*
             if (node.ParentNode != null && (node.ParentNode.Name == "li" || node.ParentNode.Name == "LI"))
                 hyperlinkButton.Style = (Style)Application.Current.Resources["RTLinkLI"];
@@ -472,9 +703,7 @@ public class HtmlProperties : DependencyObject
         {
             Debug.WriteLine("GenerateHyperLink: " + ex.Message);
             return null;
-            //return new LineBreak();
         }
-
     }
 
     private static Inline? GenerateIFrame(HtmlNode node)
@@ -483,36 +712,36 @@ public class HtmlProperties : DependencyObject
         {
             if (node.Attributes != null)
             {
-                var s = string.Empty;
+                var src = string.Empty;
                 if (node.Attributes["src"] != null)
-                        s = node.Attributes["src"].Value;
-                var t = string.Empty;
+                    src = node.Attributes["src"].Value;
+                var title = string.Empty;
                 if (node.Attributes["title"] != null)
-                    t = node.Attributes["title"].Value;
+                    title = node.Attributes["title"].Value;
 
-                if (!string.IsNullOrEmpty(s))
+                if (!string.IsNullOrEmpty(src))
                 {
                     var span = new Span();
                     span.Inlines.Add(new LineBreak());
 
-                    if (s.StartsWith("http"))
+                    if (src.StartsWith("http"))
                     {
                         var hyperlinkButton = new Hyperlink();
-                        hyperlinkButton.NavigateUri = new Uri(s, UriKind.Absolute);
-                        if (!string.IsNullOrEmpty(t))
+                        hyperlinkButton.NavigateUri = new Uri(src, UriKind.Absolute);
+                        if (!string.IsNullOrEmpty(title))
                         {
-                            hyperlinkButton.Inlines.Add(new Run { Text = "iFrame: " + CleanText(t) });
+                            hyperlinkButton.Inlines.Add(new Run { Text = $"[iFrame: {CleanText(title)}]({src})" });
                         }
                         else
                         {
-                            hyperlinkButton.Inlines.Add(new Run { Text = $"[iFrame]({s})"});
+                            hyperlinkButton.Inlines.Add(new Run { Text = $"[iFrame]({src})" });
                         }
                         span.Inlines.Add(hyperlinkButton);
                     }
                     else
                     {
                         // md like..
-                        span.Inlines.Add(new Run { Text = CleanText($"[iFrame: {t}]({s})") });
+                        span.Inlines.Add(new Run { Text = CleanText($"[iFrame (relative url): {CleanText(title)}]({src})") });
                     }
 
                     span.Inlines.Add(new LineBreak());
@@ -524,7 +753,7 @@ public class HtmlProperties : DependencyObject
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex.Message);
+            Debug.WriteLine("GenerateIFrame: " + ex.Message);
             return null;
         }
     }
@@ -550,18 +779,34 @@ public class HtmlProperties : DependencyObject
         return italic;
     }
 
-    private static Block GenerateParagraph(HtmlNode node)
-    {
-        var paragraph = new Paragraph();
-        AddChildren(paragraph, node);
-        return paragraph;
-    }
-
     private static Inline GenerateUl(HtmlNode node)
     {
         var span = new Span();
         span.Inlines.Add(new LineBreak());
         AddChildren(span, node);
+        return span;
+    }
+
+    private static Inline GenerateLi(HtmlNode node)
+    {
+        var span = new Span();
+        var inlineUiContainer = new InlineUIContainer();
+
+        var ellipse = new Ellipse
+        {
+            Fill = _currentObject?.Foreground ?? new SolidColorBrush(Colors.Black),
+            Width = 6,
+            Height = 6,
+            Margin = new Thickness(-24, 0, 0, 1)
+        };
+        inlineUiContainer.Child = ellipse;
+
+        // Indent(tab)
+        span.Inlines.Add(new Run { Text = "\t" });
+
+        span.Inlines.Add(inlineUiContainer);
+        AddChildren(span, node);
+        span.Inlines.Add(new LineBreak());
         return span;
     }
 
@@ -574,6 +819,17 @@ public class HtmlProperties : DependencyObject
         return span;
     }
 
+    private static Inline GenerateInnerBlockquote(HtmlNode node)
+    {
+        var italic = new Italic();
+        italic.Inlines.Add(new LineBreak());
+        italic.Inlines.Add(new LineBreak());
+        AddChildren(italic, node);
+        italic.Inlines.Add(new LineBreak());
+        italic.Inlines.Add(new LineBreak());
+        return italic;
+    }
+
     private static Inline GenerateSpan(HtmlNode node)
     {
         var span = new Span();
@@ -581,11 +837,10 @@ public class HtmlProperties : DependencyObject
         return span;
     }
 
-    private static Inline GenerateCode(HtmlNode node)
+    private static Inline GenerateInnerCode(HtmlNode node)
     {
         var span = new Span();
-        span.FontFamily = new FontFamily("monospace");
-        // TODO: background
+        span.FontFamily = PreCodeFontFamily;
         AddChildren(span, node);
         return span;
     }
@@ -599,9 +854,9 @@ public class HtmlProperties : DependencyObject
         return span;
     }
 
-    private static Span GenerateH4(HtmlNode node)
+    private static Inline GenerateH4(HtmlNode node)
     {
-        var span = H3SpanFactory?.Invoke() ?? new Span() ;
+        var span = H3SpanFactory?.Invoke() ?? new Span();
         span.Inlines.Add(new LineBreak());
         var bold = new Bold();
         var run = new Run { Text = CleanText(node.InnerText) };
@@ -611,9 +866,9 @@ public class HtmlProperties : DependencyObject
         return span;
     }
 
-    private static Span GenerateH3(HtmlNode node)
+    private static Inline GenerateH3(HtmlNode node)
     {
-        var span = H3SpanFactory?.Invoke() ?? new Span { FontSize = 20 }; 
+        var span = H3SpanFactory?.Invoke() ?? new Span { FontSize = H3FontSize };
         span.Inlines.Add(new LineBreak());
         var bold = new Bold();
         var run = new Run { Text = CleanText(node.InnerText) };
@@ -625,7 +880,7 @@ public class HtmlProperties : DependencyObject
 
     private static Inline GenerateH2(HtmlNode node)
     {
-        var span = H2SpanFactory?.Invoke() ?? new Span { FontSize = 24 };
+        var span = H2SpanFactory?.Invoke() ?? new Span { FontSize = H2FontSize };
         span.Inlines.Add(new LineBreak());
         var run = new Run { Text = CleanText(node.InnerText) };
         span.Inlines.Add(run);
@@ -635,7 +890,7 @@ public class HtmlProperties : DependencyObject
 
     private static Inline GenerateH1(HtmlNode node)
     {
-        var span = H1SpanFactory?.Invoke() ?? new Span { FontSize = 30 };
+        var span = H1SpanFactory?.Invoke() ?? new Span { FontSize = H1FontSize };
         span.Inlines.Add(new LineBreak());
         var run = new Run { Text = CleanText(node.InnerText) };
         span.Inlines.Add(run);

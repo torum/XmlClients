@@ -9,12 +9,6 @@ namespace BlogWrite.Core.Services;
 
 public class FeedClientService : BaseClient, IFeedClientService
 {
-    /*
-        https://help.apple.com/itc/podcasts_connect/#/itcb54353390
-        https://www.dublincore.org/specifications/dublin-core/dces/
-        https://validator.w3.org/feed/docs/atom.html
-     */
-
     public BaseClient BaseClient => this;
 
     public FeedClientService()
@@ -51,8 +45,6 @@ public class FeedClientService : BaseClient, IFeedClientService
 
         try
         {
-            Client.DefaultRequestHeaders.ConnectionClose = true;
-
             var HTTPResponseMessage = await Client.GetAsync(entriesUrl);
 
             if (HTTPResponseMessage.IsSuccessStatusCode)
@@ -114,6 +106,8 @@ public class FeedClientService : BaseClient, IFeedClientService
                     XmlNamespaceManager NsMgr = new XmlNamespaceManager(xdoc.NameTable);
                     NsMgr.AddNamespace("dc", "http://purl.org/dc/elements/1.1/");
                     NsMgr.AddNamespace("itunes", "http://www.itunes.com/dtds/podcast-1.0.dtd");
+                    NsMgr.AddNamespace("content", "http://purl.org/rss/1.0/modules/content/");
+                    NsMgr.AddNamespace("media", "http://search.yahoo.com/mrss/");
 
                     XmlNode? feedTitle = xdoc.DocumentElement.SelectSingleNode("channel/title");
                     res.Title = (feedTitle != null) ? feedTitle.InnerText : "";
@@ -242,6 +236,7 @@ public class FeedClientService : BaseClient, IFeedClientService
                     NsMgr.AddNamespace("dc", "http://purl.org/dc/elements/1.1/");
                     NsMgr.AddNamespace("hatena", "http://www.hatena.ne.jp/info/xmlns#");
                     NsMgr.AddNamespace("content", "http://purl.org/rss/1.0/modules/content/");
+                    NsMgr.AddNamespace("media", "http://search.yahoo.com/mrss/");
 
                     XmlNode? feedTitle = xdoc.DocumentElement.SelectSingleNode("rss:channel/rss:title", NsMgr);
                     res.Title = (feedTitle != null) ? feedTitle.InnerText : "";
@@ -609,6 +604,20 @@ public class FeedClientService : BaseClient, IFeedClientService
 
             return res;
         }
+        catch (Exception e) when (e.InnerException is TimeoutException)
+        {
+            Debug.WriteLine("TimeoutException: " + e.Message);
+
+            ToDebugWindow("<< TimeoutException:"
+                + Environment.NewLine
+                + e.Message
+                + Environment.NewLine);
+
+            HttpTimeoutException(res.Error, e.Message, "Client.GetAsync", "FeedHttpClient.GetEntries");
+            res.IsError = true;
+
+            return res;
+        }
         catch (Exception e)
         {
             Debug.WriteLine("HTTP error: " + e.Message);
@@ -889,6 +898,29 @@ public class FeedClientService : BaseClient, IFeedClientService
             }
         }
 
+        if (entItem.ImageUri == null)
+        {
+            XmlNode? mediaThumbnailNode = entryNode.SelectSingleNode("media:thumbnail", NsMgr);
+            if (mediaThumbnailNode != null)
+            {
+                if (mediaThumbnailNode.Attributes != null)
+                {
+                    if (mediaThumbnailNode.Attributes["url"] != null)
+                    {
+                        var url = mediaThumbnailNode.Attributes["url"]!.Value;
+                        if (!string.IsNullOrEmpty(url))
+                        {
+                            try
+                            {
+                                entItem.ImageUri = new Uri(url);
+                            }
+                            catch { }
+                        }
+                    }
+                }
+            }
+        }
+
         // comments (//rss/channel/item/comments)
         XmlNode? entryCommentsNode = entryNode.SelectSingleNode("comments");
         if (entryCommentsNode != null)
@@ -914,8 +946,6 @@ public class FeedClientService : BaseClient, IFeedClientService
             {
                 entItem.ContentType = EntryItem.ContentTypes.unknown;
 
-                // Content
-                //entItem.Content = await StripStyleAttributes(s);
                 entItem.Summary = s;
                 if (!string.IsNullOrEmpty(s))
                 {
@@ -929,6 +959,24 @@ public class FeedClientService : BaseClient, IFeedClientService
                     //if (entItem.ImageUri == null)
                     //    entItem.ImageUri = await GetImageUriFromHtml(s);
                 }
+            }
+        }
+
+        XmlNode? con = entryNode.SelectSingleNode("content:encoded", NsMgr);
+        if (con != null)
+        {
+            var s = con.InnerText;
+            if (!string.IsNullOrEmpty(s))
+            {
+                entItem.ContentType = EntryItem.ContentTypes.textHtml;
+
+                // It wasn't a good idea to put in "Content" because the same thing show up in details page. Should just override"Summary".
+                entItem.Content = s;
+                //entItem.Summary = s;
+
+                // gets image Uri
+                //if (entItem.ImageUri == null)
+                //    entItem.ImageUri = await GetImageUriFromHtml(s);
             }
         }
 
@@ -1041,22 +1089,45 @@ public class FeedClientService : BaseClient, IFeedClientService
             entItem.Category = "-";
         }
 
-        // hatena imageurl
-        XmlNode? hatenaImgUri = entryNode.SelectSingleNode("hatena:imageurl", NsMgr);
-        try
+        XmlNode? mediaThumbnailNode = entryNode.SelectSingleNode("media:thumbnail", NsMgr);
+        if (mediaThumbnailNode != null)
         {
-            if (hatenaImgUri != null)
-                if (!string.IsNullOrEmpty(hatenaImgUri.InnerText))
-                    entItem.ImageUri = new Uri(hatenaImgUri.InnerText);
+            if (mediaThumbnailNode.Attributes != null)
+            {
+                if (mediaThumbnailNode.Attributes["url"] != null)
+                {
+                    var url = mediaThumbnailNode.Attributes["url"]!.Value;
+                    if (!string.IsNullOrEmpty(url))
+                    {
+                        try
+                        {
+                            entItem.ImageUri = new Uri(url);
+                        }
+                        catch { }
+                    }
+                }
+            }
         }
-        catch (Exception e)
-        {
-            Debug.WriteLine("Exception @new Uri(entryLinkUri.InnerText)" + "(" + entItem.Name + ")" + " : " + e.Message);
 
-            ToDebugWindow(">> Exception @RssFeedClient@FillEntryItemFromXmlRdf:new Uri()"
-                + Environment.NewLine +
-                "RSS feed entry (" + entItem.Name + ") contain invalid image Uri: " + e.Message +
-                Environment.NewLine);
+        if (entItem.ImageUri == null)
+        {
+            // hatena imageurl
+            XmlNode? hatenaImgUri = entryNode.SelectSingleNode("hatena:imageurl", NsMgr);
+            try
+            {
+                if (hatenaImgUri != null)
+                    if (!string.IsNullOrEmpty(hatenaImgUri.InnerText))
+                        entItem.ImageUri = new Uri(hatenaImgUri.InnerText);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("Exception @new Uri(entryLinkUri.InnerText)" + "(" + entItem.Name + ")" + " : " + e.Message);
+
+                ToDebugWindow(">> Exception @RssFeedClient@FillEntryItemFromXmlRdf:new Uri()"
+                    + Environment.NewLine +
+                    "RSS feed entry (" + entItem.Name + ") contain invalid image Uri: " + e.Message +
+                    Environment.NewLine);
+            }
         }
 
         // hatena commenturl
@@ -1086,9 +1157,6 @@ public class FeedClientService : BaseClient, IFeedClientService
             {
                 entItem.ContentType = EntryItem.ContentTypes.unknown;
 
-                // Content
-                //entItem.Content = await StripStyleAttributes(sum.InnerText);
-                //entItem.Content = sum.InnerText;
                 entItem.Summary = sum.InnerText;
                 if (!string.IsNullOrEmpty(s))
                 {
@@ -1111,7 +1179,10 @@ public class FeedClientService : BaseClient, IFeedClientService
             if (!string.IsNullOrEmpty(s))
             {
                 entItem.ContentType = EntryItem.ContentTypes.textHtml;
+                // It wasn't a good idea to put in "Content" because the same thing show up in details page. Should just override"Summary".
                 entItem.Content = s;
+                //entItem.Summary = s;
+                //entItem.Content = s;
 
                 // gets image Uri
                 //if (entItem.ImageUri == null)
@@ -1122,7 +1193,7 @@ public class FeedClientService : BaseClient, IFeedClientService
         entItem.Status = FeedEntryItem.ReadStatus.rsNew;
     }
 
-    private async void FillEntryItemFromXmlAtom03(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr, Uri baseUri)
+    private void FillEntryItemFromXmlAtom03(FeedEntryItem entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr, Uri baseUri)
     {
         XmlNode? entryTitle = entryNode.SelectSingleNode("atom:title", atomNsMgr);
         if (entryTitle != null)
@@ -1364,7 +1435,6 @@ public class FeedClientService : BaseClient, IFeedClientService
         XmlNode? sum = entryNode.SelectSingleNode("atom:summary", atomNsMgr);
         if (sum != null)
         {
-            entItem.Summary = await StripStyleAttributes(sum.InnerText);
             entItem.Summary = sum.InnerText;
             //entry.ContentType = EntryFull.ContentTypes.textHtml;
 
@@ -1838,7 +1908,6 @@ public class FeedClientService : BaseClient, IFeedClientService
         XmlNode? sum = entryNode.SelectSingleNode("atom:summary", atomNsMgr);
         if (sum != null)
         {
-            //entItem.Summary = await StripStyleAttributes(sum.InnerText);
             entItem.Summary = sum.InnerText;
             //entry.ContentType = EntryFull.ContentTypes.textHtml;
 

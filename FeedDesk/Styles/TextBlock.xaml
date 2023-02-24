@@ -17,6 +17,11 @@
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
+    <Style x:Key="NodeTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="FontSize" Value="{StaticResource NormalFontSize}" />
+    </Style>
+    
     <Style x:Key="ListTitleStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
         <Setter Property="FontSize" Value="14" />
         <Setter Property="FontWeight" Value="Bold" />
@@ -39,29 +44,29 @@
 
     <Style x:Key="DetailBodyBaseMediumStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
         <Setter Property="FontWeight" Value="Normal" />
-        <Setter Property="FontSize" Value="{StaticResource NormalFontSize}" />
+        <Setter Property="FontSize" Value="{StaticResource XNormalFontSize}" />
         <Setter Property="LineHeight" Value="21"/>
         <Setter Property="Opacity" Value="0.7" />
     </Style>
 
     <Style x:Key="DetailBodyStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
         <Setter Property="FontWeight" Value="Normal" />
-        <Setter Property="FontSize" Value="{StaticResource NormalFontSize}" />
+        <Setter Property="FontSize" Value="{StaticResource XNormalFontSize}" />
         <Setter Property="LineHeight" Value="21"/>
         <Setter Property="Opacity" Value="0.8" />
     </Style>
 
-    <Style x:Key="DetailBodyRichTextBlockStyle" TargetType="RichTextBlock" BasedOn="{StaticResource BodyRichTextBlockStyle}">
+    <Style x:Key="DetailBodyRichTextBlockStyle" TargetType="RichTextBlock" BasedOn="{StaticResource BaseRichTextBlockStyle}">
+        <Setter Property="LineStackingStrategy" Value="MaxHeight" />
+        <Setter Property="TextLineBounds" Value="Full" />
+        <Setter Property="OpticalMarginAlignment" Value="TrimSideBearings" />
+        <Setter Property="TextTrimming" Value="None" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="FontFamily" Value="XamlAutoFontFamily" />
         <Setter Property="FontWeight" Value="Normal" />
-        <Setter Property="FontSize" Value="{StaticResource NormalFontSize}" />
+        <Setter Property="FontSize" Value="{StaticResource XNormalFontSize}" />
         <Setter Property="LineHeight" Value="21"/>
         <Setter Property="Opacity" Value="0.8" />
     </Style>
     
-
-    <Style x:Key="NodeTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
-        <Setter Property="FontWeight" Value="Normal" />
-        <Setter Property="FontSize" Value="{StaticResource NormalFontSize}" />
-    </Style>
-
 </ResourceDictionary>

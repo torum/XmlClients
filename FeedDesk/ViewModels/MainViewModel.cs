@@ -242,6 +242,15 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                     IsSummaryExists = true;
                 }
 
+                if (string.IsNullOrEmpty(_selectedListViewItem.Content))
+                {
+                    //
+                }
+                else
+                {
+                    IsSummaryExists = false;
+                }
+
                 if ((_selectedListViewItem as EntryItem).ContentType == EntryItem.ContentTypes.text)
                 {
                     IsContentText = true;
@@ -1442,15 +1451,19 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     private void UpdateNewEntryCount(NodeFeed feed, int newCount)
     {
-        if (newCount > 0)
+        if (feed != null)
         {
-            feed.EntryNewCount += newCount;
-
-            if (feed.Parent is NodeFolder folder)
+            if (newCount > 0)
             {
-                UpdateParentNewEntryCount(folder, newCount);
+                feed.EntryNewCount += newCount;
+
+                if (feed.Parent is NodeFolder folder)
+                {
+                    UpdateParentNewEntryCount(folder, newCount);
+                }
             }
         }
+
         /*
         App.CurrentDispatcherQueue?.TryEnqueue(() =>
         {
