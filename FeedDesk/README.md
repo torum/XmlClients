@@ -42,7 +42,7 @@ from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
 
 ## Change log
 * v1.0.8.123 (2023/2/27)
- Added Acrylic material(backdrop/visual effect)! and added wait dialog for import and remove.
+ Added Acrylic material(backdrop/visual effect) support! and added wait dialog for import and remove. Theme tweak. Update tweak.
 * v1.0.8 (2023/2/26)
  Store App release. 
 * v1.0.7.123 (2023/2/25)
@@ -92,11 +92,9 @@ from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
  Switched to WinUI3 from a WPF project. 
 
 ## Things that currentry working on
-- [ ] Create contentdialog or something while OPML import 'cause it is making GUI unresposive. 
-- [ ] Update entry data when entry is updated.
+- [ ] Remove AngleSharp and use HTMLAgilityPack instead because AngleSharp spits some exception.
 - [ ] Database file management page (menu>tools), clean(delete all data) and optimize(vacume).
 - [ ] Full Text Search.
-- [ ] Remove AngleSharp and use HTMLAgilityPack because AngleSharp spits some exception.
 
 ## Planning
 
@@ -106,9 +104,9 @@ from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
 - [ ] Auto reflesh.
 
 ### UI
-- [ ] FavIcon. 
+- [ ] FavIcon? 
 - [ ] Grouping display of entries. (date or publisher)
-- [ ] multiple viewing style (3 panes, cards, etc)
+- [ ] Multiple viewing style (3 panes, cards, etc)
 
 ### Sync 
 - [ ] Sync with Firefox Pocket or Instapaper etc for "read lator".

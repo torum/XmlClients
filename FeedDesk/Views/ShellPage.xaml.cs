@@ -61,7 +61,7 @@ public sealed partial class ShellPage : Page
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         // Needed to be here. (don't put this in constructor.. messes up when theme changed.)
-        TitleBarHelper.UpdateTitleBar(RequestedTheme, App.MainWindow);
+        //TitleBarHelper.UpdateTitleBar(RequestedTheme, App.MainWindow);
 
         KeyboardAccelerators.Add(BuildKeyboardAccelerator(VirtualKey.Left, VirtualKeyModifiers.Menu));
         KeyboardAccelerators.Add(BuildKeyboardAccelerator(VirtualKey.GoBack));

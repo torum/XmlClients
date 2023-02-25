@@ -36,6 +36,14 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
         set => SetProperty(ref _isAcrylicSupported, value);
     }
 
+    private bool _isSystemBackdropSupported = true;
+    public bool IsSystemBackdropSupported
+    {
+        get => _isSystemBackdropSupported;
+        set => SetProperty(ref _isSystemBackdropSupported, value);
+    }
+    //
+
     private ElementTheme _elementTheme = ElementTheme.Default;
     public ElementTheme ElementTheme
     {
@@ -89,6 +97,15 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
         else
         {
             IsAcrylicSupported = false;
+
+            if (Microsoft.UI.Composition.SystemBackdrops.MicaController.IsSupported())
+            {
+                //
+            }
+            else
+            {
+                IsSystemBackdropSupported = false;
+            }
         }
 
         SwitchThemeCommand = new RelayCommand<ElementTheme>(

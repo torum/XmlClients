@@ -8,16 +8,20 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FeedDesk.Contracts.Services;
 using FeedDesk.Contracts.ViewModels;
+using Microsoft.UI.Xaml;
+using Microsoft.UI;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Media.Core;
+using Windows.UI.ViewManagement;
 using WinRT.Interop;
 
 namespace FeedDesk.ViewModels;
 
 public partial class MainViewModel : ObservableRecipient, INavigationAware
 {
+
     #region == Service Treeview ==
 
     private readonly ServiceTreeBuilder _services = new();
@@ -693,7 +697,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         _dataAccessService = dataAccessService;
         _feedClientService = feedClientService;
         _feedClientService.BaseClient.DebugOutput += OnDebugOutput;
-
+        
         InitializeFeedTree();
         InitializeDatabase();
         InitializeFeedClient();
@@ -1521,6 +1525,11 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             {
                 feed.IsBusy = true;
 
+                if (feed == _selectedTreeViewItem)
+                {
+                    Entries.Clear();
+                }
+
                 // TODO: not really saving
                 //feed.Status = NodeFeed.DownloadStatus.saving;
             });
@@ -1584,7 +1593,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                             //IsShowDatabaseErrorMessage = false;
 
                             // clear here.
-                            Entries.Clear();
+                            //Entries.Clear();
                             
                             // showing all entries. so realod.
                             /*
@@ -1621,20 +1630,17 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         {
             if (folder.Children.Count > 0)
             {
-                List<string> tmpList = new();
-                /*
-                foreach (NodeTree hoge in folder.Children)
+                App.CurrentDispatcherQueue?.TryEnqueue(() =>
                 {
-                    if (hoge is NodeFeed childfeed)
+                    if (folder == _selectedTreeViewItem)
                     {
-                        list.Add(childfeed.Id);
+                        Entries.Clear();
                     }
-                }*/
+                });
 
-                if (folder.Children.Count > 0)
-                {
-                    tmpList = GetAllFeedIdsFromChildNodes(folder.Children);
-                }
+                List<string> tmpList = new();
+
+                tmpList = GetAllFeedIdsFromChildNodes(folder.Children);
 
                 var res = await Task.FromResult(_dataAccessService.UpdateAllEntriesAsArchived(tmpList));
 
@@ -1661,7 +1667,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
                         if (folder == _selectedTreeViewItem)
                         {
-                            Entries.Clear();
+                            //Entries.Clear();
                             /*
                             if (!folder.IsDisplayUnarchivedOnly)
                             {

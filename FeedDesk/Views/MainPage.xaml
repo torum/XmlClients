@@ -184,9 +184,10 @@
                 </Border>
 
                 <!-- Feeds treeview
-                            Background="{ThemeResource NavigationViewContentBackground}"  
+                            Background="{ThemeResource NavigationViewContentBackground}"  Background="{ThemeResource NavigationViewTopPaneBackground}"
                             Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}"  -->
                 <TreeView x:Name="TreeViewControl" Grid.Row="1"
+                          
                           VerticalAlignment="Stretch" 
                            BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}"
                           SelectionMode="Single" 

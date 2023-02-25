@@ -12,8 +12,8 @@ using Image = Microsoft.UI.Xaml.Controls.Image;
 
 namespace BlogWrite.Core.Helpers;
 
-// Code adapted from https://blogs.msdn.microsoft.com/tess/2013/05/13/displaying-html-content-in-a-richtextblock/
-// modified from https://github.com/xleon/HTML2XAML/blob/master/XAMLHtml/XAMLHtml.cs
+// Code originaly adapted from https://blogs.msdn.microsoft.com/tess/2013/05/13/displaying-html-content-in-a-richtextblock/
+// Modified from https://github.com/xleon/HTML2XAML/blob/master/XAMLHtml/XAMLHtml.cs
 
 // Limitation: no base uri support.
 

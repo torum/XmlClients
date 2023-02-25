@@ -47,7 +47,7 @@ public class DataAccessService : IDataAccessService
                         "url TEXT NOT NULL," +
                         "title TEXT," +
                         "published TEXT NOT NULL," +
-                        "updated TEXT," +
+                        "updated TEXT NOT NULL," +
                         "author TEXT," +
                         "category TEXT," +
                         "summary TEXT," +
@@ -507,7 +507,7 @@ public class DataAccessService : IDataAccessService
 
                 // Experimental 
                 // Delete old entries LIMIT 1000.
-                cmd.CommandText = string.Format("DELETE FROM entries WHERE feed_id = '{0}' AND entry_id NOT IN (SELECT entry_id FROM entries WHERE feed_id = '{0}' ORDER BY published DESC LIMIT 1000);", feedId);//ASC
+                cmd.CommandText = string.Format("DELETE FROM entries WHERE feed_id = '{0}' AND entry_id NOT IN (SELECT entry_id FROM entries WHERE feed_id = '{0}' ORDER BY updated DESC LIMIT 1000);", feedId);//ASC
                 cmd.ExecuteNonQuery();
 
                 foreach (var entry in entries)
@@ -568,7 +568,15 @@ public class DataAccessService : IDataAccessService
                         cmd.Parameters.AddWithValue("@Published", entry.Published.ToString("yyyy-MM-dd HH:mm:ss"));
                     }
 
-                    cmd.Parameters.AddWithValue("@Updated", entry.Updated.ToString("yyyy-MM-dd HH:mm:ss"));
+                    if (entry.Updated == default)
+                    {
+                        cmd.Parameters.AddWithValue("@Updated", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("@Updated", entry.Updated.ToString("yyyy-MM-dd HH:mm:ss"));
+                    }
+                    //cmd.Parameters.AddWithValue("@Updated", entry.Updated.ToString("yyyy-MM-dd HH:mm:ss"));
 
                     if (entry.Author != null) 
                     {
@@ -680,11 +688,56 @@ public class DataAccessService : IDataAccessService
                     }
                     else
                     {
-                        // TODO: update entry.
+                        // Update
+                        var sqlUpdate = "UPDATE entries SET ";
+                        sqlUpdate += string.Format("title = '{0}', ", EscapeSingleQuote(entry.Title ?? ""));
+                        sqlUpdate += string.Format("author = '{0}', ", EscapeSingleQuote(entry.Author ?? "-"));
+                        sqlUpdate += string.Format("category = '{0}', ", EscapeSingleQuote(entry.Category ?? "-"));
+                        sqlUpdate += string.Format("summary = '{0}', ", EscapeSingleQuote(entry.Summary ?? ""));
+                        sqlUpdate += string.Format("content = '{0}', ", EscapeSingleQuote(entry.Content ?? ""));
+                        if (entry.ImageUri != null)
+                        {
+                            sqlUpdate += string.Format("image_url = '{0}', ", entry.ImageUri.AbsoluteUri);
+                        }
+                        else
+                        {
+                            sqlUpdate += string.Format("image_url = '{0}', ", "");
+                        }
+                        if (entry.AudioUri != null)
+                        {
+                            sqlUpdate += string.Format("audio_url = '{0}', ", entry.AudioUri.AbsoluteUri);
+                        }
+                        else
+                        {
+                            sqlUpdate += string.Format("audio_url = '{0}', ", "");
+                        }
+
+                        if (entry.Updated == default)
+                        {
+                            sqlUpdate += string.Format("updated = '{0}'", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
+                        }
+                        else
+                        {
+                            sqlUpdate += string.Format("updated = '{0}'", updated.ToString("yyyy-MM-dd HH:mm:ss"));
+                        }
+
+                        if (entry.AltHtmlUri != null)
+                        {
+                            sqlUpdate += string.Format(", url = '{0}'", entry.AltHtmlUri.AbsoluteUri);
+                        }
+                        sqlUpdate += string.Format(" WHERE entry_id = '{0}'; ", entry.Id);
+
+                        cmd.CommandText = sqlUpdate;
+                        var c = cmd.ExecuteNonQuery();
+                        if (c > 0)
+                        {
+                            //Debug.WriteLine($"{c} entries updated.");
+                        }
                     }
+
+
                 }
 
-                //
                 cmd.Transaction.Commit();
             }
             catch (Exception e)

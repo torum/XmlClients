@@ -24,7 +24,7 @@ public class ActivationService : IActivationService
     public async Task ActivateAsync(object activationArgs)
     {
         // Execute tasks before activation.
-        await InitializeAsync();
+        await InitializeAsync().ConfigureAwait(false); ;
 
         // Set the MainWindow Content.
         if (App.MainWindow.Content == null)
@@ -34,10 +34,10 @@ public class ActivationService : IActivationService
         }
 
         // Handle activation via ActivationHandlers.
-        await HandleActivationAsync(activationArgs);
+        await HandleActivationAsync(activationArgs).ConfigureAwait(false);
 
         // Test
-        await Task.Delay(100);
+        //await Task.Delay(100);
 
         // Test
         //App.MainWindow.Show();
@@ -49,7 +49,7 @@ public class ActivationService : IActivationService
         App.MainWindow.BringToFront();
 
         // Execute tasks after activation.
-        await StartupAsync();
+        await StartupAsync().ConfigureAwait(false);
     }
 
     private async Task HandleActivationAsync(object activationArgs)
@@ -75,7 +75,7 @@ public class ActivationService : IActivationService
 
     private async Task StartupAsync()
     {
-        await _themeSelectorService.SetRequestedThemeAsync();
+        await _themeSelectorService.SetRequestedThemeAsync().ConfigureAwait(false); ;
         await Task.CompletedTask;
     }
 }

@@ -161,13 +161,14 @@ public partial class App : Application
         // 
         var manager = WinUIEx.WindowManager.Get(MainWindow);
         manager.PersistenceId = "MainWindowPersistanceId";
-
+        
         // SystemBackdrop
         if (Microsoft.UI.Composition.SystemBackdrops.DesktopAcrylicController.IsSupported())
         {
             //manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
             if (RuntimeHelper.IsMSIX)
             {
+                // Load preference from localsetting.
                 if (ApplicationData.Current.LocalSettings.Values.TryGetValue(BackdropSettingsKey, out var obj))
                 {
                     var s = (string)obj;
@@ -186,11 +187,13 @@ public partial class App : Application
                 }
                 else
                 {
+                    // default acrylic.
                     manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
                 }
             }
             else
             {
+                // just for me.
                 manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
             }
         }
@@ -200,8 +203,7 @@ public partial class App : Application
         }
         else
         {
-            // anyway.
-            manager.Backdrop = new WinUIEx.MicaSystemBackdrop();
+            // Memo: Without Backdrop, theme setting's theme is not gonna have any effect( "system default" will be used). So the setting is disabled.
         }
 
         // WinUIEx Storage option.
