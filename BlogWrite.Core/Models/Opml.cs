@@ -47,42 +47,49 @@ public class Opml
                 continue;
 
             var title = "empty";
-            if (outline.Attributes["text"] is not null)
-            {
-                title = outline.Attributes["text"].InnerText;
-            }
 
-            var xmlUrl = "";
-            if (outline.Attributes["xmlUrl"] is not null)
+            if (outline.Attributes != null)
             {
-                xmlUrl = outline.Attributes["xmlUrl"].Value;
-
-                if (!string.IsNullOrEmpty(xmlUrl))
+                if (outline.Attributes["text"] is not null)
                 {
-                    try
+                    var s = outline.Attributes["text"]?.InnerText;
+                    if (!string.IsNullOrEmpty(s))
                     {
-                        Uri xu = new Uri(xmlUrl);
-
-                        NodeFeed feed = new(title, xu);
-
-                        if (outline.Attributes["htmlUrl"] is not null)
-                        {
-                            var htmlUrl = "";
-                            htmlUrl = outline.Attributes["htmlUrl"].Value;
-
-                            var hu = new Uri(htmlUrl);
-                            feed.HtmlUri = hu;
-                        }
-
-                        feed.Parent = parent;
-
-                        parent.Children.Add(feed);
-
-                        continue;
+                        title = s;
                     }
-                    catch
+                }
+
+                
+                if (outline.Attributes["xmlUrl"] is not null)
+                {
+                    var xmlUrl = outline.Attributes["xmlUrl"]?.Value;
+
+                    if (!string.IsNullOrEmpty(xmlUrl))
                     {
-                        continue;
+                        try
+                        {
+                            NodeFeed feed = new(title, new Uri(xmlUrl));
+
+                            if (outline.Attributes["htmlUrl"] is not null)
+                            {
+                                var htmlUrl = outline.Attributes["htmlUrl"]?.Value;
+
+                                if (htmlUrl != null)
+                                {
+                                    feed.HtmlUri = new Uri(htmlUrl);
+                                }
+                            }
+
+                            feed.Parent = parent;
+
+                            parent.Children.Add(feed);
+
+                            continue;
+                        }
+                        catch
+                        {
+                            continue;
+                        }
                     }
                 }
             }

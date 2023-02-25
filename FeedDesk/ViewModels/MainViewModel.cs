@@ -617,6 +617,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     #region == Debug Events ==
 
+    public event EventHandler<bool>? ShowWaitDialog;
+
     //public event EventHandler<string>? DebugOutput;
 
     private string? _debuEventLog;
@@ -697,6 +699,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         InitializeFeedClient();
 
         //IsDebugWindowEnabled = true;
+
     }
 
     #region == Initialization ==
@@ -2122,7 +2125,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     }
 
     [RelayCommand(CanExecute = nameof(CanFeedRemove))]
-    private async Task NodeRemove()
+    private void NodeRemove()
     {
         if (SelectedTreeViewItem is null)
             return;
@@ -2134,9 +2137,37 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             return;
         }
 
+        _ = Task.Run(() => NodeRemoveAsync().ConfigureAwait(false));
+        //_ = NodeRemoveAsync();
+    }
+
+    private async Task NodeRemoveAsync()
+    {
+        if (SelectedTreeViewItem is null)
+            return;
+
+        if (SelectedTreeViewItem.IsBusy)
+        {
+            // TODO: let users know.
+            Debug.WriteLine("DeleteNodeTree: IsBusy.");
+            return;
+        }
+
+        var IsShowWaitDialog = false;
+        if ((SelectedTreeViewItem is NodeFolder) && (SelectedTreeViewItem.Children.Count > 2))
+        {
+            // this may take some time, so let us show dialog.
+            App.CurrentDispatcherQueue?.TryEnqueue(() =>
+            {
+                IsShowWaitDialog = true;
+                // Show wait dialog.
+                ShowWaitDialog?.Invoke(this, true);
+            });
+        }
+
         List<NodeTree> nodeToBeDeleted = new();
 
-        await DeleteNodes(SelectedTreeViewItem, nodeToBeDeleted);
+        await DeleteNodesAsync(SelectedTreeViewItem, nodeToBeDeleted);
 
         App.CurrentDispatcherQueue?.TryEnqueue(() =>
         {
@@ -2161,14 +2192,21 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
             Entries.Clear();
 
+            SaveServiceXml();
+
+            if (IsShowWaitDialog)
+            {
+                // Hide wait dialog.
+                ShowWaitDialog?.Invoke(this, false);
+            }
+
             FeedRefreshAllCommand.NotifyCanExecuteChanged();
 
-            SaveServiceXml();
         });
 
     }
 
-    private async Task DeleteNodes(NodeTree nt, List<NodeTree> nodeToBeDeleted)
+    private async Task DeleteNodesAsync(NodeTree nt, List<NodeTree> nodeToBeDeleted)
     {
         if (nt.IsBusy)
         {
@@ -2235,7 +2273,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             {
                 foreach (var ndc in folder.Children)
                 {
-                    await DeleteNodes(ndc, nodeToBeDeleted);
+                    await DeleteNodesAsync(ndc, nodeToBeDeleted);
                 }
             }
 
@@ -2275,6 +2313,13 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     #region == Feed OPML ex/import commands ==
 
     [RelayCommand(CanExecute = nameof(CanOpmlImport))]
+    public void OpmlImport()
+    {
+        _ = Task.Run(() => OpmlImportAsync().ConfigureAwait(false));
+        // This is gonna freeze UI.
+        //_ = OpmlImportAsync();
+    }
+
     public async Task OpmlImportAsync()
     {
         var hwnd = WindowNative.GetWindowHandle(App.MainWindow);
@@ -2287,6 +2332,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         if (!File.Exists(filepath.Trim()))
             return;
 
+        App.CurrentDispatcherQueue?.TryEnqueue(() =>
+        {
+            // Show wait dialog.
+            ShowWaitDialog?.Invoke(this, true);
+        });
+
         var doc = new XmlDocument();
         try
         {
@@ -2296,15 +2347,23 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
         catch (Exception ex)
         {
-            ErrorMain = new ErrorObject();
-            ErrorMain.ErrType = ErrorObject.ErrTypes.XML;
-            ErrorMain.ErrCode = "";
-            ErrorMain.ErrText = ex.Message;
-            ErrorMain.ErrDescription = $"Error loading {file.Name}";
-            ErrorMain.ErrDatetime = DateTime.Now;
-            ErrorMain.ErrPlace = "MainViewModel::InitializeFeedTree";
-            ErrorMain.ErrPlaceParent = "MainViewModel()";
-            IsMainErrorInfoBarVisible = true;
+            App.CurrentDispatcherQueue?.TryEnqueue(() =>
+            {
+                ErrorMain = new ErrorObject();
+                ErrorMain.ErrType = ErrorObject.ErrTypes.XML;
+                ErrorMain.ErrCode = "";
+                ErrorMain.ErrText = ex.Message;
+                ErrorMain.ErrDescription = $"Error loading {file.Name}";
+                ErrorMain.ErrDatetime = DateTime.Now;
+                ErrorMain.ErrPlace = "MainViewModel::InitializeFeedTree";
+                ErrorMain.ErrPlaceParent = "MainViewModel()";
+
+                IsMainErrorInfoBarVisible = true;
+
+                // hide wait dialog.
+                ShowWaitDialog?.Invoke(this, false);
+            });
+
             Debug.WriteLine("OpmlImportAsync: " + ex);
             return;
         }
@@ -2321,42 +2380,55 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             {
                 if ((nt is NodeFeed) || (nt is NodeFolder))
                 {
-                    OpmlImportProcessNodeChild(nt, dupeFeeds);
+                    await OpmlImportProcessNodeChild(nt, dupeFeeds);
                 }
             }
 
             if (dupeFeeds.Count > 0)
             {
-                var s = "";
-                foreach (NodeFeed hoge in dupeFeeds)
+                App.CurrentDispatcherQueue?.TryEnqueue(() =>
                 {
-                    if (hoge.Parent != null)
+                    var s = "";
+                    foreach (NodeFeed hoge in dupeFeeds)
                     {
-                        hoge.Parent.Children.Remove(hoge);
+                        if (hoge.Parent != null)
+                        {
+                            hoge.Parent.Children.Remove(hoge);
+                        }
+
+                        if (!string.IsNullOrEmpty(s))
+                        {
+                            s += Environment.NewLine;
+                        }
+                        s += "Skipped " + hoge.EndPoint;
                     }
 
-                    if (!string.IsNullOrEmpty(s))
-                    {
-                        s += Environment.NewLine;
-                    }
-                    s += "Skipped "+hoge.EndPoint;
-                }
+                    WarningMainTitle = "One or more feed(s) already exist(s)";
+                    WarningMainMessage = s;
 
-                WarningMainTitle = "One or more feed(s) already exist(s)";
-                WarningMainMessage = s;
-                IsMainWarningInfoBarVisible = true;
+                    IsMainWarningInfoBarVisible = true;
+                });
             }
 
-            Services.Insert(0, dummyFolder);
-            _isFeedTreeLoaded = true;
+            App.CurrentDispatcherQueue?.TryEnqueue(() =>
+            {
+                Services.Insert(0, dummyFolder);
+                _isFeedTreeLoaded = true;
 
-            FeedRefreshAllCommand.NotifyCanExecuteChanged();
+                FeedRefreshAllCommand.NotifyCanExecuteChanged();
+            });
         }
 
-        SaveServiceXml();
+        App.CurrentDispatcherQueue?.TryEnqueue(() =>
+        {
+            SaveServiceXml();
+
+            // hide wait dialog.
+            ShowWaitDialog?.Invoke(this, false);
+        });
     }
 
-    private void OpmlImportProcessNodeChild(NodeTree nt, List<NodeFeed> dupeFeeds)
+    private async Task OpmlImportProcessNodeChild(NodeTree nt, List<NodeFeed> dupeFeeds)
     {
         if (nt is NodeFeed feed)
         {
@@ -2372,8 +2444,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             else
             {
                 //
-                var resInsert = _dataAccessService.InsertFeed(feed.Id, feed.EndPoint, feed.Name, feed.Title, "", new DateTime(), feed.HtmlUri!);
-
+                var resInsert = await Task.FromResult(_dataAccessService.InsertFeed(feed.Id, feed.EndPoint, feed.Name, feed.Title, "", new DateTime(), feed.HtmlUri!));
+                
                 // Result is DB Error
                 if (resInsert.IsError)
                 {
@@ -2397,7 +2469,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             {
                 foreach (NodeTree ntc in nt.Children)
                 {
-                    OpmlImportProcessNodeChild(ntc, dupeFeeds);
+                    await OpmlImportProcessNodeChild(ntc, dupeFeeds);
                 }
             }
         }

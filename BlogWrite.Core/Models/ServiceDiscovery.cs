@@ -53,22 +53,22 @@ public abstract class SearviceDocumentLink
 
 public class RsdApi
 {
-    public string Name { get; set; }
-    public string BlogID { get; set; }
-    public bool Preferred { get; set; }
-    public Uri ApiLink { get; set; }
+    public string? Name { get; set; }
+    public string? BlogID { get; set; }
+    public bool Preferred { get; set; } = false;
+    public Uri? ApiLink { get; set; }
 }
 
 // RsdLink: extends SearviceDocumentLink
 public class RsdLink : SearviceDocumentLink
 {
-    public string Title { get; set; }
+    public string? Title { get; set; }
 
-    public string EngineName { get; set; }
+    public string? EngineName { get; set; }
 
-    public Uri HomePageLink { get; set; }
+    public Uri? HomePageLink { get; set; }
 
-    public List<RsdApi> Apis { get; set; } = new();
+    public List<RsdApi>? Apis { get; set; } = new();
 
     public RsdLink()
     {
@@ -79,7 +79,7 @@ public class RsdLink : SearviceDocumentLink
 // AppLink: extends SearviceDocumentLink
 public class AppLink : SearviceDocumentLink
 {
-    public NodeService NodeService { get; set; }
+    public NodeService? NodeService { get; set; }
 
     public AppLink()
     {
@@ -123,7 +123,7 @@ public class ServiceResultHtmlPage : ServiceResultBase
     private ObservableCollection<FeedLink> _feeds = new();
     public ObservableCollection<FeedLink> Feeds
     {
-        get { return _feeds; }
+        get => _feeds;
         set
         {
 
@@ -137,7 +137,7 @@ public class ServiceResultHtmlPage : ServiceResultBase
     private ObservableCollection<SearviceDocumentLink> _services = new();
     public ObservableCollection<SearviceDocumentLink> Services
     {
-        get { return _services; }
+        get => _services;
         set
         {
 
@@ -157,7 +157,7 @@ public class ServiceResultHtmlPage : ServiceResultBase
 // Feed Result Class That Holds Feed link info. (BasedOn ServiceResultBase)
 public class ServiceResultFeed : ServiceResultBase
 {
-    public FeedLink FeedlinkInfo;
+    public FeedLink? FeedlinkInfo;
 
     public ServiceResultFeed()
     {
@@ -167,7 +167,7 @@ public class ServiceResultFeed : ServiceResultBase
 
 public class ServiceResultRsd : ServiceResultBase
 {
-    public RsdLink Rsd;
+    public RsdLink? Rsd;
 
     public ServiceResultRsd()
     {
@@ -217,7 +217,7 @@ public class ServiceResultAtomAPI : ServiceResult
 public class ServiceResultXmlRpc : ServiceResult
 {
     // XML-RPC specific blogid. 
-    public string BlogID { get; set; }
+    public string? BlogID { get; set; }
 
     public ServiceResultXmlRpc(Uri endpointUri, AuthTypes authType) : base(ServiceTypes.XmlRpc, endpointUri, authType)
     {
@@ -729,7 +729,7 @@ public class ServiceDiscovery
                         {
                             UpdateStatus(">> A link to RSD document found.");
 
-                            Uri _rsdUrl = null;
+                            Uri? _rsdUrl = null;
                             try
                             {
                                 //_rsdUrl = new Uri(hf);
@@ -755,9 +755,12 @@ public class ServiceDiscovery
                             if (_rsdUrl != null)
                             {
                                 RsdLink rsd = await GetAndParseRsd(_rsdUrl);
-                                if (rsd.Apis.Count > 0)
+                                if (rsd.Apis != null)
                                 {
-                                    res.Services.Add(rsd);
+                                    if (rsd.Apis.Count > 0)
+                                    {
+                                        res.Services.Add(rsd);
+                                    }
                                 }
                             }
                         }
@@ -866,7 +869,7 @@ public class ServiceDiscovery
         var document = await parser.ParseDocumentAsync(source);
 
         var isOK = false;
-        string feedTitle="", siteLink = "";
+        string? feedTitle="", siteLink = "";
         Uri? siteUri = null;
 
         if (document != null)

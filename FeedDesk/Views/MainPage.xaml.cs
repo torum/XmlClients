@@ -1,4 +1,6 @@
-﻿using BlogWrite.Core.Models;
+﻿using AngleSharp.Dom;
+using BlogWrite.Core.Helpers;
+using BlogWrite.Core.Models;
 using FeedDesk.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -8,6 +10,8 @@ namespace FeedDesk.Views;
 
 public sealed partial class MainPage : Page
 {
+    private WaitDialog? dialog;
+
     public MainViewModel ViewModel
     {
         get;
@@ -30,8 +34,45 @@ public sealed partial class MainPage : Page
             throw;
         }
 
+        //
+        ViewModel.ShowWaitDialog += (sender, arg) => { OnShowWaitDialog(arg); };
+
         //ViewModel.DebugOutput += (sender, arg) => { OnDebugOutput(arg); };
         //ViewModel.DebugClear += () => OnDebugClear();
+
+    }
+
+    public async void OnShowWaitDialog(bool isShow)
+    {
+        if (isShow)
+        {
+            if (dialog == null)
+            {
+                dialog = new WaitDialog();
+                var ring = new ProgressRing
+                {
+                    HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Center,
+                    VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center,
+                    IsActive = true,
+                };
+                dialog.Content = ring;
+                dialog.XamlRoot = this.XamlRoot;
+                dialog.RequestedTheme = this.ActualTheme;
+                dialog.Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style;
+                dialog.Title = "WaitDialog_Title".GetLocalized();
+            }
+            
+            await dialog.ShowAsync();
+        }
+        else
+        {
+            if (dialog == null)
+            {
+                return;
+            }
+
+            dialog.Hide();
+        }
     }
 
     public void OnDebugOutput(string arg)

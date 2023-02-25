@@ -6,7 +6,7 @@ namespace BlogWrite.Core.Models;
 public class ServiceTreeBuilder : NodeRoot
 {
     public ServiceTreeBuilder() {
-        this.Name = "NodeRoot";
+        Name = "NodeRoot";
     }
 
     // Loads service tree.
@@ -37,7 +37,7 @@ public class ServiceTreeBuilder : NodeRoot
                     var userName = s.Attributes?["UserName"]?.Value;
                     var userPassword = s.Attributes?["UserPassword"]?.Value;
                     var endpoint = s.Attributes?["EndPoint"]?.Value;
-                    var api = (s.Attributes?["Api"] != null) ? s.Attributes?["Api"]?.Value : "Unknown"; //
+                    var api = (s.Attributes?["Api"] != null) ? s.Attributes?["Api"]?.Value : "Unknown"; 
                     var tp = (s.Attributes?["Type"] != null) ? s.Attributes?["Type"]?.Value : "Unknown";
 
                     var selecteds = string.IsNullOrEmpty(s.Attributes?["Selected"]?.Value) ? "" : s.Attributes?["Selected"]?.Value;
@@ -132,117 +132,125 @@ public class ServiceTreeBuilder : NodeRoot
                         {
                             foreach (XmlNode c in collectionList)
                             {
-                                var collectionName = c.Attributes["Name"].Value;
-                                var selectedc = string.IsNullOrEmpty(c.Attributes["Selected"].Value) ? "" : c.Attributes["Selected"].Value;
-                                var expandedc = string.IsNullOrEmpty(c.Attributes["Expanded"].Value) ? "" : c.Attributes["Expanded"].Value;
+                                var collectionName = c.Attributes?["Name"]?.Value;
+                                var selectedc = string.IsNullOrEmpty(c.Attributes?["Selected"]?.Value) ? "" : c.Attributes["Selected"]?.Value;
+                                var expandedc = string.IsNullOrEmpty(c.Attributes?["Expanded"]?.Value) ? "" : c.Attributes["Expanded"]?.Value;
                                 var isSelectedc = (selectedc == "true") ? true : false;
                                 var isExpandedc = (expandedc == "true") ? true : false;
 
-                                var collectionHref = (c.Attributes["Href"] != null) ? c.Attributes["Href"].Value : "";
+                                var collectionHref = (c.Attributes?["Href"] != null) ? c.Attributes["Href"]?.Value : "";
 
-                                var collectionId = (c.Attributes["Id"] != null) ? c.Attributes["Id"].Value : "";
+                                var collectionId = (c.Attributes?["Id"] != null) ? c.Attributes["Id"]?.Value : "";
 
                                 if ((!string.IsNullOrEmpty(collectionName)) && (!string.IsNullOrEmpty(collectionHref)))
                                 {
                                     NodeEntryCollection? entries = null;
-
-                                    // TODO:
-                                    switch (account.Api)
+                                    if (collectionId != null)
                                     {
-                                        case ApiTypes.atAtomPub:
-                                            entries = new NodeAtomPubEntryCollection(collectionName, new Uri(collectionHref), collectionId);
-                                            break;
-                                        case ApiTypes.atXMLRPC_MovableType:
-                                            entries = new NodeXmlRpcEntryCollection(collectionName, new Uri(collectionHref), collectionId);
-                                            break;
-                                        case ApiTypes.atXMLRPC_WordPress:
-                                            entries = new NodeXmlRpcEntryCollection(collectionName, new Uri(collectionHref), collectionId);
-                                            break;
-                                            //case ApiTypes.atAtomAPI:
-                                            //    break;
+                                        // TODO:
+                                        switch (account.Api)
+                                        {
+                                            case ApiTypes.atAtomPub:
+                                                entries = new NodeAtomPubEntryCollection(collectionName, new Uri(collectionHref), collectionId);
+                                                break;
+                                            case ApiTypes.atXMLRPC_MovableType:
+                                                entries = new NodeXmlRpcEntryCollection(collectionName, new Uri(collectionHref), collectionId);
+                                                break;
+                                            case ApiTypes.atXMLRPC_WordPress:
+                                                entries = new NodeXmlRpcEntryCollection(collectionName, new Uri(collectionHref), collectionId);
+                                                break;
+                                                //case ApiTypes.atAtomAPI:
+                                                //    break;
+                                        }
                                     }
 
                                     if (entries == null)
                                         continue;
 
-                                    if (entries is NodeAtomPubEntryCollection)
+                                    if (entries is NodeAtomPubEntryCollection napec)
                                     {
-                                        if (c.Attributes["CategoriesUri"] != null)
+                                        if (c.Attributes?["CategoriesUri"] != null)
                                         {
-                                            var catsUrl = c.Attributes["CategoriesUri"].Value;
+                                            var catsUrl = c.Attributes["CategoriesUri"]?.Value;
                                             if (!string.IsNullOrEmpty(catsUrl))
                                             {
                                                 try
                                                 {
                                                     Uri catsUri = new(catsUrl);
-                                                    (entries as NodeAtomPubEntryCollection).CategoriesUri = catsUri;
+                                                    napec.CategoriesUri = catsUri;
                                                 }
                                                 catch { }
                                             }
                                         }
 
-                                        var catFixed = c.Attributes["IsCategoryFixed"].Value;
+                                        var catFixed = c.Attributes?["IsCategoryFixed"]?.Value;
                                         if (!string.IsNullOrEmpty(catFixed))
                                         {
                                             if (catFixed == "true")
                                             {
-                                                (entries as NodeAtomPubEntryCollection).IsCategoryFixed = true;
+                                                napec.IsCategoryFixed = true;
                                             }
                                         }
 
-                                        XmlNodeList acceptList = c.SelectNodes("Accept");
-                                        foreach (XmlNode act in acceptList)
+                                        XmlNodeList? acceptList = c.SelectNodes("Accept");
+                                        if (acceptList != null)
                                         {
-                                            (entries as NodeAtomPubEntryCollection).AcceptTypes.Add(act.InnerText);
+                                            foreach (XmlNode act in acceptList)
+                                            {
+                                                napec.AcceptTypes.Add(act.InnerText);
+                                            }
                                         }
                                     }
 
-                                    XmlNodeList categoryList = c.SelectNodes("Category");
-                                    foreach (XmlNode t in categoryList)
+                                    XmlNodeList? categoryList = c.SelectNodes("Category");
+                                    if (categoryList != null)
                                     {
-                                        var categoryName = t.Attributes["Name"].Value;
-                                        var selectedt = string.IsNullOrEmpty(t.Attributes["Selected"].Value) ? "" : t.Attributes["Selected"].Value;
-                                        var expandedt = string.IsNullOrEmpty(t.Attributes["Expanded"].Value) ? "" : t.Attributes["Expanded"].Value;
-                                        var isSelectedt = (selectedc == "true") ? true : false;
-                                        var isExpandedt = (expandedc == "true") ? true : false;
-
-                                        if (!string.IsNullOrEmpty(categoryName))
+                                        foreach (XmlNode t in categoryList)
                                         {
+                                            var categoryName = t.Attributes?["Name"]?.Value;
+                                            var selectedt = string.IsNullOrEmpty(t.Attributes?["Selected"]?.Value) ? "" : t.Attributes["Selected"]?.Value;
+                                            var expandedt = string.IsNullOrEmpty(t.Attributes?["Expanded"]?.Value) ? "" : t.Attributes["Expanded"]?.Value;
+                                            var isSelectedt = (selectedc == "true") ? true : false;
+                                            var isExpandedt = (expandedc == "true") ? true : false;
 
-                                            NodeCategory category = null;
-
-                                            switch (account.Api)
+                                            if (!string.IsNullOrEmpty(categoryName))
                                             {
-                                                case ApiTypes.atAtomPub:
-                                                    category = new NodeAtomPubCategory(categoryName);
-                                                    break;
-                                                case ApiTypes.atXMLRPC_MovableType:
-                                                    category = new NodeXmlRpcMTCategory(categoryName);
-                                                    break;
-                                                case ApiTypes.atXMLRPC_WordPress:
-                                                    category = new NodeXmlRpcWPCategory(categoryName);
-                                                    break;
+                                                NodeCategory? category;
+
+                                                switch (account.Api)
+                                                {
+                                                    case ApiTypes.atAtomPub:
+                                                        category = new NodeAtomPubCategory(categoryName);
+                                                        break;
+                                                    case ApiTypes.atXMLRPC_MovableType:
+                                                        category = new NodeXmlRpcMTCategory(categoryName);
+                                                        break;
+                                                    case ApiTypes.atXMLRPC_WordPress:
+                                                        category = new NodeXmlRpcWPCategory(categoryName);
+                                                        break;
                                                     //case ApiTypes.atAtomAPI:
                                                     //    break;
+                                                    default: category = null; break;
+                                                }
+
+                                                if (category == null)
+                                                    return;
+
+                                                if (category is NodeAtomPubCategory napc)
+                                                {
+                                                    napc.Term = categoryName;
+
+                                                    var categoryScheme = t.Attributes?["Scheme"]?.Value;
+                                                    napc.Scheme = categoryScheme;
+                                                }
+
+
+                                                category.IsSelected = isSelectedc;
+                                                category.IsExpanded = isExpandedc;
+                                                category.Parent = entries;
+
+                                                entries.Children.Add(category);
                                             }
-
-                                            if (category == null)
-                                                return;
-
-                                            if (category is NodeAtomPubCategory)
-                                            {
-                                                (category as NodeAtomPubCategory).Term = categoryName;
-
-                                                var categoryScheme = t.Attributes["Scheme"].Value;
-                                                (category as NodeAtomPubCategory).Scheme = categoryScheme;
-                                            }
-
-
-                                            category.IsSelected = isSelectedc;
-                                            category.IsExpanded = isExpandedc;
-                                            category.Parent = entries;
-
-                                            entries.Children.Add(category);
                                         }
                                     }
 
@@ -260,7 +268,7 @@ public class ServiceTreeBuilder : NodeRoot
                 }
                 else if (s.LocalName.Equals("Feed"))
                 {
-                    NodeFeed feed = LoadXmlChildFeed(s);
+                    NodeFeed? feed = LoadXmlChildFeed(s);
                     if (feed == null)
                         continue;
 
@@ -273,7 +281,7 @@ public class ServiceTreeBuilder : NodeRoot
                 else if (s.LocalName.Equals("Folder"))
                 {
 
-                    NodeFolder folder = LoadXmlChildFolder(s);
+                    NodeFolder? folder = LoadXmlChildFolder(s);
                     if (folder == null)
                         continue;
 
@@ -288,14 +296,14 @@ public class ServiceTreeBuilder : NodeRoot
         }
     }
 
-    private NodeFolder LoadXmlChildFolder(XmlNode node)
+    private NodeFolder? LoadXmlChildFolder(XmlNode node)
     {
-        var folderName = node.Attributes["Name"].Value;
+        var folderName = node.Attributes?["Name"]?.Value;
 
         if (!string.IsNullOrEmpty(folderName))
         {
-            var selecteds = string.IsNullOrEmpty(node.Attributes["Selected"].Value) ? "" : node.Attributes["Selected"].Value;
-            var expandeds = string.IsNullOrEmpty(node.Attributes["Expanded"].Value) ? "" : node.Attributes["Expanded"].Value;
+            var selecteds = string.IsNullOrEmpty(node.Attributes?["Selected"]?.Value) ? "" : node.Attributes["Selected"]?.Value;
+            var expandeds = string.IsNullOrEmpty(node.Attributes?["Expanded"]?.Value) ? "" : node.Attributes["Expanded"]?.Value;
             var isSelecteds = (selecteds == "true") ? true : false;
             var isExpandeds = (expandeds == "true") ? true : false;
 
@@ -305,15 +313,16 @@ public class ServiceTreeBuilder : NodeRoot
             folder.Parent = this;
 
             var unreadCount = 0;
-            var attr = node.Attributes["UnreadCount"];
+            var attr = node.Attributes?["UnreadCount"];
             if (attr != null)
             {
-                if (!string.IsNullOrEmpty(node.Attributes["UnreadCount"].Value))
-                    unreadCount = int.Parse(node.Attributes["UnreadCount"].Value);
+                var s = node.Attributes?["UnreadCount"]?.Value;
+                if (!string.IsNullOrEmpty(s))
+                    unreadCount = int.Parse(s);
             }
             folder.EntryNewCount = unreadCount;
 
-            var viewType = (node.Attributes["ViewType"] != null) ? node.Attributes["ViewType"].Value : "Cards";
+            var viewType = (node.Attributes?["ViewType"] != null) ? node.Attributes["ViewType"]?.Value : "Cards";
             ViewTypes vt;
             switch (viewType)
             {
@@ -332,33 +341,36 @@ public class ServiceTreeBuilder : NodeRoot
             }
             folder.ViewType = vt;
 
-
-            XmlNodeList folderList = node.SelectNodes("Folder");
-            foreach (XmlNode f in folderList)
+            XmlNodeList? folderList = node.SelectNodes("Folder");
+            if (folderList != null)
             {
-                NodeFolder fd = LoadXmlChildFolder(f);
-                if (fd == null)
-                    continue;
+                foreach (XmlNode f in folderList)
+                {
+                    NodeFolder? fd = LoadXmlChildFolder(f);
+                    if (fd == null)
+                        continue;
 
-                fd.Parent = folder;
+                    fd.Parent = folder;
 
-                if (fd != null)
-                    folder.Children.Add(fd);
-
+                    if (fd != null)
+                        folder.Children.Add(fd);
+                }
             }
 
-            XmlNodeList feedList = node.SelectNodes("Feed");
-            foreach (XmlNode f in feedList)
+            XmlNodeList? feedList = node.SelectNodes("Feed");
+            if (feedList != null)
             {
-                NodeFeed feed = LoadXmlChildFeed(f);
-                if (feed == null)
-                    continue;
+                foreach (XmlNode f in feedList)
+                {
+                    NodeFeed? feed = LoadXmlChildFeed(f);
+                    if (feed == null)
+                        continue;
 
-                feed.Parent = folder;
+                    feed.Parent = folder;
 
-                if (feed != null)
-                    folder.Children.Add(feed);
-
+                    if (feed != null)
+                        folder.Children.Add(feed);
+                }
             }
 
             return folder;
@@ -367,7 +379,7 @@ public class ServiceTreeBuilder : NodeRoot
         return null;
     }
 
-    private NodeFeed LoadXmlChildFeed(XmlNode node)
+    private NodeFeed? LoadXmlChildFeed(XmlNode node)
     {
         var feedName = node.Attributes?["Name"]?.Value;
 
@@ -409,21 +421,21 @@ public class ServiceTreeBuilder : NodeRoot
         }
 
         var siteTitle = "";
-        var attr = node.Attributes["SiteTitle"];
+        var attr = node.Attributes?["SiteTitle"];
         if (attr != null)
         {
             siteTitle = string.IsNullOrEmpty(node.Attributes?["SiteTitle"]?.Value) ? "" : node.Attributes?["SiteTitle"]?.Value;
         }
 
         var siteSubTitle = "";
-        attr = node.Attributes["SiteSubTitle"];
+        attr = node.Attributes?["SiteSubTitle"];
         if (attr != null)
         {
             siteSubTitle = string.IsNullOrEmpty(node.Attributes?["SiteSubTitle"]?.Value) ? "" : node.Attributes?["SiteSubTitle"]?.Value;
         }
 
-        Uri siteUri = null;
-        attr = node.Attributes["SiteUri"];
+        Uri? siteUri = null;
+        attr = node.Attributes?["SiteUri"];
         if (attr != null)
         {
             var siteLink = string.IsNullOrEmpty(node.Attributes?["SiteUri"]?.Value) ? "" : node.Attributes?["SiteUri"]?.Value;
@@ -439,45 +451,49 @@ public class ServiceTreeBuilder : NodeRoot
         }
 
         DateTime Updated = default;
-        attr = node.Attributes["Updated"];
+        attr = node.Attributes?["Updated"];
         if (attr != null)
         {
-            if (!string.IsNullOrEmpty(node.Attributes?["Updated"]?.Value))
-                Updated = DateTime.Parse(node.Attributes?["Updated"]?.Value);
+            var s = node.Attributes?["Updated"]?.Value;
+            if (!string.IsNullOrEmpty(s))
+                Updated = DateTime.Parse(s);
         }
 
         var unreadCount = 0;
         attr = node.Attributes?["UnreadCount"];
         if (attr != null)
         {
-            if (!string.IsNullOrEmpty(node.Attributes?["UnreadCount"]?.Value))
-                unreadCount = int.Parse(node.Attributes?["UnreadCount"]?.Value);
+            var s = node.Attributes?["UnreadCount"]?.Value;
+            if (!string.IsNullOrEmpty(s))
+                unreadCount = int.Parse(s);
         }
 
         DateTime lastUpdate = default;
-        attr = node.Attributes["LastUpdate"];
+        attr = node.Attributes?["LastUpdate"];
         if (attr != null)
         {
-            if (!string.IsNullOrEmpty(node.Attributes?["LastUpdate"]?.Value))
-                lastUpdate = DateTime.Parse(node.Attributes?["LastUpdate"]?.Value);
+            var s = node.Attributes?["LastUpdate"]?.Value;
+            if (!string.IsNullOrEmpty(s))
+                lastUpdate = DateTime.Parse(s);
         }
 
-        ErrorObject errHttpObj = null;
-        XmlNodeList ErrorList = node.SelectNodes("ErrorHTTP");
+        ErrorObject? errHttpObj = null;
+        XmlNodeList? ErrorList = node.SelectNodes("ErrorHTTP");
         if (ErrorList != null)
         {
             if (ErrorList.Count > 0)
             {
-                XmlNode errNode = ErrorList[0];
+                XmlNode? errNode = ErrorList[0];
                 errHttpObj = new ErrorObject();
 
-                var errAttr = errNode.Attributes?["ErrCode"];
+                XmlNode? errAttr = errNode?.Attributes?["ErrCode"];
                 if (errAttr != null)
                 {
-                    errHttpObj.ErrCode = string.IsNullOrEmpty(errNode.Attributes?["ErrCode"]?.Value) ? "" : errNode.Attributes?["ErrCode"]?.Value;
+                    var s = errNode?.Attributes?["ErrCode"]?.Value;
+                    errHttpObj.ErrCode = string.IsNullOrEmpty(s) ? "" : s;
                 }
 
-                var eType = (errNode.Attributes?["ErrType"] != null) ? errNode.Attributes?["ErrType"]?.Value : "HTTP";
+                var eType = (errNode?.Attributes?["ErrType"] != null) ? errNode.Attributes?["ErrType"]?.Value : "HTTP";
                 ErrTypes et;
                 switch (eType)
                 {
@@ -499,56 +515,62 @@ public class ServiceTreeBuilder : NodeRoot
                 }
                 errHttpObj.ErrType = et;
 
-                errAttr = errNode.Attributes?["ErrDescription"];
+                errAttr = errNode?.Attributes?["ErrDescription"];
                 if (errAttr != null)
                 {
-                    errHttpObj.ErrDescription = string.IsNullOrEmpty(errNode.Attributes?["ErrDescription"]?.Value) ? "" : errNode.Attributes?["ErrDescription"]?.Value;
+                    var s = errNode?.Attributes?["ErrDescription"]?.Value;
+                    errHttpObj.ErrDescription = string.IsNullOrEmpty(s) ? "" : s;
                 }
 
-                errAttr = errNode.Attributes?["ErrText"];
+                errAttr = errNode?.Attributes?["ErrText"];
                 if (errAttr != null)
                 {
-                    errHttpObj.ErrText = string.IsNullOrEmpty(errNode.Attributes?["ErrText"]?.Value) ? "" : errNode.Attributes?["ErrText"]?.Value;
+                    var s = errNode?.Attributes?["ErrText"]?.Value;
+                    errHttpObj.ErrText = string.IsNullOrEmpty(s) ? "" : s;
                 }
 
-                errAttr = errNode.Attributes?["ErrPlace"];
+                errAttr = errNode?.Attributes?["ErrPlace"];
                 if (errAttr != null)
                 {
-                    errHttpObj.ErrPlace = string.IsNullOrEmpty(errNode.Attributes?["ErrPlace"]?.Value) ? "" : errNode.Attributes?["ErrPlace"]?.Value;
+                    var s = errNode?.Attributes?["ErrPlace"]?.Value;
+                    errHttpObj.ErrPlace = string.IsNullOrEmpty(s) ? "" : s;
                 }
 
-                errAttr = errNode.Attributes?["ErrPlaceParent"];
+                errAttr = errNode?.Attributes?["ErrPlaceParent"];
                 if (errAttr != null)
                 {
-                    errHttpObj.ErrPlaceParent = string.IsNullOrEmpty(errNode.Attributes?["ErrPlaceParent"]?.Value) ? "" : errNode.Attributes?["ErrPlaceParent"]?.Value;
+                    var s = errNode?.Attributes?["ErrPlaceParent"]?.Value;
+                    errHttpObj.ErrPlaceParent = string.IsNullOrEmpty(s) ? "" : s;
                 }
 
-                errAttr = errNode.Attributes?["ErrDatetime"];
+                errAttr = errNode?.Attributes?["ErrDatetime"];
                 if (errAttr != null)
                 {
-                    if (!string.IsNullOrEmpty(errNode.Attributes?["ErrDatetime"]?.Value))
-                        errHttpObj.ErrDatetime = DateTime.Parse(errNode.Attributes?["ErrDatetime"]?.Value);
+                    var s = errNode?.Attributes?["ErrDatetime"]?.Value;
+                    if (!string.IsNullOrEmpty(s))
+                        errHttpObj.ErrDatetime = DateTime.Parse(s);
                 }
 
             }
         }
 
-        ErrorObject errDbObj = null;
-        XmlNodeList ErrorDbList = node.SelectNodes("ErrorDatabase");
+        ErrorObject? errDbObj = null;
+        XmlNodeList? ErrorDbList = node.SelectNodes("ErrorDatabase");
         if (ErrorDbList != null)
         {
             if (ErrorDbList.Count > 0)
             {
-                XmlNode err = ErrorDbList[0];
+                XmlNode? err = ErrorDbList[0];
                 errDbObj = new ErrorObject();
 
-                var errAttr = err.Attributes?["ErrCode"];
+                var errAttr = err?.Attributes?["ErrCode"];
                 if (errAttr != null)
                 {
-                    errDbObj.ErrCode = string.IsNullOrEmpty(err.Attributes?["ErrCode"]?.Value) ? "" : err.Attributes?["ErrCode"]?.Value;
+                    var s = err?.Attributes?["ErrCode"]?.Value;
+                    errDbObj.ErrCode = string.IsNullOrEmpty(s) ? "" : s;
                 }
 
-                var eType = (err.Attributes?["ErrType"] != null) ? err.Attributes?["ErrType"]?.Value : "DB";
+                var eType = (err?.Attributes?["ErrType"] != null) ? err.Attributes?["ErrType"]?.Value : "DB";
                 ErrTypes et;
                 switch (eType)
                 {
@@ -570,35 +592,40 @@ public class ServiceTreeBuilder : NodeRoot
                 }
                 errDbObj.ErrType = et;
 
-                errAttr = err.Attributes?["ErrDescription"];
+                errAttr = err?.Attributes?["ErrDescription"];
                 if (errAttr != null)
                 {
-                    errDbObj.ErrDescription = string.IsNullOrEmpty(err.Attributes?["ErrDescription"]?.Value) ? "" : err.Attributes?["ErrDescription"]?.Value;
+                    var s = err?.Attributes?["ErrDescription"]?.Value;
+                    errDbObj.ErrDescription = string.IsNullOrEmpty(s) ? "" : s;
                 }
 
-                errAttr = err.Attributes?["ErrText"];
+                errAttr = err?.Attributes?["ErrText"];
                 if (errAttr != null)
                 {
-                    errDbObj.ErrText = string.IsNullOrEmpty(err.Attributes?["ErrText"]?.Value) ? "" : err.Attributes?["ErrText"]?.Value;
+                    var s = err?.Attributes?["ErrText"]?.Value;
+                    errDbObj.ErrText = string.IsNullOrEmpty(s) ? "" : s;
                 }
 
-                errAttr = err.Attributes?["ErrPlace"];
+                errAttr = err?.Attributes?["ErrPlace"];
                 if (errAttr != null)
                 {
-                    errDbObj.ErrPlace = string.IsNullOrEmpty(err.Attributes?["ErrPlace"]?.Value) ? "" : err.Attributes?["ErrPlace"]?.Value;
+                    var s = err?.Attributes?["ErrPlace"]?.Value;
+                    errDbObj.ErrPlace = string.IsNullOrEmpty(s) ? "" : s;
                 }
 
-                errAttr = err.Attributes?["ErrPlaceParent"];
+                errAttr = err?.Attributes?["ErrPlaceParent"];
                 if (errAttr != null)
                 {
-                    errDbObj.ErrPlaceParent = string.IsNullOrEmpty(err.Attributes?["ErrPlaceParent"]?.Value) ? "" : err.Attributes?["ErrPlaceParent"]?.Value;
+                    var s = err?.Attributes?["ErrPlaceParent"]?.Value;
+                    errDbObj.ErrPlaceParent = string.IsNullOrEmpty(s) ? "" : s;
                 }
 
-                errAttr = err.Attributes?["ErrDatetime"];
+                errAttr = err?.Attributes?["ErrDatetime"];
                 if (errAttr != null)
                 {
-                    if (!string.IsNullOrEmpty(err.Attributes?["ErrDatetime"]?.Value))
-                        errDbObj.ErrDatetime = DateTime.Parse(err.Attributes?["ErrDatetime"]?.Value);
+                    var s = err?.Attributes?["ErrDatetime"]?.Value;
+                    if (!string.IsNullOrEmpty(s))
+                        errDbObj.ErrDatetime = DateTime.Parse(s);
                 }
 
             }
@@ -606,13 +633,14 @@ public class ServiceTreeBuilder : NodeRoot
 
         if (!string.IsNullOrEmpty(endpoint))
         {
+            feedName ??= "no name";
             NodeFeed feed = new NodeFeed(feedName, new Uri(endpoint));
             feed.IsSelected = isSelectedf;
             //feed.IsExpanded = isExpandedf;
             feed.Parent = this;
 
-            feed.Title = siteTitle;
-            feed.Description = siteSubTitle;
+            feed.Title = siteTitle ?? "no title";
+            feed.Description = siteSubTitle ?? ""; ;
             feed.HtmlUri = siteUri;
             feed.Updated = Updated;
 
@@ -654,9 +682,9 @@ public class ServiceTreeBuilder : NodeRoot
         {
             if (s is NodeService)
             {
-                if (s is NodeFeed)
+                if (s is NodeFeed nfd)
                 {
-                    XmlElement feed = AsXmlFeedElement(doc, (s as NodeFeed));
+                    XmlElement feed = AsXmlFeedElement(doc, nfd);
 
                     root.AppendChild(feed);
                 }
@@ -786,14 +814,14 @@ public class ServiceTreeBuilder : NodeRoot
                         collection.SetAttributeNode(attrch);
 
                         XmlAttribute attrid = doc.CreateAttribute("Id");
-                        attrid.Value = (c as NodeEntryCollection).Id;
+                        attrid.Value = ((NodeEntryCollection)c).Id;
                         collection.SetAttributeNode(attrid);
 
                         service.AppendChild(collection);
 
-                        if (c is NodeAtomPubEntryCollection)
+                        if (c is NodeAtomPubEntryCollection napec)
                         {
-                            foreach (var a in (c as NodeAtomPubEntryCollection).AcceptTypes)
+                            foreach (var a in napec.AcceptTypes)
                             {
                                 XmlElement acceptType = doc.CreateElement(string.Empty, "Accept", string.Empty);
                                 XmlText xt = doc.CreateTextNode(a);
@@ -802,19 +830,19 @@ public class ServiceTreeBuilder : NodeRoot
                                 collection.AppendChild(acceptType);
                             }
 
-                            if ((c as NodeAtomPubEntryCollection).CategoriesUri != null)
+                            if (napec.CategoriesUri != null)
                             {
                                 XmlAttribute attrcaturi = doc.CreateAttribute("CategoriesUri");
-                                attrcaturi.Value = (c as NodeAtomPubEntryCollection).CategoriesUri.AbsoluteUri;
+                                attrcaturi.Value = napec.CategoriesUri.AbsoluteUri;
                                 collection.SetAttributeNode(attrcaturi);
                             }
 
                             XmlAttribute attrcatfixed = doc.CreateAttribute("IsCategoryFixed");
-                            attrcatfixed.Value = (c as NodeAtomPubEntryCollection).IsCategoryFixed ? "true" : "false";
+                            attrcatfixed.Value = napec.IsCategoryFixed ? "true" : "false";
                             collection.SetAttributeNode(attrcatfixed);
                         }
 
-                        foreach (var t in (c as NodeEntryCollection).Children)
+                        foreach (var t in ((NodeEntryCollection)c).Children)
                         {
                             if (!(t is NodeCategory)) continue;
 
@@ -834,7 +862,7 @@ public class ServiceTreeBuilder : NodeRoot
 
                             collection.AppendChild(category);
 
-                            if (t is NodeAtomPubCategory)
+                            if (t is NodeAtomPubCategory napc)
                             {
                                 //
                                 //XmlAttribute attrtt = doc.CreateAttribute("Term");
@@ -843,7 +871,7 @@ public class ServiceTreeBuilder : NodeRoot
 
                                 //
                                 XmlAttribute attrschme = doc.CreateAttribute("Scheme");
-                                attrschme.Value = (t as NodeAtomPubCategory).Scheme;
+                                attrschme.Value = napc.Scheme;
                                 category.SetAttributeNode(attrschme);
                             }
                             else if (t is NodeXmlRpcMTCategory)
@@ -864,9 +892,9 @@ public class ServiceTreeBuilder : NodeRoot
                     }
                 }
             }
-            else if (s is NodeFolder)
+            else if (s is NodeFolder n)
             {
-                XmlElement folder = AsXmlFolderElement(doc, s as NodeFolder);
+                XmlElement folder = AsXmlFolderElement(doc, n);
 
                 root.AppendChild(folder);
             }
@@ -914,15 +942,15 @@ public class ServiceTreeBuilder : NodeRoot
 
         foreach (var hoge in fd.Children)
         {
-            if (hoge is NodeFeed)
+            if (hoge is NodeFeed fuga)
             {
-                XmlElement feed = AsXmlFeedElement(doc, (hoge as NodeFeed));
+                XmlElement feed = AsXmlFeedElement(doc, fuga);
 
                 folder.AppendChild(feed);
             }
-            else if (hoge is NodeFolder)
+            else if (hoge is NodeFolder fugafuga)
             {
-                XmlElement folderChild = AsXmlFolderElement(doc, hoge as NodeFolder);
+                XmlElement folderChild = AsXmlFolderElement(doc, fugafuga);
 
                 folder.AppendChild(folderChild);
             }

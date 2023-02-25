@@ -392,15 +392,16 @@ public abstract class NodeTree : Node
 // Data tempalate selector for NodeTree
 public class ExplorerItemTemplateSelector : DataTemplateSelector
 {
-    public DataTemplate FolderTemplate
+    public DataTemplate? FolderTemplate
     {
         get; set;
     }
-    public DataTemplate FileTemplate
+    public DataTemplate? FileTemplate
     {
         get; set;
     }
-    protected override DataTemplate SelectTemplateCore(object item)
+
+    protected override DataTemplate? SelectTemplateCore(object item)
     {
         //return base.SelectTemplateCore(item, null);
 
@@ -790,7 +791,7 @@ public abstract class NodeEntryCollection : NodeTree
     // TODO:
     public ObservableCollection<EntryItem> List { get; } = new ObservableCollection<EntryItem>();
 
-    public BaseClient Client
+    public BaseClient? Client
     {
         get
         {

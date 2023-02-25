@@ -571,6 +571,11 @@ public class HtmlProperties : DependencyObject
                     span.Inlines.Add(inlineUiContainer);
                     span.Inlines.Add(new LineBreak());
                 }
+                else if (sourceUri.StartsWith("mailto:"))
+                {
+                    span.Inlines.Add(new Run { Text = $"[mailto:]({sourceUri})" });
+                    return span;
+                }
                 else
                 {
                     // TODO: 
@@ -667,13 +672,19 @@ public class HtmlProperties : DependencyObject
                         span.Inlines.Add(hyperlinkButton);
                         return span;
                     }
+                    else if (href.StartsWith("mailto:"))
+                    {
+                        var span = new Span();
+                        span.Inlines.Add(new Run { Text = "[mailto:]("+href+")" });
+                        return span;
+                    }
                     else
                     {
                         // TODO: handle baseUrl
                         Debug.WriteLine("GenerateHyperLink Relative Uri!!");
 
                         var span = new Span();
-                        span.Inlines.Add(new Run { Text = $"[A href (relative url)]({href})" });
+                        span.Inlines.Add(new Run { Text = $"[Url(relative)]({href})" });
                         return span;
                     }
                 }
@@ -800,7 +811,7 @@ public class HtmlProperties : DependencyObject
 
         var ellipse = new Ellipse
         {
-            Fill = _currentObject?.Foreground ?? new SolidColorBrush(Colors.Black),
+            Fill = _currentObject?.Foreground ?? new SolidColorBrush(Colors.Gainsboro),
             Width = 6,
             Height = 6,
             Margin = new Thickness(-24, 0, 0, 1)

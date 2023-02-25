@@ -157,7 +157,7 @@
                                         </PathIcon>
                                     </MenuFlyoutItem.Icon>
                                     <MenuFlyoutItem.KeyboardAccelerators>
-                                        <KeyboardAccelerator Modifiers="Menu" Key="Enter"/>
+                                        <KeyboardAccelerator Modifiers="Control" Key="E"/>
                                     </MenuFlyoutItem.KeyboardAccelerators>
                                 </MenuFlyoutItem>
 
@@ -349,7 +349,8 @@
                  -->
             </Grid>
 
-            <Grid Grid.Row="0" Grid.Column="2" x:Name="AppTitleBar" Background="{ThemeResource MenuBarBackground}"></Grid>
+            <!--  Background="{ThemeResource MenuBarBackground}" -->
+            <Grid Grid.Row="0" Grid.Column="2" x:Name="AppTitleBar"></Grid>
 
         </Grid>
 

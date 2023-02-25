@@ -865,8 +865,7 @@ public class DataAccessService : IDataAccessService
                     entry.ContentType = EntryItem.ContentTypes.unknown;
                 }
 
-
-                entry.Source = Convert.ToString(reader["entrySource"]);
+                entry.Source = Convert.ToString(reader["entrySource"]) ?? "";
 
                 var su = Convert.ToString(reader["entrySourceUri"]);
                 if (!string.IsNullOrEmpty(su))
@@ -931,9 +930,9 @@ public class DataAccessService : IDataAccessService
                     entry.Status = entry.StatusTextToType(status);
                 }
 
-                entry.Author = Convert.ToString(reader["entryAuthor"]);
+                entry.Author = Convert.ToString(reader["entryAuthor"]) ?? "";
 
-                entry.Category = Convert.ToString(reader["entryCategory"]);
+                entry.Category = Convert.ToString(reader["entryCategory"]) ?? "";
 
                 var blnstr = Convert.ToString(reader["entryArchived"]);
                 if (!string.IsNullOrEmpty(blnstr))
@@ -959,7 +958,7 @@ public class DataAccessService : IDataAccessService
                 }
 
                 //entry.Publisher = Convert.ToString(reader["name"]);
-                entry.FeedTitle = Convert.ToString(reader["feedName"]);
+                entry.FeedTitle = Convert.ToString(reader["feedName"]) ?? "";
 
                 res.AffectedCount++;
 
@@ -1066,7 +1065,11 @@ public class DataAccessService : IDataAccessService
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {
-                FeedEntryItem entry = new FeedEntryItem(Convert.ToString(reader["entryTitle"]), Convert.ToString(reader["feedId"]), null);
+                var fid = Convert.ToString(reader["feedId"]);
+                if (string.IsNullOrEmpty(fid))
+                    continue;
+
+                FeedEntryItem entry = new FeedEntryItem(Convert.ToString(reader["entryTitle"]) ?? "no title", fid, null);
 
                 //entry.MyNodeFeed = ndf;
 
@@ -1081,17 +1084,25 @@ public class DataAccessService : IDataAccessService
                     entry.AltHtmlUri = new Uri(s);
                 }
 
-                entry.Published = DateTime.Parse(Convert.ToString(reader["entryPublished"]));
+                var pnsd = Convert.ToString(reader["entryPublished"]);
+                if (!string.IsNullOrEmpty(pnsd))
+                {
+                    entry.Published = DateTime.Parse(pnsd);
+                }
 
                 try
                 {
-                    entry.Updated = DateTime.Parse(Convert.ToString(reader["entryUpdated"]));
+                    var hoge = Convert.ToString(reader["entryUpdated"]);
+                    if (!string.IsNullOrEmpty(hoge))
+                    {
+                        entry.Updated = DateTime.Parse(hoge);
+                    }
                 }
                 catch { }
 
-                entry.Summary = Convert.ToString(reader["entrySummary"]);
+                entry.Summary = Convert.ToString(reader["entrySummary"]) ?? "";
 
-                entry.Content = Convert.ToString(reader["entryContent"]);
+                entry.Content = Convert.ToString(reader["entryContent"]) ?? "";
 
                 var t = Convert.ToString(reader["entryContentType"]);
                 if (t == "textHtml")
@@ -1181,7 +1192,7 @@ public class DataAccessService : IDataAccessService
                     entry.Status = entry.StatusTextToType(status);
                 }
 
-                entry.Source = Convert.ToString(reader["entrySource"]);
+                entry.Source = Convert.ToString(reader["entrySource"]) ?? "";
 
                 var su = Convert.ToString(reader["entrySourceUri"]);
                 if (!string.IsNullOrEmpty(su))
@@ -1189,9 +1200,9 @@ public class DataAccessService : IDataAccessService
                     entry.SourceUri = new Uri(su);
                 }
 
-                entry.Author = Convert.ToString(reader["entryAuthor"]);
+                entry.Author = Convert.ToString(reader["entryAuthor"]) ?? "";
 
-                entry.Category = Convert.ToString(reader["entryCategory"]);
+                entry.Category = Convert.ToString(reader["entryCategory"]) ?? "";
 
                 var blnstr = Convert.ToString(reader["entryArchived"]);
                 if (!string.IsNullOrEmpty(blnstr))
@@ -1216,7 +1227,7 @@ public class DataAccessService : IDataAccessService
                     res.UnreadCount++;
                 }
 
-                entry.FeedTitle = Convert.ToString(reader["feedName"]);
+                entry.FeedTitle = Convert.ToString(reader["feedName"]) ?? "";
 
                 res.AffectedCount++;
 

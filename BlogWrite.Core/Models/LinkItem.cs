@@ -108,11 +108,11 @@ public class ServiceDocumentLinkItem : LinkItem
     {
         SearviceDocumentLinkData = searviceDocumentLink;
 
-        if (searviceDocumentLink is RsdLink)
+        if (searviceDocumentLink is RsdLink rd)
         {
-            Title = (searviceDocumentLink as RsdLink).EngineName;
+            Title = rd.EngineName;
 
-            foreach (var hoge in (searviceDocumentLink as RsdLink).Apis)
+            foreach (var hoge in rd.Apis)
             {
                 if ((hoge.Name.ToLower() == "wordpress") && hoge.Preferred)
                 {
@@ -140,9 +140,9 @@ public class ServiceDocumentLinkItem : LinkItem
                 }
             }
         }
-        else if (searviceDocumentLink is AppLink)
+        else if (searviceDocumentLink is AppLink al)
         {
-            Title = (searviceDocumentLink as AppLink).NodeService.Name;
+            Title = al.NodeService.Name;
 
             TypeText = "Atom Publishing Protocol";
             IconPath = IconPathStrings["AtomPub"];

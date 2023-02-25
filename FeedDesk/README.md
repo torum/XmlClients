@@ -41,6 +41,8 @@ Feel free to open issues and send PRs.
 from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
 
 ## Change log
+* v1.0.8.123 (2023/2/27)
+ Added Acrylic material(backdrop/visual effect)! and added wait dialog for import and remove.
 * v1.0.8 (2023/2/26)
  Store App release. 
 * v1.0.7.123 (2023/2/25)
@@ -90,6 +92,7 @@ from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
  Switched to WinUI3 from a WPF project. 
 
 ## Things that currentry working on
+- [ ] Create contentdialog or something while OPML import 'cause it is making GUI unresposive. 
 - [ ] Update entry data when entry is updated.
 - [ ] Database file management page (menu>tools), clean(delete all data) and optimize(vacume).
 - [ ] Full Text Search.

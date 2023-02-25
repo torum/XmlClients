@@ -444,12 +444,15 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
                         {
                             if (s is RsdLink rl)
                             {
-                                if (rl.Apis.Count > 0)
+                                if (rl.Apis != null)
                                 {
-                                    ServiceDocumentLinkItem li = new(s);
+                                    if (rl.Apis.Count > 0)
+                                    {
+                                        ServiceDocumentLinkItem li = new(s);
 
-                                    if (li.IsSupported)
-                                        LinkItems.Add(li);
+                                        if (li.IsSupported)
+                                            LinkItems.Add(li);
+                                    }
                                 }
                             }
                             else
@@ -481,11 +484,14 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
             }
             else if (sr is ServiceResultFeed srf)
             {
-                FeedLink feed = srf.FeedlinkInfo;
+                FeedLink? feed = srf.FeedlinkInfo;
 
-                FeedLinkItem li = new(feed);
+                if (feed != null)
+                {
+                    FeedLinkItem li = new(feed);
 
-                LinkItems.Add(li);
+                    LinkItems.Add(li);
+                }
 
                 IsShowError = false;
                 IsShowLog = false;
@@ -500,20 +506,34 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
                 {
                     RsdLink hoge = srr.Rsd;
 
-                    if (hoge.Apis.Count > 0)
+                    if (hoge.Apis != null)
                     {
-                        ServiceDocumentLinkItem li = new(hoge);
-
-                        if (li.IsSupported)
+                        if (hoge.Apis.Count > 0)
                         {
-                            LinkItems.Add(li);
+                            ServiceDocumentLinkItem li = new(hoge);
 
-                            GoToSelectFeedOrServicePage();
+                            if (li.IsSupported)
+                            {
+                                LinkItems.Add(li);
+
+                                GoToSelectFeedOrServicePage();
+                            }
+                            else
+                            {
+                                StatusTitleText = "Found 0 item";
+                                StatusText = "RSD found but no supported service found.";
+
+                                IsShowError = true;
+                                IsShowLog = true;
+
+                                IsBusy = false;
+                                return;
+                            }
                         }
                         else
                         {
                             StatusTitleText = "Found 0 item";
-                            StatusText = "RSD found but no supported service found.";
+                            StatusText = "RSD found but no supported api found.";
 
                             IsShowError = true;
                             IsShowLog = true;
@@ -533,6 +553,7 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
                         IsBusy = false;
                         return;
                     }
+
                 }
                 else
                 {
@@ -664,9 +685,11 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
             else if (sdli.SearviceDocumentLinkData is AppLink al)
             {
                 AppLink sd = al;
-
-                if (!string.IsNullOrEmpty(SelectedItemTitleLabel))
-                    sd.NodeService.Name = SelectedItemTitleLabel;
+                if (sd.NodeService != null)
+                {
+                    if (!string.IsNullOrEmpty(SelectedItemTitleLabel))
+                        sd.NodeService.Name = SelectedItemTitleLabel;
+                }
 
                 RegisterAtomPubEventArgs arg = new();
                 arg.NodeService = sd.NodeService;
@@ -675,7 +698,6 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
                 //RegisterAtomPub?.Invoke(this, arg);
             }
         }
-
     }
 
     private bool CanAddSelectedAndClose()

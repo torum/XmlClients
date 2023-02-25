@@ -6,6 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:helpers="using:BlogWrite.Core.Helpers"
     xmlns:xaml="using:Microsoft.UI.Xaml"
+    xmlns:vm="usging:FeedDesk.ViewModels"
     NavigationCacheMode="Required"
     mc:Ignorable="d" Background="{ThemeResource NavigationViewContentBackground}">
     <Grid x:Name="ContentArea">
@@ -45,25 +46,39 @@
                                     <TextBlock x:Uid="Settings_Personalization" Style="{ThemeResource SubtitleTextBlockStyle}" />
 
                                     <StackPanel Margin="{StaticResource SmallTopBottomMargin}">
-                                        
-                                        <TextBlock x:Uid="Settings_Theme" />
 
                                         <StackPanel Margin="{StaticResource XSmallTopMargin}">
-                                            <RadioButton x:Uid="Settings_Theme_Light" Command="{x:Bind ViewModel.SwitchThemeCommand}" IsChecked="{x:Bind ViewModel.ElementTheme, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Light, Mode=OneWay}" FontSize="15" GroupName="AppTheme">
+                                            
+                                            <TextBlock x:Uid="Settings_Theme" Margin="0,0,0,12" />
+
+                                            <RadioButton x:Uid="Settings_Theme_Light" Command="{x:Bind ViewModel.SwitchThemeCommand}" IsChecked="{x:Bind ViewModel.ElementTheme, Converter={StaticResource ElementThemeEnumToBooleanConverter}, ConverterParameter=Light, Mode=OneWay}" FontSize="15" GroupName="AppTheme">
                                                 <RadioButton.CommandParameter>
                                                     <xaml:ElementTheme>Light</xaml:ElementTheme>
                                                 </RadioButton.CommandParameter>
                                             </RadioButton>
-                                            <RadioButton x:Uid="Settings_Theme_Dark" Command="{x:Bind ViewModel.SwitchThemeCommand}" IsChecked="{x:Bind ViewModel.ElementTheme, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Dark, Mode=OneWay}" FontSize="15" GroupName="AppTheme">
+                                            <RadioButton x:Uid="Settings_Theme_Dark" Command="{x:Bind ViewModel.SwitchThemeCommand}" IsChecked="{x:Bind ViewModel.ElementTheme, Converter={StaticResource ElementThemeEnumToBooleanConverter}, ConverterParameter=Dark, Mode=OneWay}" FontSize="15" GroupName="AppTheme">
                                                 <RadioButton.CommandParameter>
                                                     <xaml:ElementTheme>Dark</xaml:ElementTheme>
                                                 </RadioButton.CommandParameter>
                                             </RadioButton>
-                                            <RadioButton x:Uid="Settings_Theme_Default" Command="{x:Bind ViewModel.SwitchThemeCommand}" IsChecked="{x:Bind ViewModel.ElementTheme, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Default, Mode=OneWay}" FontSize="15" GroupName="AppTheme">
+                                            <RadioButton x:Uid="Settings_Theme_Default" Command="{x:Bind ViewModel.SwitchThemeCommand}" IsChecked="{x:Bind ViewModel.ElementTheme, Converter={StaticResource ElementThemeEnumToBooleanConverter}, ConverterParameter=Default, Mode=OneWay}" FontSize="15" GroupName="AppTheme">
                                                 <RadioButton.CommandParameter>
                                                     <xaml:ElementTheme>Default</xaml:ElementTheme>
                                                 </RadioButton.CommandParameter>
                                             </RadioButton>
+                                        </StackPanel>
+
+                                    </StackPanel>
+
+                                    <StackPanel Margin="{StaticResource SmallTopBottomMargin}">
+
+                                        <TextBlock x:Uid="Settings_SystemBackdrop" Margin="0,0,0,12"/>
+
+                                        <StackPanel Margin="{StaticResource XSmallTopMargin}">
+
+                                            <RadioButton x:Uid="Settings_SystemBackdrop_Acrylic" IsEnabled="{x:Bind ViewModel.IsAcrylicSupported,Mode=OneWay}" Command="{x:Bind ViewModel.SwitchSystemBackdropCommand}" CommandParameter="Acrylic" IsChecked="{x:Bind ViewModel.Material, Converter={StaticResource SystemBackdropEnumToBooleanConverter}, ConverterParameter=Acrylic, Mode=OneWay}" FontSize="15" GroupName="AppMaterial"/>
+                                            <RadioButton x:Uid="Settings_SystemBackdrop_Mica" IsEnabled="{x:Bind ViewModel.IsAcrylicSupported,Mode=OneWay}" Command="{x:Bind ViewModel.SwitchSystemBackdropCommand}" CommandParameter="Mica" IsChecked="{x:Bind ViewModel.Material, Converter={StaticResource SystemBackdropEnumToBooleanConverter}, ConverterParameter=Mica, Mode=OneWay}" FontSize="15" GroupName="AppMaterial"/>
+
                                         </StackPanel>
 
                                     </StackPanel>

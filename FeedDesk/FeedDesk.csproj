@@ -54,6 +54,7 @@
     <None Remove="Views\MainPage.xaml" />
     <None Remove="Views\SettingsPage.xaml" />
     <None Remove="Views\ShellPage.xaml" />
+    <None Remove="WaitDialog.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -140,6 +141,9 @@
     <None Update="Icons\FeedDesk2.ico">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
+    <Page Update="WaitDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 
   <!-- 

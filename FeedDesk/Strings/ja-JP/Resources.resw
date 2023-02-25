@@ -417,4 +417,16 @@
   <data name="FeedEditPage_Button_CheckFeedValidity.Content" xml:space="preserve">
     <value>フィードの正当性チェック</value>
   </data>
+  <data name="Settings_SystemBackdrop.Text" xml:space="preserve">
+    <value>ビジュアル効果</value>
+  </data>
+  <data name="Settings_SystemBackdrop_Acrylic.Content" xml:space="preserve">
+    <value>Acrylic</value>
+  </data>
+  <data name="Settings_SystemBackdrop_Mica.Content" xml:space="preserve">
+    <value>Mica</value>
+  </data>
+  <data name="WaitDialog_Title" xml:space="preserve">
+    <value>お待ちください・・・</value>
+  </data>
 </root>

@@ -24,7 +24,7 @@ class AtomPubClient : BlogClient
             Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", userName, userPassword))));
     }
 
-    public override async Task<NodeService> GetAccount(string accountName)
+    public async override Task<NodeService> GetAccount(string accountName)
     {
         NodeService account = new NodeService(accountName, _userName, _userPassword, _endpoint, ApiTypes.atAtomPub, ServiceTypes.AtomPub);
 
@@ -39,7 +39,7 @@ class AtomPubClient : BlogClient
         return account;
     }
 
-    public override async Task<List<NodeWorkspace>> GetBlogs()
+    public async override Task<List<NodeWorkspace>> GetBlogs()
     {
         List<NodeWorkspace> blogs = new();
 

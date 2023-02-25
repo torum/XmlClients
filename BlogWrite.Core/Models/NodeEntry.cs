@@ -627,7 +627,7 @@ public class EditEntryItem : EntryItem
         }
     }
 
-    public EditEntryItem(string title, string serviceId, BaseClient bc) : base(title, serviceId, bc)
+    public EditEntryItem(string title, string serviceId, BaseClient? bc) : base(title, serviceId, bc)
     {
         Status = EditStatus.esNew;
     }

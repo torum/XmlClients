@@ -6,18 +6,37 @@ using CommunityToolkit.Mvvm.Input;
 using FeedDesk.Contracts.Services;
 using FeedDesk.Contracts.ViewModels;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Windows.ApplicationModel;
+using Windows.Storage;
 
 namespace FeedDesk.ViewModels;
 
 public class SettingsViewModel : ObservableRecipient, INavigationAware
 {
+    private const string BackdropSettingsKey = "AppSystemBackdropOption";
+
     private readonly INavigationService _navigationService;
 
     private readonly IThemeSelectorService _themeSelectorService;
-    private ElementTheme _elementTheme = ElementTheme.Default;
+    
     private string _versionDescription;
 
+    private SystemBackdropOption _material = SystemBackdropOption.Mica;
+    public SystemBackdropOption Material
+    {
+        get => _material;
+        set => SetProperty(ref _material, value);
+    }
+
+    private bool _isAcrylicSupported;
+    public bool IsAcrylicSupported
+    {
+        get => _isAcrylicSupported;
+        set => SetProperty(ref _isAcrylicSupported, value);
+    }
+
+    private ElementTheme _elementTheme = ElementTheme.Default;
     public ElementTheme ElementTheme
     {
         get => _elementTheme;
@@ -34,6 +53,12 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
     {
         get;
     }
+
+    public ICommand SwitchSystemBackdropCommand
+    {
+        get;
+    }
+
     public ICommand GoBackCommand
     {
         get;
@@ -47,6 +72,25 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
         _elementTheme = _themeSelectorService.Theme;
         _versionDescription = GetVersionDescription();
 
+        var manager = WinUIEx.WindowManager.Get(App.MainWindow);
+        if (manager.Backdrop is WinUIEx.AcrylicSystemBackdrop)
+        {
+            Material = SystemBackdropOption.Acrylic;
+        }
+        else if (manager.Backdrop is WinUIEx.MicaSystemBackdrop)
+        {
+            Material = SystemBackdropOption.Mica;
+        }
+
+        if (Microsoft.UI.Composition.SystemBackdrops.DesktopAcrylicController.IsSupported())
+        {
+            IsAcrylicSupported = true;
+        }
+        else
+        {
+            IsAcrylicSupported = false;
+        }
+
         SwitchThemeCommand = new RelayCommand<ElementTheme>(
             async (param) =>
             {
@@ -57,6 +101,7 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
                 }
             });
 
+        SwitchSystemBackdropCommand = new RelayCommand<string>(OnSwitchSystemBackdrop);
 
         GoBackCommand = new RelayCommand(OnGoBack);
     }
@@ -85,6 +130,39 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
         }
 
         return $"{"Version".GetLocalized()} - {version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
+    }
+
+    private void OnSwitchSystemBackdrop(string? backdrop)
+    {
+        if (backdrop != null)
+        {
+            var manager = WinUIEx.WindowManager.Get(App.MainWindow);
+
+            if (backdrop == "Mica")
+            {
+                if (Microsoft.UI.Composition.SystemBackdrops.MicaController.IsSupported())
+                {
+                    manager.Backdrop = new WinUIEx.MicaSystemBackdrop();
+                    if (RuntimeHelper.IsMSIX)
+                    {
+                        ApplicationData.Current.LocalSettings.Values[BackdropSettingsKey] = SystemBackdropOption.Mica.ToString();
+                    }
+                    Material = SystemBackdropOption.Mica;
+                }
+            }
+            else if (backdrop == "Acrylic")
+            {
+                if (Microsoft.UI.Composition.SystemBackdrops.DesktopAcrylicController.IsSupported())
+                {
+                    manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
+                    if (RuntimeHelper.IsMSIX)
+                    {
+                        ApplicationData.Current.LocalSettings.Values[BackdropSettingsKey] = SystemBackdropOption.Acrylic.ToString();
+                    }
+                    Material = SystemBackdropOption.Acrylic;
+                }
+            }
+        }
     }
 
     private void OnGoBack()

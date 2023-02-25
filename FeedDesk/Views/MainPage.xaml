@@ -420,7 +420,7 @@
 
                         <!-- Entries listView
                          Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}" -->
-                        <ListView Grid.Row="1" x:Name="ListViewEntryItem" Background="{ThemeResource NavigationViewContentBackground}" ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedListViewItem, Mode=TwoWay}" IsDoubleTapEnabled="True" IsRightTapEnabled="True" SelectionMode="Single" Margin="0,0,0,0" Padding="0,0,0,0">
+                        <ListView Grid.Row="1" x:Name="ListViewEntryItem" Background="{ThemeResource NavigationViewContentBackground}" ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedListViewItem, Mode=TwoWay}" IsDoubleTapEnabled="True" IsRightTapEnabled="True" SelectionMode="Single" Margin="0,0,0,0" Padding="0,2,0,0">
                             <ListView.Resources>
                                 <MenuFlyout x:Key="ListItemContextMenu">
 
@@ -502,7 +502,7 @@
                 <Border x:Name="DetailsPane" Grid.Row="0" Grid.Column="1" Background="{ThemeResource NavigationViewContentBackground}" Margin="0" CornerRadius="{ThemeResource NavigationViewContentChildGridCornerRadius}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
                     <ScrollViewer Visibility="{x:Bind ViewModel.IsEntryDetailVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
 
-                        <StackPanel Margin="24,12,24,24" MaxWidth="980" Visibility="{x:Bind ViewModel.IsEntryDetailVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
+                        <StackPanel Margin="24,12,24,24" MaxWidth="1024" Visibility="{x:Bind ViewModel.IsEntryDetailVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
 
                             <RelativePanel HorizontalAlignment="Left" VerticalAlignment="Top" RelativePanel.AlignTopWithPanel="True" RelativePanel.AlignLeftWithPanel="True">
 
@@ -515,7 +515,7 @@
                                 <StackPanel>
 
                                     <TextBlock Visibility="{x:Bind ViewModel.IsNoAltLinkExists, Mode=OneWay}" Text="{x:Bind ViewModel.SelectedListViewItem.Name, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" Style="{ThemeResource TitleTextBlockStyle}" FontSize="{StaticResource LargeFontSize}" Opacity="0.9"/>
-                                    <TextBlock Visibility="{x:Bind ViewModel.IsAltLinkExists, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" Style="{ThemeResource TitleTextBlockStyle}" FontSize="{StaticResource LargeFontSize}" Opacity="0.9">
+                                    <TextBlock Visibility="{x:Bind ViewModel.IsAltLinkExists, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" Style="{ThemeResource TitleTextBlockStyle}" FontSize="{StaticResource LargeFontSize}" Opacity="0.9" LineHeight="36">
                                         <Hyperlink NavigateUri="{x:Bind ViewModel.SelectedListViewItem.AltHtmlUri, Mode=OneWay}"><Run Text="{x:Bind ViewModel.SelectedListViewItem.Name, Mode=OneWay}"></Run></Hyperlink>
                                     </TextBlock>
 
