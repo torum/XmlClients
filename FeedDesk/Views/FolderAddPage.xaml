@@ -7,7 +7,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     NavigationCacheMode="Disabled"
-    Loaded="Page_Loaded">
+    Loaded="Page_Loaded"
+     Background="{ThemeResource NavigationViewContentBackground}">
     <Grid x:Name="ContentArea">
         <ScrollViewer>
             <Grid>
@@ -19,7 +20,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Row="0" Grid.Column="0" Margin="0,0,0,0" Background="{ThemeResource NavigationViewContentBackground}" CornerRadius="{ThemeResource NavigationViewContentChildGridCornerRadius}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
+                <Border Grid.Row="0" Grid.Column="0" Margin="0,0,0,0" CornerRadius="{ThemeResource NavigationViewContentChildGridCornerRadius}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
 
                     <Button Margin="12,12,0,0" Padding="12" VerticalAlignment="Top" Background="Transparent" BorderThickness="0" Command="{x:Bind ViewModel.GoBackCommand}">
                         <!-- <SymbolIcon Symbol="Back" /> -->
@@ -30,7 +31,7 @@
 
                 </Border>
 
-                <Grid Grid.Row="1" Grid.Column="0" Background="{ThemeResource NavigationViewContentBackground}">
+                <Grid Grid.Row="1" Grid.Column="0">
 
                     <StackPanel Margin="50,12,50,0" HorizontalAlignment="Left">
 

@@ -205,7 +205,7 @@ public partial class App : Application
         {
             // Memo: Without Backdrop, theme setting's theme is not gonna have any effect( "system default" will be used). So the setting is disabled.
         }
-
+        
         // WinUIEx Storage option.
         if (!RuntimeHelper.IsMSIX)
         {

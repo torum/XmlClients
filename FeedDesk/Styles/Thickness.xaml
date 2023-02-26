@@ -24,11 +24,11 @@
     <Thickness x:Key="XXSmallLeftTopRightBottomMargin">4,4,4,4</Thickness>
 
     <Thickness x:Key="NavigationViewContentGridBorderThickness">0,0,0,0</Thickness>
-    <CornerRadius x:Key="NavigationViewContentGridCornerRadius">8,0,0,0</CornerRadius>
+    <CornerRadius x:Key="NavigationViewContentGridCornerRadius">8,8,0,0</CornerRadius>
     <Thickness x:Key="NavigationViewContentMargin">0,0,0,0</Thickness>
 
     <Thickness x:Key="NavigationViewContentChildGridBorderThickness">1,1,0,0</Thickness>
-    <CornerRadius x:Key="NavigationViewContentChildGridCornerRadius">8,0,0,0</CornerRadius>
+    <CornerRadius x:Key="NavigationViewContentChildGridCornerRadius">8,8,0,0</CornerRadius>
 
     <Thickness x:Key="NavigationViewHeaderMargin">0</Thickness>
     <Thickness x:Key="NavigationViewPageContentMargin">0</Thickness>

@@ -125,11 +125,11 @@ public class FeedClientService : BaseClient, IFeedClientService
                     }
                     catch (Exception e)
                     {
-                        Debug.WriteLine(">> Exception @RSS 2.0 new Uri(feedLinkUri)");
+                        Debug.WriteLine(">> Exception @RSS 2.0 new Uri(feedLinkUri): " + res.Title);
 
                         ToDebugWindow(">> Exception @RSS 2.0 new Uri(feedLinkUri)"
                             + Environment.NewLine +
-                            "RSS feed (" + feedTitle + ") contain invalid entry Uri: " + e.Message +
+                            "RSS feed (" + res.Title + ") contain invalid entry Uri: " + e.Message +
                             Environment.NewLine);
                     }
 
@@ -146,11 +146,11 @@ public class FeedClientService : BaseClient, IFeedClientService
                             }
                             catch (Exception e)
                             {
-                                Debug.WriteLine("Exception @ParseDateTimeRFC822 in the RSS 2.0 feed " + "(" + feedTitle + ")" + " : " + e.Message);
+                                Debug.WriteLine("Exception @ParseDateTimeRFC822 in the RSS 2.0 feed " + "(" + res.Title + ")" + " : " + e.Message);
 
                                 ToDebugWindow(">> Exception @FeedClient@ParseDateTimeRFC822()"
                                     + Environment.NewLine +
-                                    "RSS feed entry(" + feedTitle + ") contain invalid feed pubDate (DateTimeRFC822 expected): " + e.Message +
+                                    "RSS feed entry(" + res.Title + ") contain invalid feed pubDate (DateTimeRFC822 expected): " + e.Message +
                                     Environment.NewLine);
 
                                 // TODO: really shouldn't to cover these invalid format, but...for the usability stand point...
@@ -181,11 +181,11 @@ public class FeedClientService : BaseClient, IFeedClientService
                             }
                             catch (Exception e)
                             {
-                                Debug.WriteLine("Exception @ParseDateTimeRFC822 in the RSS 2.0 feed " + "(" + feedTitle + ")" + " : " + e.Message);
+                                Debug.WriteLine("Exception @ParseDateTimeRFC822 in the RSS 2.0 feed " + "(" + res.Title + ")" + " : " + e.Message);
 
                                 ToDebugWindow(">> Exception @FeedClient@ParseDateTimeRFC822()"
                                     + Environment.NewLine +
-                                    "RSS feed entry(" + feedTitle + ") contain invalid feed lastBuildDate (DateTimeRFC822 expected): " + e.Message +
+                                    "RSS feed entry(" + res.Title + ") contain invalid feed lastBuildDate (DateTimeRFC822 expected): " + e.Message +
                                     Environment.NewLine);
 
                                 // TODO: really shouldn't to cover these invalid format, but...for the usability stand point...
@@ -258,7 +258,7 @@ public class FeedClientService : BaseClient, IFeedClientService
 
                         ToDebugWindow(">> Exception @RSS 1.0 new Uri(feedLinkUri)"
                             + Environment.NewLine +
-                            "RSS feed (" + feedTitle + ") contain invalid entry Uri: " + e.Message +
+                            "RSS feed (" + res.Title + ") contain invalid entry Uri: " + e.Message +
                             Environment.NewLine);
                     }
 
@@ -357,11 +357,11 @@ public class FeedClientService : BaseClient, IFeedClientService
                                                 }
                                                 catch (Exception e)
                                                 {
-                                                    Debug.WriteLine("Exception @new Uri(altUri) @ FeedClient Atom1.0" + "(" + feedTitle + ")" + " : " + e.Message);
+                                                    Debug.WriteLine("Exception @new Uri(altUri) @ FeedClient Atom1.0" + "(" + res.Title + ")" + " : " + e.Message);
 
                                                     ToDebugWindow(">> Exception @FeedClient@new Uri(altUri)"
                                                         + Environment.NewLine +
-                                                        "Atom feed (" + feedTitle + ") contain invalid atom:altUri: " + e.Message +
+                                                        "Atom feed (" + res.Title + ") contain invalid atom:altUri: " + e.Message +
                                                         Environment.NewLine);
                                                 }
                                             }
@@ -387,7 +387,7 @@ public class FeedClientService : BaseClient, IFeedClientService
 
                                     ToDebugWindow(">> Exception @FeedClient@ XmlConvert.ToDateTime()"
                                         + Environment.NewLine +
-                                        "Atom feed(" + feedTitle + ") contain invalid feed atom:updated: " + e.Message +
+                                        "Atom feed(" + res.Title + ") contain invalid feed atom:updated: " + e.Message +
                                         Environment.NewLine);
                                 }
                             }
@@ -471,11 +471,11 @@ public class FeedClientService : BaseClient, IFeedClientService
                                                 }
                                                 catch (Exception e)
                                                 {
-                                                    Debug.WriteLine("Exception @new Uri(altUri) @ FeedClient Atom0.3" + "(" + feedTitle + ")" + " : " + e.Message);
+                                                    Debug.WriteLine("Exception @new Uri(altUri) @ FeedClient Atom0.3" + "(" + res.Title + ")" + " : " + e.Message);
 
                                                     ToDebugWindow(">> Exception @FeedClient@new Uri(altUri)"
                                                         + Environment.NewLine +
-                                                        "Atom feed(" + feedTitle + ") contain invalid atom:altUri: " + e.Message +
+                                                        "Atom feed(" + res.Title + ") contain invalid atom:altUri: " + e.Message +
                                                         Environment.NewLine);
                                                 }
                                             }
@@ -497,11 +497,11 @@ public class FeedClientService : BaseClient, IFeedClientService
                                 }
                                 catch (Exception e)
                                 {
-                                    //Debug.WriteLine("Exception @XmlConvert.ToDateTime in the Atom 1.0 feed " + "(" + entry.Name + ")" + " : " + e.Message);
+                                    Debug.WriteLine("Exception @XmlConvert.ToDateTime in the Atom 1.0 feed " + "(" + res.Title + ")" + " : " + e.Message);
 
                                     ToDebugWindow(">> Exception @FeedClient@ XmlConvert.ToDateTime()"
                                         + Environment.NewLine +
-                                        "Atom feed(" + feedTitle + ") contain invalid feed atom:published: " + e.Message +
+                                        "Atom feed(" + res.Title + ") contain invalid feed atom:published: " + e.Message +
                                         Environment.NewLine);
                                 }
                             }

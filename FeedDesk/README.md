@@ -41,6 +41,10 @@ Feel free to open issues and send PRs.
 from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
 
 ## Change log
+* v1.0.9.123 (2023/2/28)
+ Fixed a bug: In Win10, material selection wasn't working.
+* v1.0.9 (2023/2/27)
+ Store App release. 
 * v1.0.8.123 (2023/2/27)
  Added Acrylic material(backdrop/visual effect) support! and added wait dialog for import and remove. Theme tweak. Update tweak.
 * v1.0.8 (2023/2/26)
