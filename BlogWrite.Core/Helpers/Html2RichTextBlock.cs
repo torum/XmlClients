@@ -494,7 +494,7 @@ public class HtmlProperties : DependencyObject
                 else
                 {
                     // TODO: 
-                    span.Inlines.Add(new Run { Text = $"[IMG (relative url)]({sourceUri})" });
+                    span.Inlines.Add(new Run { Text = $" Image (relative URL): ({sourceUri}) " });
                 }
             }
         }
@@ -573,13 +573,12 @@ public class HtmlProperties : DependencyObject
                 }
                 else if (sourceUri.StartsWith("mailto:"))
                 {
-                    span.Inlines.Add(new Run { Text = $"[mailto:]({sourceUri})" });
-                    return span;
+                    span.Inlines.Add(new Run { Text = $" Email Address: [mailto:]({sourceUri})" });
                 }
                 else
                 {
                     // TODO: 
-                    span.Inlines.Add(new Run { Text = $"[IMG (relative url)]({sourceUri})" });
+                    span.Inlines.Add(new Run { Text = $" Image (relative URL): ({sourceUri}) " });
                 }
             }
         }
@@ -675,7 +674,7 @@ public class HtmlProperties : DependencyObject
                     else if (href.StartsWith("mailto:"))
                     {
                         var span = new Span();
-                        span.Inlines.Add(new Run { Text = "[mailto:]("+href+")" });
+                        span.Inlines.Add(new Run { Text = $" Email Address: [mailto:]({CleanText(node.InnerText)}) " });
                         return span;
                     }
                     else
@@ -684,7 +683,7 @@ public class HtmlProperties : DependencyObject
                         Debug.WriteLine("GenerateHyperLink Relative Uri!!");
 
                         var span = new Span();
-                        span.Inlines.Add(new Run { Text = $"[Url(relative)]({href})" });
+                        span.Inlines.Add(new Run { Text = $" Url (relative): [{CleanText(node.InnerText)}]({href}) " });
                         return span;
                     }
                 }
@@ -747,18 +746,19 @@ public class HtmlProperties : DependencyObject
                         hyperlinkButton.NavigateUri = new Uri(src, UriKind.Absolute);
                         if (!string.IsNullOrEmpty(title))
                         {
-                            hyperlinkButton.Inlines.Add(new Run { Text = $"[iFrame: {CleanText(title)}]({src})" });
+                            hyperlinkButton.Inlines.Add(new Run { Text = $"iframe: [{CleanText(title)}]" });
                         }
                         else
                         {
-                            hyperlinkButton.Inlines.Add(new Run { Text = $"[iFrame]({src})" });
+                            hyperlinkButton.Inlines.Add(new Run { Text = $"iframe: ({src})" });
                         }
                         span.Inlines.Add(hyperlinkButton);
                     }
                     else
                     {
                         // md like..
-                        span.Inlines.Add(new Run { Text = CleanText($"[iFrame (relative url): {CleanText(title)}]({src})") });
+                        //span.Inlines.Add(new Run { Text = CleanText($"[iframe (relative url): {CleanText(title)}]({src})") });
+                        span.Inlines.Add(new Run { Text = CleanText($"iframe (relative URL): [{CleanText(title)}]({src})") });
                     }
 
                     span.Inlines.Add(new LineBreak());
