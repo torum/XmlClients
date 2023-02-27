@@ -19,6 +19,9 @@ namespace BlogWrite.Core.Helpers;
 
 public class HtmlProperties : DependencyObject
 {
+    // TODO:
+    public record HtmlWithBaseUri(string html, Uri baseUri);
+
     public static readonly DependencyProperty HtmlProperty = DependencyProperty.RegisterAttached(
              "Html",
             typeof(string),

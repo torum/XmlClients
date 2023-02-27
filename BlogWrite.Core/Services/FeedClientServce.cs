@@ -981,6 +981,11 @@ public class FeedClientService : BaseClient, IFeedClientService
             }
         }
 
+        if ((entItem.ContentType == EntryItem.ContentTypes.textHtml) || (entItem.ContentType == EntryItem.ContentTypes.unknown) || entItem.ContentType == EntryItem.ContentTypes.markdown)
+        {
+            entItem.ContentBaseUri = baseUri;
+        }
+
         entItem.Status = FeedEntryItem.ReadStatus.rsNew;
     }
 
@@ -1189,6 +1194,11 @@ public class FeedClientService : BaseClient, IFeedClientService
                 //if (entItem.ImageUri == null)
                 //    entItem.ImageUri = await GetImageUriFromHtml(s);
             }
+        }
+
+        if ((entItem.ContentType == EntryItem.ContentTypes.textHtml) || (entItem.ContentType == EntryItem.ContentTypes.unknown) || entItem.ContentType == EntryItem.ContentTypes.markdown)
+        {
+            entItem.ContentBaseUri = baseUri;
         }
 
         entItem.Status = FeedEntryItem.ReadStatus.rsNew;
@@ -1431,6 +1441,12 @@ public class FeedClientService : BaseClient, IFeedClientService
             }
 
             entItem.Content = cont.InnerText;
+
+            if ((entItem.ContentType == EntryItem.ContentTypes.textHtml) || (entItem.ContentType == EntryItem.ContentTypes.unknown) || entItem.ContentType == EntryItem.ContentTypes.markdown)
+            {
+                // TODO: if content element has a baseuri attribute, use it instead.
+                entItem.ContentBaseUri = baseUri;
+            }
         }
 
         XmlNode? sum = entryNode.SelectSingleNode("atom:summary", atomNsMgr);
@@ -1729,7 +1745,6 @@ public class FeedClientService : BaseClient, IFeedClientService
             entItem.AltHtmlUri = altUri;
         }
 
-
         if (string.IsNullOrEmpty(entItem.EntryId))
             if (entItem.AltHtmlUri != null)
                 entItem.EntryId = entItem.AltHtmlUri.AbsoluteUri;
@@ -1903,6 +1918,12 @@ public class FeedClientService : BaseClient, IFeedClientService
 
             // TODO: if xhtml, use innerXML
             entItem.Content = cont.InnerText;
+
+            if ((entItem.ContentType == EntryItem.ContentTypes.textHtml) || (entItem.ContentType == EntryItem.ContentTypes.unknown) || entItem.ContentType == EntryItem.ContentTypes.markdown)
+            {
+                // TODO: if content element has a baseuri attribute, use it instead.
+                entItem.ContentBaseUri = baseUri;
+            }
         }
 
         // summary

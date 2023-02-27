@@ -41,6 +41,10 @@ Feel free to open issues and send PRs.
 from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
 
 ## Change log
+* v1.0.10.123 (2023/2/28)
+ Adaptive layout. UI tweaks.
+* v1.0.10 (2023/2/28)
+ Store App release. 
 * v1.0.9.123 (2023/2/28)
  Fixed a bug: In Win10, material selection wasn't working.
 * v1.0.9 (2023/2/27)
@@ -96,13 +100,14 @@ from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
  Switched to WinUI3 from a WPF project. 
 
 ## Things that currentry working on
-- [ ] Remove AngleSharp and use HTMLAgilityPack instead because AngleSharp spits some exception.
+- [ ] Remove AngleSharp because AngleSharp spits some exception. Use HTMLAgilityPack instead.
 - [ ] Database file management page (menu>tools), clean(delete all data) and optimize(vacume).
 - [ ] Full Text Search.
 
 ## Planning
 
 ### Core
+- [ ] BaseUri support to display content in the RichTextBlock.
 - [ ] "Favorites" or saved or boolmark or star or Read lator or whatever.
 - [ ] Basic Auth.
 - [ ] Auto reflesh.

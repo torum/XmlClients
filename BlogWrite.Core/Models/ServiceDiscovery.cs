@@ -1287,8 +1287,8 @@ public class ServiceDiscovery
             else
             {
                 UpdateStatus("- Could not retrieve RSD document. ");
+                //Debug.WriteLine("- Could not retrieve RSD document. ");
             }
-
         }
         catch (System.Net.Http.HttpRequestException e)
         {
@@ -1383,9 +1383,11 @@ public class ServiceDiscovery
         return rsdDoc;
     }
 
-    private async void UpdateStatus(string data)
+    private void UpdateStatus(string data)
     {
-        await Task.Run(() => { StatusUpdate?.Invoke(this, data); });
+        //await Task.Run(() => { StatusUpdate?.Invoke(this, data); });
+
+        StatusUpdate?.Invoke(this, data);
     }
 
     #region == WSSE == 

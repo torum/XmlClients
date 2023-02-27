@@ -5,6 +5,7 @@ using BlogWrite.Core.Helpers;
 using BlogWrite.Core.Models.Clients;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
+using static BlogWrite.Core.Helpers.HtmlProperties;
 
 namespace BlogWrite.Core.Models;
 
@@ -98,8 +99,26 @@ public abstract class EntryItem : Node
                 return;
 
             _content = value;
+
+            if ((_content != null) && (ContentBaseUri != null))
+            {
+                ContentHtmlWithBaseUri = new HtmlWithBaseUri(_content, ContentBaseUri);
+            }
+
             NotifyPropertyChanged(nameof(Content));
         }
+    }
+
+    // TODO:
+    public Uri? ContentBaseUri
+    {
+        get; set;
+    }
+
+    // TODO:
+    public HtmlWithBaseUri? ContentHtmlWithBaseUri
+    {
+        get; set; 
     }
 
     // UTC

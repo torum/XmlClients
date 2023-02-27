@@ -72,15 +72,15 @@
 
     </Page.Resources>
     <Grid x:Name="ContentArea">
-        <!--
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup>
                 <VisualState>
                     <VisualState.StateTriggers>
-                        <AdaptiveTrigger MinWindowWidth="640" />
+                        <AdaptiveTrigger MinWindowWidth="1024" />
                     </VisualState.StateTriggers>
                     <VisualState.Setters>
-                        
+                        <Setter Target="col1.Width" Value="3*" />
+                        <Setter Target="col2.Width" Value="4*" />
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState>
@@ -88,28 +88,23 @@
                         <AdaptiveTrigger MinWindowWidth="0" />
                     </VisualState.StateTriggers>
                     <VisualState.Setters>
-                        
-                    </VisualState.Setters>
-                </VisualState>
-            </VisualStateGroup>
-            <VisualStateGroup>
-                <VisualState x:Name="test">
-                    <VisualState.StateTriggers>
-                        <StateTrigger IsActive="{x:Bind Path=ViewModel.IsEntryDetailPaneVisible, Mode=TwoWay}" />
-                    </VisualState.StateTriggers>
-                    <VisualState.Setters>
-                        <Setter Target="PanelOpenClose.Icon" Value="OpenPane" />
-                        <Setter Target="PanelOpenClose.Label" Value="Hide" />
-                        <Setter Target="col1.Width" Value="3*" />
-                        <Setter Target="col2.Width" Value="4*" />
+                        <Setter Target="col1.Width" Value="*" />
+                        <Setter Target="col2.Width" Value="0" />
+                        <Setter Target="DetailsPane.(Grid.Row)" Value="1"/>
+                        <Setter Target="DetailsPane.(Grid.Column)" Value="0"/>
+                        <Setter Target="row1.Height" Value="2*" />
+                        <Setter Target="row2.Height" Value="3*" />
+                        <Setter Target="col1.MaxWidth" Value="1000" />
+                        <Setter Target="DetailsPane.Margin" Value="0,6,0,0"/>
+                        <Setter Target="ListViewPane.CornerRadius" Value="8"/>
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
         </VisualStateManager.VisualStateGroups>
-        -->
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -146,7 +141,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="4,0,0,0">
 
                             <AppBarButton x:Uid="AppBarButton_Add_Feed" ToolTipService.ToolTip="Ctrl+N" IsCompact="False" Opacity="0.8" Command="{x:Bind ViewModel.FeedAddCommand}" IsTabStop="False">
                                 <AppBarButton.Icon>
@@ -184,7 +179,6 @@
                             Background="{ThemeResource NavigationViewContentBackground}"  Background="{ThemeResource NavigationViewTopPaneBackground}"
                             Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}"  -->
                 <TreeView x:Name="TreeViewControl" Grid.Row="1"
-                          
                           VerticalAlignment="Stretch" 
                            BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}"
                           SelectionMode="Single" 
@@ -200,9 +194,9 @@
                           ItemTemplateSelector="{StaticResource ExplorerItemTemplateSelector}" 
                           SelectedItem="{x:Bind ViewModel.SelectedTreeViewItem, Mode=TwoWay}" 
                           SelectedNode="{x:Bind ViewModel.SelectedTreeViewNode, Mode=OneWay}" 
-                          Margin="0,0,0,0">
-
+                          Margin="0,2,0,0">
                     <TreeView.Resources>
+
                         <MenuFlyout x:Key="TreeItemContextMenu">
 
                             <MenuFlyoutItem Text="Refresh" x:Uid="ShellMenuBarItem_Feed_SlectedFeed_Refresh" Command="{x:Bind ViewModel.FeedRefreshCommand}" >
@@ -323,14 +317,15 @@
             <!-- ListView and details pane -->
             <Grid Visibility="{x:Bind ViewModel.IsNotShowFeedError,Mode=OneWay}">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" x:Name="row1"/>
+                    <RowDefinition Height="Auto" x:Name="row2"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="3*" x:Name="col1" MaxWidth="520"/>
                     <ColumnDefinition Width="4*" x:Name="col2" />
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Row="0" Grid.Column="0" Margin="0,0,0,0" CornerRadius="{ThemeResource NavigationViewContentChildGridCornerRadius}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
+                <Border x:Name="ListViewPane" Grid.Row="0" Grid.Column="0" Margin="0,0,0,0" CornerRadius="{ThemeResource NavigationViewContentChildGridCornerRadius}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -345,7 +340,7 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="4,0,0,0" VerticalAlignment="Center">
 
                                     <AppBarButton x:Uid="AppBarButton_Archive" Command="{x:Bind ViewModel.EntryArchiveAllCommand}" ToolTipService.ToolTip="Ctrl+A" IsCompact="False" Opacity="0.8" IsTabStop="False">
                                         <AppBarButton.Icon>
@@ -420,8 +415,8 @@
                          Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}" -->
                         <ListView Grid.Row="1" x:Name="ListViewEntryItem" Background="{ThemeResource NavigationViewContentBackground}" ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedListViewItem, Mode=TwoWay}" IsDoubleTapEnabled="True" IsRightTapEnabled="True" SelectionMode="Single" Margin="0,0,0,0" Padding="0,2,0,0">
                             <ListView.Resources>
-                                <MenuFlyout x:Key="ListItemContextMenu">
 
+                                <MenuFlyout x:Key="ListItemContextMenu">
                                     <MenuFlyoutItem x:Uid="ShellMenuBarItem_Entry_SlectedEntry_Open" Command="{x:Bind ViewModel.EntryViewExternalCommand}">
                                         <MenuFlyoutItem.Icon>
                                             <PathIcon Margin="0,0,0,0">

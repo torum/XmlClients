@@ -93,13 +93,15 @@
                                     <StackPanel HorizontalAlignment="Stretch" Margin="24,12,24,12" Visibility="{x:Bind ViewModel.IsShowError, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
 
                                         <TextBlock Text="HTTP Request and HTML Parse status logging" FontWeight="Bold" Margin="0,0,0,6" Opacity="0.5" Visibility="Collapsed"></TextBlock>
-                                        <Border CornerRadius="3">
+                                        <Border CornerRadius="3" MaxHeight="150" Height="150">
 
-                                            <RichTextBlock Padding="6" MaxHeight="150" Height="200" ScrollViewer.VerticalScrollBarVisibility="Visible" Opacity="0.4">
-                                                <Paragraph>
-                                                    <Run Text="{x:Bind ViewModel.StatusLogText, Mode=OneWay}"/>
-                                                </Paragraph>
-                                            </RichTextBlock>
+                                            <ScrollViewer>
+                                                <RichTextBlock Padding="6" ScrollViewer.VerticalScrollBarVisibility="Visible" Opacity="0.6">
+                                                    <Paragraph>
+                                                        <Run Text="{x:Bind ViewModel.StatusLogText, Mode=OneWay}"/>
+                                                    </Paragraph>
+                                                </RichTextBlock>
+                                            </ScrollViewer>
 
                                         </Border>
                                     </StackPanel>
@@ -115,7 +117,7 @@
                                     <StackPanel Margin="24" HorizontalAlignment="Stretch">
 
                                         <Border Background="{ThemeResource NavigationViewContentBackground}">
-                                            <ListView SelectionMode="Single" ItemsSource="{x:Bind ViewModel.LinkItems, Mode=OneWay}" MaxHeight="200" SelectedItem="{x:Bind ViewModel.SelectedLinkItem, Mode=TwoWay}">
+                                            <ListView SelectionMode="Single" Padding="0,3,0,0" ItemsSource="{x:Bind ViewModel.LinkItems, Mode=OneWay}" MaxHeight="200" SelectedItem="{x:Bind ViewModel.SelectedLinkItem, Mode=TwoWay}">
                                                 <ListView.ItemTemplate>
                                                     <DataTemplate x:DataType="model:LinkItem">
 

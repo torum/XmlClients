@@ -53,6 +53,7 @@ public class DataAccessService : IDataAccessService
                         "summary TEXT," +
                         "content TEXT," +
                         "content_type TEXT," +
+                        //"content_baseurl TEXT," +
                         "source TEXT," +
                         "source_url TEXT," +
                         //"image_id TEXT," +
