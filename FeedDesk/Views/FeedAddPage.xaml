@@ -93,7 +93,7 @@
                                     <StackPanel HorizontalAlignment="Stretch" Margin="24,12,24,12" Visibility="{x:Bind ViewModel.IsShowError, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
 
                                         <TextBlock Text="HTTP Request and HTML Parse status logging" FontWeight="Bold" Margin="0,0,0,6" Opacity="0.5" Visibility="Collapsed"></TextBlock>
-                                        <Border CornerRadius="3" MaxHeight="150" Height="150">
+                                        <Border CornerRadius="3" MaxHeight="200" Height="200">
 
                                             <ScrollViewer>
                                                 <RichTextBlock Padding="6" ScrollViewer.VerticalScrollBarVisibility="Visible" Opacity="0.6">

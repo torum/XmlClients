@@ -389,7 +389,7 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
 
         try
         {
-            ServiceResultBase sr = await _serviceDiscovery.DiscoverService(uri);
+            var sr = await _serviceDiscovery.DiscoverService(uri, true);
 
             if (sr == null)
             {
@@ -473,7 +473,7 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
                 else
                 {
                     StatusTitleText = "Found 0 item";
-                    StatusText = "Could not find any feeds or services.";
+                    StatusText = "Could not find any feeds.";
 
                     IsShowError = true;
                     IsShowLog = true;

@@ -246,4 +246,25 @@
   <data name="ShellMenuFlyoutItem_File_New.Text" xml:space="preserve">
     <value>New</value>
   </data>
+  <data name="FeedAddPage_Button_Add.Content" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="FeedAddPage_Button_Back.Content" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="FeedAddPage_Button_Next.Content" xml:space="preserve">
+    <value>Next</value>
+  </data>
+  <data name="FeedAddPage_EnterAURL.Text" xml:space="preserve">
+    <value>Enter URL of a feed or a website.</value>
+  </data>
+  <data name="FeedAddPage_SelectAFeed.Text" xml:space="preserve">
+    <value>Select a feed to add.</value>
+  </data>
+  <data name="FeedAddPage_SetALabelAndAdd.Text" xml:space="preserve">
+    <value>Set label.</value>
+  </data>
+  <data name="FeedAddPage_Title_NewFeed.Text" xml:space="preserve">
+    <value>New Account</value>
+  </data>
 </root>

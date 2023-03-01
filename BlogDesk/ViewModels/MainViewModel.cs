@@ -1,7 +1,9 @@
-﻿using System.Windows.Input;
+﻿using System.Collections.ObjectModel;
+using System.Windows.Input;
 using BlogDesk.Contracts.Services;
 using BlogDesk.Contracts.ViewModels;
 using BlogDesk.Views;
+using BlogWrite.Core.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml.Navigation;
@@ -10,6 +12,21 @@ namespace BlogDesk.ViewModels;
 
 public partial class MainViewModel : ObservableRecipient, INavigationAware
 {
+
+    private ObservableCollection<EntryItem> _entries = new();
+    public ObservableCollection<EntryItem> Entries
+    {
+        get => _entries;
+        set => SetProperty(ref _entries, value);
+    }
+
+    private FeedEntryItem? _selectedListViewItem = null;
+    public FeedEntryItem? SelectedListViewItem
+    {
+        get => _selectedListViewItem;
+        set => SetProperty(ref _selectedListViewItem, value);
+    }
+
     public ICommand NewEditorCommand
     {
         get;

@@ -453,13 +453,13 @@
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="30"/>
+                                            <ColumnDefinition Width="20"/>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
 
-                                        <Viewbox Grid.RowSpan="2" Width ="20" Height="20">
-                                            <PathIcon Data="{x:Bind PathIcon, Mode=OneWay}" Foreground="{ThemeResource SystemAccentColorLight2}" Width ="24" Height="24" Margin="6" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.9"></PathIcon>
+                                        <Viewbox Grid.RowSpan="2" Width ="20" Height="20" VerticalAlignment="Top" Margin="0,8,0,0">
+                                            <PathIcon Data="{x:Bind PathIcon, Mode=OneWay}" Foreground="{ThemeResource SystemAccentColorLight2}" Width ="24" Height="24" Margin="6" VerticalAlignment="Center" HorizontalAlignment="Center"></PathIcon>
                                         </Viewbox>
 
                                         <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind Name}" x:Phase="1" Style="{ThemeResource NodeEntryTitleTextBlockStyle}" Padding="2" Margin="12,6,0,0"/>

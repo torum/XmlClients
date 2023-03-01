@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml;
+using System.Xml.Linq;
 using AngleSharp;
 using AngleSharp.Html.Parser;
 using AngleSharp.Xml.Parser;
@@ -12,7 +13,6 @@ namespace BlogWrite.Core.Models;
 
 #region == Result Classes for Service Discovery ==
 
-// Feed Link Class
 public class FeedLink
 {
     public enum FeedKinds
@@ -42,10 +42,40 @@ public class FeedLink
     }
 }
 
-// Base Searvice Document Link Class
-public abstract class SearviceDocumentLink
+public abstract class SearviceDocumentLinkBase
 {
-    public SearviceDocumentLink()
+    public SearviceDocumentLinkBase()
+    {
+
+    }
+}
+
+public class SearviceDocumentLinkErr : SearviceDocumentLinkBase
+{
+    public string ErrTitle
+    {
+        get; set;
+    }
+    public string ErrDescription
+    {
+        get; set;
+    }
+
+    public SearviceDocumentLinkErr(string errorTitle, string errorDescription)
+    {
+        ErrTitle = errorTitle;
+        ErrDescription = errorDescription;
+    }
+}
+
+public class AppLink : SearviceDocumentLinkBase
+{
+    public NodeService? NodeService
+    {
+        get; set;
+    }
+
+    public AppLink()
     {
 
     }
@@ -53,35 +83,44 @@ public abstract class SearviceDocumentLink
 
 public class RsdApi
 {
-    public string? Name { get; set; }
-    public string? BlogID { get; set; }
-    public bool Preferred { get; set; } = false;
-    public Uri? ApiLink { get; set; }
-}
-
-// RsdLink: extends SearviceDocumentLink
-public class RsdLink : SearviceDocumentLink
-{
-    public string? Title { get; set; }
-
-    public string? EngineName { get; set; }
-
-    public Uri? HomePageLink { get; set; }
-
-    public List<RsdApi>? Apis { get; set; } = new();
-
-    public RsdLink()
+    public string? Name
     {
+        get; set;
+    }
 
+    public string? BlogID
+    {
+        get; set;
+    }
+
+    public bool Preferred { get; set; } = false;
+
+    public Uri? ApiLink
+    {
+        get; set;
     }
 }
 
-// AppLink: extends SearviceDocumentLink
-public class AppLink : SearviceDocumentLink
+public class RsdLink : SearviceDocumentLinkBase
 {
-    public NodeService? NodeService { get; set; }
+    public string? Title
+    {
+        get; set;
+    }
 
-    public AppLink()
+    public string? EngineName
+    {
+        get; set;
+    }
+
+    public Uri? HomePageLink
+    {
+        get; set;
+    }
+
+    public List<RsdApi> Apis { get; set; } = new();
+
+    public RsdLink()
     {
 
     }
@@ -120,13 +159,17 @@ public class ServiceResultAuthRequired : ServiceResultBase
 // HTML Result Class that Holds Feeds and Service Links embedded in HTML. (BasedOn ServiceResultBase)
 public class ServiceResultHtmlPage : ServiceResultBase
 {
+    // eg, err while getting rsd document.
+    public bool HasError;
+    public string ErrTitle { get; set; } = "";
+    public string ErrDescription {get; set; } = "";
+
     private ObservableCollection<FeedLink> _feeds = new();
     public ObservableCollection<FeedLink> Feeds
     {
         get => _feeds;
         set
         {
-
             if (_feeds == value)
                 return;
 
@@ -134,13 +177,12 @@ public class ServiceResultHtmlPage : ServiceResultBase
         }
     }
 
-    private ObservableCollection<SearviceDocumentLink> _services = new();
-    public ObservableCollection<SearviceDocumentLink> Services
+    private ObservableCollection<SearviceDocumentLinkBase> _services = new();
+    public ObservableCollection<SearviceDocumentLinkBase> Services
     {
         get => _services;
         set
         {
-
             if (_services == value)
                 return;
 
@@ -264,11 +306,14 @@ public class ServiceDiscovery
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/atom+xml"));
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rss+xml"));
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rdf+xml"));
+
+        // This is a little hack for wordpress.com. Without this, wordpress.com returns HTTP status Forbidden. @GetAndParseRsdAsync
+        //_httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/110.0");
     }
 
     #region == Methods ==
 
-    public async Task<ServiceResultBase> DiscoverService(Uri addr)
+    public async Task<ServiceResultBase> DiscoverService(Uri addr, bool isFeed)
     {
         UpdateStatus(string.Format(">> HTTP GET " + addr.AbsoluteUri));
 
@@ -299,15 +344,21 @@ public class ServiceDiscovery
                         UpdateStatus("- Parsing the HTML document ...");
 
                         // HTML parse.
-                        ServiceResultBase res = await ParseHtml(HTTPResponse.Content, addr);
+                        ServiceResultBase res = await ParseHtml(HTTPResponse.Content, addr, isFeed);
 
                         if (res is ServiceResultHtmlPage srhp)
                         {
-                            if (srhp.Feeds.Count == 0)
-                                UpdateStatus("No feed link found.");
+                            if (isFeed)
+                            {
+                                if (srhp.Feeds.Count == 0)
+                                    UpdateStatus("No feed link found.");
+                            }
 
-                            if (srhp.Services.Count == 0)
-                                UpdateStatus("No service link found.");
+                            if (!isFeed)
+                            {
+                                if (srhp.Services.Count == 0)
+                                    UpdateStatus("No service link found.");
+                            }
                         }
 
                         return res;
@@ -363,14 +414,18 @@ public class ServiceDiscovery
                     {
                         UpdateStatus("- Parsing RSD document ...");
 
+                        /*
                         var source = await HTTPResponse.Content.ReadAsStreamAsync();
                         var parser = new XmlParser();
                         var document = await parser.ParseDocumentAsync(source);
 
                         RsdLink rsd = ParseRsd(document);
 
-                        ServiceResultRsd resRsd = new ServiceResultRsd();
+                        var resRsd = new ServiceResultRsd();
                         resRsd.Rsd = rsd;
+                        */
+                        var resRsd = new ServiceResultRsd();
+                        resRsd.Rsd = await ParseRsdAsync(HTTPResponse.Content);
 
                         return (resRsd as ServiceResultBase);
                     }
@@ -416,7 +471,7 @@ public class ServiceDiscovery
                         */
                         UpdateStatus("- AtomAPI (UNDERDEVELOPENT).");
 
-                        ServiceResultErr re = new ServiceResultErr("AtomAPI (UNDERDEVELOPENT).", string.Format("{0} is AtomAPI. (UNDERDEVELOPENT)", contenTypeString));
+                        var re = new ServiceResultErr("AtomAPI (UNDERDEVELOPENT).", string.Format("{0} is AtomAPI. (UNDERDEVELOPENT)", contenTypeString));
                         return re;
                     }
                     else if (contenTypeString.StartsWith("application/x.atom+xml"))
@@ -433,21 +488,21 @@ public class ServiceDiscovery
                         */
                         UpdateStatus("- AtomAPI (UNDERDEVELOPENT).");
 
-                        ServiceResultErr re = new ServiceResultErr("AtomAPI (UNDERDEVELOPENT).", string.Format("{0} is AtomAPI. (UNDERDEVELOPENT)", contenTypeString));
+                        var re = new ServiceResultErr("AtomAPI (UNDERDEVELOPENT).", string.Format("{0} is AtomAPI. (UNDERDEVELOPENT)", contenTypeString));
                         return re;
                     }
                     else
                     {
                         UpdateStatus("- Unknown Content-Type returned.");
 
-                        ServiceResultErr re = new ServiceResultErr("Received unsupported Content-Type.", string.Format("{0} is not supported.", contenTypeString));
+                        var re = new ServiceResultErr("Received unsupported Content-Type.", string.Format("{0} is not supported.", contenTypeString));
                         return re;
                     }
                 }
                 else
                 {
                     UpdateStatus("- No Content-Type returned. ");
-                    ServiceResultErr re = new ServiceResultErr("Download failed", "No Content-Type received.");
+                    var re = new ServiceResultErr("Download failed", "No Content-Type received.");
                     return re;
                 }
             }
@@ -461,28 +516,26 @@ public class ServiceDiscovery
                 {
                     UpdateStatus("- Authorization is required. ");
 
-                    ServiceResultAuthRequired rea = new ServiceResultAuthRequired(addr);
+                    var rea = new ServiceResultAuthRequired(addr);
                     return rea;
                 }
                 else
                 {
-                    ServiceResultErr re = new ServiceResultErr("HTTP error.", "Could not retrieve any document.");
+                    var re = new ServiceResultErr("HTTP error.", "Could not retrieve any document.");
                     return re;
                 }
             }
-
         }
         catch (System.Net.Http.HttpRequestException e)
         {
             UpdateStatus("<< HttpRequestException: " + e.Message);
-            ServiceResultErr re = new ServiceResultErr("HTTP request error.", e.Message);
+            var re = new ServiceResultErr("HTTP request error.", e.Message);
             return re;
         }
         catch (Exception e)
         {
-
             UpdateStatus("<< HTTP error: " + e.Message);
-            ServiceResultErr re = new ServiceResultErr("HTTP error.", e.Message);
+            var re = new ServiceResultErr("HTTP error.", e.Message);
             return re;
         }
     }
@@ -680,7 +733,8 @@ public class ServiceDiscovery
         }
     }
 
-    private async Task<ServiceResultBase> ParseHtml(HttpContent content, Uri addr)
+    // TODO: remove anglesharp.
+    private async Task<ServiceResultBase> ParseHtml(HttpContent content, Uri addr, bool isFeed)
     {
         ServiceResultHtmlPage res = new();
 
@@ -723,6 +777,9 @@ public class ServiceDiscovery
             {
                 if (re.ToUpper() == "EDITURI")
                 {
+                    if (isFeed)
+                        continue;
+
                     if (!string.IsNullOrEmpty(ty) && !string.IsNullOrEmpty(hf))
                     {
                         if (ty == "application/rsd+xml")
@@ -754,12 +811,22 @@ public class ServiceDiscovery
 
                             if (_rsdUrl != null)
                             {
-                                RsdLink rsd = await GetAndParseRsd(_rsdUrl);
-                                if (rsd.Apis != null)
+                                var rsd = await GetAndParseRsdAsync(_rsdUrl);
+
+                                if (rsd is SearviceDocumentLinkErr rle)
                                 {
-                                    if (rsd.Apis.Count > 0)
+                                    res.HasError = true;
+                                    res.ErrTitle = rle.ErrTitle;
+                                    res.ErrDescription = rle.ErrDescription;
+                                }
+                                else if (rsd is RsdLink rl)
+                                {
+                                    if (rl.Apis != null)
                                     {
-                                        res.Services.Add(rsd);
+                                        if (rl.Apis.Count > 0)
+                                        {
+                                            res.Services.Add(rl);
+                                        }
                                     }
                                 }
                             }
@@ -769,16 +836,25 @@ public class ServiceDiscovery
 
                 if (re.ToUpper() == "SERVICE")
                 {
+                    if (isFeed)
+                        continue;
+
                     // TODO:
                 }
                 
-                if (re.ToUpper() == "https://api.w.org/")
+                if (re.ToLower() == "https://api.w.org/")
                 {
+                    if (isFeed)
+                        continue;
+
                     // TODO:
                 }
 
                 if (re.ToUpper() == "ALTERNATE")
                 {
+                    if (!isFeed)
+                        continue;
+
                     if (!string.IsNullOrEmpty(ty) && !string.IsNullOrEmpty(hf))
                     {
                         if (ty == "application/atom+xml")
@@ -861,12 +937,17 @@ public class ServiceDiscovery
         return res;
     }
 
+    // TODO: Rewrite with XDocument or XmlDocument.
     private async Task<ServiceResultBase> ParseXml(HttpContent content, Uri addr)
     {
+        // TODO: try catch. 
+
         var source = await content.ReadAsStreamAsync();
 
         var parser = new XmlParser();
         var document = await parser.ParseDocumentAsync(source);
+        //var document = new System.Xml.XmlDocument();
+        //document.Load(source);
 
         var isOK = false;
         string? feedTitle="", siteLink = "";
@@ -891,9 +972,11 @@ public class ServiceDiscovery
 
                     // feed title
                     var elementTitle = document.QuerySelector("rss > channel > title");
+                    //var elementTitle = document.SelectSingleNode("//rss/channel/title");
                     if (elementTitle != null)
                     {
                         feedTitle = elementTitle.TextContent;
+                        //feedTitle = elementTitle.InnerText;
 
                         if (!string.IsNullOrEmpty(feedTitle))
                         {
@@ -905,8 +988,8 @@ public class ServiceDiscovery
                         }
                     }
 
-                    //siteLink = document.DocumentElement.QuerySelector("channel > link").TextContent;
                     var sl = document.DocumentElement.QuerySelectorAll("channel > link");
+                    //var sl = document.DocumentElement.SelectNodes("channel/link");
                     if (sl != null)
                     {
                         foreach (var sle in sl)
@@ -1042,10 +1125,12 @@ public class ServiceDiscovery
                 {
                     UpdateStatus("- Parsing RSD document ...");
 
-                    RsdLink rsd = ParseRsd(document);
+                    //RsdLink rsd = ParseRsd(document);
+                    //ServiceResultRsd resRsd = new ServiceResultRsd();
+                    //resRsd.Rsd = rsd;
 
-                    ServiceResultRsd resRsd = new ServiceResultRsd();
-                    resRsd.Rsd = rsd;
+                    var resRsd = new ServiceResultRsd();
+                    resRsd.Rsd = await ParseRsdAsync(content);
 
                     return (resRsd as ServiceResultBase);
                 }
@@ -1261,11 +1346,12 @@ public class ServiceDiscovery
         return (ret as ServiceResultBase);
     }
 
-    private async Task<RsdLink> GetAndParseRsd(Uri addr)
+    private async Task<SearviceDocumentLinkBase> GetAndParseRsdAsync(Uri addr)
     {
         UpdateStatus(string.Format(">> HTTP GET " + addr.AbsoluteUri));
 
-        RsdLink rsdDoc = new();
+        // This is a little hack for wordpress.com. Without this, wordpress.com returns HTTP status Forbidden 
+        _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/110.0");
 
         try
         {
@@ -1277,31 +1363,162 @@ public class ServiceDiscovery
             {
                 if (HTTPResponse.Content != null)
                 {
+                    UpdateStatus(string.Format("- Parsing RSD document."));
+
+                    return await ParseRsdAsync(HTTPResponse.Content);
+                    /*
                     var source = await HTTPResponse.Content.ReadAsStreamAsync();
                     var parser = new XmlParser();
                     var document = await parser.ParseDocumentAsync(source);
 
-                    rsdDoc = ParseRsd(document);
+                    var rsdDoc = ParseRsd(document);
+                    return rsdDoc;
+                    */
+                }
+                else
+                {
+                    UpdateStatus("Could not retrieve RSD document. The content is empty.");
+                    var rle = new SearviceDocumentLinkErr("RSD content is empty", "Could not retrieve RSD document.");
+                    return rle;
                 }
             }
             else
             {
                 UpdateStatus("Could not retrieve RSD document. ");
-                //Debug.WriteLine("Could not retrieve RSD document. ");
+                var rle = new SearviceDocumentLinkErr("HTTP error while getting RSD document", $"{HTTPResponse.StatusCode}");
+                return rle;
             }
         }
         catch (System.Net.Http.HttpRequestException e)
         {
             UpdateStatus("<< HttpRequestException: " + e.Message);
+            var rle = new SearviceDocumentLinkErr("HTTP error while getting RSD document", $"HttpRequestException: {e.Message}");
+            return rle;
         }
         catch (Exception e)
         {
             UpdateStatus("<< HTTP error: " + e.Message);
+            var rle = new SearviceDocumentLinkErr("HTTP error while getting RSD document", $"Exception: {e.Message}");
+            return rle;
+        }
+    }
+
+    private async Task<RsdLink> ParseRsdAsync(HttpContent content)
+    {
+        RsdLink rsdDoc = new();
+
+        try
+        {
+            var source = await content.ReadAsStreamAsync();
+            XDocument xdoc = XDocument.Load(source);
+
+            if (xdoc.Root != null)
+            {
+                // TODO: check.
+                XNamespace aw = "http://archipelago.phrasewise.com/rsd";
+
+                // TODO: check.
+                if (xdoc.Root.Name.ToString().ToLower() == @"{http://archipelago.phrasewise.com/rsd}rsd") 
+                {
+                    var serv = xdoc.Root.Element(aw + "service");
+                    if (serv != null)
+                    {
+                        rsdDoc.EngineName = serv.Element(aw + "engineName")?.Value;
+                        var homePageLink = serv.Element(aw + "homePageLink")?.Value;
+                        if (!string.IsNullOrEmpty(homePageLink))
+                        {
+                            try
+                            {
+                                if (homePageLink.StartsWith("http"))
+                                    rsdDoc.HomePageLink = new Uri(homePageLink);
+                            }
+                            catch { }
+                        }
+
+                        var apis = serv.Element(aw + "apis");
+                        if (apis != null)
+                        {
+                            var apiList = apis.Elements(aw + "api");
+
+                            if (apiList != null)
+                            {
+                                foreach (var api in apiList)
+                                {
+                                    var apiName = api.Attribute("name");
+                                    var apiBlogId = api.Attribute("blogID");
+                                    var apiPreferred = api.Attribute("preferred");
+                                    var apiLink = api.Attribute("apiLink");
+
+                                    if (string.IsNullOrEmpty(apiName?.Value) || string.IsNullOrEmpty(apiBlogId?.Value) || string.IsNullOrEmpty(apiLink?.Value))
+                                    {
+                                        continue;
+                                    }
+                                    else
+                                    {
+                                        RsdApi hoge = new();
+                                        hoge.Name = apiName?.Value ?? "";
+                                        hoge.BlogID = apiBlogId?.Value ?? "";
+                                        if (!string.IsNullOrEmpty(apiPreferred?.Value))
+                                        {
+                                            if (apiPreferred?.Value.ToLower() == "true")
+                                            {
+                                                hoge.Preferred = true;
+                                            }
+                                        }
+                                        if (!string.IsNullOrEmpty(apiLink?.Value))
+                                        {
+                                            try
+                                            {
+                                                hoge.ApiLink = new Uri(apiLink.Value);
+                                            }
+                                            catch { }
+                                        }
+
+                                        if (hoge.ApiLink != null)
+                                        {
+                                            rsdDoc.Apis.Add(hoge);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        foreach (var fuga in rsdDoc.Apis)
+                        {
+                            if ((fuga.Name?.ToLower() == "wordpress") && (fuga.Preferred))
+                            {
+                                UpdateStatus(string.Format("-  WordPress found."));
+                            }
+                            else
+                            {
+                                // TODO:
+                            }
+                        }
+                    }
+                    else
+                    {
+                        UpdateStatus("Load XML/RSD failed. service element is missing: " + xdoc.Root.ToString());
+                    }
+                }
+                else
+                {
+                    UpdateStatus("Load XML/RSD failed. Document root name or namespace is wrong: " + xdoc.Root.Name.ToString());
+                }
+            }
+            else
+            {
+                UpdateStatus("Load XML/RSD failed.");
+            }
+        }
+        catch (Exception e)
+        {
+            UpdateStatus("Load XML/RSD failed: " + e.Message);
         }
 
         return rsdDoc;
     }
-
+    
+    /*
     private RsdLink ParseRsd(AngleSharp.Xml.Dom.IXmlDocument document)
     {
         RsdLink rsdDoc = new();
@@ -1382,6 +1599,7 @@ public class ServiceDiscovery
 
         return rsdDoc;
     }
+    */
 
     private void UpdateStatus(string data)
     {

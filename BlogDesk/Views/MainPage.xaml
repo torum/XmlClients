@@ -11,67 +11,104 @@
     <Grid x:Name="ContentArea">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="2*" MinWidth="212"/>
             <ColumnDefinition Width="7*"/>
         </Grid.ColumnDefinitions>
 
-        <CommandBar Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" IsOpen="False" DefaultLabelPosition="Right" Margin="0" HorizontalAlignment="Left">
+        <Border Grid.Row="0" Grid.Column="0" CornerRadius="8,8,0,0" Margin="6,0,6,0" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-            <AppBarButton Label="Add Account" Command="{x:Bind ViewModel.AddAccountCommand}" IsCompact="False" Opacity="0.9">
-                <AppBarButton.Icon>
-                    <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <PathIcon.Data>
-                            M15,14C12.33,14 7,15.33 7,18V20H23V18C23,15.33 17.67,14 15,14M6,10V7H4V10H1V12H4V15H6V12H9V10M15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12Z</PathIcon.Data>
-                    </PathIcon>
-                </AppBarButton.Icon>
-                <AppBarButton.KeyboardAccelerators>
-                    <KeyboardAccelerator Modifiers="Control" Key="N"/>
-                </AppBarButton.KeyboardAccelerators>
-            </AppBarButton>
+                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="4,0,0,0">
+                    <AppBarButton Label="Account" Command="{x:Bind ViewModel.AddAccountCommand}" IsCompact="False" Opacity="0.9">
+                        <AppBarButton.Icon>
+                            <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <PathIcon.Data>
+                                    M15,14C12.33,14 7,15.33 7,18V20H23V18C23,15.33 17.67,14 15,14M6,10V7H4V10H1V12H4V15H6V12H9V10M15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12Z</PathIcon.Data>
+                            </PathIcon>
+                        </AppBarButton.Icon>
+                        <AppBarButton.KeyboardAccelerators>
+                            <KeyboardAccelerator Modifiers="Control" Key="N"/>
+                        </AppBarButton.KeyboardAccelerators>
+                    </AppBarButton>
+                </StackPanel>
 
-            
-            <CommandBar.SecondaryCommands>
+                <Grid Grid.Row="1" Grid.Column="0" CornerRadius="0" Margin="0" Background="{ThemeResource NavigationViewContentBackground}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="0,1,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TreeView x:Name="TreeViewControl" Grid.Row="1" Grid.Column="0"
+                          VerticalAlignment="Stretch" 
+                           BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}"
+                          SelectionMode="Single" 
+                          AllowDrop="True" 
+                          CanReorderItems="True" 
+                          CanDragItems="True" 
+                          IsRightTapEnabled="True"
+                          IsDoubleTapEnabled="True" 
+                          Margin="0,0,0,0">
+                        <!-- 
+                          ItemInvoked="TreeView_ItemInvoked" 
+                          ItemsSource="{x:Bind ViewModel.Services, Mode=OneWay}" 
+                          ItemTemplateSelector="{StaticResource ExplorerItemTemplateSelector}" 
+                          SelectedItem="{x:Bind ViewModel.SelectedTreeViewItem, Mode=TwoWay}" 
+                          SelectedNode="{x:Bind ViewModel.SelectedTreeViewNode, Mode=OneWay}"  -->
+                    </TreeView>
+                </Grid>
+            </Grid>
+        </Border>
 
-                <AppBarSeparator/>
+        <Border Grid.Row="0" Grid.Column="1" CornerRadius="8,8,0,0" Margin="0,0,0,0" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-            </CommandBar.SecondaryCommands>
+                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="4,0,0,0">
+                    <AppBarButton Label="Entry" Command="{x:Bind ViewModel.NewEditorCommand}" IsCompact="False" Opacity="0.9">
+                        <AppBarButton.Icon>
+                            <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <PathIcon.Data>
+                                    M20.7,7C21.1,6.6 21.1,6 20.7,5.6L18.4,3.3C18,2.9 17.4,2.9 17,3.3L15.2,5.1L19,8.9M3,17.2V21H6.8L17.8,9.9L14.1,6.1L3,17.2M7,2V5H10V7H7V10H5V7H2V5H5V2H7Z
+                                </PathIcon.Data>
+                            </PathIcon>
+                        </AppBarButton.Icon>
+                        <AppBarButton.KeyboardAccelerators>
+                            <KeyboardAccelerator Modifiers="Control" Key="B"/>
+                        </AppBarButton.KeyboardAccelerators>
+                    </AppBarButton>
+                </StackPanel>
 
-        </CommandBar>
+                <Grid Grid.Row="1" Grid.Column="1" CornerRadius="0" Margin="0" Background="{ThemeResource NavigationViewContentBackground}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="0,1,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
 
-        <CommandBar Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" IsOpen="False" DefaultLabelPosition="Right" Margin="0" HorizontalAlignment="Left">
+                    <ListView x:Name="ListViewControl" Grid.Row="1" Grid.Column="0" ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedListViewItem, Mode=TwoWay}" IsDoubleTapEnabled="True" IsRightTapEnabled="True" SelectionMode="Single" Margin="0,0,0,0" Padding="0,0,0,0">
 
-
-            <AppBarButton Label="New Entry" Command="{x:Bind ViewModel.NewEditorCommand}" IsCompact="False" Opacity="0.9">
-                <AppBarButton.Icon>
-                    <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <PathIcon.Data>
-                            M20.7,7C21.1,6.6 21.1,6 20.7,5.6L18.4,3.3C18,2.9 17.4,2.9 17,3.3L15.2,5.1L19,8.9M3,17.2V21H6.8L17.8,9.9L14.1,6.1L3,17.2M7,2V5H10V7H7V10H5V7H2V5H5V2H7Z
-                        </PathIcon.Data>
-                    </PathIcon>
-                </AppBarButton.Icon>
-                <AppBarButton.KeyboardAccelerators>
-                    <KeyboardAccelerator Modifiers="Control" Key="B"/>
-                </AppBarButton.KeyboardAccelerators>
-            </AppBarButton>
-
-            <CommandBar.SecondaryCommands>
-
-                <AppBarSeparator/>
-
-            </CommandBar.SecondaryCommands>
-
-        </CommandBar>
-
-        <Grid Grid.Row="1" Grid.Column="0">
-            
-        </Grid>
+                    </ListView>
+                </Grid>
+            </Grid>
+        </Border>
         
-        <Grid Grid.Row="1" Grid.Column="1">
-
-        </Grid>
     </Grid>
 </Page>

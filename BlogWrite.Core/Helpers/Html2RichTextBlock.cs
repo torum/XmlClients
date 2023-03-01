@@ -161,7 +161,7 @@ public class HtmlProperties : DependencyObject
         if (string.IsNullOrWhiteSpace(input))
             return string.Empty;
 
-        return WebUtility.HtmlDecode(input);
+        return System.Net.WebUtility.HtmlDecode(input);
     }
 
     private static Block? GenerateBlockForTopNode(HtmlNode node)
@@ -252,10 +252,11 @@ public class HtmlProperties : DependencyObject
         }
         else if ((node.Name.ToLower() == "pre") || (node.Name.ToLower() == "code"))
         {
-            var paragraph = GenerateParagraph(node);
+            var paragraph = new Paragraph();
+            //AddChildren(paragraph, node);
+            paragraph.Inlines.Add(new Run { Text = CleanText(node.InnerText) });
             paragraph.Margin = PreCodeMargin;
             paragraph.FontFamily = PreCodeFontFamily;
-
             return paragraph;
         }
         else if ((node.Name.ToLower() == "b") || (node.Name.ToLower() == "strong"))
@@ -408,7 +409,7 @@ public class HtmlProperties : DependencyObject
                 // TODO:
                 case "pre":
                 case "code":
-                    return GenerateInnerCode(node);
+                    return GenerateInnerPreCode(node);
                 case "iframe":
                     return GenerateIFrame(node);
                 case "#text":
@@ -857,12 +858,19 @@ public class HtmlProperties : DependencyObject
         return span;
     }
 
-    private static Inline GenerateInnerCode(HtmlNode node)
+    private static Inline GenerateInnerPreCode(HtmlNode node)
     {
+        // TODO: all line breaks will be gone.
+        return new Run
+        {
+            Text = CleanText(node.InnerText)
+        };
+        /*
         var span = new Span();
         span.FontFamily = PreCodeFontFamily;
         AddChildren(span, node);
         return span;
+        */
     }
 
     private static Inline GenerateSpanWNewLine(HtmlNode node)

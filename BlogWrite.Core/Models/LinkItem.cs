@@ -102,19 +102,19 @@ public class ServiceDocumentLinkItem : LinkItem
     // TODO: Not really used?
     public bool IsSupported { get; set; }
 
-    public SearviceDocumentLink SearviceDocumentLinkData { get; set; }
+    public SearviceDocumentLinkBase SearviceDocumentLinkData { get; set; }
 
-    public ServiceDocumentLinkItem(SearviceDocumentLink searviceDocumentLink)
+    public ServiceDocumentLinkItem(SearviceDocumentLinkBase searviceDocumentLink)
     {
         SearviceDocumentLinkData = searviceDocumentLink;
 
         if (searviceDocumentLink is RsdLink rd)
         {
-            Title = rd.EngineName;
+            Title = rd.EngineName ?? "";
 
             foreach (var hoge in rd.Apis)
             {
-                if ((hoge.Name.ToLower() == "wordpress") && hoge.Preferred)
+                if ((hoge.Name?.ToLower() == "wordpress") && hoge.Preferred)
                 {
                     TypeText = "XML-RPC (WP)";
                     IconPath = IconPathStrings["XML-RPC"];
@@ -126,7 +126,7 @@ public class ServiceDocumentLinkItem : LinkItem
                         IsSupported = true;
                     }
                 }
-                else if ((hoge.Name.ToLower() == "movable type") && hoge.Preferred)
+                else if ((hoge.Name?.ToLower() == "movable type") && hoge.Preferred)
                 {
                     TypeText = "XML-RPC (MT)";
                     IconPath = IconPathStrings["XML-RPC"];
@@ -142,13 +142,17 @@ public class ServiceDocumentLinkItem : LinkItem
         }
         else if (searviceDocumentLink is AppLink al)
         {
-            Title = al.NodeService.Name;
+            Title = al.NodeService?.Name ?? "";
 
             TypeText = "Atom Publishing Protocol";
             IconPath = IconPathStrings["AtomPub"];
 
             // TODO:
             IsSupported = true;
+        }
+        else if (searviceDocumentLink is SearviceDocumentLinkErr sde)
+        {
+            // TODO:
         }
     }
 }

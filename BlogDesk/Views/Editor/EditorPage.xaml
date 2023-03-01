@@ -114,7 +114,7 @@
                 <TabView Grid.Row="1" SelectedIndex="{x:Bind ViewModel.SelectedTabindex, Mode=TwoWay}" Margin="0" TabWidthMode="Equal" IsAddTabButtonVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                     <TabView.TabItems>
 
-                        <TabViewItem Header="Rich Text Editor" IsClosable="False">
+                        <TabViewItem Header="Rich Text" IsClosable="False">
                             <!--
                     https://github.com/microsoft/microsoft-ui-xaml/issues/2495
                     https://github.com/microsoft/microsoft-ui-xaml/issues/7878
@@ -178,7 +178,7 @@
                             </Grid>
                         </TabViewItem>
 
-                        <TabViewItem Header="HTML Source Editor" IsClosable="False">
+                        <TabViewItem Header="HTML Source" IsClosable="False">
                             <Grid Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
@@ -194,7 +194,7 @@
                             </Grid>
                         </TabViewItem>
 
-                        <TabViewItem Header="Preview Browser" IsClosable="False">
+                        <TabViewItem Header="Preview" IsClosable="False">
                             <Grid Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />

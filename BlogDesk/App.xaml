@@ -13,7 +13,7 @@
             
             <helpers:BooleanToVisibilityCollapsedConverter x:Key="BooleanToVisibilityCollapsedConverter" TrueValue="Visible" FalseValue="Collapsed" />
 
-            <helpers:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
+            <helpers:ElementThemeEnumToBooleanConverter x:Key="ElementThemeEnumToBooleanConverter" />
 
 
             <ResourceDictionary.MergedDictionaries>
