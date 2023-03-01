@@ -596,7 +596,7 @@ public class HtmlProperties : DependencyObject
 
     private static void ImageFailed(object sender, ExceptionRoutedEventArgs e)
     {
-        Debug.WriteLine("image failed to load: " + e);
+        Debug.WriteLine("image failed to load: " + e.ErrorMessage);
     }
 
     private static void ImageOpened(object sender, RoutedEventArgs e)

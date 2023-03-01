@@ -304,10 +304,10 @@ public class ServiceDiscovery
                         if (res is ServiceResultHtmlPage srhp)
                         {
                             if (srhp.Feeds.Count == 0)
-                                UpdateStatus("- No feed link found.");
+                                UpdateStatus("No feed link found.");
 
                             if (srhp.Services.Count == 0)
-                                UpdateStatus("- No service link found.");
+                                UpdateStatus("No service link found.");
                         }
 
                         return res;
@@ -727,7 +727,7 @@ public class ServiceDiscovery
                     {
                         if (ty == "application/rsd+xml")
                         {
-                            UpdateStatus(">> A link to RSD document found.");
+                            UpdateStatus("- A link to RSD document found.");
 
                             Uri? _rsdUrl = null;
                             try
@@ -1286,8 +1286,8 @@ public class ServiceDiscovery
             }
             else
             {
-                UpdateStatus("- Could not retrieve RSD document. ");
-                //Debug.WriteLine("- Could not retrieve RSD document. ");
+                UpdateStatus("Could not retrieve RSD document. ");
+                //Debug.WriteLine("Could not retrieve RSD document. ");
             }
         }
         catch (System.Net.Http.HttpRequestException e)

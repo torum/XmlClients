@@ -76,7 +76,7 @@
             <VisualStateGroup>
                 <VisualState>
                     <VisualState.StateTriggers>
-                        <AdaptiveTrigger MinWindowWidth="1024" />
+                        <AdaptiveTrigger MinWindowWidth="1007" />
                     </VisualState.StateTriggers>
                     <VisualState.Setters>
                         <Setter Target="col1.Width" Value="3*" />
@@ -193,8 +193,8 @@
                           ItemsSource="{x:Bind ViewModel.Services, Mode=OneWay}" 
                           ItemTemplateSelector="{StaticResource ExplorerItemTemplateSelector}" 
                           SelectedItem="{x:Bind ViewModel.SelectedTreeViewItem, Mode=TwoWay}" 
-                          SelectedNode="{x:Bind ViewModel.SelectedTreeViewNode, Mode=OneWay}" 
                           Margin="0,2,0,0">
+                    <!-- SelectedNode="{x:Bind ViewModel.SelectedTreeViewNode, Mode=OneWay}"  -->
                     <TreeView.Resources>
 
                         <MenuFlyout x:Key="TreeItemContextMenu">

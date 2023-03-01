@@ -95,9 +95,9 @@ public class FeedEditViewModel : ObservableRecipient, INavigationAware
 
         if (Feed.EndPoint is not null)
         {
-            Uri hoge = new Uri("https://validator.w3.org/feed/check.cgi?url=" + HttpUtility.UrlEncode(Feed.EndPoint.AbsoluteUri));
+            var hoge = new Uri("https://validator.w3.org/feed/check.cgi?url=" + HttpUtility.UrlEncode(Feed.EndPoint.AbsoluteUri));
 
-            Task.Run(() => Windows.System.Launcher.LaunchUriAsync(hoge)) ;
+            Task.Run(() => Windows.System.Launcher.LaunchUriAsync(hoge));
         }
     }
 
@@ -114,8 +114,12 @@ public class FeedEditViewModel : ObservableRecipient, INavigationAware
                 _navigationService.NavigateTo(typeof(MainViewModel).FullName!, hoge);
                 */
 
-                var vm = App.GetService<MainViewModel>();
-                _ = vm.UpdateFeed(Feed, Name);
+                Task.Run(() =>
+                {
+                    var vm = App.GetService<MainViewModel>();
+                    _ = vm.UpdateFeedAsync(Feed, Name);
+                });
+                
             }
 
             _navigationService.NavigateTo(typeof(MainViewModel).FullName!, null);

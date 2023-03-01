@@ -121,7 +121,8 @@ public class FeedClientService : BaseClient, IFeedClientService
                     {
                         if (feedLinkUri != null)
                             if (!string.IsNullOrEmpty(feedLinkUri.InnerText))
-                                res.HtmlUri = new Uri(feedLinkUri.InnerText);
+                                if (feedLinkUri.InnerText.StartsWith("http"))
+                                    res.HtmlUri = new Uri(feedLinkUri.InnerText);
                     }
                     catch (Exception e)
                     {
