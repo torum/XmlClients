@@ -15,12 +15,12 @@ namespace BlogWrite.Core.Helpers;
 // Code originaly adapted from https://blogs.msdn.microsoft.com/tess/2013/05/13/displaying-html-content-in-a-richtextblock/
 // Modified from https://github.com/xleon/HTML2XAML/blob/master/XAMLHtml/XAMLHtml.cs
 
-// Limitation: no base uri support.
+// Limitation: no relative uri support... needs base uri.
 
 public class HtmlProperties : DependencyObject
 {
     // TODO:
-    public record HtmlWithBaseUri(string html, Uri baseUri);
+    //public record HtmlWithBaseUri(string html, Uri baseUri);
 
     public static readonly DependencyProperty HtmlProperty = DependencyProperty.RegisterAttached(
              "Html",
@@ -364,7 +364,6 @@ public class HtmlProperties : DependencyObject
         }
     }
 
-
     private static Inline? GenerateInlineForNode(HtmlNode node)
     {
         try
@@ -506,6 +505,7 @@ public class HtmlProperties : DependencyObject
         {
             Debug.WriteLine("GenerateImage: " + ex.Message);
         }
+
         return span;
     }
 
@@ -593,7 +593,11 @@ public class HtmlProperties : DependencyObject
         return span;
     }
 
-    private static void ImageOnTapped(object sender, TappedRoutedEventArgs tappedRoutedEventArgs) => OnImageTapped?.Invoke(sender, tappedRoutedEventArgs);
+    private static void ImageOnTapped(object sender, TappedRoutedEventArgs tappedRoutedEventArgs)
+    {
+        // TODO:
+        //OnImageTapped?.Invoke(sender, tappedRoutedEventArgs);
+    }
 
     private static void ImageFailed(object sender, ExceptionRoutedEventArgs e)
     {

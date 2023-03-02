@@ -96,7 +96,7 @@
                         <Setter Target="row2.Height" Value="3*" />
                         <Setter Target="col1.MaxWidth" Value="1000" />
                         <Setter Target="DetailsPane.Margin" Value="0,6,0,0"/>
-                        <Setter Target="ListViewPane.CornerRadius" Value="8"/>
+                        <Setter Target="ListViewPane.CornerRadius" Value="0,0,8,8"/>
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
@@ -108,7 +108,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*" MinWidth="212" MaxWidth="380"/>
+            <ColumnDefinition Width="2*" MinWidth="224" MaxWidth="380"/>
             <ColumnDefinition Width="7*"/>
         </Grid.ColumnDefinitions>
 
@@ -122,7 +122,7 @@
         </Grid>
         
         <!-- Left pane -->
-        <Border Grid.Row="1" Grid.Column="0" Margin="0,0,0,0" CornerRadius="{ThemeResource NavigationViewContentChildGridCornerRadius}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
+        <Border Grid.Row="1" Grid.Column="0" Margin="0,0,0,0" CornerRadius="0" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -321,11 +321,11 @@
                     <RowDefinition Height="Auto" x:Name="row2"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="3*" x:Name="col1" MaxWidth="520"/>
+                    <ColumnDefinition Width="3*" x:Name="col1" MaxWidth="680"/>
                     <ColumnDefinition Width="4*" x:Name="col2" />
                 </Grid.ColumnDefinitions>
 
-                <Border x:Name="ListViewPane" Grid.Row="0" Grid.Column="0" Margin="0,0,0,0" CornerRadius="{ThemeResource NavigationViewContentChildGridCornerRadius}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
+                <Border x:Name="ListViewPane" Grid.Row="0" Grid.Column="0" Margin="0,0,0,0" CornerRadius="0" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />

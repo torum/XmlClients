@@ -1,12 +1,9 @@
-﻿using AngleSharp.Dom;
-using BlogWrite.Core.Helpers;
+﻿using BlogWrite.Core.Helpers;
 using BlogWrite.Core.Models;
 using FeedDesk.ViewModels;
-using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Markup;
-using Windows.UI.ViewManagement;
 
 namespace FeedDesk.Views;
 

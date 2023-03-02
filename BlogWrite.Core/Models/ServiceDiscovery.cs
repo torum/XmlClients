@@ -5,9 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
-using AngleSharp;
-using AngleSharp.Html.Parser;
-using AngleSharp.Xml.Parser;
+using HtmlAgilityPack;
 
 namespace BlogWrite.Core.Models;
 
@@ -26,13 +24,13 @@ public class FeedLink
 
     public string Title { get; set; }
 
-    public Uri SiteUri { get; set; }
+    public Uri? SiteUri { get; set; }
 
     public string SiteTitle { get; set; }
 
     public FeedKinds FeedKind { get; set; }
 
-    public FeedLink(Uri feedUri, FeedKinds feedKind, string title, Uri siteUri, string siteTitle)
+    public FeedLink(Uri feedUri, FeedKinds feedKind, string title, Uri? siteUri, string siteTitle)
     {
         FeedUri = feedUri;
         FeedKind = feedKind;
@@ -726,277 +724,324 @@ public class ServiceDiscovery
         }
         catch (Exception e)
         {
-
             UpdateStatus("<< HTTP error: " + e.Message);
             ServiceResultErr re = new ServiceResultErr("HTTP error.", e.Message);
             return re;
         }
     }
 
-    // TODO: remove anglesharp.
     private async Task<ServiceResultBase> ParseHtml(HttpContent content, Uri addr, bool isFeed)
     {
         ServiceResultHtmlPage res = new();
 
         //Use the default configuration for AngleSharp
-        var config = Configuration.Default;
+        //var config = Configuration.Default;
 
         //Create a new context for evaluating webpages with the given config
-        var context = BrowsingContext.New(config);
+        //var context = BrowsingContext.New(config);
 
-        //Source
-        var source = await content.ReadAsStreamAsync();
-
-        //Create a virtual request to specify the document to load (here from our fixed string)
-        var document = await context.OpenAsync(req => req.Content(source));
-
-        // gets page title
-        var elementTitle = document.QuerySelector("html > head > title");
-        var siteTitle = "";
-        if (elementTitle != null)
+        try
         {
-            siteTitle = elementTitle.TextContent;
+            //Source
+            var source = await content.ReadAsStreamAsync();
 
-            UpdateStatus("- Webpage title found: " + siteTitle);
-        }
-        else
-        {
-            UpdateStatus("- Webpage title NOT found.");
-        }
+            //Create a virtual request to specify the document to load (here from our fixed string)
+            //var document = await context.OpenAsync(req => req.Content(source));
 
-        var elements = document.QuerySelectorAll("link");
+            var document = new HtmlDocument();
+            document.Load(source);
 
-        foreach (var e in elements)
-        {
-            var re = e.GetAttribute("rel");
-            var ty = e.GetAttribute("type");
-            var hf = e.GetAttribute("href");
-            var t = e.GetAttribute("title");
-
-            if (!string.IsNullOrEmpty(re))
+            if (document.DocumentNode != null)
             {
-                if (re.ToUpper() == "EDITURI")
+                var siteTitle = "";
+                // gets page title
+                //var elementTitle = document.QuerySelector("html > head > title");
+                var elementTitle = document.DocumentNode.SelectSingleNode("//html/head/title");
+                if (elementTitle != null)
                 {
-                    if (isFeed)
-                        continue;
+                    //siteTitle = elementTitle.TextContent;
+                    siteTitle = elementTitle.InnerText;
 
-                    if (!string.IsNullOrEmpty(ty) && !string.IsNullOrEmpty(hf))
+                    UpdateStatus("- Webpage title found: " + siteTitle);
+                }
+                else
+                {
+                    UpdateStatus("- Webpage title NOT found.");
+                }
+
+                //Debug.WriteLine(document.DocumentNode.InnerHtml);
+
+                //var elements = document.QuerySelectorAll("link");
+                var elements = document.DocumentNode.SelectNodes("//html/head/link");
+                if (elements != null)
+                {
+                    foreach (var e in elements)
                     {
-                        if (ty == "application/rsd+xml")
+                        //var re = e.GetAttribute("rel");
+                        //var ty = e.GetAttribute("type");
+                        //var hf = e.GetAttribute("href");
+                        //var t = e.GetAttribute("title");
+
+                        if (e.Attributes == null)
+                            continue;
+
+                        var re = e.Attributes["rel"]?.Value;
+                        var ty = e.Attributes["type"]?.Value;
+                        var hf = e.Attributes["href"]?.Value;
+                        var t = e.Attributes["title"]?.Value;
+
+                        if (!string.IsNullOrEmpty(re))
                         {
-                            UpdateStatus("- A link to RSD document found.");
-
-                            Uri? _rsdUrl = null;
-                            try
+                            if (re.ToUpper() == "EDITURI")
                             {
-                                //_rsdUrl = new Uri(hf);
-                                if (hf.StartsWith("http"))
-                                {
-                                    // Absolute uri.
-                                    _rsdUrl = new Uri(hf);
-                                }
-                                else
-                                {
-                                    // Relative uri (probably...)
-                                    // Uri(baseUri, relativeUriString)
-                                    _rsdUrl = new Uri(addr, hf);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.WriteLine("Exception@ServiceDiscovery@ParseHTML on var _rsdUrl = new Uri(hf) : " + ex.Message);
+                                if (isFeed)
+                                    continue;
 
-                                UpdateStatus(">> A link to RSD document invalid :" + ex.Message);
-                            }
-
-                            if (_rsdUrl != null)
-                            {
-                                var rsd = await GetAndParseRsdAsync(_rsdUrl);
-
-                                if (rsd is SearviceDocumentLinkErr rle)
+                                if (!string.IsNullOrEmpty(ty) && !string.IsNullOrEmpty(hf))
                                 {
-                                    res.HasError = true;
-                                    res.ErrTitle = rle.ErrTitle;
-                                    res.ErrDescription = rle.ErrDescription;
-                                }
-                                else if (rsd is RsdLink rl)
-                                {
-                                    if (rl.Apis != null)
+                                    if (ty == "application/rsd+xml")
                                     {
-                                        if (rl.Apis.Count > 0)
+                                        UpdateStatus("- A link to RSD document found.");
+
+                                        Uri? _rsdUrl = null;
+                                        try
                                         {
-                                            res.Services.Add(rl);
+                                            //_rsdUrl = new Uri(hf);
+                                            if (hf.StartsWith("http"))
+                                            {
+                                                // Absolute uri.
+                                                _rsdUrl = new Uri(hf);
+                                            }
+                                            else
+                                            {
+                                                // Relative uri (probably...)
+                                                // Uri(baseUri, relativeUriString)
+                                                _rsdUrl = new Uri(addr, hf);
+                                            }
                                         }
+                                        catch (Exception ex)
+                                        {
+                                            Debug.WriteLine("Exception@ServiceDiscovery@ParseHTML on var _rsdUrl = new Uri(hf) : " + ex.Message);
+
+                                            UpdateStatus(">> A link to RSD document invalid :" + ex.Message);
+                                        }
+
+                                        if (_rsdUrl != null)
+                                        {
+                                            var rsd = await GetAndParseRsdAsync(_rsdUrl);
+
+                                            if (rsd is SearviceDocumentLinkErr rle)
+                                            {
+                                                res.HasError = true;
+                                                res.ErrTitle = rle.ErrTitle;
+                                                res.ErrDescription = rle.ErrDescription;
+                                            }
+                                            else if (rsd is RsdLink rl)
+                                            {
+                                                if (rl.Apis != null)
+                                                {
+                                                    if (rl.Apis.Count > 0)
+                                                    {
+                                                        res.Services.Add(rl);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (re.ToUpper() == "SERVICE")
+                            {
+                                if (isFeed)
+                                    continue;
+
+                                // TODO:
+                            }
+
+                            if (re.ToLower() == "https://api.w.org/")
+                            {
+                                if (isFeed)
+                                    continue;
+
+                                // TODO:
+                            }
+
+                            if (re.ToUpper() == "ALTERNATE")
+                            {
+                                if (!isFeed)
+                                    continue;
+
+                                if (!string.IsNullOrEmpty(ty) && !string.IsNullOrEmpty(hf))
+                                {
+                                    if (ty == "application/atom+xml")
+                                    {
+                                        try
+                                        {
+                                            Uri _atomFeedUrl;
+                                            if (hf.StartsWith("http"))
+                                            {
+                                                // Absolute uri.
+                                                _atomFeedUrl = new Uri(hf);
+                                            }
+                                            else
+                                            {
+                                                // Relative uri (probably...)
+                                                // Uri(baseUri, relativeUriString)
+                                                _atomFeedUrl = new Uri(addr, hf);
+                                            }
+
+                                            t ??= "";
+                                            FeedLink fl = new(_atomFeedUrl, FeedLink.FeedKinds.Atom, t, addr, siteTitle);
+
+                                            res.Feeds.Add(fl);
+
+                                            UpdateStatus("Found a link to an Atom feed.");
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Debug.WriteLine("Exception@ServiceDiscovery@ParseHTML on var _atomFeedUrl = new Uri(hf) : " + ex.Message);
+                                        }
+                                    }
+                                    else if (ty == "application/rss+xml")
+                                    {
+                                        try
+                                        {
+                                            Uri _rssFeedUrl;
+
+                                            if (hf.StartsWith("http"))
+                                            {
+                                                // Absolute uri.
+                                                _rssFeedUrl = new Uri(hf);
+                                            }
+                                            else
+                                            {
+                                                // Relative uri (probably...)
+                                                // Uri(baseUri, relativeUriString)
+                                                _rssFeedUrl = new Uri(addr, hf);
+                                            }
+
+                                            t ??= "";
+                                            FeedLink fl = new(_rssFeedUrl, FeedLink.FeedKinds.Rss, t, addr, siteTitle);
+
+                                            res.Feeds.Add(fl);
+
+                                            UpdateStatus("Found a link to an RSS feed.");
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Debug.WriteLine("Exception@ServiceDiscovery@ParseHTML on var _rssFeedUrl = new Uri(hf) : " + ex.Message);
+                                        }
+
+                                    }
+                                    else
+                                    {
+                                        //Debug.WriteLine("rel type: " + ty);
                                     }
                                 }
                             }
                         }
                     }
-                }
 
-                if (re.ToUpper() == "SERVICE")
-                {
-                    if (isFeed)
-                        continue;
-
-                    // TODO:
-                }
-                
-                if (re.ToLower() == "https://api.w.org/")
-                {
-                    if (isFeed)
-                        continue;
-
-                    // TODO:
-                }
-
-                if (re.ToUpper() == "ALTERNATE")
-                {
-                    if (!isFeed)
-                        continue;
-
-                    if (!string.IsNullOrEmpty(ty) && !string.IsNullOrEmpty(hf))
+                    if (elements.Count == 0)
                     {
-                        if (ty == "application/atom+xml")
-                        {
-                            try
-                            {
-                                Uri _atomFeedUrl;
-                                if (hf.StartsWith("http"))
-                                {
-                                    // Absolute uri.
-                                    _atomFeedUrl = new Uri(hf);
-                                }
-                                else
-                                {
-                                    // Relative uri (probably...)
-                                    // Uri(baseUri, relativeUriString)
-                                    _atomFeedUrl = new Uri(addr, hf);
-                                }
+                        // If webpage is hosted on a free host like Byethost, it returns a empty html with a Javascript to test whether it is a bot or not.
+                        // <noscript>This site requires Javascript to work, please enable Javascript in your browser or use a browser with Javascript support</noscript>
 
-                                //var _atomFeedUrl = new Uri(hf);
-
-                                FeedLink fl = new(_atomFeedUrl, FeedLink.FeedKinds.Atom, t, addr, siteTitle);
-                                
-                                res.Feeds.Add(fl);
-
-                                UpdateStatus("Found a link to an Atom feed.");
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.WriteLine("Exception@ServiceDiscovery@ParseHTML on var _atomFeedUrl = new Uri(hf) : " + ex.Message);
-                            }
-                        }
-                        else if (ty == "application/rss+xml")
-                        {
-                            try
-                            {
-                                Uri _rssFeedUrl;
-                                
-                                if (hf.StartsWith("http"))
-                                {
-                                    // Absolute uri.
-                                    _rssFeedUrl = new Uri(hf);
-                                }
-                                else
-                                {
-                                    // Relative uri (probably...)
-                                    // Uri(baseUri, relativeUriString)
-                                    _rssFeedUrl = new Uri(addr, hf);
-                                }
-
-                                FeedLink fl = new(_rssFeedUrl, FeedLink.FeedKinds.Rss, t, addr, siteTitle);
-
-                                res.Feeds.Add(fl);
-
-                                UpdateStatus("Found a link to an RSS feed.");
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.WriteLine("Exception@ServiceDiscovery@ParseHTML on var _rssFeedUrl = new Uri(hf) : " + ex.Message);
-                            }
-
-                        }
-                        else
-                        {
-                            //Debug.WriteLine("rel type: " + ty);
-                        }
+                        UpdateStatus("- No link found. If the webpage is hosted on a free host like Byethost, it returns a empty html with a Javascript to test whether it is a browser or not. In this case, we can't access the page.");
                     }
                 }
+                else
+                {
+                    UpdateStatus("- No link found. If the webpage is hosted on a free host like Byethost, it returns a empty html with a Javascript to test whether it is a browser or not. In this case, we can't access the page.");
+                }
+            }
+            else
+            {
+                UpdateStatus("- No link found. If the webpage is hosted on a free host like Byethost, it returns a empty html with a Javascript to test whether it is a browser or not. In this case, we can't access the page.");
             }
         }
-
-        if (elements.Length == 0)
+        catch (Exception e)
         {
-            // If webpage is hosted on a free host like Byethost, it returns a empty html with a Javascript to test whether it is a bot or not.
-            // <noscript>This site requires Javascript to work, please enable Javascript in your browser or use a browser with Javascript support</noscript>
-
-            UpdateStatus("- No link found. If the webpage is hosted on a free host like Byethost, it returns a empty html with a Javascript to test whether it is a browser or not. In this case, we can't access the page.");
+            Debug.WriteLine("Exception@ServiceDiscovery@ParseHTML: " + e.Message);
+            UpdateStatus("Exception@ServiceDiscovery@ParseHTML: " + e.Message);
         }
-        
+
         return res;
     }
 
-    // TODO: Rewrite with XDocument or XmlDocument.
     private async Task<ServiceResultBase> ParseXml(HttpContent content, Uri addr)
     {
-        // TODO: try catch. 
-
-        var source = await content.ReadAsStreamAsync();
-
-        var parser = new XmlParser();
-        var document = await parser.ParseDocumentAsync(source);
-        //var document = new System.Xml.XmlDocument();
-        //document.Load(source);
-
-        var isOK = false;
-        string? feedTitle="", siteLink = "";
-        Uri? siteUri = null;
-
-        if (document != null)
+        try
         {
-            if (document.DocumentElement != null)
+            var source = await content.ReadAsStreamAsync();
+
+            //var parser = new XmlParser();
+            //var document = await parser.ParseDocumentAsync(source);
+            var document = new System.Xml.XmlDocument();
+            document.Load(source);
+
+            var isOK = false;
+            string? feedTitle = "", siteLink = "";
+            Uri? siteUri = null;
+
+            if (document != null)
             {
-                // Possibly RSS 2.0
-                if (document.DocumentElement.LocalName.Equals("rss"))
+                if (document.DocumentElement != null)
                 {
-                    var ver = document.DocumentElement.GetAttribute("version");
-                    if (!string.IsNullOrEmpty(ver))
+                    // Possibly RSS 2.0
+                    if (document.DocumentElement.LocalName.Equals("rss"))
                     {
-                        if (ver.Equals("2.0"))
+                        var ver = document.DocumentElement.GetAttribute("version");
+                        if (!string.IsNullOrEmpty(ver))
                         {
-                            UpdateStatus("RSS 2.0 feed detected.");
-                            isOK = true;
-                        }
-                    }
-
-                    // feed title
-                    var elementTitle = document.QuerySelector("rss > channel > title");
-                    //var elementTitle = document.SelectSingleNode("//rss/channel/title");
-                    if (elementTitle != null)
-                    {
-                        feedTitle = elementTitle.TextContent;
-                        //feedTitle = elementTitle.InnerText;
-
-                        if (!string.IsNullOrEmpty(feedTitle))
-                        {
-                            UpdateStatus("Found a title for the RSS feed.");
-                        }
-                        else
-                        {
-                            feedTitle = "Empty RSS feed title";
-                        }
-                    }
-
-                    var sl = document.DocumentElement.QuerySelectorAll("channel > link");
-                    //var sl = document.DocumentElement.SelectNodes("channel/link");
-                    if (sl != null)
-                    {
-                        foreach (var sle in sl)
-                        {
-                            if (string.IsNullOrEmpty(sle.NamespaceUri))
+                            if (ver.Equals("2.0"))
                             {
-                                siteLink = sle.TextContent;
+                                UpdateStatus("RSS 2.0 feed detected.");
+                                isOK = true;
+                            }
+                        }
+
+                        // feed title
+                        //var elementTitle = document.QuerySelector("rss > channel > title");
+                        var elementTitle = document.SelectSingleNode("//rss/channel/title");
+                        if (elementTitle != null)
+                        {
+                            //feedTitle = elementTitle.TextContent;
+                            feedTitle = elementTitle.InnerText;
+
+                            if (!string.IsNullOrEmpty(feedTitle))
+                            {
+                                UpdateStatus("Found a title for the RSS feed.");
+                            }
+                            else
+                            {
+                                feedTitle = "Empty RSS feed title";
+                            }
+                        }
+
+                        //var sl = document.DocumentElement.QuerySelectorAll("channel > link");
+                        var sl = document.DocumentElement.SelectNodes("channel/link");
+                        if (sl != null)
+                        {
+                            foreach (XmlNode sle in sl)
+                            {
+                                /*
+                                if (string.IsNullOrEmpty(sle.NamespaceUri))
+                                {
+                                    siteLink = sle.TextContent;
+                                    if (!string.IsNullOrEmpty(siteLink))
+                                    {
+                                        try
+                                        {
+                                            siteUri = new Uri(siteLink);
+                                        }
+                                        catch { }
+                                    }
+                                    break;
+                                }
+                                */
+                                siteLink = sle.InnerText;
                                 if (!string.IsNullOrEmpty(siteLink))
                                 {
                                     try
@@ -1008,101 +1053,59 @@ public class ServiceDiscovery
                                 break;
                             }
                         }
-                    }
 
-                    if (isOK)
-                    {
-                        ServiceResultFeed rss = new ServiceResultFeed();
-                        rss.FeedlinkInfo = new(addr, FeedLink.FeedKinds.Rss, feedTitle, siteUri, "");
-
-                        return (rss as ServiceResultBase);
-                    }
-                }
-                // Possibly RSS 1.0
-                else if (document.DocumentElement.LocalName.Equals("RDF"))
-                {
-                    var ns = document.DocumentElement.GetAttribute("xmlns");
-
-                    if (!string.IsNullOrEmpty(ns))
-                    {
-                        if (ns.Equals("http://purl.org/rss/1.0/"))
+                        if (isOK)
                         {
-                            ns = document.DocumentElement.GetAttribute("xmlns:rdf");
-                            if (!string.IsNullOrEmpty(ns))
+                            ServiceResultFeed rss = new ServiceResultFeed();
+                            rss.FeedlinkInfo = new(addr, FeedLink.FeedKinds.Rss, feedTitle, siteUri, "");
+
+                            return (rss as ServiceResultBase);
+                        }
+                    }
+                    // Possibly RSS 1.0
+                    else if (document.DocumentElement.LocalName.Equals("RDF"))
+                    {
+                        var ns = document.DocumentElement.GetAttribute("xmlns");
+
+                        if (!string.IsNullOrEmpty(ns))
+                        {
+                            if (ns.Equals("http://purl.org/rss/1.0/"))
                             {
-                                if (ns.Equals("http://www.w3.org/1999/02/22-rdf-syntax-ns#"))
+                                ns = document.DocumentElement.GetAttribute("xmlns:rdf");
+                                if (!string.IsNullOrEmpty(ns))
                                 {
-                                    UpdateStatus("RSS 1.0 feed detected.");
-                                    isOK = true;
+                                    if (ns.Equals("http://www.w3.org/1999/02/22-rdf-syntax-ns#"))
+                                    {
+                                        UpdateStatus("RSS 1.0 feed detected.");
+                                        isOK = true;
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    feedTitle = document.DocumentElement.QuerySelector("channel > title").TextContent;
-
-                    if (!string.IsNullOrEmpty(feedTitle))
-                    {
-                        UpdateStatus("Found a title for the RSS feed.");
-                    }
-                    else
-                    {
-                        feedTitle = "Empty RSS feed title";
-                    }
-
-                    siteLink = document.DocumentElement.QuerySelector("channel > link").TextContent;
-                    if (!string.IsNullOrEmpty(siteLink))
-                    {
-                        try
+                        //feedTitle = document.DocumentElement.QuerySelector("channel > title").TextContent;
+                        var elementTitle = document.DocumentElement.SelectSingleNode("channel/title");
+                        if (elementTitle != null)
                         {
-                            siteUri = new Uri(siteLink);
+                            feedTitle = elementTitle.InnerText;
                         }
-                        catch { }
-                    }
-
-                    if (isOK)
-                    {
-                        ServiceResultFeed rdf = new ServiceResultFeed();
-                        rdf.FeedlinkInfo = new(addr, FeedLink.FeedKinds.Rss, feedTitle, siteUri, "");
-
-                        return (rdf as ServiceResultBase);
-                    }
-                }
-                // Possibly Atom 1.0 or 0.3 feed
-                else if (document.DocumentElement.LocalName.Equals("feed"))
-                {
-                    var ns = document.DocumentElement.GetAttribute("xmlns");
-
-                    if (!string.IsNullOrEmpty(ns))
-                    {
-                        if (ns.Equals("http://www.w3.org/2005/Atom") || ns.Equals("http://purl.org/atom/ns#"))
-                        {
-                            UpdateStatus("Atom feed detected.");
-                            isOK = true;
-                        }
-                    }
-
-                    // feed title
-                    var elementTitle = document.QuerySelector("feed > title");
-                    if (elementTitle != null)
-                    {
-                        feedTitle = elementTitle.TextContent;
 
                         if (!string.IsNullOrEmpty(feedTitle))
                         {
-                            UpdateStatus("Found a title for the Atom feed.");
+                            UpdateStatus("Found a title for the RSS feed.");
                         }
                         else
                         {
-                            feedTitle = "Empty Atom feed title";
+                            feedTitle = "Empty RSS feed title";
                         }
-                    }
 
-                    //siteLink = document.DocumentElement.QuerySelector("feed > link[href]").TextContent;
-                    var sl = document.DocumentElement.QuerySelector("feed > link");
-                    if (sl != null)
-                    {
-                        siteLink = sl.GetAttribute("href");
+                        //siteLink = document.DocumentElement.QuerySelector("channel > link").TextContent;
+                        var sl = document.DocumentElement.SelectSingleNode("channel/link");
+                        if (sl != null)
+                        {
+                            siteLink = sl.InnerText;
+                        }
+
                         if (!string.IsNullOrEmpty(siteLink))
                         {
                             try
@@ -1111,34 +1114,99 @@ public class ServiceDiscovery
                             }
                             catch { }
                         }
-                    }
 
-                    if (isOK)
+                        if (isOK)
+                        {
+                            ServiceResultFeed rdf = new ServiceResultFeed();
+                            rdf.FeedlinkInfo = new(addr, FeedLink.FeedKinds.Rss, feedTitle, siteUri, "");
+
+                            return (rdf as ServiceResultBase);
+                        }
+                    }
+                    // Possibly Atom 1.0 or 0.3 feed
+                    else if (document.DocumentElement.LocalName.Equals("feed"))
                     {
-                        ServiceResultFeed atom = new ServiceResultFeed();
-                        atom.FeedlinkInfo = new(addr, FeedLink.FeedKinds.Atom, feedTitle, siteUri, "");
+                        var ns = document.DocumentElement.GetAttribute("xmlns");
 
-                        return (atom as ServiceResultBase);
+                        if (!string.IsNullOrEmpty(ns))
+                        {
+                            if (ns.Equals("http://www.w3.org/2005/Atom") || ns.Equals("http://purl.org/atom/ns#"))
+                            {
+                                UpdateStatus("Atom feed detected.");
+                                isOK = true;
+                            }
+                        }
+
+                        // feed title
+                        //var elementTitle = document.QuerySelector("feed > title");
+                        var elementTitle = document.DocumentElement.SelectSingleNode("channel/title");
+                        if (elementTitle != null)
+                        {
+                            //feedTitle = elementTitle.TextContent;
+                            feedTitle = elementTitle.InnerText;
+                            if (!string.IsNullOrEmpty(feedTitle))
+                            {
+                                UpdateStatus("Found a title for the Atom feed.");
+                            }
+                            else
+                            {
+                                feedTitle = "Empty Atom feed title";
+                            }
+                        }
+
+                        //var sl = document.DocumentElement.QuerySelector("feed > link");
+                        var sl = document.DocumentElement.SelectSingleNode("feed/link");
+                        if (sl != null)
+                        {
+                            //siteLink = sl.GetAttribute("href");
+                            if (sl.Attributes != null)
+                            {
+                                siteLink = sl.Attributes["href"]?.Value;
+
+                                if (!string.IsNullOrEmpty(siteLink))
+                                {
+                                    try
+                                    {
+                                        siteUri = new Uri(siteLink);
+                                    }
+                                    catch { }
+                                }
+                            }
+                        }
+
+                        if (isOK)
+                        {
+                            ServiceResultFeed atom = new ServiceResultFeed();
+                            atom.FeedlinkInfo = new(addr, FeedLink.FeedKinds.Atom, feedTitle, siteUri, "");
+
+                            return (atom as ServiceResultBase);
+                        }
                     }
-                }
-                else if (document.DocumentElement.LocalName.Equals("rsd"))
-                {
-                    UpdateStatus("- Parsing RSD document ...");
+                    else if (document.DocumentElement.LocalName.Equals("rsd"))
+                    {
+                        UpdateStatus("- Parsing RSD document ...");
 
-                    //RsdLink rsd = ParseRsd(document);
-                    //ServiceResultRsd resRsd = new ServiceResultRsd();
-                    //resRsd.Rsd = rsd;
+                        //RsdLink rsd = ParseRsd(document);
+                        //ServiceResultRsd resRsd = new ServiceResultRsd();
+                        //resRsd.Rsd = rsd;
 
-                    var resRsd = new ServiceResultRsd();
-                    resRsd.Rsd = await ParseRsdAsync(content);
+                        var resRsd = new ServiceResultRsd();
+                        resRsd.Rsd = await ParseRsdAsync(content);
 
-                    return (resRsd as ServiceResultBase);
-                }
-                else
-                {
-                    UpdateStatus("- Unknown XML document ...");
+                        return (resRsd as ServiceResultBase);
+                    }
+                    else
+                    {
+                        UpdateStatus("- Unknown XML document ...");
+                    }
                 }
             }
+        }
+
+        catch (Exception ex)
+        {
+            Debug.WriteLine("Exception@ServiceDiscovery@ParseXML: " + ex.Message);
+            UpdateStatus("Exception@ServiceDiscovery@ParseXML: " + ex.Message);
         }
 
         ServiceResultErr ret = new ServiceResultErr("XML parse error.", "Could not parse the document.");
@@ -1612,12 +1680,12 @@ public class ServiceDiscovery
 
     private string MakeWSSEHeader(string userName, string password)
     {
-        string nonce = GenNounce(40);
-        byte[] nonceBytes = Encoding.UTF8.GetBytes(nonce);
-        string nonce64 = Convert.ToBase64String(nonceBytes);
-        string createdString = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
-        string digest = GenDigest(password, createdString, nonce);
-        string header = string.Format(
+        var nonce = GenNounce(40);
+        var nonceBytes = Encoding.UTF8.GetBytes(nonce);
+        var nonce64 = Convert.ToBase64String(nonceBytes);
+        var createdString = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
+        var digest = GenDigest(password, createdString, nonce);
+        var header = string.Format(
             @"UsernameToken Username=""{0}"", PasswordDigest=""{1}"", Nonce=""{2}"", Created=""{3}""",
             userName, digest, nonce64, createdString);
         return header;
@@ -1629,22 +1697,20 @@ public class ServiceDiscovery
         //using (SHA1Managed sha1 = new SHA1Managed())
         using (SHA1 sha1 = SHA1.Create())
         {
-            string digestText = nonce + created + password;
-            byte[] digestBytes = Encoding.UTF8.GetBytes(digestText);
+            var digestText = nonce + created + password;
+            var digestBytes = Encoding.UTF8.GetBytes(digestText);
             digest = sha1.ComputeHash(digestBytes);
         }
-        string digest64 = Convert.ToBase64String(digest);
+        var digest64 = Convert.ToBase64String(digest);
         return digest64;
     }
 
     private string GenNounce(int length)
     {
-        using (var rng = RandomNumberGenerator.Create())
-        {
-            byte[] buffer = new byte[length];
-            rng.GetBytes(buffer);
-            return Convert.ToBase64String(buffer);
-        }
+        using var rng = RandomNumberGenerator.Create();
+        var buffer = new byte[length];
+        rng.GetBytes(buffer);
+        return Convert.ToBase64String(buffer);
         /*
         RNGCryptoServiceProvider rnd = new RNGCryptoServiceProvider();
         byte[] buffer = new byte[length];

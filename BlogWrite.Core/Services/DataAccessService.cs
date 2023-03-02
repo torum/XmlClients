@@ -1,6 +1,5 @@
 ﻿using System.Data;
 using System.Data.SQLite;
-using AngleSharp.Dom;
 using BlogWrite.Core.Contracts.Services;
 using BlogWrite.Core.Models;
 using Microsoft.UI.Windowing;
@@ -171,7 +170,7 @@ public class DataAccessService : IDataAccessService
         return res;
     }
 
-    public SqliteDataAccessResultWrapper InsertFeed(string feedId, Uri feedUri, string feedName, string feedTitle, string feedDescription, DateTime updated, Uri htmlUri)
+    public SqliteDataAccessResultWrapper InsertFeed(string feedId, Uri feedUri, string feedName, string feedTitle, string feedDescription, DateTime updated, Uri? htmlUri)
     {
         var res = new SqliteDataAccessResultWrapper();
 
@@ -366,7 +365,7 @@ public class DataAccessService : IDataAccessService
     }
 
     // Not really used because of updates on InsertEntries.
-    public SqliteDataAccessResultWrapper UpdateFeed(string feedId, Uri feedUri, string feedName, string feedTitle, string feedDescription, DateTime updated, Uri htmlUri)
+    public SqliteDataAccessResultWrapper UpdateFeed(string feedId, Uri feedUri, string feedName, string feedTitle, string feedDescription, DateTime updated, Uri? htmlUri)
     {
         var res = new SqliteDataAccessResultWrapper();
 

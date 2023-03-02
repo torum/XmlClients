@@ -1,8 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
 using System.Windows.Input;
-using AngleSharp.Html;
-using AngleSharp.Html.Parser;
 using BlogDesk.Contracts.Services;
 using BlogDesk.Contracts.ViewModels;
 using BlogWrite.Core.Models;
@@ -19,6 +17,8 @@ using Microsoft.Web.WebView2.Core;
 using Windows.UI.ViewManagement;
 using BlogWrite.Core.Helpers;
 using BlogDesk.Views;
+using HtmlAgilityPack;
+using System.Reflection.Metadata;
 
 namespace BlogDesk.ViewModels;
 
@@ -764,8 +764,14 @@ public partial class EditorViewModel : ObservableRecipient
         }
     }
 
-    private async void WriteToSource(string source)
+    private void WriteToSource(string source)
     {
+
+        // TODO:
+
+        Source = Windows.Data.Html.HtmlUtilities.ConvertToText(source);
+
+        /*
         var parser = new HtmlParser();
         var document = await parser.ParseDocumentAsync(source);//parser.ParseDocument(msg);
         if (document.Body != null)
@@ -791,6 +797,7 @@ public partial class EditorViewModel : ObservableRecipient
         {
             Source = "";
         }
+        */
     }
 
     private void WriteToRichEdit()

@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json.Nodes;
-using AngleSharp.Dom;
 using BlogDesk.Activation;
 using BlogDesk.Contracts.Services;
 using BlogWrite.Core.Contracts.Services;
@@ -196,7 +195,7 @@ public partial class App : Application
                     var jo = System.Text.Json.Nodes.JsonObject.Parse(File.ReadAllText(filename)) as JsonObject;
                     foreach (var node in jo)
                     {
-                        if (node.Value is JsonValue jvalue && jvalue.TryGetValue<string>(out string value))
+                        if (node.Value is JsonValue jvalue && jvalue.TryGetValue<string>(out var value))
                             _data[node.Key] = value;
                     }
                 }

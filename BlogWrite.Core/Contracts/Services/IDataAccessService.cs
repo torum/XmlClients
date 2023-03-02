@@ -7,9 +7,9 @@ public interface IDataAccessService
 {
     SqliteDataAccessResultWrapper InitializeDatabase(string dataBaseFilePath);
 
-    SqliteDataAccessResultWrapper InsertFeed(string feedId, Uri feedUri, string feedName, string feedTitle, string feedDescription, DateTime updated, Uri htmlUri);
+    SqliteDataAccessResultWrapper InsertFeed(string feedId, Uri feedUri, string feedName, string feedTitle, string feedDescription, DateTime updated, Uri? htmlUri);
 
-    SqliteDataAccessResultWrapper UpdateFeed(string feedId, Uri feedUri, string feedName, string feedTitle, string feedDescription, DateTime updated, Uri htmlUri);
+    SqliteDataAccessResultWrapper UpdateFeed(string feedId, Uri feedUri, string feedName, string feedTitle, string feedDescription, DateTime updated, Uri? htmlUri);
 
     SqliteDataAccessResultWrapper DeleteFeed(string feedId);
 

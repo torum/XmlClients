@@ -99,11 +99,12 @@ public abstract class EntryItem : Node
                 return;
 
             _content = value;
-
+            /*
             if ((_content != null) && (ContentBaseUri != null))
             {
                 ContentHtmlWithBaseUri = new HtmlWithBaseUri(_content, ContentBaseUri);
             }
+            */
 
             NotifyPropertyChanged(nameof(Content));
         }
@@ -115,11 +116,13 @@ public abstract class EntryItem : Node
         get; set;
     }
 
+    /*
     // TODO:
     public HtmlWithBaseUri? ContentHtmlWithBaseUri
     {
         get; set; 
     }
+    */
 
     // UTC
     private DateTime _published = default;
