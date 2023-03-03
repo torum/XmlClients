@@ -235,7 +235,7 @@ public sealed partial class MainPage : Page
 
                 newFolder.EntryNewCount += item.EntryNewCount;
             }
-            else if (args.NewParentItem is ServiceTreeBuilder newRoot)
+            else if (args.NewParentItem is FeedTreeBuilder newRoot)
             {
                 // This won't be called.
                 item.Parent = newRoot;

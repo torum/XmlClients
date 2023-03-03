@@ -4,17 +4,14 @@ using BlogWrite.Core.Contracts.Services;
 using BlogWrite.Core.Helpers;
 using BlogWrite.Core.Models;
 using BlogWrite.Core.Models.Clients;
+using BlogWrite.Core.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FeedDesk.Contracts.Services;
 using FeedDesk.Contracts.ViewModels;
-using Microsoft.UI.Xaml;
-using Microsoft.UI;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Media.Core;
-using Windows.UI.ViewManagement;
 using WinRT.Interop;
 
 namespace FeedDesk.ViewModels;
@@ -24,7 +21,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     #region == Service Treeview ==
 
-    private readonly ServiceTreeBuilder _services = new();
+    private readonly FeedTreeBuilder _services = new();
 
     public ObservableCollection<NodeTree> Services
     {
@@ -36,7 +33,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
     }
 
-    public ServiceTreeBuilder Root => _services;
+    public FeedTreeBuilder Root => _services;
 
     private NodeTree? _selectedTreeViewItem;
     public NodeTree? SelectedTreeViewItem
@@ -179,14 +176,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
                 return;
             }
-            else
-            {
-                IsEntryDetailVisible = true;
-            }
+
+            IsEntryDetailVisible = true;
 
             EntryViewExternalCommand.NotifyCanExecuteChanged();
-
-            //SelectedEntrySummary = _selectedListViewItem.Summary;
 
             //
             if (string.IsNullOrEmpty(_selectedListViewItem.Summary.Trim()))
@@ -263,7 +256,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 IsCommentPageLinkExists = false;
             }
 
-            //_selectedListViewItem.Status = FeedEntryItem.ReadStatus.rsVisited;
+            OnPropertyChanged(nameof(SelectedListViewItem));
+
 
             if ((_selectedListViewItem.Status != FeedEntryItem.ReadStatus.rsNewVisited) && (_selectedListViewItem.Status != FeedEntryItem.ReadStatus.rsNormalVisited))
             {
@@ -271,12 +265,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 UpdateEntryStatusAsReadAwaiter(SelectedTreeViewItem!, _selectedListViewItem);
             }
 
-            OnPropertyChanged(nameof(SelectedListViewItem));
-            /*
-            if (SetProperty(ref _selectedListViewItem, value))
-            {
-            }
-            */
         }
     }
     
@@ -644,9 +632,11 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     private readonly IFeedClientService _feedClientService;
 
+    private readonly IOpmlService _opmlService;
+
     #endregion
 
-    public MainViewModel(INavigationService navigationService, IFileDialogService fileDialogService, IDataAccessService dataAccessService, IFeedClientService feedClientService)
+    public MainViewModel(INavigationService navigationService, IFileDialogService fileDialogService, IDataAccessService dataAccessService, IFeedClientService feedClientService, IOpmlService opmlService)
     {
         _navigationService = navigationService;
         _navigationService.Navigated += OnNavigated;
@@ -654,6 +644,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         _dataAccessService = dataAccessService;
         _feedClientService = feedClientService;
         _feedClientService.BaseClient.DebugOutput += OnDebugOutput;
+        _opmlService = opmlService;
         
         InitializeFeedTree();
         InitializeDatabase();
@@ -1642,94 +1633,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
     }
 
-    private void ArchiveThis(NodeTree nd, FeedEntryItem entry)
-    {
-        /*
-        if (nd == null)
-            return;
-
-        if ((nd is not NodeFeed) && (nd is not NodeFolder))
-            return;
-
-        if (Application.Current == null) { return; }
-        Application.Current.Dispatcher.Invoke(() =>
-        {
-            IsBusy = true;
-        });
-
-        List<EntryItem> list = new();
-
-        list.Add(entry);
-
-        SqliteDataAccessResultWrapper res = UpdateEntriesAsReadLock(list);
-
-        if (res.IsError)
-        {
-            if (Application.Current == null) { return; }
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                if (nd is NodeFeed)
-                    (nd as NodeFeed).ErrorDatabase = res.Error;
-
-                if ((nd == SelectedNode) && (nd is NodeService))
-                {
-                    DatabaseError = (nd as NodeService).ErrorDatabase;
-                    IsShowDatabaseErrorMessage = true;
-                }
-
-                IsBusy = false;
-            });
-
-            return;
-        }
-        else
-        {
-            if (Application.Current == null) { return; }
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                // Clear error
-                if (nd is NodeFeed)
-                    (nd as NodeFeed).ErrorDatabase = null;
-
-                if (res.AffectedCount > 0)
-                {
-                    // remove entry from list
-                    if (nd is NodeFeed)
-                    {
-                        if (nd.Parent is NodeFolder)
-                        {
-                            (nd.Parent as NodeFolder).EntryCount--;
-                        }
-                    }
-                    if (nd is NodeFolder)
-                    {
-                        foreach (var cnd in (nd as NodeFolder).Children)
-                        {
-                            if (cnd is NodeFeed)
-                            {
-                                if ((cnd as NodeFeed).Id == entry.ServiceId)
-                                {
-                                    (cnd as NodeFeed).EntryCount--;
-                                }
-                            }
-                        }
-
-                    }
-
-                    // minus the count.
-                    nd.EntryCount--;
-
-                    // remove
-                    if (nd == SelectedNode)
-                        Entries.Remove(entry);
-                }
-
-                IsBusy = false;
-            });
-        }
-        */
-    }
-
     private void UpdateEntryStatusAsReadAwaiter(NodeTree nd, FeedEntryItem entry)
     {
         Task.Run(() => UpdateEntryStatusAsReadAsync(nd, entry).ConfigureAwait(false));
@@ -1745,33 +1648,17 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         if ((nd is not NodeFeed) && (nd is not NodeFolder))
             return;
 
+        /*
         App.CurrentDispatcherQueue?.TryEnqueue(() =>
         {
             nd.IsBusy = true;
-
-            //entry.Status = FeedEntryItem.ReadStatus.rsVisited;
-            /*
-            if (SelectedListViewItem != null)
-            {
-                if (entry.EntryId == SelectedListViewItem.EntryId)
-                {
-                    entry.Status = FeedEntryItem.ReadStatus.rsVisited;
-                }
-            }
-            */
-
-            // TODO:
-            //feed.Status = NodeFeed.DownloadStatus.saving;
         });
+        */
 
         var rs = FeedEntryItem.ReadStatus.rsNewVisited;
         if (entry.IsArchived)
         {
             rs = FeedEntryItem.ReadStatus.rsNormalVisited;
-        }
-        else
-        {
-            rs = FeedEntryItem.ReadStatus.rsNewVisited;
         }
 
         var res = await Task.FromResult(_dataAccessService.UpdateEntryReadStatus(entry.EntryId, rs));
@@ -1806,8 +1693,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 if (entry != null)
                     entry.Status = rs;
 
-                if (nd != null)
-                    nd.IsBusy = false;
+                //if (nd != null)
+                //    nd.IsBusy = false;
             });
         }
     }
@@ -2289,9 +2176,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             return;
         }
 
-        Opml opmlLoader = new();
+        //Opml opmlLoader = new();
 
-        NodeFolder dummyFolder = opmlLoader.LoadOpml(doc);
+        NodeFolder dummyFolder = _opmlService.LoadOpml(doc);//opmlLoader.LoadOpml(doc);
 
         if (dummyFolder is not null)
         {
@@ -2404,9 +2291,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     [RelayCommand(CanExecute = nameof(CanOpmlExport))]
     public async void OpmlExport()
     {
-        Opml opmlWriter = new();
+        //Opml opmlWriter = new();
 
-        XmlDocument xdoc = opmlWriter.WriteOpml(_services);
+        XmlDocument xdoc = _opmlService.WriteOpml(_services);//opmlWriter.WriteOpml(_services);
 
         if (xdoc is null)
         {

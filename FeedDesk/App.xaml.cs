@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Text;
 using System.Text.Json.Nodes;
 using BlogWrite.Core.Contracts.Services;
@@ -15,8 +14,6 @@ using FeedDesk.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Xaml;
-using Microsoft.Windows.ApplicationModel.Resources;
-using Windows.Globalization;
 using Windows.Storage;
 
 namespace FeedDesk;
@@ -101,12 +98,12 @@ public partial class App : Application
             services.AddTransient<IFileDialogService, FileDialogService>();
             services.AddSingleton<IDataAccessService, DataAccessService>();
             services.AddSingleton<IFeedClientService, FeedClientService>();
+            services.AddSingleton<IServiceDiscoveryService, ServiceDiscoveryService>();
+            services.AddSingleton<IOpmlService, OpmlService>();
 
             // Views and ViewModels
             services.AddSingleton<SettingsViewModel>();
             services.AddSingleton<SettingsPage>();
-            //services.AddTransient<EntryDetailsViewModel>();
-            //services.AddTransient<EntryDetailsPage>();
             services.AddTransient<FeedAddViewModel>();
             services.AddTransient<FeedAddPage>();
             services.AddTransient<FeedEditViewModel>();
@@ -127,8 +124,8 @@ public partial class App : Application
 
         //App.GetService<IAppNotificationService>().Initialize();
 
+        // 
         Microsoft.UI.Xaml.Application.Current.UnhandledException += App_UnhandledException;
-
         TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
     }
@@ -164,7 +161,7 @@ public partial class App : Application
         // SystemBackdrop
         if (Microsoft.UI.Composition.SystemBackdrops.DesktopAcrylicController.IsSupported())
         {
-            //manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
+            //
             if (RuntimeHelper.IsMSIX)
             {
                 // Load preference from localsetting.
@@ -202,9 +199,10 @@ public partial class App : Application
         }
         else
         {
-            // Memo: Without Backdrop, theme setting's theme is not gonna have any effect( "system default" will be used). So the setting is disabled.
+            // Memo: Without Backdrop, theme setting's theme is not gonna have any effect( "system default" will be used).
+            // So the selection option is disaabled in the setting.
         }
-        
+
         // WinUIEx Storage option.
         if (!RuntimeHelper.IsMSIX)
         {

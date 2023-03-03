@@ -255,7 +255,7 @@ public abstract class NodeTree : Node
     {
         if (parentNode != null)
         {
-            if ((parentNode is NodeFolder) || (parentNode is NodeRoot) || (parentNode is ServiceTreeBuilder))
+            if ((parentNode is NodeFolder) || (parentNode is NodeRoot) || (parentNode is FeedTreeBuilder))
             {
                 parentNode.IsBusyChildrenCount += 1;
 
@@ -271,7 +271,7 @@ public abstract class NodeTree : Node
     {
         if (parentNode != null)
         {
-            if ((parentNode is NodeFolder) || (parentNode is NodeRoot) || (parentNode is ServiceTreeBuilder))
+            if ((parentNode is NodeFolder) || (parentNode is NodeRoot) || (parentNode is FeedTreeBuilder))
             {
                 if (parentNode.IsBusyChildrenCount > 0)
                     parentNode.IsBusyChildrenCount -= 1;

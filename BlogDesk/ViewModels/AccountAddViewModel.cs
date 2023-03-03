@@ -2,7 +2,9 @@
 using System.Windows.Input;
 using BlogDesk.Contracts.Services;
 using BlogDesk.Contracts.ViewModels;
+using BlogWrite.Core.Contracts.Services;
 using BlogWrite.Core.Models;
+using BlogWrite.Core.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -12,7 +14,7 @@ public class AccountAddViewModel : ObservableRecipient, INavigationAware
 {
     private readonly INavigationService _navigationService;
 
-    private readonly ServiceDiscovery _serviceDiscovery;
+    private readonly IServiceDiscoveryService _serviceDiscovery;
 
     #region == Properties ==
 
@@ -221,12 +223,12 @@ public class AccountAddViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    public AccountAddViewModel(INavigationService navigationService)
+    public AccountAddViewModel(INavigationService navigationService, IServiceDiscoveryService serviceDiscovery)
     {
         _navigationService = navigationService;
 
-        _serviceDiscovery = new ServiceDiscovery();
-        _serviceDiscovery.StatusUpdate += new ServiceDiscovery.ServiceDiscoveryStatusUpdate(OnStatusUpdate);
+        _serviceDiscovery = serviceDiscovery;//new ServiceDiscovery();
+        _serviceDiscovery.StatusUpdate += new ServiceDiscoveryStatusUpdateEventHandler(OnStatusUpdate);//new ServiceDiscovery.ServiceDiscoveryStatusUpdate(OnStatusUpdate);
 
         GoBackCommand = new RelayCommand(OnGoBack);
         GoCommand = new RelayCommand(OnGo, CanGo);
@@ -310,7 +312,7 @@ public class AccountAddViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    private void OnStatusUpdate(ServiceDiscovery sender, string data)
+    private void OnStatusUpdate(ServiceDiscoveryService sender, string data)
     {
         var uithread = App.CurrentDispatcherQueue?.HasThreadAccess;
 
@@ -682,12 +684,12 @@ public class AccountAddViewModel : ObservableRecipient, INavigationAware
 
                 if (!string.IsNullOrEmpty(SelectedItemTitleLabel))
                     sd.Title = SelectedItemTitleLabel;
-
+                /*
                 RegisterXmlRpcEventArgs arg = new();
                 arg.RsdLink = sd;
                 arg.UserIdXmlRpc = UserIdXmlRpc;
                 arg.PasswordXmlRpc = PasswordXmlRpc;
-
+                */
                 // TODO: check XML-RPC call?
 
                 // TODO
@@ -701,10 +703,10 @@ public class AccountAddViewModel : ObservableRecipient, INavigationAware
                     if (!string.IsNullOrEmpty(SelectedItemTitleLabel))
                         sd.NodeService.Name = SelectedItemTitleLabel;
                 }
-
+                /*
                 RegisterAtomPubEventArgs arg = new();
                 arg.NodeService = sd.NodeService;
-
+                */
                 // TODO
                 //RegisterAtomPub?.Invoke(this, arg);
             }

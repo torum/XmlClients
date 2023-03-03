@@ -1,8 +1,10 @@
 ﻿using System.Xml;
+using BlogWrite.Core.Contracts.Services;
+using BlogWrite.Core.Models;
 
-namespace BlogWrite.Core.Models;
+namespace BlogWrite.Core.Services;
 
-public class Opml
+public class OpmlService : IOpmlService
 {
     // Import OPML
     public NodeFolder LoadOpml(XmlDocument xdoc)
@@ -59,7 +61,7 @@ public class Opml
                     }
                 }
 
-                
+
                 if (outline.Attributes["xmlUrl"] is not null)
                 {
                     var xmlUrl = outline.Attributes["xmlUrl"]?.Value;

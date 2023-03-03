@@ -134,9 +134,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Models\" />
-  </ItemGroup>
-  <ItemGroup>
     <None Update="Icons\FeedDesk2.ico">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>

@@ -5,9 +5,11 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using BlogWrite.Core.Models;
+using BlogWrite.Core.Contracts.Services;
 using HtmlAgilityPack;
 
-namespace BlogWrite.Core.Models;
+namespace BlogWrite.Core.Services;
 
 #region == Result Classes for Service Discovery ==
 
@@ -269,19 +271,19 @@ public class ServiceResultXmlRpc : ServiceResult
 #endregion
 
 // Service Discovery class.
-public class ServiceDiscovery
+public class ServiceDiscoveryService : IServiceDiscoveryService
 {
     private readonly HttpClient _httpClient;
 
     #region == Events ==
 
-    public delegate void ServiceDiscoveryStatusUpdate(ServiceDiscovery sender, string data);
+    //public delegate void ServiceDiscoveryStatusUpdate(ServiceDiscovery sender, string data);
 
-    public event ServiceDiscoveryStatusUpdate? StatusUpdate;
+    public event ServiceDiscoveryStatusUpdateEventHandler? StatusUpdate;
 
     #endregion
 
-    public ServiceDiscovery()
+    public ServiceDiscoveryService()
     {
         _httpClient = new HttpClient();
 
@@ -292,7 +294,7 @@ public class ServiceDiscovery
         //_httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/atomsvc+xml"));
         // Atom category document
         //_httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/atomcat+xml"));
-        
+
         // RSD file
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/rsd+xml"));
 
@@ -1265,7 +1267,7 @@ public class ServiceDiscovery
                         if (string.IsNullOrEmpty(wtl.InnerText))
                             workspace.Name = wtl.InnerText;
                     }
-                    
+
                     var collectionList = ws.SelectNodes("app:collection", atomNsMgr);
                     if (collectionList != null)
                     {
@@ -1306,7 +1308,7 @@ public class ServiceDiscovery
                                     {
                                         collection.AcceptTypes.Add(acpt);
 
-                                        if ((acpt == "application/atom+xml;type=entry") 
+                                        if ((acpt == "application/atom+xml;type=entry")
                                             || (acpt == "application/atom+xml"))
                                         {
                                             collection.IsAcceptEntry = true;
@@ -1320,7 +1322,7 @@ public class ServiceDiscovery
                                 collection.IsAcceptEntry = true;
                             }
 
-                            var categoriesList = col.SelectNodes("app:categories", atomNsMgr); 
+                            var categoriesList = col.SelectNodes("app:categories", atomNsMgr);
                             if (categoriesList != null)
                             {
                                 foreach (XmlNode cats in categoriesList)
@@ -1486,7 +1488,7 @@ public class ServiceDiscovery
                 XNamespace aw = "http://archipelago.phrasewise.com/rsd";
 
                 // TODO: check.
-                if (xdoc.Root.Name.ToString().ToLower() == @"{http://archipelago.phrasewise.com/rsd}rsd") 
+                if (xdoc.Root.Name.ToString().ToLower() == @"{http://archipelago.phrasewise.com/rsd}rsd")
                 {
                     var serv = xdoc.Root.Element(aw + "service");
                     if (serv != null)
@@ -1585,7 +1587,7 @@ public class ServiceDiscovery
 
         return rsdDoc;
     }
-    
+
     /*
     private RsdLink ParseRsd(AngleSharp.Xml.Dom.IXmlDocument document)
     {

@@ -2,8 +2,6 @@
 using System.Data.SQLite;
 using BlogWrite.Core.Contracts.Services;
 using BlogWrite.Core.Models;
-using Microsoft.UI.Windowing;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using static BlogWrite.Core.Models.FeedEntryItem;
 
 namespace BlogWrite.Core.Services;

@@ -3,9 +3,9 @@ using static BlogWrite.Core.Models.ErrorObject;
 
 namespace BlogWrite.Core.Models;
 
-public class ServiceTreeBuilder : NodeRoot
+public class FeedTreeBuilder : NodeRoot
 {
-    public ServiceTreeBuilder() {
+    public FeedTreeBuilder() {
         Name = "NodeRoot";
     }
 

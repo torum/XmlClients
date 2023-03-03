@@ -20,7 +20,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Row="0" Grid.Column="0" Margin="0,0,0,0" CornerRadius="{ThemeResource NavigationViewContentChildGridCornerRadius}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
+                <Border Grid.Row="0" Grid.Column="0" Margin="0,0,0,0" CornerRadius="0" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
 
                     <Button Margin="12,12,0,0" Padding="12" VerticalAlignment="Top" Background="Transparent" BorderThickness="0" Command="{x:Bind ViewModel.GoBackCommand}">
                         <!-- <SymbolIcon Symbol="Back" /> -->

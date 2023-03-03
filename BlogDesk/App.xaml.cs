@@ -93,6 +93,7 @@ public partial class App : Application
             //services.AddTransient<IFileDialogService, FileDialogService>();
             //services.AddSingleton<IDataAccessService, DataAccessService>();
             //services.AddSingleton<IFeedClientService, FeedClientService>();
+            services.AddSingleton<IServiceDiscoveryService, ServiceDiscoveryService>();
 
             // Views and ViewModels
             services.AddSingleton<SettingsViewModel>();
