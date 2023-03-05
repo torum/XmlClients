@@ -379,11 +379,11 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         set => SetProperty(ref _isToggleInboxAppButtonEnabled, value);
     }
 
-    private string _toggleInboxAppButtonLabel = "Inbox".GetLocalized();
-    public string ToggleInboxAppButtonLabel
+    private string _inboxnboxAppButtonLabel = "Inbox".GetLocalized();
+    public string InboxAppButtonLabel
     {
-        get => _toggleInboxAppButtonLabel;
-        set => SetProperty(ref _toggleInboxAppButtonLabel, value);
+        get => _inboxnboxAppButtonLabel;
+        set => SetProperty(ref _inboxnboxAppButtonLabel, value);
     }
 
     private string _toggleInboxAppButtonIcon = "M19,15H15A3,3 0 0,1 12,18A3,3 0 0,1 9,15H5V5H19M19,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3Z";
@@ -402,7 +402,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             if (SetProperty(ref _isShowInboxEntries, value))
             {
                 IsShowAllEntries = !value;
-                toggleInboxAppButtonLabel();
+                ToggleInboxAppButtonLabel();
             }
         }
     }
@@ -416,21 +416,21 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             if (SetProperty(ref _isShowAllEntries, value))
             {
                 IsShowInboxEntries = !value;
-                toggleInboxAppButtonLabel();
+                ToggleInboxAppButtonLabel();
             }
         }
     }
 
-    private void toggleInboxAppButtonLabel()
+    private void ToggleInboxAppButtonLabel()
     {
         if (IsShowAllEntries)
         {
-            ToggleInboxAppButtonLabel = "All".GetLocalized();
+            InboxAppButtonLabel = "All".GetLocalized();
             ToggleInboxAppButtonIcon = "M14.5 11C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11H14.5M20 13.55V10H18V13.06C18.69 13.14 19.36 13.31 20 13.55M21 9H3V3H21V9M19 5H5V7H19V5M8.85 19H6V10H4V21H9.78C9.54 20.61 9.32 20.19 9.14 19.75L8.85 19M17 18C16.44 18 16 18.44 16 19S16.44 20 17 20 18 19.56 18 19 17.56 18 17 18M23 19C22.06 21.34 19.73 23 17 23S11.94 21.34 11 19C11.94 16.66 14.27 15 17 15S22.06 16.66 23 19M19.5 19C19.5 17.62 18.38 16.5 17 16.5S14.5 17.62 14.5 19 15.62 21.5 17 21.5 19.5 20.38 19.5 19Z";
         }
         if (IsShowInboxEntries)
         {
-            ToggleInboxAppButtonLabel = "Inbox".GetLocalized();
+            InboxAppButtonLabel = "Inbox".GetLocalized();
             ToggleInboxAppButtonIcon = "M19,15H15A3,3 0 0,1 12,18A3,3 0 0,1 9,15H5V5H19M19,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3Z";
         }
     }
@@ -678,14 +678,16 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             }
             catch (Exception ex)
             {
-                ErrorMain = new ErrorObject();
-                ErrorMain.ErrType = ErrorObject.ErrTypes.XML;
-                ErrorMain.ErrCode = "";
-                ErrorMain.ErrText = ex.Message;
-                ErrorMain.ErrDescription = "Error loading \"Searvies.xml\"";
-                ErrorMain.ErrDatetime = DateTime.Now;
-                ErrorMain.ErrPlace = "MainViewModel::InitializeFeedTree";
-                ErrorMain.ErrPlaceParent = "MainViewModel()";
+                ErrorMain = new ErrorObject
+                {
+                    ErrType = ErrorObject.ErrTypes.XML,
+                    ErrCode = "",
+                    ErrText = ex.Message,
+                    ErrDescription = "Error loading \"Searvies.xml\"",
+                    ErrDatetime = DateTime.Now,
+                    ErrPlace = "MainViewModel::InitializeFeedTree",
+                    ErrPlaceParent = "MainViewModel()"
+                };
                 IsMainErrorInfoBarVisible = true;
 
                 Debug.WriteLine("Exception while loading service.xml:" + ex);
@@ -758,9 +760,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     {
         try
         {
-            if (_feedClientService != null)
-                if (_feedClientService.BaseClient != null)
-                    _feedClientService.BaseClient.Dispose();
+            _feedClientService?.BaseClient?.Dispose();
         }
         catch (Exception ex)
         {
@@ -799,6 +799,14 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         {
             Debug.WriteLine($"LoadEntriesAwaiter: {ex.Message}");
         }
+
+        App.CurrentDispatcherQueue?.TryEnqueue(() =>
+        {
+            if (nt == _selectedTreeViewItem)
+            {
+                EntryArchiveAllCommand.NotifyCanExecuteChanged();
+            }
+        });
     }
 
     // Loads node's all (including children) entries from database.
@@ -816,6 +824,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             App.CurrentDispatcherQueue?.TryEnqueue(() =>
             {
                 feed.IsBusy = true;
+                if (feed == _selectedTreeViewItem)
+                {
+                    EntryArchiveAllCommand.NotifyCanExecuteChanged();
+                }
             });
 
             var res = await Task.FromResult(_dataAccessService.SelectEntriesByFeedId(feed.Id, feed.IsDisplayUnarchivedOnly));
@@ -861,6 +873,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
                     //feed.List = new ObservableCollection<EntryItem>(res.SelectedEntries);
 
+                    feed.IsBusy = false;
+
                     // If this is selected Node.
                     if (feed == _selectedTreeViewItem)
                     {
@@ -872,9 +886,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                         //Entries = res.SelectedEntries;
                         // COPY!! 
                         Entries = new ObservableCollection<EntryItem>(res.SelectedEntries);
-                    }
 
-                    feed.IsBusy = false;
+                        EntryArchiveAllCommand.NotifyCanExecuteChanged();
+                    }
                 });
 
                 return res.SelectedEntries;
@@ -887,6 +901,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             App.CurrentDispatcherQueue?.TryEnqueue(() =>
             {
                 folder.IsBusy = false;
+                if (folder == _selectedTreeViewItem)
+                {
+                    EntryArchiveAllCommand.NotifyCanExecuteChanged();
+                }
             });
 
             if (folder.Children.Count > 0)
@@ -935,15 +953,17 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                     //if (folder.Status != NodeFeed.DownloadStatus.error)
                     //    folder.Status = NodeFeed.DownloadStatus.normal;
 
+                    folder.IsBusy = false;
+
                     if (folder == _selectedTreeViewItem)
                     {
                         // Load entries.  
                         //Entries = res.SelectedEntries;
                         // COPY!!
                         Entries = new ObservableCollection<EntryItem>(res.SelectedEntries);
-                    }
 
-                    folder.IsBusy = false;
+                        EntryArchiveAllCommand.NotifyCanExecuteChanged();
+                    }
                 });
 
                 return res.SelectedEntries;
@@ -1007,6 +1027,11 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
                 // TODO: should I be doing this here? or after receiving the data...
                 feed.LastFetched = DateTime.Now;
+
+                if (feed == _selectedTreeViewItem)
+                {
+                    EntryArchiveAllCommand.NotifyCanExecuteChanged();
+                }
             });
 
             //Debug.WriteLine("Getting Entries from: " + feed.Name);
@@ -1069,6 +1094,11 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                     feed.Updated = resEntries.Updated;
 
                     feed.IsBusy = false;
+
+                    if (feed == _selectedTreeViewItem)
+                    {
+                        EntryArchiveAllCommand.NotifyCanExecuteChanged();
+                    }
                 });
 
                 if (resEntries.Entries.Count > 0)
@@ -1095,6 +1125,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         await RefreshAllFeedsRecursiveLoopAsync(tasks, _services).ConfigureAwait(false);
 
         await Task.WhenAll(tasks).ConfigureAwait(false);
+
     }
 
     // update all feeds recursive loop.
@@ -1226,6 +1257,11 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
             // TODO: should I be doing this here? or after receiving the data...
             feed.LastFetched = DateTime.Now;
+
+            if (feed == SelectedTreeViewItem)
+            {
+                EntryArchiveAllCommand.NotifyCanExecuteChanged();
+            }
         });
 
         // Get Entries from web.
@@ -1276,12 +1312,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
                 // Clear Node Error
                 feed.ErrorHttp = null;
-                if (feed == SelectedTreeViewItem)
-                {
-                    // Hide any Error Message
-                    //ErrorObj = null;
-                    //IsShowHttpClientError = false;
-                }
 
                 //fnd.Status = NodeFeed.DownloadStatus.saving;
                 feed.Status = NodeFeed.DownloadStatus.normal;
@@ -1294,6 +1324,11 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 feed.Updated = resEntries.Updated;
 
                 feed.IsBusy = false;
+
+                if (feed == SelectedTreeViewItem)
+                {
+                    EntryArchiveAllCommand.NotifyCanExecuteChanged();
+                }
             });
 
             if (resEntries.Entries.Count > 0)
@@ -1337,6 +1372,11 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
             //Debug.WriteLine("Saving entries: " + feed.Name);
             feed.Status = NodeFeed.DownloadStatus.saving;
+
+            if (feed == _selectedTreeViewItem)
+            {
+                EntryArchiveAllCommand.NotifyCanExecuteChanged();
+            }
         });
 
         //var resInsert = await Task.FromResult(InsertEntriesLock(list));
@@ -1407,8 +1447,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                     if (feed.Status != NodeFeed.DownloadStatus.error)
                         feed.Status = NodeFeed.DownloadStatus.normal;
 
-
                     feed.IsBusy = false;
+
+                    if (feed == _selectedTreeViewItem)
+                    {
+                        EntryArchiveAllCommand.NotifyCanExecuteChanged();
+                    }
                 });
             }
 
@@ -1479,7 +1523,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
                 if (feed == _selectedTreeViewItem)
                 {
-                    Entries.Clear();
+                    EntryArchiveAllCommand.NotifyCanExecuteChanged();
                 }
 
                 // TODO: not really saving
@@ -1531,8 +1575,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                                 MinusAllParentEntryCount(parentFolder, feed.EntryNewCount);
                         }
                         feed.EntryNewCount = 0;
-                    }
 
+                        if (feed == SelectedTreeViewItem)
+                        {
+                            Entries.Clear();
+                        }
+                    }
                     feed.IsBusy = false;
                 });
 
@@ -1558,9 +1606,11 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             {
                 App.CurrentDispatcherQueue?.TryEnqueue(() =>
                 {
+                    folder.IsBusy = true;// test
                     if (folder == _selectedTreeViewItem)
                     {
-                        Entries.Clear();
+                        //Entries.Clear();
+                        EntryArchiveAllCommand.NotifyCanExecuteChanged();
                     }
                 });
 
@@ -1570,26 +1620,39 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
                 var res = await Task.FromResult(_dataAccessService.UpdateAllEntriesAsArchived(tmpList));
 
-                if (res.AffectedCount > 0)
+                if (res.IsError)
                 {
-                    App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                    // TODO:
+                }
+                else
+                {
+                    if (res.AffectedCount > 0)
                     {
-                        if (folder.Parent is NodeFolder parentFolder)
-                            MinusAllParentEntryCount(parentFolder, folder.EntryNewCount);
-
-                        folder.EntryNewCount = 0;
-                        ResetAllEntryCountAtChildNodes(folder.Children);
-
-                    });
-
-                    if (folder == SelectedTreeViewItem)
-                    {
-                        if (!folder.IsDisplayUnarchivedOnly)
+                        App.CurrentDispatcherQueue?.TryEnqueue(() =>
                         {
-                            await LoadEntriesAsync(SelectedTreeViewItem);
+                            if (folder.Parent is NodeFolder parentFolder)
+                                MinusAllParentEntryCount(parentFolder, folder.EntryNewCount);
+
+                            folder.EntryNewCount = 0;
+                            ResetAllEntryCountAtChildNodes(folder.Children);
+
+                            if (folder == _selectedTreeViewItem)
+                            {
+                                Entries.Clear();
+                            }
+                            folder.IsBusy = false;// test
+                        });
+
+                        if (folder == SelectedTreeViewItem)
+                        {
+                            if (!folder.IsDisplayUnarchivedOnly)
+                            {
+                                await LoadEntriesAsync(SelectedTreeViewItem);
+                            }
                         }
                     }
                 }
+
                 App.CurrentDispatcherQueue?.TryEnqueue(() =>
                 {
                     EntryArchiveAllCommand.NotifyCanExecuteChanged();
@@ -1618,12 +1681,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     private void MinusAllParentEntryCount(NodeFolder folder, int minusCount)
     {
-        if (folder is NodeFolder)
+        if (folder is not null)
         {
             if ((minusCount > 0) && (folder.EntryNewCount >= minusCount))
                 folder.EntryNewCount -= minusCount;
 
-            if (folder.Parent != null)
+            if (folder.Parent is not null)
             {
                 if (folder.Parent is NodeFolder parentFolder)
                 {
@@ -1737,12 +1800,13 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         {
             App.CurrentDispatcherQueue?.TryEnqueue(() =>
             {
-                NodeFeed a = new(feedlink.Title, feedlink.FeedUri);
+                NodeFeed a = new(feedlink.Title, feedlink.FeedUri)
+                {
+                    Title = feedlink.SiteTitle,
+                    HtmlUri = feedlink.SiteUri,
 
-                a.Title = feedlink.SiteTitle;
-                a.HtmlUri = feedlink.SiteUri;
-
-                a.Client = _feedClientService.BaseClient;
+                    Client = _feedClientService.BaseClient
+                };
                 a.Client.DebugOutput += new BaseClient.ClientDebugOutput(OnDebugOutput);
 
                 if (SelectedTreeViewItem is null)
@@ -1927,7 +1991,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
     }
 
-    private bool CanFolderAdd()
+    private static bool CanFolderAdd()
     {
         return true;
     }
@@ -2157,14 +2221,16 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         {
             App.CurrentDispatcherQueue?.TryEnqueue(() =>
             {
-                ErrorMain = new ErrorObject();
-                ErrorMain.ErrType = ErrorObject.ErrTypes.XML;
-                ErrorMain.ErrCode = "";
-                ErrorMain.ErrText = ex.Message;
-                ErrorMain.ErrDescription = $"Error loading {file.Name}";
-                ErrorMain.ErrDatetime = DateTime.Now;
-                ErrorMain.ErrPlace = "MainViewModel::InitializeFeedTree";
-                ErrorMain.ErrPlaceParent = "MainViewModel()";
+                ErrorMain = new ErrorObject
+                {
+                    ErrType = ErrorObject.ErrTypes.XML,
+                    ErrCode = "",
+                    ErrText = ex.Message,
+                    ErrDescription = $"Error loading {file.Name}",
+                    ErrDatetime = DateTime.Now,
+                    ErrPlace = "MainViewModel::InitializeFeedTree",
+                    ErrPlaceParent = "MainViewModel()"
+                };
 
                 IsMainErrorInfoBarVisible = true;
 
@@ -2178,13 +2244,13 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
         //Opml opmlLoader = new();
 
-        NodeFolder dummyFolder = _opmlService.LoadOpml(doc);//opmlLoader.LoadOpml(doc);
+        var dummyFolder = _opmlService.LoadOpml(doc);//opmlLoader.LoadOpml(doc);
 
         if (dummyFolder is not null)
         {
             List<NodeFeed> dupeFeeds = new();
 
-            foreach (NodeTree nt in dummyFolder.Children)
+            foreach (var nt in dummyFolder.Children)
             {
                 if ((nt is NodeFeed) || (nt is NodeFolder))
                 {
@@ -2197,12 +2263,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 App.CurrentDispatcherQueue?.TryEnqueue(() =>
                 {
                     var s = "";
-                    foreach (NodeFeed hoge in dupeFeeds)
+                    foreach (var hoge in dupeFeeds)
                     {
-                        if (hoge.Parent != null)
-                        {
-                            hoge.Parent.Children.Remove(hoge);
-                        }
+                        hoge.Parent?.Children.Remove(hoge);
 
                         if (!string.IsNullOrEmpty(s))
                         {
@@ -2275,7 +2338,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         {
             if (folder.Children.Count > 0)
             {
-                foreach (NodeTree ntc in nt.Children)
+                foreach (var ntc in nt.Children)
                 {
                     await OpmlImportProcessNodeChild(ntc, dupeFeeds);
                 }
@@ -2283,7 +2346,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
     }
 
-    private bool CanOpmlImport()
+    private static bool CanOpmlImport()
     {
         return true;
     }
@@ -2293,7 +2356,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     {
         //Opml opmlWriter = new();
 
-        XmlDocument xdoc = _opmlService.WriteOpml(_services);//opmlWriter.WriteOpml(_services);
+        var xdoc = _opmlService.WriteOpml(_services);//opmlWriter.WriteOpml(_services);
 
         if (xdoc is null)
         {
@@ -2316,7 +2379,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
     }
 
-    private bool CanOpmlExport()
+    private static bool CanOpmlExport()
     {
         return true;
     }
@@ -2348,6 +2411,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             return false;
 
         if (SelectedTreeViewItem.EntryNewCount <= 0)
+            return false;
+
+        if (SelectedTreeViewItem.IsBusy)
             return false;
 
         if (_entries.Count <= 0)

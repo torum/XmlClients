@@ -10,12 +10,12 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
 using Image = Microsoft.UI.Xaml.Controls.Image;
 
-namespace BlogWrite.Core.Helpers;
-
 // Code originaly adapted from https://blogs.msdn.microsoft.com/tess/2013/05/13/displaying-html-content-in-a-richtextblock/
 // Modified from https://github.com/xleon/HTML2XAML/blob/master/XAMLHtml/XAMLHtml.cs
 
 // Limitation: no relative uri support... needs base uri.
+
+namespace BlogWrite.Core.Helpers;
 
 public class HtmlProperties : DependencyObject
 {

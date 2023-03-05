@@ -357,7 +357,7 @@
 -->
                                     </AppBarButton>
 
-                                    <AppBarButton Label="{x:Bind ViewModel.ToggleInboxAppButtonLabel, Mode=OneWay}" IsEnabled="{x:Bind ViewModel.IsToggleInboxAppButtonEnabled,Mode=OneWay}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.8" IsTabStop="False">
+                                    <AppBarButton Label="{x:Bind ViewModel.InboxAppButtonLabel, Mode=OneWay}" IsEnabled="{x:Bind ViewModel.IsToggleInboxAppButtonEnabled,Mode=OneWay}" IsCompact="False" VerticalAlignment="Center" Margin="0" Padding="0" Opacity="0.8" IsTabStop="False">
                                         <AppBarButton.Icon>
                                             <PathIcon Data="{x:Bind ViewModel.ToggleInboxAppButtonIcon, Mode=OneWay}"/>
                                         </AppBarButton.Icon>
@@ -554,11 +554,6 @@
                                     </StackPanel>
 
                                     <StackPanel>
-                                        <TextBlock x:Uid="MainPage_DetailsPane_Category" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Category, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
-                                    </StackPanel>
-
-                                    <StackPanel>
                                         <TextBlock x:Uid="MainPage_DetailsPane_Publisher" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
                                         <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Publisher, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
                                     </StackPanel>
@@ -566,6 +561,11 @@
                                     <StackPanel>
                                         <TextBlock x:Uid="MainPage_DetailsPane_Published" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
                                         <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.PublishedDateTimeFormated, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
+                                    </StackPanel>
+
+                                    <StackPanel>
+                                        <TextBlock x:Uid="MainPage_DetailsPane_Category" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Category, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
                                     </StackPanel>
 
                                     <StackPanel Visibility="{x:Bind ViewModel.IsSummaryExists, Mode=OneWay}">
