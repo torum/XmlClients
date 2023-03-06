@@ -3,11 +3,11 @@ using BlogWrite.Core.Services;
 
 namespace BlogWrite.Core.Contracts.Services;
 
-public delegate void ServiceDiscoveryStatusUpdateEventHandler(ServiceDiscoveryService sender, string data);
+public delegate void AutoDiscoveryStatusUpdateEventHandler(AutoDiscoveryService sender, string data);
 
-public interface IServiceDiscoveryService
+public interface IAutoDiscoveryService
 {
-    event ServiceDiscoveryStatusUpdateEventHandler? StatusUpdate;
+    event AutoDiscoveryStatusUpdateEventHandler? StatusUpdate;
 
     Task<ServiceResultBase> DiscoverService(Uri addr, bool isFeed);
 

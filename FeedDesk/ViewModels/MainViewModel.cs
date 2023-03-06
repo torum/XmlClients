@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FeedDesk.Contracts.Services;
 using FeedDesk.Contracts.ViewModels;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Media.Core;
@@ -42,7 +43,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         set
         {
             if (_selectedTreeViewItem == value)
+            {
                 return;
+            }
 
             _selectedTreeViewItem = value;
 
@@ -107,8 +110,11 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
                 Entries = new ObservableCollection<EntryItem>();
 
-                //Task nowait = Task.Run(() => LoadEntriesAsync(_selectedTreeViewItem));
-                LoadEntriesAwaiter(folder);
+                if (!folder.IsPendingReload)
+                {
+                    //Task nowait = Task.Run(() => LoadEntriesAsync(_selectedTreeViewItem));
+                    LoadEntriesAwaiter(folder);
+                }
             }
 
             //Entries.Clear();
@@ -119,6 +125,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
             // notify at last.
             OnPropertyChanged(nameof(SelectedTreeViewItem));
+
+            EntryArchiveAllCommand.NotifyCanExecuteChanged();
         }
     }
 
@@ -166,7 +174,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         set
         {
             if (_selectedListViewItem == value)
+            {
                 return;
+            }
 
             _selectedListViewItem = value;
 
@@ -582,10 +592,14 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     public void OnDebugOutput(BaseClient sender, string data)
     {
         if (string.IsNullOrEmpty(data))
+        {
             return;
+        }
 
         if (!IsDebugWindowEnabled)
+        {
             return;
+        }
 
         if (!App.CurrentDispatcherQueue.HasThreadAccess)
         {
@@ -599,7 +613,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         debugEvents.Enqueue(data);
 
         if (debugEvents.Count > 100)
+        {
             debugEvents.Dequeue();
+        }
 
         DebugEventLog = string.Join('\n', debugEvents.Reverse());
 
@@ -733,7 +749,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             }
 
             if (c.Children.Count > 0)
+            {
                 InitClientsRecursiveLoop(c.Children);
+            }
         }
     }
 
@@ -772,7 +790,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     {
         // This may be a bad idea.
         if (!IsFeedTreeLoaded)
+        {
             return;
+        }
 
         var filePath = Path.Combine(App.AppDataFolder, "Searvies.xml");
         if (RuntimeHelper.IsMSIX)
@@ -793,19 +813,22 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     {
         try
         {
-            _= await LoadEntriesAsync(nt).ConfigureAwait(false);
+            _= await LoadEntriesAsync(nt).ConfigureAwait(true);
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"LoadEntriesAwaiter: {ex.Message}");
         }
 
+        //
+        await Task.Delay(100);
+
         App.CurrentDispatcherQueue?.TryEnqueue(() =>
         {
             if (nt == _selectedTreeViewItem)
             {
-                EntryArchiveAllCommand.NotifyCanExecuteChanged();
             }
+            EntryArchiveAllCommand.NotifyCanExecuteChanged();
         });
     }
 
@@ -829,6 +852,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                     EntryArchiveAllCommand.NotifyCanExecuteChanged();
                 }
             });
+            await Task.Delay(100);
 
             var res = await Task.FromResult(_dataAccessService.SelectEntriesByFeedId(feed.Id, feed.IsDisplayUnarchivedOnly));
 
@@ -890,6 +914,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                         EntryArchiveAllCommand.NotifyCanExecuteChanged();
                     }
                 });
+                await Task.Delay(100);
 
                 return res.SelectedEntries;
             }
@@ -900,12 +925,14 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
             App.CurrentDispatcherQueue?.TryEnqueue(() =>
             {
-                folder.IsBusy = false;
+                folder.IsBusy = true;
                 if (folder == _selectedTreeViewItem)
                 {
                     EntryArchiveAllCommand.NotifyCanExecuteChanged();
                 }
+                folder.IsPendingReload = false;
             });
+            await Task.Delay(100);
 
             if (folder.Children.Count > 0)
             {
@@ -965,6 +992,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                         EntryArchiveAllCommand.NotifyCanExecuteChanged();
                     }
                 });
+                await Task.Delay(100);
 
                 return res.SelectedEntries;
             }
@@ -1011,13 +1039,17 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private async Task GetEntriesAsync(NodeTree nt)
     {
         if (nt == null)
+        {
             return;
+        }
 
         if (nt is NodeFeed feed)
         {
             // check some conditions.
             if ((feed.Api != ApiTypes.atFeed) || (feed.Client == null))
+            {
                 return;
+            }
 
             // Update Node Downloading Status
             App.CurrentDispatcherQueue?.TryEnqueue(() =>
@@ -1034,6 +1066,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 }
             });
 
+            //
+            await Task.Delay(100);
+
             //Debug.WriteLine("Getting Entries from: " + feed.Name);
 
             // Get Entries from web.
@@ -1041,7 +1076,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
             // Check Node exists. Could have been deleted.
             if (feed == null)
+            {
                 return;
+            }
 
             // Result is HTTP Error
             if (resEntries.IsError)
@@ -1059,8 +1096,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                     }
 
                     if (feed.Parent != null)
+                    {
                         if (feed.Parent is NodeFolder parentFolder)
+                        {
                             MinusAllParentEntryCount(parentFolder, feed.EntryNewCount);
+                        }
+                    }
                     feed.EntryNewCount = 0;
 
                     // Update Node Downloading Status
@@ -1070,7 +1111,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
                 return;
             }
-            // Result is success.
             else
             {
                 App.CurrentDispatcherQueue?.TryEnqueue(() =>
@@ -1109,23 +1149,58 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
         else if (nt is NodeFolder folder)
         {
+            //
+            App.CurrentDispatcherQueue?.TryEnqueue(() =>
+            {
+                nt.IsBusy = true;
+            });
+            await Task.Delay(100);
+            App.CurrentDispatcherQueue?.TryEnqueue(() =>
+            {
+                EntryArchiveAllCommand.NotifyCanExecuteChanged();
+            });
+
             var tasks = new List<Task>();
             
-            await RefreshAllFeedsRecursiveLoopAsync(tasks, folder);
+            await RefreshAllFeedsRecursiveLoopAsync(tasks, folder).ConfigureAwait(false); ;
 
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(tasks).ConfigureAwait(true);
+
+            //
+            App.CurrentDispatcherQueue?.TryEnqueue(() =>
+            {
+                nt.IsBusy = false;
+            });
+            await Task.Delay(100);
+
+            App.CurrentDispatcherQueue?.TryEnqueue(() =>
+            {
+                EntryArchiveAllCommand.NotifyCanExecuteChanged();
+            });
         }
     }
 
     // update all feeds.
     private async Task RefreshAllFeedsAsync()
     {
+        App.CurrentDispatcherQueue?.TryEnqueue(() =>
+        {
+            EntryArchiveAllCommand.NotifyCanExecuteChanged();
+        });
+
         var tasks = new List<Task>();
         
         await RefreshAllFeedsRecursiveLoopAsync(tasks, _services).ConfigureAwait(false);
 
-        await Task.WhenAll(tasks).ConfigureAwait(false);
+        await Task.WhenAll(tasks).ConfigureAwait(true);
 
+        //
+        await Task.Delay(100);
+
+        App.CurrentDispatcherQueue?.TryEnqueue(() =>
+        {
+            EntryArchiveAllCommand.NotifyCanExecuteChanged();
+        });
     }
 
     // update all feeds recursive loop.
@@ -1165,6 +1240,15 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                                         // reload entries if selected.
                                         await CheckParentSelectedAndLoadEntriesIfNotBusyAsync(feed).ConfigureAwait(false);
                                     }
+                                    else
+                                    {
+                                        ///
+                                        await CheckParentSelectedAndNotify(feed).ConfigureAwait(false);
+                                    }
+                                }
+                                else
+                                {
+                                    //
                                 }
 
                                 await CheckParentSelectedAndLoadEntriesIfPendingAsync(feed).ConfigureAwait(false);
@@ -1225,7 +1309,13 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                         {
                             parentFolder.IsPendingReload = false;
                         });
+
                         await LoadEntriesAsync(parentFolder).ConfigureAwait(false);
+
+                        App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                        {
+                            EntryArchiveAllCommand.NotifyCanExecuteChanged();
+                        });
                     }
                 }
                 else
@@ -1236,15 +1326,45 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
     }
 
+    private async Task CheckParentSelectedAndNotify(NodeTree nt)
+    {
+        if (nt != null)
+        {
+            if (nt.Parent is NodeFolder parentFolder)
+            {
+                if (parentFolder == SelectedTreeViewItem)
+                {
+                    if (parentFolder.IsBusyChildrenCount <= 0)
+                    {
+                        App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                        {
+                            EntryArchiveAllCommand.NotifyCanExecuteChanged();
+                        });
+                    }
+                }
+                else
+                {
+                    await CheckParentSelectedAndNotify(parentFolder).ConfigureAwait(false);
+                }
+            }
+        }
+    }
+
     // gets entries from web and return the list.
     private async Task<List<EntryItem>> GetEntryListAsync(NodeFeed feed)
     {
         var res = new List<EntryItem>();
 
-        if (feed == null) return res;
+        if (feed == null)
+        {
+            return res;
+        }
 
         // check some conditions.
-        if ((feed.Api != ApiTypes.atFeed) || (feed.Client == null)) return res;
+        if ((feed.Api != ApiTypes.atFeed) || (feed.Client == null))
+        {
+            return res;
+        }
 
         // Update Node Downloading Status
         App.CurrentDispatcherQueue?.TryEnqueue(() =>
@@ -1263,6 +1383,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 EntryArchiveAllCommand.NotifyCanExecuteChanged();
             }
         });
+        //
+        await Task.Delay(100);
 
         // Get Entries from web.
         var resEntries = await feed.Client.GetEntries(feed.EndPoint, feed.Id);
@@ -1271,6 +1393,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         if (feed == null)
         {
             //feed.IsBusy = false;
+            Debug.WriteLine("GetEntryListAsync: feed is null.");
             return res;
         }
 
@@ -1290,8 +1413,13 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 }
 
                 if (feed.Parent != null)
+                {
                     if (feed.Parent is NodeFolder parentFolder)
+                    {
                         MinusAllParentEntryCount(parentFolder, feed.EntryNewCount);
+                    }
+                }
+
                 feed.EntryNewCount = 0;
 
                 // Update Node Downloading Status
@@ -1330,6 +1458,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                     EntryArchiveAllCommand.NotifyCanExecuteChanged();
                 }
             });
+            //
+            await Task.Delay(100);
 
             if (resEntries.Entries.Count > 0)
             {
@@ -1360,7 +1490,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         var res = new List<EntryItem>();
 
         if (list.Count == 0)
+        {
             return res;
+        }
 
         // Update Node Downloading Status
         App.CurrentDispatcherQueue?.TryEnqueue(() =>
@@ -1378,6 +1510,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 EntryArchiveAllCommand.NotifyCanExecuteChanged();
             }
         });
+        //
+        await Task.Delay(100);
 
         //var resInsert = await Task.FromResult(InsertEntriesLock(list));
         var resInsert = _dataAccessService.InsertEntries(list, feed.Id, feed.Name, feed.Title, feed.Description, feed.Updated, feed.HtmlUri!);
@@ -1421,20 +1555,20 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                     UpdateNewEntryCount(feed, resInsert.AffectedCount);
 
                     if (feed.Status != NodeFeed.DownloadStatus.error)
+                    {
                         feed.Status = NodeFeed.DownloadStatus.normal;
-
+                    }
 
                     feed.IsBusy = false;
-                });
 
-                // If selected
+                    EntryArchiveAllCommand.NotifyCanExecuteChanged();
+                });
+                //
+                await Task.Delay(100);
+
                 if (feed == SelectedTreeViewItem)
                 {
                     await LoadEntriesAsync(feed).ConfigureAwait(false);
-                }
-                else
-                {
-                    //CheckParentSelectedAndLoadEntriesIfNotBusy(feed);
                 }
             }
             else
@@ -1445,7 +1579,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                     //feed.EntryCount = newItems.Count;
 
                     if (feed.Status != NodeFeed.DownloadStatus.error)
+                    {
                         feed.Status = NodeFeed.DownloadStatus.normal;
+                    }
 
                     feed.IsBusy = false;
 
@@ -1454,6 +1590,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                         EntryArchiveAllCommand.NotifyCanExecuteChanged();
                     }
                 });
+                //
+                await Task.Delay(100);
             }
 
             return resInsert.InsertedEntries;
@@ -1513,7 +1651,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private async Task ArchiveAllAsync(NodeTree nd)
     {
         if (nd == null)
+        {
             return;
+        }
 
         if (nd is NodeFeed feed)
         {
@@ -1539,6 +1679,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
             if (res.IsError)
             {
+                Debug.WriteLine("ArchiveAllAsync(NodeFeed):" + res.Error.ErrText);
+
                 App.CurrentDispatcherQueue?.TryEnqueue(() =>
                 {
                     feed.ErrorDatabase = res.Error;
@@ -1572,7 +1714,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                         if (feed.Parent != null)
                         {
                             if (feed.Parent is NodeFolder parentFolder)
+                            {
                                 MinusAllParentEntryCount(parentFolder, feed.EntryNewCount);
+                            }
                         }
                         feed.EntryNewCount = 0;
 
@@ -1623,6 +1767,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 if (res.IsError)
                 {
                     // TODO:
+                    Debug.WriteLine("ArchiveAllAsync(NodeFolder):" + res.Error.ErrText);
                 }
                 else
                 {
@@ -1631,7 +1776,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                         App.CurrentDispatcherQueue?.TryEnqueue(() =>
                         {
                             if (folder.Parent is NodeFolder parentFolder)
+                            {
                                 MinusAllParentEntryCount(parentFolder, folder.EntryNewCount);
+                            }
 
                             folder.EntryNewCount = 0;
                             ResetAllEntryCountAtChildNodes(folder.Children);
@@ -1674,7 +1821,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 folder.EntryNewCount = 0;
 
                 if (folder.Children.Count > 0)
+                {
                     ResetAllEntryCountAtChildNodes(folder.Children);
+                }
             }
         }
     }
@@ -1684,7 +1833,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         if (folder is not null)
         {
             if ((minusCount > 0) && (folder.EntryNewCount >= minusCount))
+            {
                 folder.EntryNewCount -= minusCount;
+            }
 
             if (folder.Parent is not null)
             {
@@ -1706,10 +1857,14 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private async Task UpdateEntryStatusAsReadAsync(NodeTree nd, FeedEntryItem entry)
     {
         if ((nd == null) || (entry == null))
+        {
             return;
+        }
 
         if ((nd is not NodeFeed) && (nd is not NodeFolder))
+        {
             return;
+        }
 
         /*
         App.CurrentDispatcherQueue?.TryEnqueue(() =>
@@ -1717,6 +1872,11 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             nd.IsBusy = true;
         });
         */
+
+        if ((entry.Status == FeedEntryItem.ReadStatus.rsNewVisited) || entry.Status == FeedEntryItem.ReadStatus.rsNormalVisited)
+        {
+            return;
+        }
 
         var rs = FeedEntryItem.ReadStatus.rsNewVisited;
         if (entry.IsArchived)
@@ -1730,21 +1890,26 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         {
             App.CurrentDispatcherQueue?.TryEnqueue(() =>
             {
-                if ((nd == null) || (entry == null))
-                    return;
+                Debug.WriteLine("UpdateEntryStatusAsReadAsync:" + res.Error.ErrText);
 
-                nd.ErrorDatabase = res.Error;
+                if ((nd == null) || (entry == null))
+                {
+                    return;
+                }
+
+                //nd.ErrorDatabase = res.Error;
 
                 if (nd == SelectedTreeViewItem)
                 {
                     //DatabaseError = (nd as NodeFeed).ErrorDatabase;
                     //IsShowDatabaseErrorMessage = true;
+
+                    if (nd is NodeFeed feed)
+                    {
+                        feed.Status = NodeFeed.DownloadStatus.error;
+                    }
                 }
-
-                if (nd is NodeFeed feed)
-                    feed.Status = NodeFeed.DownloadStatus.error;
-
-                nd.IsBusy = false;
+                //nd.IsBusy = false;
             });
 
             return;
@@ -1754,7 +1919,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             App.CurrentDispatcherQueue?.TryEnqueue(() =>
             {
                 if (entry != null)
+                {
                     entry.Status = rs;
+                }
 
                 //if (nd != null)
                 //    nd.IsBusy = false;
@@ -1771,7 +1938,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     public void AddFeed(FeedLink feedlink)
     {
-        if (feedlink == null) return;
+        if (feedlink == null)
+        {
+            return;
+        }
 
         if (IsFeedDupeCheck(feedlink.FeedUri.AbsoluteUri))
         {
@@ -1876,8 +2046,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             }
 
             if (c.Children.Count > 0)
+            {
                 if (FeedDupeCheckRecursiveLoop(c.Children, feedUri))
+                {
                     return true;
+                }
+            }
         }
 
         return false;
@@ -1887,7 +2061,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private void NodeEdit()
     {
         if (SelectedTreeViewItem is null)
+        {
             return;
+        }
 
         if (SelectedTreeViewItem is NodeFeed)
         {
@@ -1907,10 +2083,14 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     public async Task UpdateFeedAsync(NodeFeed feed, string name)
     {
         if (feed is null)
+        {
             return;
+        }
 
         if (feed.Name == name)
+        {
             return;
+        }
 
         // update db.
         App.CurrentDispatcherQueue?.TryEnqueue(() =>
@@ -1953,7 +2133,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             App.CurrentDispatcherQueue?.TryEnqueue(() =>
             {
                 if (feed.Status != NodeFeed.DownloadStatus.error)
+                {
                     feed.Status = NodeFeed.DownloadStatus.normal;
+                }
 
                 feed.IsBusy = false;
             });
@@ -2000,7 +2182,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private void NodeRemove()
     {
         if (SelectedTreeViewItem is null)
+        {
             return;
+        }
 
         if (SelectedTreeViewItem.IsBusy)
         {
@@ -2016,7 +2200,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private async Task NodeRemoveAsync()
     {
         if (SelectedTreeViewItem is null)
+        {
             return;
+        }
 
         if (SelectedTreeViewItem.IsBusy)
         {
@@ -2051,7 +2237,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
                     // 
                     if (hoge.Parent is NodeFolder parentFolder)
+                    {
                         MinusAllParentEntryCount(parentFolder, hoge.EntryNewCount);
+                    }
 
                     hoge.Parent.Children.Remove(hoge);
                 }
@@ -2197,12 +2385,16 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         var hwnd = WindowNative.GetWindowHandle(App.MainWindow);
         var file = await _fileDialogService.GetOpenOpmlFileDialog(hwnd);
         if (file is null)
+        {
             return;
+        }
 
         var filepath = file.Path;
 
         if (!File.Exists(filepath.Trim()))
+        {
             return;
+        }
 
         App.CurrentDispatcherQueue?.TryEnqueue(() =>
         {
@@ -2392,10 +2584,14 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private void EntryArchiveAll()
     {
         if (SelectedTreeViewItem is null)
+        {
             return;
+        }
 
         if (!((SelectedTreeViewItem is NodeFeed) || (SelectedTreeViewItem is NodeFolder)))
+        {
             return;
+        }
 
         Task.Run(() => ArchiveAllAsync(SelectedTreeViewItem).ConfigureAwait(false));
         // This may freeze UI in certain situations.
@@ -2405,19 +2601,37 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private bool CanEntryArchiveAll()
     {
         if (SelectedTreeViewItem is null)
+        {
             return false;
+        }
 
         if (!((SelectedTreeViewItem is NodeFeed) || (SelectedTreeViewItem is NodeFolder)))
+        {
             return false;
+        }
 
         if (SelectedTreeViewItem.EntryNewCount <= 0)
+        {
             return false;
-
+        }
+        
         if (SelectedTreeViewItem.IsBusy)
+        {
             return false;
+        }
+            
+        if (SelectedTreeViewItem is NodeFolder)
+        {
+            if (SelectedTreeViewItem.IsBusyChildrenCount > 0)
+            {
+                return false;
+            }
+        }
 
         if (_entries.Count <= 0)
+        {
             return false;
+        }
 
         return true;
     }
@@ -2450,10 +2664,14 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private bool CanEntryViewExternal()
     {
         if (SelectedListViewItem is null)
+        {
             return false;
+        }
 
         if (SelectedListViewItem.AltHtmlUri is null)
+        {
             return false;
+        }
 
         return true;
     }
@@ -2475,10 +2693,14 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private bool CanEntryCopyUrl()
     {
         if (SelectedListViewItem is null)
+        {
             return false;
+        }
 
         if (SelectedListViewItem.AltHtmlUri is null)
+        {
             return false;
+        }
 
         return true;
     }
@@ -2487,7 +2709,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private void ToggleShowAllEntries()
     {
         if (SelectedTreeViewItem is null)
+        {
             return;
+        }
 
         IsShowAllEntries = !IsShowAllEntries;
         
@@ -2508,7 +2732,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private bool CanToggleShowAllEntries()
     {
         if (SelectedTreeViewItem is null)
+        {
             return false;
+        }
 
         return true;
     }
@@ -2517,7 +2743,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private void ToggleShowInboxEntries()
     {
         if (SelectedTreeViewItem is null)
+        {
             return;
+        }
 
         IsShowInboxEntries = !IsShowInboxEntries;
 
@@ -2538,7 +2766,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private bool CanToggleShowInboxEntries()
     {
         if (SelectedTreeViewItem is null)
+        {
             return false;
+        }
 
         return true;
     }
@@ -2552,7 +2782,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private void DownloadAudioFile()
     {
         if (SelectedListViewItem is null)
+        {
             return;
+        }
 
         if (SelectedListViewItem.AudioUri != null)
         {
@@ -2570,7 +2802,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private void CopyAudioFileUrlToClipboard()
     {
         if (SelectedListViewItem is null)
+        {
             return;
+        }
 
         if (SelectedListViewItem.AudioUri != null)
         {

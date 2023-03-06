@@ -98,7 +98,7 @@ public partial class App : Application
             services.AddTransient<IFileDialogService, FileDialogService>();
             services.AddSingleton<IDataAccessService, DataAccessService>();
             services.AddSingleton<IFeedClientService, FeedClientService>();
-            services.AddSingleton<IServiceDiscoveryService, ServiceDiscoveryService>();
+            services.AddSingleton<IAutoDiscoveryService, AutoDiscoveryService>();
             services.AddSingleton<IOpmlService, OpmlService>();
 
             // Views and ViewModels
@@ -255,7 +255,9 @@ public partial class App : Application
     private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
         if (e.Exception.InnerException is not Exception exception)
+        {
             return;
+        }
 
         Debug.WriteLine("TaskScheduler_UnobservedTaskException: " + exception.Message);
         AppendErrorLog("TaskScheduler_UnobservedTaskException", exception.Message);
@@ -267,7 +269,9 @@ public partial class App : Application
     private void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
     {
         if (e.ExceptionObject is not Exception exception)
+        {
             return;
+        }
 
         if (exception is TaskCanceledException)
         {
@@ -286,7 +290,7 @@ public partial class App : Application
     public void AppendErrorLog(string kindTxt, string errorTxt)
     {
         Errortxt.AppendLine(kindTxt + ": " + errorTxt);
-        DateTime dt = DateTime.Now;
+        var dt = DateTime.Now;
         Errortxt.AppendLine($"Occured at {dt.ToString("yyyy/MM/dd HH:mm:ss")}");
         Errortxt.AppendLine("");
     }
@@ -294,18 +298,24 @@ public partial class App : Application
     private void SaveErrorLog()
     {
         if (!IsSaveErrorLog)
+        {
             return;
+        }
 
         if (string.IsNullOrEmpty(LogFilePath))
+        {
             return;
+        }
 
         Errortxt.AppendLine("");
-        DateTime dt = DateTime.Now;
+        var dt = DateTime.Now;
         Errortxt.AppendLine($"Saved at {dt.ToString("yyyy/MM/dd HH:mm:ss")}");
 
         var s = Errortxt.ToString();
         if (!string.IsNullOrEmpty(s))
+        {
             File.WriteAllText(LogFilePath, s);
+        }
     }
 
     public void SaveErrorLogIfAny()
@@ -337,7 +347,9 @@ public partial class App : Application
                         foreach (var node in jo)
                         {
                             if (node.Value is JsonValue jvalue && jvalue.TryGetValue<string>(out var value))
+                            {
                                 _data[node.Key] = value;
+                            }
                         }
                     }
                 }
@@ -346,11 +358,13 @@ public partial class App : Application
         }
         private void Save()
         {
-            JsonObject jo = new JsonObject();
+            var jo = new JsonObject();
             foreach (var item in _data)
             {
                 if (item.Value is string s) // In this case we only need string support. TODO: Support other types
+                {
                     jo.Add(item.Key, s);
+                }
             }
             File.WriteAllText(_file, jo.ToJsonString());
         }

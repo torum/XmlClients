@@ -171,7 +171,9 @@ public class ServiceResultHtmlPage : ServiceResultBase
         set
         {
             if (_feeds == value)
+            {
                 return;
+            }
 
             _feeds = value;
         }
@@ -184,7 +186,9 @@ public class ServiceResultHtmlPage : ServiceResultBase
         set
         {
             if (_services == value)
+            {
                 return;
+            }
 
             _services = value;
         }
@@ -271,7 +275,7 @@ public class ServiceResultXmlRpc : ServiceResult
 #endregion
 
 // Service Discovery class.
-public class ServiceDiscoveryService : IServiceDiscoveryService
+public class AutoDiscoveryService : IAutoDiscoveryService
 {
     private readonly HttpClient _httpClient;
 
@@ -279,11 +283,11 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
 
     //public delegate void ServiceDiscoveryStatusUpdate(ServiceDiscovery sender, string data);
 
-    public event ServiceDiscoveryStatusUpdateEventHandler? StatusUpdate;
+    public event AutoDiscoveryStatusUpdateEventHandler? StatusUpdate;
 
     #endregion
 
-    public ServiceDiscoveryService()
+    public AutoDiscoveryService()
     {
         _httpClient = new HttpClient();
 
@@ -344,20 +348,24 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
                         UpdateStatus("- Parsing the HTML document ...");
 
                         // HTML parse.
-                        ServiceResultBase res = await ParseHtml(HTTPResponse.Content, addr, isFeed);
+                        var res = await ParseHtml(HTTPResponse.Content, addr, isFeed);
 
                         if (res is ServiceResultHtmlPage srhp)
                         {
                             if (isFeed)
                             {
                                 if (srhp.Feeds.Count == 0)
+                                {
                                     UpdateStatus("No feed link found.");
+                                }
                             }
 
                             if (!isFeed)
                             {
                                 if (srhp.Services.Count == 0)
+                                {
                                     UpdateStatus("No service link found.");
+                                }
                             }
                         }
 
@@ -370,7 +378,7 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
                         UpdateStatus("- Parsing XML document to determine the what this is ...");
 
                         // XML parse.
-                        ServiceResultBase xml = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
+                        var xml = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
 
                         return xml;
                     }
@@ -379,7 +387,7 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
                         UpdateStatus("- Parsing RSS feed ...");
 
                         // XML parse.
-                        ServiceResultBase feed = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
+                        var feed = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
 
                         return feed;
                     }
@@ -388,7 +396,7 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
                         UpdateStatus("- Parsing RSS/RDF feed ...");
 
                         // XML parse.
-                        ServiceResultBase feed = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
+                        var feed = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
 
                         return feed;
                     }
@@ -407,7 +415,7 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
 
                         UpdateStatus("- AtomPub endpoint (UNDERDEVELOPENT).");
 
-                        ServiceResultErr re = new ServiceResultErr("AtomPub endpoint (UNDERDEVELOPENT).", string.Format("{0} is AtomPub endpoint. (UNDERDEVELOPENT)", contenTypeString));
+                        var re = new ServiceResultErr("AtomPub endpoint (UNDERDEVELOPENT).", string.Format("{0} is AtomPub endpoint. (UNDERDEVELOPENT)", contenTypeString));
                         return re;
                     }
                     else if (contenTypeString.StartsWith("application/rsd+xml"))
@@ -424,8 +432,10 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
                         var resRsd = new ServiceResultRsd();
                         resRsd.Rsd = rsd;
                         */
-                        var resRsd = new ServiceResultRsd();
-                        resRsd.Rsd = await ParseRsdAsync(HTTPResponse.Content);
+                        var resRsd = new ServiceResultRsd
+                        {
+                            Rsd = await ParseRsdAsync(HTTPResponse.Content)
+                        };
 
                         return (resRsd as ServiceResultBase);
                     }
@@ -437,7 +447,7 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
                         UpdateStatus("- Parsing Atom feed ...");
 
                         // RSS parse.
-                        ServiceResultBase feed = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
+                        var feed = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
 
                         return feed;
                         /*
@@ -453,7 +463,7 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
 
                         UpdateStatus("- (Wrong Content-Type) Parsing Atom feed ...");
 
-                        ServiceResultBase feed = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
+                        var feed = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
 
                         return feed;
                     }
@@ -544,7 +554,7 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
     {
         try
         {
-            HttpRequestMessage webreq = new HttpRequestMessage(HttpMethod.Get, addr);
+            var webreq = new HttpRequestMessage(HttpMethod.Get, addr);
 
             if (authType == AuthTypes.Wsse)
             {
@@ -574,7 +584,7 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
                 if (HTTPResponse.Content == null)
                 {
                     UpdateStatus("<< Content is emptty.");
-                    ServiceResultErr re = new ServiceResultErr("Received no content.", "Content empty.");
+                    var re = new ServiceResultErr("Received no content.", "Content empty.");
                     return re;
                 }
 
@@ -590,7 +600,7 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
                         UpdateStatus("- HTML document returned. Something is wrong.");
 
                         // Error
-                        ServiceResultErr re = new ServiceResultErr("API/Protocol authentication failed", "A HTML page returned.");
+                        var re = new ServiceResultErr("API/Protocol authentication failed", "A HTML page returned.");
                         return re;
                     }
                     else if (contenTypeString.StartsWith("text/xml") || contenTypeString.StartsWith("application/xml"))
@@ -600,7 +610,7 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
                         UpdateStatus("- Parsing XML document to determine the what this is ...");
 
                         // XML parse.
-                        ServiceResultBase xml = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
+                        var xml = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
 
                         return xml;
                     }
@@ -609,7 +619,7 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
                         UpdateStatus("- RSS feed returned. Something is wrong.");
 
                         // Error
-                        ServiceResultErr re = new ServiceResultErr("API/Protocol authentication failed", "A RSS feed returned.");
+                        var re = new ServiceResultErr("API/Protocol authentication failed", "A RSS feed returned.");
                         return re;
                     }
                     else if (contenTypeString.StartsWith("application/rdf+xml"))
@@ -617,7 +627,7 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
                         UpdateStatus("- RSS/RDF feed returned. Something is wrong.");
 
                         // Error
-                        ServiceResultErr re = new ServiceResultErr("API/Protocol authentication failed", "A RSS/RDF feed returned.");
+                        var re = new ServiceResultErr("API/Protocol authentication failed", "A RSS/RDF feed returned.");
                         return re;
                     }
                     //
@@ -626,7 +636,7 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
                         // AtomPub endpoint.
                         UpdateStatus("- Atom Publishing Protocol Service document returned.");
 
-                        ServiceResultBase ap = await Task.Run(() => ParseAtomServiceDocument(HTTPResponse.Content, addr, userName, apiKey, authType));
+                        var ap = await Task.Run(() => ParseAtomServiceDocument(HTTPResponse.Content, addr, userName, apiKey, authType));
                         return ap;
                     }
                     else if (contenTypeString.StartsWith("application/rsd+xml"))
@@ -636,7 +646,7 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
                         UpdateStatus("- RSD (No need to be authenticated). Something went wrong.");
 
                         // Error
-                        ServiceResultErr re = new ServiceResultErr("RSD (No need to be authenticated).", string.Format("{0} is RSD. (Something went wrong)", contenTypeString));
+                        var re = new ServiceResultErr("RSD (No need to be authenticated).", string.Format("{0} is RSD. (Something went wrong)", contenTypeString));
                         return re;
                     }
                     else if (contenTypeString.StartsWith("application/atom+xml"))
@@ -644,7 +654,7 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
                         UpdateStatus("- Parsing Atom feed ...");
 
                         // XML parse.
-                        ServiceResultBase feed = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
+                        var feed = await Task.Run(() => ParseXml(HTTPResponse.Content, addr));
 
                         return feed;
                     }
@@ -662,7 +672,7 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
                         */
                         UpdateStatus("- AtomAPI (UNDERDEVELOPENT).");
 
-                        ServiceResultErr re = new ServiceResultErr("AtomAPI (UNDERDEVELOPENT).", string.Format("{0} is AtomAPI. (UNDERDEVELOPENT)", contenTypeString));
+                        var re = new ServiceResultErr("AtomAPI (UNDERDEVELOPENT).", string.Format("{0} is AtomAPI. (UNDERDEVELOPENT)", contenTypeString));
                         return re;
                     }
                     else if (contenTypeString.StartsWith("application/x.atom+xml"))
@@ -679,21 +689,21 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
                         */
                         UpdateStatus("- AtomAPI (UNDERDEVELOPENT).");
 
-                        ServiceResultErr re = new ServiceResultErr("AtomAPI (UNDERDEVELOPENT).", string.Format("{0} is AtomAPI. (UNDERDEVELOPENT)", contenTypeString));
+                        var re = new ServiceResultErr("AtomAPI (UNDERDEVELOPENT).", string.Format("{0} is AtomAPI. (UNDERDEVELOPENT)", contenTypeString));
                         return re;
                     }
                     else
                     {
                         UpdateStatus("- Unknown Content-Type returned.");
 
-                        ServiceResultErr re = new ServiceResultErr("Received unsupported Content-Type.", string.Format("{0} is not supported.", contenTypeString));
+                        var re = new ServiceResultErr("Received unsupported Content-Type.", string.Format("{0} is not supported.", contenTypeString));
                         return re;
                     }
                 }
                 else
                 {
                     UpdateStatus("- No Content-Type returned. ");
-                    ServiceResultErr re = new ServiceResultErr("Download failed", "No Content-Type reveived.");
+                    var re = new ServiceResultErr("Download failed", "No Content-Type reveived.");
                     return re;
                 }
             }
@@ -707,12 +717,12 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
                 {
                     UpdateStatus("- Authorization failed. ");
 
-                    ServiceResultAuthRequired rea = new ServiceResultAuthRequired(addr);
+                    var rea = new ServiceResultAuthRequired(addr);
                     return rea;
                 }
                 else
                 {
-                    ServiceResultErr re = new ServiceResultErr("HTTP error.", "Could not retrieve any document.");
+                    var re = new ServiceResultErr("HTTP error.", "Could not retrieve any document.");
                     return re;
                 }
             }
@@ -721,13 +731,13 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
         catch (System.Net.Http.HttpRequestException e)
         {
             UpdateStatus("<< HttpRequestException: " + e.Message);
-            ServiceResultErr re = new ServiceResultErr("HTTP request error.", e.Message);
+            var re = new ServiceResultErr("HTTP request error.", e.Message);
             return re;
         }
         catch (Exception e)
         {
             UpdateStatus("<< HTTP error: " + e.Message);
-            ServiceResultErr re = new ServiceResultErr("HTTP error.", e.Message);
+            var re = new ServiceResultErr("HTTP error.", e.Message);
             return re;
         }
     }
@@ -785,7 +795,9 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
                         //var t = e.GetAttribute("title");
 
                         if (e.Attributes == null)
+                        {
                             continue;
+                        }
 
                         var re = e.Attributes["rel"]?.Value;
                         var ty = e.Attributes["type"]?.Value;
@@ -797,7 +809,9 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
                             if (re.ToUpper() == "EDITURI")
                             {
                                 if (isFeed)
+                                {
                                     continue;
+                                }
 
                                 if (!string.IsNullOrEmpty(ty) && !string.IsNullOrEmpty(hf))
                                 {
@@ -1241,14 +1255,15 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
 
         if (xdoc.DocumentElement.Name is "app:service" or "service")
         {
-            var account = new NodeService("New Service (Atom Publishing Protocol)", userName, apiKey, addr, ApiTypes.atAtomPub, ServiceTypes.AtomPub);
-
-            account.EndPoint = addr;
-            account.ServiceType = ServiceTypes.AtomPub;
-            account.UserName = userName;
-            account.UserPassword = apiKey;
-            account.Api = ApiTypes.atAtomPub;
-            account.AuthType = authType;
+            var account = new NodeService("New Service (Atom Publishing Protocol)", userName, apiKey, addr, ApiTypes.atAtomPub, ServiceTypes.AtomPub)
+            {
+                EndPoint = addr,
+                ServiceType = ServiceTypes.AtomPub,
+                UserName = userName,
+                UserPassword = apiKey,
+                Api = ApiTypes.atAtomPub,
+                AuthType = authType
+            };
 
             var workspaceList = xdoc.DocumentElement.SelectNodes("app:workspace", atomNsMgr);
             //XmlNodeList workspaceList = xdoc.SelectNodes("//service/app:workspace", atomNsMgr);
@@ -1265,7 +1280,9 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
                     if (wtl != null)
                     {
                         if (string.IsNullOrEmpty(wtl.InnerText))
+                        {
                             workspace.Name = wtl.InnerText;
+                        }
                     }
 
                     var collectionList = ws.SelectNodes("app:collection", atomNsMgr);
@@ -1525,9 +1542,11 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
                                     }
                                     else
                                     {
-                                        RsdApi hoge = new();
-                                        hoge.Name = apiName?.Value ?? "";
-                                        hoge.BlogID = apiBlogId?.Value ?? "";
+                                        RsdApi hoge = new()
+                                        {
+                                            Name = apiName?.Value ?? "",
+                                            BlogID = apiBlogId?.Value ?? ""
+                                        };
                                         if (!string.IsNullOrEmpty(apiPreferred?.Value))
                                         {
                                             if (apiPreferred?.Value.ToLower() == "true")
@@ -1693,11 +1712,11 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
         return header;
     }
 
-    private string GenDigest(string password, string created, string nonce)
+    private static string GenDigest(string password, string created, string nonce)
     {
         byte[] digest;
         //using (SHA1Managed sha1 = new SHA1Managed())
-        using (SHA1 sha1 = SHA1.Create())
+        using (var sha1 = SHA1.Create())
         {
             var digestText = nonce + created + password;
             var digestBytes = Encoding.UTF8.GetBytes(digestText);
@@ -1707,7 +1726,7 @@ public class ServiceDiscoveryService : IServiceDiscoveryService
         return digest64;
     }
 
-    private string GenNounce(int length)
+    private static string GenNounce(int length)
     {
         using var rng = RandomNumberGenerator.Create();
         var buffer = new byte[length];

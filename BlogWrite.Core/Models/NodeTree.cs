@@ -48,7 +48,9 @@ public abstract class NodeTree : Node
         protected set
         {
             if (_pathData == value)
+                {
                 return;
+            }
 
             _pathData = value;
 
@@ -63,7 +65,9 @@ public abstract class NodeTree : Node
         set
         {
             if (_isSelected == value)
+                {
                 return;
+            }
 
             _isSelected = value;
 
@@ -78,7 +82,9 @@ public abstract class NodeTree : Node
         set
         {
             if (_isExpanded == value)
+                {
                 return;
+            }
 
             _isExpanded = value;
 
@@ -93,7 +99,9 @@ public abstract class NodeTree : Node
         set
         {
             if (_subNodeText == value)
+                {
                 return;
+            }
 
             _subNodeText = value;
             NotifyPropertyChanged(nameof(SubNodeText));
@@ -107,7 +115,9 @@ public abstract class NodeTree : Node
         set
         {
             if (_entryNewCount == value)
+                {
                 return;
+            }
 
             _entryNewCount = value;
 
@@ -140,7 +150,9 @@ public abstract class NodeTree : Node
         set
         {
             if (_isEntryCountMoreThanZero == value)
+                {
                 return;
+            }
 
             _isEntryCountMoreThanZero = value;
 
@@ -155,7 +167,9 @@ public abstract class NodeTree : Node
         set
         {
             if (_viewType == value)
+                {
                 return;
+            }
 
             _viewType = value;
 
@@ -222,22 +236,24 @@ public abstract class NodeTree : Node
         set
         {
             if (_isBusy == value)
+                {
                 return;
+            }
 
             _isBusy = value;
 
             if (value)
             {
-                if (this.Parent != null)
+                if (Parent != null)
                 {
-                    incIsBusyCount(this.Parent);
+                    IncIsBusyCount(Parent);
                 }
             }
             else
             {
-                if (this.Parent != null)
+                if (Parent != null)
                 {
-                    decIsBusyCount(this.Parent);
+                    DecIsBusyCount(Parent);
                 }
             }
 
@@ -251,7 +267,7 @@ public abstract class NodeTree : Node
         }
     }
 
-    private void incIsBusyCount(NodeTree parentNode)
+    private void IncIsBusyCount(NodeTree parentNode)
     {
         if (parentNode != null)
         {
@@ -261,24 +277,26 @@ public abstract class NodeTree : Node
 
                 if (parentNode.Parent != null)
                 {
-                    incIsBusyCount(parentNode.Parent);
+                    IncIsBusyCount(parentNode.Parent);
                 }
             }
         }
     }
 
-    private void decIsBusyCount(NodeTree parentNode)
+    private void DecIsBusyCount(NodeTree parentNode)
     {
         if (parentNode != null)
         {
             if ((parentNode is NodeFolder) || (parentNode is NodeRoot) || (parentNode is FeedTreeBuilder))
             {
                 if (parentNode.IsBusyChildrenCount > 0)
+                    {
                     parentNode.IsBusyChildrenCount -= 1;
+                }
 
                 if (parentNode.Parent != null)
                 {
-                    decIsBusyCount(parentNode.Parent);
+                    DecIsBusyCount(parentNode.Parent);
                 }
             }
         }
@@ -292,7 +310,9 @@ public abstract class NodeTree : Node
         {
 
             if (_isBusyChildrenCount == value)
+                {
                 return;
+            }
 
             _isBusyChildrenCount = value;
             NotifyPropertyChanged(nameof(IsBusyChildrenCount));
@@ -315,7 +335,9 @@ public abstract class NodeTree : Node
         set
         {
             if (_isDisplayUnarchivedOnly == value)
+                {
                 return;
+            }
 
             _isDisplayUnarchivedOnly = value;
 
@@ -326,11 +348,13 @@ public abstract class NodeTree : Node
     private NodeTree? _parent;
     public NodeTree? Parent
     {
-        get => this._parent;
+        get => _parent;
         set
         {
             if (_parent == value)
+                {
                 return;
+            }
 
             _parent = value;
 
@@ -360,8 +384,10 @@ public abstract class NodeTree : Node
 
     public bool ContainsChild(NodeTree nt)
     {
-        if (ContainsChildLoop(this.Children, nt))
+        if (ContainsChildLoop(Children, nt))
+            {
             return true;
+        }
         else
         {
             return false;
@@ -375,12 +401,16 @@ public abstract class NodeTree : Node
         foreach (var c in childList)
         {
             if (c == ntc)
+                {
                 return true;
+            }
 
             if (c.Children.Count > 0)
             {
                 if (ContainsChildLoop(c.Children, ntc))
+                    {
                     return true;
+                }
             }
         }
 
@@ -405,9 +435,13 @@ public class ExplorerItemTemplateSelector : DataTemplateSelector
     {
         //return base.SelectTemplateCore(item, null);
 
-        if (item is null) return base.SelectTemplateCore(item);
+        if (item is null) {
+            return base.SelectTemplateCore(item);
+        }
 
-        if (item is not NodeTree) return base.SelectTemplateCore(item);
+        if (item is not NodeTree) {
+            return base.SelectTemplateCore(item);
+        }
 
         //var explorerItem = (NodeTree)item;
         /*
@@ -457,7 +491,9 @@ public class NodeFolder : NodeTree
         set
         {
             if (_isPendingReload == value)
+                {
                 return;
+            }
 
             _isPendingReload = value;
             NotifyPropertyChanged(nameof(IsPendingReload));
@@ -602,7 +638,9 @@ public class NodeFeed : NodeService
         set
         {
             if (_title == value)
+                {
                 return;
+            }
 
             _title = value;
             NotifyPropertyChanged(nameof(Title));
@@ -618,7 +656,9 @@ public class NodeFeed : NodeService
         set
         {
             if (_description == value)
+                {
                 return;
+            }
 
             _description = value;
             NotifyPropertyChanged(nameof(Description));
@@ -634,7 +674,9 @@ public class NodeFeed : NodeService
         set
         {
             if (_copyright == value)
+                {
                 return;
+            }
 
             _copyright = value;
             NotifyPropertyChanged(nameof(Copyright));
@@ -649,7 +691,9 @@ public class NodeFeed : NodeService
         set
         {
             if (_htmlUri == value)
+                {
                 return;
+            }
 
             _htmlUri = value;
             NotifyPropertyChanged(nameof(HtmlUri));
@@ -683,7 +727,9 @@ public class NodeFeed : NodeService
         set
         {
             if (_updated == value)
+                {
                 return;
+            }
 
             _updated = value;
             NotifyPropertyChanged(nameof(Updated));
@@ -722,7 +768,9 @@ public class NodeFeed : NodeService
         set
         {
             if (_status == value)
+                {
                 return;
+            }
 
             _status = value;
 
@@ -795,19 +843,25 @@ public abstract class NodeEntryCollection : NodeTree
     {
         get
         {
-            if (this.Parent == null)
+            if (Parent == null)
+                {
                 return null;
+            }
 
-            if (this.Parent is NodeService nds)
+            if (Parent is NodeService nds)
             {
                 return nds.Client;
             }
 
-            if (this.Parent.Parent == null)
+            if (Parent.Parent == null)
+                {
                 return null;
+            }
 
-            if (!(this.Parent.Parent is NodeService ndsp))
+            if (Parent.Parent is not NodeService ndsp)
+                {
                 return null;
+            }
 
             return ndsp.Client;
         }

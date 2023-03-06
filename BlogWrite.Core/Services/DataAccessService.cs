@@ -16,6 +16,8 @@ public class DataAccessService : IDataAccessService
 
         connectionStringBuilder.DataSource = dataBaseFilePath;
         connectionStringBuilder.ForeignKeys = true;
+        //connectionStringBuilder.Version = 3;
+        //connectionStringBuilder.JournalMode = SQLiteJournalModeEnum.Wal;
 
         using (var connection = new SQLiteConnection(connectionStringBuilder.ConnectionString))
         {
@@ -301,11 +303,28 @@ public class DataAccessService : IDataAccessService
             using var cmd = connection.CreateCommand();
             cmd.CommandText = String.Format("DELETE FROM feeds WHERE feed_id = '{0}';", feedId);
 
-            //cmd.Transaction = connection.BeginTransaction();
+            cmd.Transaction = connection.BeginTransaction();
+            try
+            {
+                res.AffectedCount = cmd.ExecuteNonQuery();
 
-            res.AffectedCount = cmd.ExecuteNonQuery();
+                cmd.Transaction.Commit();
+            }
+            catch (Exception e)
+            {
+                cmd.Transaction.Rollback();
 
-            //cmd.Transaction.Commit();
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+                res.Error.ErrText = e.Message;
+                res.Error.ErrDescription = "Exception";
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "cmd.ExecuteNonQuery(),Transaction.Commit()";
+                res.Error.ErrPlaceParent = "DataAccess::DeleteFeed";
+
+                return res;
+            }
         }
         catch (System.Reflection.TargetInvocationException ex)
         {
@@ -1357,7 +1376,7 @@ public class DataAccessService : IDataAccessService
             connection.Open();
 
             using var cmd = connection.CreateCommand();
-            //cmd.Transaction = connection.BeginTransaction();
+            cmd.Transaction = connection.BeginTransaction();
 
             try
             {
@@ -1367,11 +1386,11 @@ public class DataAccessService : IDataAccessService
 
                 res.AffectedCount = cmd.ExecuteNonQuery();
 
-                //cmd.Transaction.Commit();
+                cmd.Transaction.Commit();
             }
             catch (Exception e)
             {
-                //cmd.Transaction.Rollback();
+                cmd.Transaction.Rollback();
 
                 res.IsError = true;
                 res.Error.ErrType = ErrorObject.ErrTypes.DB;
@@ -1447,19 +1466,18 @@ public class DataAccessService : IDataAccessService
             connection.Open();
 
             using var cmd = connection.CreateCommand();
-            //cmd.Transaction = connection.BeginTransaction();
-
+            cmd.Transaction = connection.BeginTransaction();
             try
             {
                 cmd.CommandText = sql;
 
                 res.AffectedCount = cmd.ExecuteNonQuery();
 
-                //cmd.Transaction.Commit();
+                cmd.Transaction.Commit();
             }
             catch (Exception e)
             {
-                //cmd.Transaction.Rollback();
+                cmd.Transaction.Rollback();
 
                 res.IsError = true;
                 res.Error.ErrType = ErrorObject.ErrTypes.DB;
@@ -1551,7 +1569,7 @@ public class DataAccessService : IDataAccessService
             //sqlDelEntries = String.Format("DELETE FROM feeds WHERE feed_id = '{0}';", feedIds[0]);
         }
 
-        Debug.WriteLine(sqlDelEntries);
+        //Debug.WriteLine(sqlDelEntries);
 
         try
         {
@@ -1559,13 +1577,30 @@ public class DataAccessService : IDataAccessService
             connection.Open();
 
             using var cmd = connection.CreateCommand();
-            //cmd.Transaction = connection.BeginTransaction();
+            cmd.Transaction = connection.BeginTransaction();
+            try
+            {
+                cmd.CommandText = sqlDelEntries;
 
-            cmd.CommandText = sqlDelEntries;
+                res.AffectedCount = cmd.ExecuteNonQuery();
 
-            res.AffectedCount = cmd.ExecuteNonQuery();
+                cmd.Transaction.Commit();
+            }
+            catch (Exception ex)
+            {
+                cmd.Transaction.Rollback();
 
-            //cmd.Transaction.Commit();
+                res.IsError = true;
+                res.Error.ErrType = ErrorObject.ErrTypes.DB;
+                res.Error.ErrCode = "";
+                res.Error.ErrText = ex.Message;
+                res.Error.ErrDescription = "Exception";
+                res.Error.ErrDatetime = DateTime.Now;
+                res.Error.ErrPlace = "connection.Open(),Transaction.Commit";
+                res.Error.ErrPlaceParent = "DataAccess::DeleteEntriesByFeedIds";
+
+                return res;
+            }
         }
         catch (System.Reflection.TargetInvocationException ex)
         {

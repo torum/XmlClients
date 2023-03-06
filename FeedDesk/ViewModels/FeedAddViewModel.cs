@@ -14,7 +14,7 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
 {
     private readonly INavigationService _navigationService;
 
-    private readonly IServiceDiscoveryService _serviceDiscovery;
+    private readonly IAutoDiscoveryService _serviceDiscovery;
 
     #region == Properties ==
 
@@ -224,12 +224,12 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    public FeedAddViewModel(INavigationService navigationService, IServiceDiscoveryService serviceDiscovery)
+    public FeedAddViewModel(INavigationService navigationService, IAutoDiscoveryService serviceDiscovery)
     {
         _navigationService = navigationService;
 
         _serviceDiscovery = serviceDiscovery;//new ServiceDiscovery();
-        _serviceDiscovery.StatusUpdate += new ServiceDiscoveryStatusUpdateEventHandler(OnStatusUpdate);//new ServiceDiscovery.ServiceDiscoveryStatusUpdate(OnStatusUpdate);
+        _serviceDiscovery.StatusUpdate += new AutoDiscoveryStatusUpdateEventHandler(OnStatusUpdate);//new ServiceDiscovery.ServiceDiscoveryStatusUpdate(OnStatusUpdate);
 
         GoBackCommand = new RelayCommand(OnGoBack);
         GoCommand = new RelayCommand(OnGo, CanGo);
@@ -313,7 +313,7 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    private void OnStatusUpdate(ServiceDiscoveryService sender, string data)
+    private void OnStatusUpdate(AutoDiscoveryService sender, string data)
     {
         var uithread = App.CurrentDispatcherQueue?.HasThreadAccess;
 
@@ -453,7 +453,9 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
                                         ServiceDocumentLinkItem li = new(s);
 
                                         if (li.IsSupported)
+                                        {
                                             LinkItems.Add(li);
+                                        }
                                     }
                                 }
                             }
@@ -486,7 +488,7 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
             }
             else if (sr is ServiceResultFeed srf)
             {
-                FeedLink? feed = srf.FeedlinkInfo;
+                var feed = srf.FeedlinkInfo;
 
                 if (feed != null)
                 {
@@ -504,9 +506,9 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
             }
             else if (sr is ServiceResultRsd srr)
             {
-                if (srr.Rsd is RsdLink)
+                if (srr.Rsd is not null)
                 {
-                    RsdLink hoge = srr.Rsd;
+                    var hoge = srr.Rsd;
 
                     if (hoge.Apis != null)
                     {
@@ -575,10 +577,14 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
     private bool CanGo()
     {
         if (string.IsNullOrEmpty(WebsiteOrEndpointUrl))
+        {
             return false;
+        }
 
         if (!WebsiteOrEndpointUrl.StartsWith("http"))
+        {
             return false;
+        }
 
         return true;
     }
@@ -636,21 +642,29 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
     private void OnAddSelectedAndClose()
     {
         if (SelectedLinkItem == null)
+        {
             return;
+        }
 
         if (IsXmlRpc)
         {
             if (string.IsNullOrEmpty(UserIdXmlRpc))
+            {
                 return;
+            }
 
             if (string.IsNullOrEmpty(PasswordXmlRpc))
+            {
                 return;
+            }
         }
 
         if (SelectedLinkItem is FeedLinkItem fli)
         {
             if (!string.IsNullOrEmpty(SelectedItemTitleLabel))
+            {
                 fli.FeedLinkData.Title = SelectedItemTitleLabel;
+            }
 
             /* Not good when navigate go back.
             RegisterFeedEventArgs arg = new();
@@ -669,10 +683,12 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
         {
             if (sdli.SearviceDocumentLinkData is RsdLink rl)
             {
-                RsdLink sd = rl;
+                var sd = rl;
 
                 if (!string.IsNullOrEmpty(SelectedItemTitleLabel))
+                {
                     sd.Title = SelectedItemTitleLabel;
+                }
                 /*
                 RegisterXmlRpcEventArgs arg = new();
                 arg.RsdLink = sd;
@@ -687,11 +703,13 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
             }
             else if (sdli.SearviceDocumentLinkData is AppLink al)
             {
-                AppLink sd = al;
+                var sd = al;
                 if (sd.NodeService != null)
                 {
                     if (!string.IsNullOrEmpty(SelectedItemTitleLabel))
+                    {
                         sd.NodeService.Name = SelectedItemTitleLabel;
+                    }
                 }
                 /*
                 RegisterAtomPubEventArgs arg = new();
@@ -706,10 +724,14 @@ public class FeedAddViewModel : ObservableRecipient, INavigationAware
     private bool CanAddSelectedAndClose()
     {
         if (SelectedLinkItem == null)
+        {
             return false;
+        }
 
-        if (string.IsNullOrEmpty(SelectedItemTitleLabel)) 
+        if (string.IsNullOrEmpty(SelectedItemTitleLabel))
+        {
             return false;
+        }
 
         //
         if (SelectedLinkItem is not FeedLinkItem)
