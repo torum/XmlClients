@@ -51,11 +51,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
             OnPropertyChanged(nameof(SelectedTreeViewItem));
             /*
-            if (SetProperty(ref _selectedTreeViewItem, value))
-            {   
-                // do this later
-                EntryArchiveAllCommand.NotifyCanExecuteChanged();
-            }
+
             */
 
             // Clear Listview selected Item.
@@ -112,6 +108,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
                 Entries = new ObservableCollection<EntryItem>();
 
+                LoadEntriesAwaiter(folder);
+                /*
                 if (!folder.IsPendingReload && !folder.IsBusy)
                 {
                     LoadEntriesAwaiter(folder);
@@ -124,10 +122,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                         LoadEntriesAwaiter(folder);
                     }
                 }
-
-                // notify at last.
-                EntryArchiveAllCommand.NotifyCanExecuteChanged();
+                */
+                folder.IsPendingReload = false;
             }
+
+            // notify at last.
+            EntryArchiveAllCommand.NotifyCanExecuteChanged();
         }
     }
     /*
@@ -179,6 +179,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             }
 
             _selectedListViewItem = value;
+
+            OnPropertyChanged(nameof(SelectedListViewItem));
 
             if (_selectedListViewItem == null)
             {
@@ -266,15 +268,11 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 IsCommentPageLinkExists = false;
             }
 
-            OnPropertyChanged(nameof(SelectedListViewItem));
-
-
             if ((_selectedListViewItem.Status != FeedEntryItem.ReadStatus.rsNewVisited) && (_selectedListViewItem.Status != FeedEntryItem.ReadStatus.rsNormalVisited))
             {
                 //Task.Run(() => UpdateEntryStatusAsReadAsync(SelectedTreeViewItem!, _selectedListViewItem));
                 UpdateEntryStatusAsReadAwaiter(SelectedTreeViewItem!, _selectedListViewItem);
             }
-
         }
     }
     
@@ -825,9 +823,6 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
         App.CurrentDispatcherQueue?.TryEnqueue(() =>
         {
-            if (nt == _selectedTreeViewItem)
-            {
-            }
             EntryArchiveAllCommand.NotifyCanExecuteChanged();
         });
     }
@@ -1183,29 +1178,25 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     // update all feeds.
     private async Task RefreshAllFeedsAsync()
     {
-        App.CurrentDispatcherQueue?.TryEnqueue(() =>
-        {
-            EntryArchiveAllCommand.NotifyCanExecuteChanged();
-        });
-
         var tasks = new List<Task>();
         
         await RefreshAllFeedsRecursiveLoopAsync(tasks, _services).ConfigureAwait(false);
 
-        await Task.WhenAll(tasks).ConfigureAwait(true);
+        await Task.WhenAll(tasks).ConfigureAwait(false);
 
-        //
+        if (_selectedTreeViewItem is NodeFolder folder)
+        {
+            if (folder.IsPendingReload)
+            {
+                await LoadEntriesAsync(folder).ConfigureAwait(false); ;
+                //folder.IsPendingReload = false;
+            }
+        }
+
         await Task.Delay(100);
 
         App.CurrentDispatcherQueue?.TryEnqueue(() =>
         {
-            if (_selectedTreeViewItem is NodeFolder folder)
-            {
-                if (folder.IsPendingReload)
-                {
-                    LoadEntriesAwaiter(folder);
-                }
-            }
             EntryArchiveAllCommand.NotifyCanExecuteChanged();
         });
     }
@@ -1228,7 +1219,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                             var now = DateTime.Now;
                             var last = feed.LastFetched;
 
-                            if ((last > now.AddMinutes(-3)) && (last <= now))
+                            if ((last > now.AddMinutes(-1)) && (last <= now))
                             {
                                 //Debug.WriteLine("Skippig " + feed.Name + ": " + last.ToString());
                             }
@@ -1259,7 +1250,14 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                                     await CheckParentSelectedAndNotify(feed).ConfigureAwait(false);
                                 }
 
+                                await Task.Delay(100);
+
                                 await CheckParentSelectedAndLoadEntriesIfPendingAsync(feed).ConfigureAwait(false);
+
+                                App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                                {
+                                    EntryArchiveAllCommand.NotifyCanExecuteChanged();
+                                });
                             }
                         }));
                     }
@@ -1298,6 +1296,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                         App.CurrentDispatcherQueue?.TryEnqueue(() =>
                         {
                             parentFolder.IsPendingReload = true;
+                            //EntryArchiveAllCommand.NotifyCanExecuteChanged();
                         });
                     }
                 }
@@ -1319,27 +1318,30 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 {
                     if ((parentFolder.IsPendingReload) && (parentFolder.IsBusyChildrenCount <= 0))
                     {
-                        App.CurrentDispatcherQueue?.TryEnqueue(() =>
-                        {
-                            parentFolder.IsPendingReload = false;
-                        });
-
                         await LoadEntriesAsync(parentFolder).ConfigureAwait(false);
 
                         App.CurrentDispatcherQueue?.TryEnqueue(() =>
                         {
-                            EntryArchiveAllCommand.NotifyCanExecuteChanged();
+                            parentFolder.IsPendingReload = false;
+                            //EntryArchiveAllCommand.NotifyCanExecuteChanged();
                         });
                     }
                 }
                 else
                 {
+                    /*
                     App.CurrentDispatcherQueue?.TryEnqueue(() =>
                     {
-                        parentFolder.IsPendingReload = false;
+                        //parentFolder.IsPendingReload = false;
+                        EntryArchiveAllCommand.NotifyCanExecuteChanged();
                     });
+                    */
                     await CheckParentSelectedAndLoadEntriesIfPendingAsync(parentFolder).ConfigureAwait(false);
                 }
+                App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                {
+                    EntryArchiveAllCommand.NotifyCanExecuteChanged();
+                });
             }
         }
     }
@@ -1354,16 +1356,16 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 {
                     if (parentFolder.IsBusyChildrenCount <= 0)
                     {
-                        App.CurrentDispatcherQueue?.TryEnqueue(() =>
-                        {
-                            EntryArchiveAllCommand.NotifyCanExecuteChanged();
-                        });
                     }
                 }
                 else
                 {
                     await CheckParentSelectedAndNotify(parentFolder).ConfigureAwait(false);
                 }
+                App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                {
+                    EntryArchiveAllCommand.NotifyCanExecuteChanged();
+                });
             }
         }
     }
@@ -1602,11 +1604,13 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                     }
 
                     feed.IsBusy = false;
-
+                    /* not good
                     if (feed == _selectedTreeViewItem)
                     {
                         EntryArchiveAllCommand.NotifyCanExecuteChanged();
                     }
+                    */
+                    EntryArchiveAllCommand.NotifyCanExecuteChanged();
                 });
                 //
                 await Task.Delay(100);
@@ -2635,18 +2639,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         
         if (SelectedTreeViewItem.IsBusy)
         {
-            return false;
-        }
-            
-        if (SelectedTreeViewItem is NodeFolder)
-        {
-            if (SelectedTreeViewItem.IsBusyChildrenCount > 0)
-            {
-                return false;
-            }
+            //return false;
         }
 
-        if (_entries.Count <= 0)
+        if (Entries.Count <= 0)
         {
             return false;
         }
