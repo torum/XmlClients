@@ -49,10 +49,11 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
             _selectedTreeViewItem = value;
 
-            // do this later
+            OnPropertyChanged(nameof(SelectedTreeViewItem));
             /*
             if (SetProperty(ref _selectedTreeViewItem, value))
-            {
+            {   
+                // do this later
                 EntryArchiveAllCommand.NotifyCanExecuteChanged();
             }
             */
@@ -68,6 +69,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             {
                 IsToggleInboxAppButtonEnabled = false;
                 Entries.Clear();
+                EntryArchiveAllCommand.NotifyCanExecuteChanged();
                 return;
             }
 
@@ -110,26 +112,24 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
                 Entries = new ObservableCollection<EntryItem>();
 
-                if (!folder.IsPendingReload)
+                if (!folder.IsPendingReload && !folder.IsBusy)
                 {
-                    //Task nowait = Task.Run(() => LoadEntriesAsync(_selectedTreeViewItem));
                     LoadEntriesAwaiter(folder);
                 }
+                else
+                {
+                    if (Root.IsBusyChildrenCount <= 0)
+                    {
+                        folder.IsPendingReload = false;
+                        LoadEntriesAwaiter(folder);
+                    }
+                }
+
+                // notify at last.
+                EntryArchiveAllCommand.NotifyCanExecuteChanged();
             }
-
-            //Entries.Clear();
-            //Entries = new ObservableCollection<EntryItem>();
-
-            //Task nowait = Task.Run(() => LoadEntriesAsync(_selectedTreeViewItem));
-            //Task nowait = Task.Run(() => GetEntriesAsync(_selectedTreeViewItem));
-
-            // notify at last.
-            OnPropertyChanged(nameof(SelectedTreeViewItem));
-
-            EntryArchiveAllCommand.NotifyCanExecuteChanged();
         }
     }
-
     /*
     private TreeViewNode? _selectedTreeViewNode;
     public TreeViewNode? SelectedTreeViewNode
@@ -813,7 +813,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     {
         try
         {
-            _= await LoadEntriesAsync(nt).ConfigureAwait(true);
+            _= await LoadEntriesAsync(nt).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -849,7 +849,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 feed.IsBusy = true;
                 if (feed == _selectedTreeViewItem)
                 {
-                    EntryArchiveAllCommand.NotifyCanExecuteChanged();
+                    //EntryArchiveAllCommand.NotifyCanExecuteChanged();
                 }
             });
             await Task.Delay(100);
@@ -928,7 +928,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 folder.IsBusy = true;
                 if (folder == _selectedTreeViewItem)
                 {
-                    EntryArchiveAllCommand.NotifyCanExecuteChanged();
+                    //EntryArchiveAllCommand.NotifyCanExecuteChanged();
                 }
                 folder.IsPendingReload = false;
             });
@@ -1199,6 +1199,13 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
         App.CurrentDispatcherQueue?.TryEnqueue(() =>
         {
+            if (_selectedTreeViewItem is NodeFolder folder)
+            {
+                if (folder.IsPendingReload)
+                {
+                    LoadEntriesAwaiter(folder);
+                }
+            }
             EntryArchiveAllCommand.NotifyCanExecuteChanged();
         });
     }
@@ -1249,6 +1256,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                                 else
                                 {
                                     //
+                                    await CheckParentSelectedAndNotify(feed).ConfigureAwait(false);
                                 }
 
                                 await CheckParentSelectedAndLoadEntriesIfPendingAsync(feed).ConfigureAwait(false);
@@ -1278,6 +1286,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                     if (parentFolder.IsBusyChildrenCount <= 0)
                     {
                         await LoadEntriesAsync(parentFolder).ConfigureAwait(false);
+
+                        App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                        {
+                            parentFolder.IsPendingReload = false;
+                            EntryArchiveAllCommand.NotifyCanExecuteChanged();
+                        });
                     }
                     else
                     {
@@ -1320,6 +1334,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 }
                 else
                 {
+                    App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                    {
+                        parentFolder.IsPendingReload = false;
+                    });
                     await CheckParentSelectedAndLoadEntriesIfPendingAsync(parentFolder).ConfigureAwait(false);
                 }
             }
