@@ -237,8 +237,6 @@ public partial class App : Application
         // TODO: Log and handle exceptions as appropriate.
         // https://docs.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.application.unhandledexception.
 
-        Debug.Write("App_UnhandledException: " + e.Exception.ToString());
-
         // This does not fire...because of winui3 bugs. should be fixed in v1.2.2 WinAppSDK
         // see https://github.com/microsoft/microsoft-ui-xaml/issues/5221
 
@@ -295,7 +293,7 @@ public partial class App : Application
         Errortxt.AppendLine("");
     }
 
-    private void SaveErrorLog()
+    public void SaveErrorLog()
     {
         if (!IsSaveErrorLog)
         {
@@ -307,22 +305,17 @@ public partial class App : Application
             return;
         }
 
-        Errortxt.AppendLine("");
-        var dt = DateTime.Now;
-        Errortxt.AppendLine($"Saved at {dt.ToString("yyyy/MM/dd HH:mm:ss")}");
-
-        var s = Errortxt.ToString();
-        if (!string.IsNullOrEmpty(s))
-        {
-            File.WriteAllText(LogFilePath, s);
-        }
-    }
-
-    public void SaveErrorLogIfAny()
-    {
         if (Errortxt.Length > 0)
         {
-            SaveErrorLog();
+            Errortxt.AppendLine("");
+            var dt = DateTime.Now;
+            Errortxt.AppendLine($"Saved at {dt.ToString("yyyy/MM/dd HH:mm:ss")}");
+
+            var s = Errortxt.ToString();
+            if (!string.IsNullOrEmpty(s))
+            {
+                File.WriteAllText(LogFilePath, s);
+            }
         }
     }
 

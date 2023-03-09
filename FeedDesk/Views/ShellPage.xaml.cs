@@ -99,7 +99,7 @@ public sealed partial class ShellPage : Page
         vm.CleanUp();
 
         // Save err log.
-        (App.Current as App)?.SaveErrorLogIfAny();
+        (App.Current as App)?.SaveErrorLog();
     }
 
     private static KeyboardAccelerator BuildKeyboardAccelerator(VirtualKey key, VirtualKeyModifiers? modifiers = null)

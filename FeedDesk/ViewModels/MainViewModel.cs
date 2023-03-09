@@ -807,8 +807,9 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     #region == Entries Refreshing ==
 
-    private async void LoadEntriesAwaiter(NodeTree nt)
+    private void LoadEntriesAwaiter(NodeTree nt)
     {
+        /*
         try
         {
             _= await LoadEntriesAsync(nt).ConfigureAwait(false);
@@ -816,14 +817,22 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         catch (Exception ex)
         {
             Debug.WriteLine($"LoadEntriesAwaiter: {ex.Message}");
+            (App.Current as App)?.AppendErrorLog("LoadEntriesAwaiter", ex.Message);
         }
+        */
 
-        //
-        await Task.Delay(100);
-
-        App.CurrentDispatcherQueue?.TryEnqueue(() =>
+        //Task.Run(() => LoadEntriesAsync(nd).ConfigureAwait(false));
+        Task.Run(async () =>
         {
-            EntryArchiveAllCommand.NotifyCanExecuteChanged();
+            try
+            {
+                await LoadEntriesAsync(nt).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"LoadEntriesAwaiter: {ex.Message}");
+                (App.Current as App)?.AppendErrorLog("LoadEntriesAwaiter", ex.Message);
+            }
         });
     }
 
@@ -1871,9 +1880,22 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     private void UpdateEntryStatusAsReadAwaiter(NodeTree nd, FeedEntryItem entry)
     {
-        Task.Run(() => UpdateEntryStatusAsReadAsync(nd, entry).ConfigureAwait(false));
         // This may freeze UI in certain situations.
         //await UpdateEntryStatusAsReadAsync(nd,entry).ConfigureAwait(false);
+
+        //Task.Run(() => UpdateEntryStatusAsReadAsync(nd, entry).ConfigureAwait(false));
+        Task.Run(async () =>
+        {
+            try
+            {
+                await UpdateEntryStatusAsReadAsync(nd, entry).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"UpdateEntryStatusAsReadAwaiter: {ex.Message}");
+                (App.Current as App)?.AppendErrorLog("UpdateEntryStatusAsReadAwaiter", ex.Message);
+            }
+        });
     }
 
     private async Task UpdateEntryStatusAsReadAsync(NodeTree nd, FeedEntryItem entry)
@@ -2395,11 +2417,21 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     #region == Feed OPML ex/import commands ==
 
     [RelayCommand(CanExecute = nameof(CanOpmlImport))]
-    public void OpmlImport()
+    public async void OpmlImport()
     {
-        _ = Task.Run(() => OpmlImportAsync().ConfigureAwait(false));
+        //_ = Task.Run(() => OpmlImportAsync().ConfigureAwait(false));
         // This is gonna freeze UI.
         //_ = OpmlImportAsync();
+
+        try
+        {
+            await OpmlImportAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"OpmlImport: {ex.Message}");
+            (App.Current as App)?.AppendErrorLog("OpmlImport", ex.Message);
+        }
     }
 
     public async Task OpmlImportAsync()
@@ -2568,28 +2600,35 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     [RelayCommand(CanExecute = nameof(CanOpmlExport))]
     public async void OpmlExport()
     {
-        //Opml opmlWriter = new();
-
-        var xdoc = _opmlService.WriteOpml(_services);//opmlWriter.WriteOpml(_services);
-
-        if (xdoc is null)
+        try
         {
-            Debug.WriteLine("xdoc is null");
-            return;
+            //Opml opmlWriter = new();
+            var xdoc = _opmlService.WriteOpml(_services);//opmlWriter.WriteOpml(_services);
+
+            if (xdoc is null)
+            {
+                Debug.WriteLine("xdoc is null");
+                return;
+            }
+
+            var hwnd = WindowNative.GetWindowHandle(App.MainWindow);
+            var file = await _fileDialogService.GetSaveOpmlFileDialog(hwnd);
+
+            if (file is null)
+            {
+                // canceled or something.
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(file.Path))
+            {
+                xdoc.Save(file.Path.Trim());
+            }
         }
-
-        var hwnd = WindowNative.GetWindowHandle(App.MainWindow);
-        var file = await _fileDialogService.GetSaveOpmlFileDialog(hwnd);
-
-        if (file is null)
+        catch (Exception ex)
         {
-            // canceled or something.
-            return;
-        }
-
-        if (!string.IsNullOrEmpty(file.Path))
-        {
-            xdoc.Save(file.Path.Trim());
+            Debug.WriteLine($"OpmlExport: {ex.Message}");
+            (App.Current as App)?.AppendErrorLog("OpmlExport", ex.Message);
         }
     }
 
@@ -2615,9 +2654,23 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             return;
         }
 
-        Task.Run(() => ArchiveAllAsync(SelectedTreeViewItem).ConfigureAwait(false));
         // This may freeze UI in certain situations.
         //await ArchiveAllAsync(SelectedTreeViewItem).ConfigureAwait(false);
+
+        //Task.Run(() => ArchiveAllAsync(SelectedTreeViewItem).ConfigureAwait(false));
+        Task.Run(async () => 
+        {
+            try
+            {
+                await ArchiveAllAsync(SelectedTreeViewItem).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"EntryArchiveAll: {ex.Message}");
+                (App.Current as App)?.AppendErrorLog("EntryArchiveAll", ex.Message);
+            }
+        });
+
     }
 
     private bool CanEntryArchiveAll()
