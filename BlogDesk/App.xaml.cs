@@ -1,18 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
+using System.Text;
 using System.Text.Json.Nodes;
 using BlogDesk.Activation;
 using BlogDesk.Contracts.Services;
-using BlogWrite.Core.Contracts.Services;
-using BlogWrite.Core.Services;
-using BlogWrite.Core.Helpers;
-using BlogDesk.Models;
-using BlogDesk.Notifications;
 using BlogDesk.Services;
 using BlogDesk.ViewModels;
 using BlogDesk.Views;
+using BlogWrite.Core.Contracts.Services;
+using BlogWrite.Core.Helpers;
+using BlogWrite.Core.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Xaml;
@@ -35,6 +33,11 @@ public partial class App : Application
 
     //
     private static readonly ResourceLoader _resourceLoader = new();
+
+    // ErrorLog
+    public bool IsSaveErrorLog = true;
+    public string LogFilePath = System.Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + System.IO.Path.DirectorySeparatorChar + "BlogDesk_errors.txt";
+    private readonly StringBuilder Errortxt = new();
 
     //
     public static WindowEx MainWindow { get; } = new MainWindow();
@@ -81,11 +84,11 @@ public partial class App : Application
             //services.AddSingleton<IAppNotificationService, AppNotificationService>();
             //services.AddSingleton<ILocalSettingsService, LocalSettingsService>();
             services.AddSingleton<IThemeSelectorService, ThemeSelectorService>();
-            services.AddTransient<IWebViewService, WebViewService>();
             services.AddSingleton<IActivationService, ActivationService>();
             services.AddSingleton<IPageService, PageService>();
             services.AddSingleton<INavigationService, NavigationService>();
-            //services.AddTransient<INavigationViewService, NavigationViewService>();
+            services.AddSingleton<INavigationViewService, NavigationViewService>();
+            services.AddTransient<IWebViewService, WebViewService>();
 
             // Core Services
             //services.AddSingleton<IFileService, FileService>();
@@ -93,7 +96,7 @@ public partial class App : Application
             //services.AddTransient<IFileDialogService, FileDialogService>();
             //services.AddSingleton<IDataAccessService, DataAccessService>();
             //services.AddSingleton<IFeedClientService, FeedClientService>();
-            services.AddSingleton<IServiceDiscoveryService, ServiceDiscoveryService>();
+            services.AddSingleton<IAutoDiscoveryService, AutoDiscoveryService>();
 
             // Views and ViewModels
             services.AddSingleton<SettingsViewModel>();
@@ -113,22 +116,15 @@ public partial class App : Application
 
 
             // Configuration
-            services.Configure<LocalSettingsOptions>(context.Configuration.GetSection(nameof(LocalSettingsOptions)));
+            //services.Configure<LocalSettingsOptions>(context.Configuration.GetSection(nameof(LocalSettingsOptions)));
         }).
         Build();
 
         //App.GetService<IAppNotificationService>().Initialize();
 
-        UnhandledException += App_UnhandledException;
-
-    }
-
-    private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
-    {
-        // TODO: Log and handle exceptions as appropriate.
-        // https://docs.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.application.unhandledexception.
-
-        Debug.Write("App_UnhandledException: " + e.Exception.ToString());
+        Microsoft.UI.Xaml.Application.Current.UnhandledException += App_UnhandledException;
+        TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+        AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
     }
 
     protected async override void OnLaunched(LaunchActivatedEventArgs args)
@@ -166,7 +162,7 @@ public partial class App : Application
 
         // Nortification example.
         //App.GetService<IAppNotificationService>().Show(string.Format("AppNotificationSamplePayload".GetLocalized(), AppContext.BaseDirectory));
-
+        Debug.WriteLine("asdfasdfasdfasdfsadf");
         await App.GetService<IActivationService>().ActivateAsync(args);
     }
 
@@ -178,6 +174,97 @@ public partial class App : Application
             MainWindow.BringToFront();
         });
     }
+
+    #region == UnhandledException ==
+
+    private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+    {
+        // TODO: Log and handle exceptions as appropriate.
+        // https://docs.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.application.unhandledexception.
+
+        // This does not fire...because of winui3 bugs. should be fixed in v1.2.2 WinAppSDK
+        // see https://github.com/microsoft/microsoft-ui-xaml/issues/5221
+
+        Debug.WriteLine("App_UnhandledException", e.Message + $"StackTrace: {e.Exception.StackTrace}, Source: {e.Exception.Source}");
+        AppendErrorLog("App_UnhandledException", e.Message + $"StackTrace: {e.Exception.StackTrace}, Source: {e.Exception.Source}");
+
+        try
+        {
+            SaveErrorLog();
+        }
+        catch (Exception) { }
+    }
+
+    private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        if (e.Exception.InnerException is not Exception exception)
+        {
+            return;
+        }
+
+        Debug.WriteLine("TaskScheduler_UnobservedTaskException: " + exception.Message);
+        AppendErrorLog("TaskScheduler_UnobservedTaskException", exception.Message);
+        SaveErrorLog();
+
+        e.SetObserved();
+    }
+
+    private void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
+    {
+        if (e.ExceptionObject is not Exception exception)
+        {
+            return;
+        }
+
+        if (exception is TaskCanceledException)
+        {
+            // can ignore.
+            Debug.WriteLine("CurrentDomain_UnhandledException (TaskCanceledException): " + exception.Message);
+            AppendErrorLog("CurrentDomain_UnhandledException (TaskCanceledException)", exception.Message);
+        }
+        else
+        {
+            Debug.WriteLine("CurrentDomain_UnhandledException: " + exception.Message);
+            AppendErrorLog("CurrentDomain_UnhandledException", exception.Message);
+            SaveErrorLog();
+        }
+    }
+
+    public void AppendErrorLog(string kindTxt, string errorTxt)
+    {
+        Errortxt.AppendLine(kindTxt + ": " + errorTxt);
+        var dt = DateTime.Now;
+        Errortxt.AppendLine($"Occured at {dt.ToString("yyyy/MM/dd HH:mm:ss")}");
+        Errortxt.AppendLine("");
+    }
+
+    public void SaveErrorLog()
+    {
+        if (!IsSaveErrorLog)
+        {
+            return;
+        }
+
+        if (string.IsNullOrEmpty(LogFilePath))
+        {
+            return;
+        }
+
+        if (Errortxt.Length > 0)
+        {
+            Errortxt.AppendLine("");
+            var dt = DateTime.Now;
+            Errortxt.AppendLine($"Saved at {dt.ToString("yyyy/MM/dd HH:mm:ss")}");
+
+            var s = Errortxt.ToString();
+            if (!string.IsNullOrEmpty(s))
+            {
+                File.WriteAllText(LogFilePath, s);
+            }
+        }
+    }
+
+    #endregion
 
     #region == WinUIEx ==
 
@@ -193,11 +280,15 @@ public partial class App : Application
             {
                 if (File.Exists(filename))
                 {
-                    var jo = System.Text.Json.Nodes.JsonObject.Parse(File.ReadAllText(filename)) as JsonObject;
-                    foreach (var node in jo)
+                    if (JsonNode.Parse(File.ReadAllText(filename)) is JsonObject jo)
                     {
-                        if (node.Value is JsonValue jvalue && jvalue.TryGetValue<string>(out var value))
-                            _data[node.Key] = value;
+                        foreach (var node in jo)
+                        {
+                            if (node.Value is JsonValue jvalue && jvalue.TryGetValue<string>(out var value))
+                            {
+                                _data[node.Key] = value;
+                            }
+                        }
                     }
                 }
             }

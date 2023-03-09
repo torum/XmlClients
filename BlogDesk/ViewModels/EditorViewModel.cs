@@ -493,20 +493,20 @@ public partial class EditorViewModel : ObservableRecipient
             }
         });
         
-
+        
         // System theme changed.
         _uiSettings.ColorValuesChanged += SystemUISettingColorValuesChanged;
-
+        
 
         WebViewServiceRichEdit.NavigationCompleted += OnRichEditWebView2NavigationCompleted;
         WebViewServiceRichEdit.CoreWebView2Initialized += OnRichEditCoreWebView2Initialized;
-
+        /*
         WebViewServiceSourceEdit.NavigationCompleted += OnSourceEditWebView2NavigationCompleted;
         WebViewServiceSourceEdit.CoreWebView2Initialized += OnSourceEditCoreWebView2Initialized;
 
         WebViewServicePreviewBrowser.NavigationCompleted += OnPreviewBrowserWebView2NavigationCompleted;
         WebViewServicePreviewBrowser.CoreWebView2Initialized += OnPreviewBrowserCoreWebView2Initialized;
-
+        */
     }
 
     private void OnMenuFileExit()
@@ -671,33 +671,43 @@ public partial class EditorViewModel : ObservableRecipient
         if (WebViewServiceRichEdit.CoreWebView2 is null)
             return;
 
-        //WebViewService.CoreWebView2?.AddHostObjectToScript("model", _jsModel);
-
-        WebViewServiceRichEdit.CoreWebView2.SetVirtualHostNameToFolderMapping(hostName: "blogdesk", folderPath: "", accessKind: CoreWebView2HostResourceAccessKind.Allow);
-
-        WebViewServiceRichEdit.CoreWebView2.DOMContentLoaded += OnRichEditCoreWebView2DOMContentLoaded;
-        WebViewServiceRichEdit.CoreWebView2.WebMessageReceived += OnRichEditWebMessageReceived;
-        // Not working because not supported.
-        WebViewServiceRichEdit.CoreWebView2.PermissionRequested += OnRichEditCoreWebView2OnPermissionRequested;
-        /*
-        WebViewService.CoreWebView2.PermissionRequested += (_, args) =>
+        try
         {
-            var uri = new Uri(args.Uri);
-            Debug.WriteLine(uri.AbsoluteUri);
+            //WebViewService.CoreWebView2?.AddHostObjectToScript("model", _jsModel);
 
-            if (args.PermissionKind == CoreWebView2PermissionKind.ClipboardRead)
-            {
-                args.State = CoreWebView2PermissionState.Allow;
-            }
-            else
-            {
-                args.State = CoreWebView2PermissionState.Default;
-            }
-        };
-        */
+            WebViewServiceRichEdit.CoreWebView2.SetVirtualHostNameToFolderMapping(hostName: "blogdesk", folderPath: "", accessKind: CoreWebView2HostResourceAccessKind.Allow);
 
-        WebViewServiceRichEdit.NavigateToString(_richEditHtml);
-        //WebViewService.CoreWebView2.Navigate("https://blogdesk/HTML/main.html");
+            WebViewServiceRichEdit.CoreWebView2.DOMContentLoaded += OnRichEditCoreWebView2DOMContentLoaded;
+            WebViewServiceRichEdit.CoreWebView2.WebMessageReceived += OnRichEditWebMessageReceived;
+            // Not working because not supported.
+            WebViewServiceRichEdit.CoreWebView2.PermissionRequested += OnRichEditCoreWebView2OnPermissionRequested;
+            /*
+            WebViewService.CoreWebView2.PermissionRequested += (_, args) =>
+            {
+                var uri = new Uri(args.Uri);
+                Debug.WriteLine(uri.AbsoluteUri);
+
+                if (args.PermissionKind == CoreWebView2PermissionKind.ClipboardRead)
+                {
+                    args.State = CoreWebView2PermissionState.Allow;
+                }
+                else
+                {
+                    args.State = CoreWebView2PermissionState.Default;
+                }
+            };
+            */
+
+            WebViewServiceRichEdit.NavigateToString(_richEditHtml);
+            //WebViewService.CoreWebView2.Navigate("https://blogdesk/HTML/main.html");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+
+            throw;
+        }
+
     }
 
     private void OnRichEditCoreWebView2OnPermissionRequested(object? sender, CoreWebView2PermissionRequestedEventArgs e)
@@ -766,10 +776,11 @@ public partial class EditorViewModel : ObservableRecipient
 
     private void WriteToSource(string source)
     {
-
+        Debug.WriteLine(source);
         // TODO:
+        //Source = string.IsNullOrEmpty(source) ? "" : Windows.Data.Html.HtmlUtilities.ConvertToText(source);
 
-        Source = Windows.Data.Html.HtmlUtilities.ConvertToText(source);
+        //Source = Windows.Data.Html.HtmlUtilities.ConvertToText(source);
 
         /*
         var parser = new HtmlParser();

@@ -20,10 +20,10 @@
                 
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
 
-                <ResourceDictionary Source="/Styles/Colors.xaml" />
-                <ResourceDictionary Source="/Styles/FontSizes.xaml" />
-                <ResourceDictionary Source="/Styles/Thickness.xaml" />
-                <ResourceDictionary Source="/Styles/TextBlock.xaml" />
+                <ResourceDictionary Source="ms-appx:///Styles/Colors.xaml"/>
+                <ResourceDictionary Source="ms-appx:///Styles/FontSizes.xaml"/>
+                <ResourceDictionary Source="ms-appx:///Styles/Thickness.xaml"/>
+                <ResourceDictionary Source="ms-appx:///Styles/TextBlock.xaml"/>
 
                 <ResourceDictionary>
 
@@ -136,10 +136,7 @@
 
                 </ResourceDictionary>
 
-
             </ResourceDictionary.MergedDictionaries>
-
-
 
         </ResourceDictionary>
     </Application.Resources>

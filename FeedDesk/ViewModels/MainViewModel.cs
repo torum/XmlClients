@@ -47,87 +47,96 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 return;
             }
 
-            _selectedTreeViewItem = value;
-
-            OnPropertyChanged(nameof(SelectedTreeViewItem));
-            /*
-
-            */
-
-            // Clear Listview selected Item.
-            SelectedListViewItem = null;
-
-            // Clear error if shown.
-            ErrorObj = null;
-            IsShowFeedError = false;
-
-            if (_selectedTreeViewItem == null)
+            try
             {
-                IsToggleInboxAppButtonEnabled = false;
-                Entries.Clear();
-                EntryArchiveAllCommand.NotifyCanExecuteChanged();
-                return;
-            }
+                _selectedTreeViewItem = value;
 
-            IsToggleInboxAppButtonEnabled = true;
-
-            // Update Title bar info
-            SelectedServiceName = _selectedTreeViewItem.Name;
-
-            if (_selectedTreeViewItem is NodeService nds)
-            {
-                if (nds.ErrorHttp != null)
-                {
-                    ErrorObj = nds.ErrorHttp;
-                    IsShowFeedError = true;
-                }
-                else if (nds.ErrorDatabase != null)
-                {
-                    ErrorObj = nds.ErrorDatabase;
-                    IsShowFeedError = true;
-                }
-
-                IsShowInboxEntries = nds.IsDisplayUnarchivedOnly;
-
-                // NodeFeed is selected
-                if (_selectedTreeViewItem is NodeFeed nfeed)
-                {
-                    Entries = new ObservableCollection<EntryItem>();
-                    //Task nowait = Task.Run(() => LoadEntriesAsync(_selectedTreeViewItem));
-                    LoadEntriesAwaiter(nfeed);
-                }
-                else
-                {
-                    // TODO: 
-                    Entries = new ObservableCollection<EntryItem>();
-                }
-            }
-            else if (_selectedTreeViewItem is NodeFolder folder)
-            {
-                IsShowInboxEntries = folder.IsDisplayUnarchivedOnly;
-
-                Entries = new ObservableCollection<EntryItem>();
-
-                LoadEntriesAwaiter(folder);
+                OnPropertyChanged(nameof(SelectedTreeViewItem));
                 /*
-                if (!folder.IsPendingReload && !folder.IsBusy)
+
+                */
+
+                // Clear Listview selected Item.
+                SelectedListViewItem = null;
+
+                // Clear error if shown.
+                ErrorObj = null;
+                IsShowFeedError = false;
+
+                if (_selectedTreeViewItem == null)
                 {
-                    LoadEntriesAwaiter(folder);
+                    IsToggleInboxAppButtonEnabled = false;
+                    Entries.Clear();
+                    EntryArchiveAllCommand.NotifyCanExecuteChanged();
+                    return;
                 }
-                else
+
+                IsToggleInboxAppButtonEnabled = true;
+
+                // Update Title bar info
+                SelectedServiceName = _selectedTreeViewItem.Name;
+
+                if (_selectedTreeViewItem is NodeService nds)
                 {
-                    if (Root.IsBusyChildrenCount <= 0)
+                    if (nds.ErrorHttp != null)
                     {
-                        folder.IsPendingReload = false;
-                        LoadEntriesAwaiter(folder);
+                        ErrorObj = nds.ErrorHttp;
+                        IsShowFeedError = true;
+                    }
+                    else if (nds.ErrorDatabase != null)
+                    {
+                        ErrorObj = nds.ErrorDatabase;
+                        IsShowFeedError = true;
+                    }
+
+                    IsShowInboxEntries = nds.IsDisplayUnarchivedOnly;
+
+                    // NodeFeed is selected
+                    if (_selectedTreeViewItem is NodeFeed nfeed)
+                    {
+                        Entries = new ObservableCollection<EntryItem>();
+                        
+                        LoadEntriesAwaiter(nfeed);
+                    }
+                    else
+                    {
+                        // TODO: 
+                        Entries = new ObservableCollection<EntryItem>();
                     }
                 }
-                */
-                folder.IsPendingReload = false;
+                else if (_selectedTreeViewItem is NodeFolder folder)
+                {
+                    IsShowInboxEntries = folder.IsDisplayUnarchivedOnly;
+
+                    Entries = new ObservableCollection<EntryItem>();
+
+                    LoadEntriesAwaiter(folder);
+                    /*
+                    if (!folder.IsPendingReload && !folder.IsBusy)
+                    {
+                        LoadEntriesAwaiter(folder);
+                    }
+                    else
+                    {
+                        if (Root.IsBusyChildrenCount <= 0)
+                        {
+                            folder.IsPendingReload = false;
+                            LoadEntriesAwaiter(folder);
+                        }
+                    }
+                    */
+                    folder.IsPendingReload = false;
+                }
+
+                // notify at last.
+                EntryArchiveAllCommand.NotifyCanExecuteChanged();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"SelectedTreeViewItem: {ex.Message}");
+                (App.Current as App)?.AppendErrorLog("SelectedTreeViewItem", ex.Message);
             }
 
-            // notify at last.
-            EntryArchiveAllCommand.NotifyCanExecuteChanged();
         }
     }
     /*
@@ -178,101 +187,110 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 return;
             }
 
-            _selectedListViewItem = value;
-
-            OnPropertyChanged(nameof(SelectedListViewItem));
-
-            if (_selectedListViewItem == null)
+            try
             {
-                IsEntryDetailVisible = false;
+                _selectedListViewItem = value;
 
-                return;
-            }
+                OnPropertyChanged(nameof(SelectedListViewItem));
 
-            IsEntryDetailVisible = true;
+                if (_selectedListViewItem == null)
+                {
+                    IsEntryDetailVisible = false;
 
-            EntryViewExternalCommand.NotifyCanExecuteChanged();
+                    return;
+                }
 
-            //
-            if (string.IsNullOrEmpty(_selectedListViewItem.Summary.Trim()))
-            {
-                IsSummaryExists = false;
-            }
-            else
-            {
-                IsSummaryExists = true;
-            }
+                IsEntryDetailVisible = true;
 
-            if ((_selectedListViewItem as EntryItem).ContentType == EntryItem.ContentTypes.text)
-            {
-                IsContentText = true;
+                EntryViewExternalCommand.NotifyCanExecuteChanged();
 
-                if (!string.IsNullOrEmpty(_selectedListViewItem.Content.Trim()))
+                //
+                if (string.IsNullOrEmpty(_selectedListViewItem.Summary.Trim()))
                 {
                     IsSummaryExists = false;
                 }
-            }
-            else
-            {
-                IsContentText = false;
-            }
-
-            if (((_selectedListViewItem as EntryItem).ContentType == EntryItem.ContentTypes.textHtml) ||
-                ((_selectedListViewItem as EntryItem).ContentType == EntryItem.ContentTypes.unknown))
-            {
-                IsContentHTML = true;
-
-                if (!string.IsNullOrEmpty(_selectedListViewItem.Content.Trim()))
+                else
                 {
-                    IsSummaryExists = false;
+                    IsSummaryExists = true;
+                }
+
+                if ((_selectedListViewItem as EntryItem).ContentType == EntryItem.ContentTypes.text)
+                {
+                    IsContentText = true;
+
+                    if (!string.IsNullOrEmpty(_selectedListViewItem.Content.Trim()))
+                    {
+                        IsSummaryExists = false;
+                    }
+                }
+                else
+                {
+                    IsContentText = false;
+                }
+
+                if (((_selectedListViewItem as EntryItem).ContentType == EntryItem.ContentTypes.textHtml) ||
+                    ((_selectedListViewItem as EntryItem).ContentType == EntryItem.ContentTypes.unknown))
+                {
+                    IsContentHTML = true;
+
+                    if (!string.IsNullOrEmpty(_selectedListViewItem.Content.Trim()))
+                    {
+                        IsSummaryExists = false;
+                    }
+                }
+                else
+                {
+                    IsContentHTML = false;
+                }
+
+                if ((_selectedListViewItem as EntryItem).AltHtmlUri != null)
+                {
+                    IsAltLinkExists = true;
+                }
+                else
+                {
+                    IsAltLinkExists = false;
+                }
+
+                if (_selectedListViewItem.ImageUri != null)
+                {
+                    IsImageLinkExists = true;
+                }
+                else
+                {
+                    IsImageLinkExists = false;
+                }
+
+                if (_selectedListViewItem.AudioUri != null)
+                {
+                    IsAudioLinkExists = true;
+                }
+                else
+                {
+                    IsAudioLinkExists = false;
+                }
+
+                if (_selectedListViewItem.CommentUri != null)
+                {
+                    IsCommentPageLinkExists = true;
+                }
+                else
+                {
+                    IsCommentPageLinkExists = false;
+                }
+
+                if ((_selectedListViewItem.Status != FeedEntryItem.ReadStatus.rsNewVisited) && (_selectedListViewItem.Status != FeedEntryItem.ReadStatus.rsNormalVisited))
+                {
+                    //Task.Run(() => UpdateEntryStatusAsReadAsync(SelectedTreeViewItem!, _selectedListViewItem));
+                    UpdateEntryStatusAsReadAwaiter(SelectedTreeViewItem!, _selectedListViewItem);
                 }
             }
-            else
+            catch (Exception ex)
             {
-                IsContentHTML = false;
+                Debug.WriteLine($"SelectedListViewItem: {ex.Message}");
+                (App.Current as App)?.AppendErrorLog("SelectedListViewItem", ex.Message);
             }
 
-            if ((_selectedListViewItem as EntryItem).AltHtmlUri != null)
-            {
-                IsAltLinkExists = true;
-            }
-            else
-            {
-                IsAltLinkExists = false;
-            }
-
-            if (_selectedListViewItem.ImageUri != null)
-            {
-                IsImageLinkExists = true;
-            }
-            else
-            {
-                IsImageLinkExists = false;
-            }
-
-            if (_selectedListViewItem.AudioUri != null)
-            {
-                IsAudioLinkExists = true;
-            }
-            else
-            {
-                IsAudioLinkExists = false;
-            }
-
-            if (_selectedListViewItem.CommentUri != null)
-            {
-                IsCommentPageLinkExists = true;
-            }
-            else
-            {
-                IsCommentPageLinkExists = false;
-            }
-
-            if ((_selectedListViewItem.Status != FeedEntryItem.ReadStatus.rsNewVisited) && (_selectedListViewItem.Status != FeedEntryItem.ReadStatus.rsNormalVisited))
-            {
-                //Task.Run(() => UpdateEntryStatusAsReadAsync(SelectedTreeViewItem!, _selectedListViewItem));
-                UpdateEntryStatusAsReadAwaiter(SelectedTreeViewItem!, _selectedListViewItem);
-            }
         }
     }
     
@@ -831,7 +849,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             catch (Exception ex)
             {
                 Debug.WriteLine($"LoadEntriesAwaiter: {ex.Message}");
-                (App.Current as App)?.AppendErrorLog("LoadEntriesAwaiter", ex.Message);
+                App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                {
+                    (App.Current as App)?.AppendErrorLog("LoadEntriesAwaiter", ex.Message);
+                });
             }
         });
     }
@@ -1039,7 +1060,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         }
     }
 
-    // gets entories recursively and save to db.
+    // gets entries recursively and save to db.
     private async Task GetEntriesAsync(NodeTree nt)
     {
         if (nt == null)
@@ -1230,7 +1251,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
                             if ((last > now.AddMinutes(-1)) && (last <= now))
                             {
-                                //Debug.WriteLine("Skippig " + feed.Name + ": " + last.ToString());
+                                //Debug.WriteLine("Skipping " + feed.Name + ": " + last.ToString());
                             }
                             else
                             {
@@ -1893,7 +1914,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             catch (Exception ex)
             {
                 Debug.WriteLine($"UpdateEntryStatusAsReadAwaiter: {ex.Message}");
-                (App.Current as App)?.AppendErrorLog("UpdateEntryStatusAsReadAwaiter", ex.Message);
+                App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                {
+                    (App.Current as App)?.AppendErrorLog("UpdateEntryStatusAsReadAwaiter", ex.Message);
+                });
             }
         });
     }
@@ -2430,7 +2454,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         catch (Exception ex)
         {
             Debug.WriteLine($"OpmlImport: {ex.Message}");
-            (App.Current as App)?.AppendErrorLog("OpmlImport", ex.Message);
+            App.CurrentDispatcherQueue?.TryEnqueue(() =>
+            {
+                (App.Current as App)?.AppendErrorLog("OpmlImport", ex.Message);
+            });
         }
     }
 
@@ -2667,7 +2694,10 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             catch (Exception ex)
             {
                 Debug.WriteLine($"EntryArchiveAll: {ex.Message}");
-                (App.Current as App)?.AppendErrorLog("EntryArchiveAll", ex.Message);
+                App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                {
+                    (App.Current as App)?.AppendErrorLog("EntryArchiveAll", ex.Message);
+                });
             }
         });
 

@@ -267,4 +267,13 @@
   <data name="FeedAddPage_Title_NewFeed.Text" xml:space="preserve">
     <value>New Account</value>
   </data>
+  <data name="ShellNavigationItem_Editor.Content" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="ShellNavigationItem_Entries.Content" xml:space="preserve">
+    <value>Entries</value>
+  </data>
+  <data name="ShellNavigationItem_NewAccount.Content" xml:space="preserve">
+    <value>New</value>
+  </data>
 </root>

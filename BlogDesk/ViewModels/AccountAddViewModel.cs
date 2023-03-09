@@ -14,7 +14,7 @@ public class AccountAddViewModel : ObservableRecipient, INavigationAware
 {
     private readonly INavigationService _navigationService;
 
-    private readonly IServiceDiscoveryService _serviceDiscovery;
+    private readonly IAutoDiscoveryService _serviceDiscovery;
 
     #region == Properties ==
 
@@ -223,12 +223,12 @@ public class AccountAddViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    public AccountAddViewModel(INavigationService navigationService, IServiceDiscoveryService serviceDiscovery)
+    public AccountAddViewModel(INavigationService navigationService, IAutoDiscoveryService serviceDiscovery)
     {
         _navigationService = navigationService;
 
         _serviceDiscovery = serviceDiscovery;//new ServiceDiscovery();
-        _serviceDiscovery.StatusUpdate += new ServiceDiscoveryStatusUpdateEventHandler(OnStatusUpdate);//new ServiceDiscovery.ServiceDiscoveryStatusUpdate(OnStatusUpdate);
+        _serviceDiscovery.StatusUpdate += new AutoDiscoveryStatusUpdateEventHandler(OnStatusUpdate);//new ServiceDiscovery.ServiceDiscoveryStatusUpdate(OnStatusUpdate);
 
         GoBackCommand = new RelayCommand(OnGoBack);
         GoCommand = new RelayCommand(OnGo, CanGo);
@@ -312,7 +312,7 @@ public class AccountAddViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    private void OnStatusUpdate(ServiceDiscoveryService sender, string data)
+    private void OnStatusUpdate(AutoDiscoveryService sender, string data)
     {
         var uithread = App.CurrentDispatcherQueue?.HasThreadAccess;
 

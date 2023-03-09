@@ -515,7 +515,7 @@ public class DataAccessService : IDataAccessService
                 sql += string.Format("updated = '{0}'", updated.ToString("yyyy-MM-dd HH:mm:ss"));
                 if (htmlUri != null)
                 {
-                    sql += string.Format(", html_url = '{0}'", htmlUri.AbsoluteUri);
+                    sql += string.Format(", html_url = '{0}'", EscapeSingleQuote(htmlUri.AbsoluteUri));
                 }
                 sql += string.Format(" WHERE feed_id = '{0}'; ", feedId);
 
@@ -714,7 +714,7 @@ public class DataAccessService : IDataAccessService
                         sqlUpdate += string.Format("content = '{0}', ", EscapeSingleQuote(entry.Content ?? ""));
                         if (entry.ImageUri != null)
                         {
-                            sqlUpdate += string.Format("image_url = '{0}', ", entry.ImageUri.AbsoluteUri);
+                            sqlUpdate += string.Format("image_url = '{0}', ", EscapeSingleQuote(entry.ImageUri.AbsoluteUri));
                         }
                         else
                         {
@@ -722,7 +722,7 @@ public class DataAccessService : IDataAccessService
                         }
                         if (entry.AudioUri != null)
                         {
-                            sqlUpdate += string.Format("audio_url = '{0}', ", entry.AudioUri.AbsoluteUri);
+                            sqlUpdate += string.Format("audio_url = '{0}', ", EscapeSingleQuote(entry.AudioUri.AbsoluteUri));
                         }
                         else
                         {
@@ -740,10 +740,10 @@ public class DataAccessService : IDataAccessService
 
                         if (entry.AltHtmlUri != null)
                         {
-                            sqlUpdate += string.Format(", url = '{0}'", entry.AltHtmlUri.AbsoluteUri);
+                            sqlUpdate += string.Format(", url = '{0}'", EscapeSingleQuote(entry.AltHtmlUri.AbsoluteUri));
                         }
-                        sqlUpdate += string.Format(" WHERE entry_id = '{0}'; ", entry.Id);
-
+                        sqlUpdate += string.Format(" WHERE entry_id = '{0}'; ", EscapeSingleQuote(entry.Id));
+                        //Debug.WriteLine(sqlUpdate);
                         cmd.CommandText = sqlUpdate;
                         var c = cmd.ExecuteNonQuery();
                         if (c > 0)
@@ -870,7 +870,7 @@ public class DataAccessService : IDataAccessService
                 s = Convert.ToString(reader["entryUrl"]);
                 if (!string.IsNullOrEmpty(s))
                 {
-                    entry.AltHtmlUri = new Uri(s);
+                    entry.AltHtmlUri = new Uri(RestoreSingleQuote(s));
                 }
 
                 s = Convert.ToString(reader["entryPublished"]);
@@ -946,13 +946,13 @@ public class DataAccessService : IDataAccessService
                 var u = Convert.ToString(reader["entryImageUri"]);
                 if (!string.IsNullOrEmpty(u))
                 {
-                    entry.ImageUri = new Uri(u);
+                    entry.ImageUri = new Uri(RestoreSingleQuote(u));
                 }
 
                 var au = Convert.ToString(reader["entryAudioUri"]);
                 if (!string.IsNullOrEmpty(au))
                 {
-                    entry.AudioUri = new Uri(au);
+                    entry.AudioUri = new Uri(RestoreSingleQuote(au));
                 }
 
                 var cu = Convert.ToString(reader["entryCommentUri"]);
@@ -1151,7 +1151,7 @@ public class DataAccessService : IDataAccessService
                 var s = Convert.ToString(reader["entryUrl"]);
                 if (!string.IsNullOrEmpty(s))
                 {
-                    entry.AltHtmlUri = new Uri(s);
+                    entry.AltHtmlUri = new Uri(RestoreSingleQuote(s));
                 }
 
                 var pnsd = Convert.ToString(reader["entryPublished"]);
@@ -1207,13 +1207,13 @@ public class DataAccessService : IDataAccessService
                 var u = Convert.ToString(reader["entryImageUri"]);
                 if (!string.IsNullOrEmpty(u))
                 {
-                    entry.ImageUri = new Uri(u);
+                    entry.ImageUri = new Uri(RestoreSingleQuote(u));
                 }
 
                 var au = Convert.ToString(reader["entryAudioUri"]);
                 if (!string.IsNullOrEmpty(au))
                 {
-                    entry.AudioUri = new Uri(au);
+                    entry.AudioUri = new Uri(RestoreSingleQuote(au));
                 }
 
                 var cu = Convert.ToString(reader["entryCommentUri"]);
@@ -1673,5 +1673,10 @@ public class DataAccessService : IDataAccessService
     private static string EscapeSingleQuote(string s)
     {
         return s is null ? string.Empty : s.Replace("'", "''");
+    }
+
+    private static string RestoreSingleQuote(string s)
+    {
+        return s is null ? string.Empty : s.Replace("''", "'");
     }
 }

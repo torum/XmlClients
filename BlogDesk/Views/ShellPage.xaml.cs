@@ -3,7 +3,6 @@ using System.Xml.Linq;
 using BlogDesk.Contracts.Services;
 using BlogWrite.Core.Helpers;
 using BlogDesk.ViewModels;
-
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -54,6 +53,7 @@ public sealed partial class ShellPage : Page
         App.MainWindow.Activated += MainWindow_Activated;
         App.MainWindow.Closed += MainWindow_Closed;
 
+        Debug.WriteLine("App.MainWindow.Closed += MainWindow_Closed");
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
@@ -92,6 +92,9 @@ public sealed partial class ShellPage : Page
 
     private void MainWindow_Closed(object sender, WindowEventArgs args)
     {
+        Debug.WriteLine("asdf");
+        // Save err log.
+        //(App.Current as App)?.SaveErrorLog();
     }
 
     private static KeyboardAccelerator BuildKeyboardAccelerator(VirtualKey key, VirtualKeyModifiers? modifiers = null)

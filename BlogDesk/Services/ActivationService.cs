@@ -36,7 +36,7 @@ public class ActivationService : IActivationService
         await HandleActivationAsync(activationArgs);
 
         // Test
-        await Task.Delay(100);
+        //await Task.Delay(100);
 
         //App.MainWindow.Show();
 

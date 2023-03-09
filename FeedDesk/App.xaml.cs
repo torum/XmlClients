@@ -215,10 +215,10 @@ public partial class App : Application
             WinUIEx.WindowManager.PersistenceStorage = new FilePersistence(Path.Combine(AppDataFolder, "WinUIExPersistence.json"));
         }
 
-    // Nortification example.
-    //App.GetService<IAppNotificationService>().Show(string.Format("AppNotificationSamplePayload".GetLocalized(), AppContext.BaseDirectory));
+        // Nortification example.
+        //App.GetService<IAppNotificationService>().Show(string.Format("AppNotificationSamplePayload".GetLocalized(), AppContext.BaseDirectory));
 
-    await App.GetService<IActivationService>().ActivateAsync(args);
+        await App.GetService<IActivationService>().ActivateAsync(args);
     }
 
     private void App_Activated(object? sender, Microsoft.Windows.AppLifecycle.AppActivationArguments e)
