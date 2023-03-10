@@ -1,6 +1,7 @@
 ﻿using BlogDesk.Activation;
 using BlogDesk.Contracts.Services;
 using BlogDesk.Views;
+
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
@@ -13,7 +14,7 @@ public class ActivationService : IActivationService
     private readonly IThemeSelectorService _themeSelectorService;
     private UIElement? _shell = null;
 
-    public ActivationService(ActivationHandler<LaunchActivatedEventArgs> defaultHandler, IEnumerable<IActivationHandler> activationHandlers, IThemeSelectorService themeSelectorService)//
+    public ActivationService(ActivationHandler<LaunchActivatedEventArgs> defaultHandler, IEnumerable<IActivationHandler> activationHandlers, IThemeSelectorService themeSelectorService)
     {
         _defaultHandler = defaultHandler;
         _activationHandlers = activationHandlers;
@@ -35,15 +36,8 @@ public class ActivationService : IActivationService
         // Handle activation via ActivationHandlers.
         await HandleActivationAsync(activationArgs);
 
-        // Test
-        //await Task.Delay(100);
-
-        //App.MainWindow.Show();
-
         // Activate the MainWindow.
         App.MainWindow.Activate();
-
-        //App.MainWindow.BringToFront();
 
         // Execute tasks after activation.
         await StartupAsync();
@@ -67,15 +61,12 @@ public class ActivationService : IActivationService
     private async Task InitializeAsync()
     {
         await _themeSelectorService.InitializeAsync().ConfigureAwait(false);
-        await Task.FromResult(true);
-        //await Task.CompletedTask;
+        await Task.CompletedTask;
     }
 
     private async Task StartupAsync()
     {
         await _themeSelectorService.SetRequestedThemeAsync();
-        await Task.FromResult(true);
-        //await Task.CompletedTask;
-
+        await Task.CompletedTask;
     }
 }

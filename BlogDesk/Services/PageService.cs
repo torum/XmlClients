@@ -14,8 +14,8 @@ public class PageService : IPageService
 
     public PageService()
     {
-        //Configure<EditorViewModel, EditorPage>();
         Configure<MainViewModel, MainPage>();
+        Configure<WebViewViewModel, WebViewPage>();
         Configure<SettingsViewModel, SettingsPage>();
         Configure<AccountAddViewModel, AccountAddPage>();
     }

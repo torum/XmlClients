@@ -1,25 +1,21 @@
 ﻿using System.Reflection;
 using System.Windows.Input;
-
 using BlogDesk.Contracts.Services;
-using BlogDesk.Contracts.ViewModels;
-using BlogWrite.Core.Helpers;
 using BlogDesk.Models;
+using BlogWrite.Core.Helpers;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.UI.Xaml;
 using Windows.ApplicationModel;
-using Windows.System;
 
 namespace BlogDesk.ViewModels;
 
-public class SettingsViewModel : ObservableRecipient, INavigationAware
+public class SettingsViewModel : ObservableRecipient
 {
     private readonly INavigationService _navigationService;
-
     private readonly IThemeSelectorService _themeSelectorService;
-    private ElementTheme _elementTheme;
+    private ElementTheme _elementTheme = ElementTheme.Default;
     private string _versionDescription;
 
     public ElementTheme ElementTheme
@@ -38,19 +34,31 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
     {
         get;
     }
+
     public ICommand GoBackCommand
     {
         get;
     }
 
-    public SettingsViewModel(IThemeSelectorService themeSelectorService, INavigationService navigationService)
+    public SettingsViewModel(INavigationService navigationService, IThemeSelectorService themeSelectorService)
     {
         _navigationService = navigationService;
-
         _themeSelectorService = themeSelectorService;
         _elementTheme = _themeSelectorService.Theme;
         _versionDescription = GetVersionDescription();
 
+        GoBackCommand = new RelayCommand(OnGoBack);
+        /*
+        SwitchThemeCommand = new RelayCommand<ElementTheme>(
+            async (param) =>
+            {
+                if (ElementTheme != param)
+                {
+                    ElementTheme = param;
+                    await _themeSelectorService.SetThemeAsync(param);
+                }
+            });
+        */
         SwitchThemeCommand = new RelayCommand<ElementTheme>(
             async (param) =>
             {
@@ -60,21 +68,10 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
                     await _themeSelectorService.SetThemeAsync(param);
 
                     var thm = ElementTheme.ToString().ToLower();
-
+                    // send message to other windows (Editor windows)
                     WeakReferenceMessenger.Default.Send(new ThemeChangedMessage(thm));
                 }
             });
-
-
-        GoBackCommand = new RelayCommand(OnGoBack);
-    }
-
-    public void OnNavigatedTo(object parameter)
-    {
-    }
-
-    public void OnNavigatedFrom()
-    {
     }
 
     private static string GetVersionDescription()

@@ -13,7 +13,7 @@ public class ThemeSelectorService : IThemeSelectorService
 
     //private readonly ILocalSettingsService _localSettingsService;
 
-    public ThemeSelectorService()//ILocalSettingsService localSettingsService
+    public ThemeSelectorService() //ILocalSettingsService localSettingsService
     {
         //_localSettingsService = localSettingsService;
     }
@@ -44,18 +44,14 @@ public class ThemeSelectorService : IThemeSelectorService
         await Task.CompletedTask;
     }
 
-    private ElementTheme LoadThemeFromSettingsAsync()
+    private static ElementTheme LoadThemeFromSettingsAsync()
     {
-        /*
-        var themeName = await _localSettingsService.ReadSettingAsync<string>(SettingsKey);
+        //var themeName = await _localSettingsService.ReadSettingAsync<string>(SettingsKey);
 
-        if (Enum.TryParse(themeName, out ElementTheme cacheTheme))
-        {
-            return cacheTheme;
-        }
-        
-        */
-
+        //if (Enum.TryParse(themeName, out ElementTheme cacheTheme))
+        //{
+        //    return cacheTheme;
+        //}
         if (RuntimeHelper.IsMSIX)
         {
             if (ApplicationData.Current.LocalSettings.Values.TryGetValue(SettingsKey, out var obj))
@@ -70,15 +66,13 @@ public class ThemeSelectorService : IThemeSelectorService
         return ElementTheme.Default;
     }
 
-    private async Task SaveThemeInSettingsAsync(ElementTheme theme)
+    private static async Task SaveThemeInSettingsAsync(ElementTheme theme)
     {
         //await _localSettingsService.SaveSettingAsync(SettingsKey, theme.ToString());
-
         if (RuntimeHelper.IsMSIX)
         {
             ApplicationData.Current.LocalSettings.Values[SettingsKey] = theme.ToString();
         }
-
         await Task.CompletedTask;
     }
 }

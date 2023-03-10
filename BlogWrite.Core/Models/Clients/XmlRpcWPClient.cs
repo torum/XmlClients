@@ -13,7 +13,7 @@ namespace BlogWrite.Core.Models.Clients;
 /// Uses following methods:
 /// https://codex.wordpress.org/XML-RPC_WordPress_API
 /// </summary>
-class XmlRpcWPClient
+public class XmlRpcWPClient
 {
 
 }

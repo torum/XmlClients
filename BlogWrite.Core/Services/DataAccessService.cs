@@ -409,7 +409,7 @@ public class DataAccessService : IDataAccessService
                 sql += String.Format("updated = '{0}'", updated.ToString("yyyy-MM-dd HH:mm:ss"));
                 if (htmlUri != null)
                 {
-                    sql += String.Format(", html_url = '{0}'", htmlUri.AbsoluteUri);
+                    sql += String.Format(", html_url = '{0}'", EscapeSingleQuote(htmlUri.AbsoluteUri));
                 }
                 sql += String.Format(" WHERE feed_id = '{0}'; ", feedId);
 
@@ -742,7 +742,7 @@ public class DataAccessService : IDataAccessService
                         {
                             sqlUpdate += string.Format(", url = '{0}'", EscapeSingleQuote(entry.AltHtmlUri.AbsoluteUri));
                         }
-                        sqlUpdate += string.Format(" WHERE entry_id = '{0}'; ", EscapeSingleQuote(entry.Id));
+                        sqlUpdate += string.Format(" WHERE entry_id = '{0}'; ", entry.Id);
                         //Debug.WriteLine(sqlUpdate);
                         cmd.CommandText = sqlUpdate;
                         var c = cmd.ExecuteNonQuery();

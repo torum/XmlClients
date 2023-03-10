@@ -1,5 +1,4 @@
-﻿using System.Xml.Linq;
-using BlogDesk.Contracts.Services;
+﻿using BlogDesk.Contracts.Services;
 using BlogDesk.ViewModels;
 
 using Microsoft.UI.Xaml;
@@ -23,9 +22,8 @@ public class DefaultActivationHandler : ActivationHandler<LaunchActivatedEventAr
 
     protected async override Task HandleInternalAsync(LaunchActivatedEventArgs args)
     {
-        _navigationService.NavigateTo(typeof(MainViewModel).FullName!, null);
+        _navigationService.NavigateTo(typeof(MainViewModel).FullName!, args.Arguments);
 
-        await Task.FromResult(true);
-        //await Task.CompletedTask;
+        await Task.CompletedTask;
     }
 }

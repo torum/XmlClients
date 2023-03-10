@@ -11,7 +11,7 @@ using System.Collections.ObjectModel;
 
 namespace BlogWrite.Core.Models.Clients;
 
-class XmlRpcClient : BlogClient
+public class XmlRpcClient : BlogClient
 {
     /// <summary>
     /// XmlRpcClient 
@@ -40,11 +40,11 @@ class XmlRpcClient : BlogClient
 
     }
 
-    public override async Task<NodeService> GetAccount(string accountName)
+    public async override Task<NodeService> GetAccount(string accountName)
     {
-        NodeService account = new NodeService(accountName, _userName, _userPassword, _endpoint, ApiTypes.atXMLRPC_MovableType, ServiceTypes.XmlRpc);
+        var account = new NodeService(accountName, _userName, _userPassword, _endpoint, ApiTypes.atXMLRPC_MovableType, ServiceTypes.XmlRpc);
 
-        List<NodeWorkspace> blogs = await GetBlogs();
+        var blogs = await GetBlogs();
 
         foreach (var item in blogs)
         {
@@ -57,12 +57,12 @@ class XmlRpcClient : BlogClient
         return account;
     }
 
-    public override async Task<List<NodeWorkspace>> GetBlogs()
+    public async override Task<List<NodeWorkspace>> GetBlogs()
     {
         List<NodeWorkspace> blogs = new();
 
-        XmlDocument xdoc = new XmlDocument();
-        XmlDeclaration xdec = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
+        var xdoc = new XmlDocument();
+        var xdec = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
         xdoc.AppendChild(xdec);
 
         XmlElement objRootNode, objMethodNode, objParamsNode, objParamNode, objValueNode, objTypeNode;
@@ -132,7 +132,7 @@ class XmlRpcClient : BlogClient
 
         if (response.IsSuccessStatusCode)
         {
-            string contenTypeString = response.Content.Headers.GetValues("Content-Type").FirstOrDefault();
+            var contenTypeString = response.Content.Headers.GetValues("Content-Type").FirstOrDefault();
 
             if (!contenTypeString.StartsWith("text/xml"))
             {
@@ -146,7 +146,7 @@ class XmlRpcClient : BlogClient
                 return blogs;
             }
 
-            string s = await response.Content.ReadAsStringAsync();
+            var s = await response.Content.ReadAsStringAsync();
 
             ToDebugWindow("<< HTTP Response " + response.StatusCode.ToString()
             + Environment.NewLine
@@ -203,32 +203,35 @@ class XmlRpcClient : BlogClient
 
             */
 
-            XmlNodeList blogList;
-            blogList = xdoc.SelectNodes("//methodResponse/params/param/value/array/data/value");
+            var blogList = xdoc.SelectNodes("//methodResponse/params/param/value/array/data/value");
             if (blogList == null)
+            {
                 return blogs;
+            }
 
             foreach (XmlNode b in blogList)
             {
-                NodeWorkspace blog = new NodeWorkspace("Blog");
+                var blog = new NodeWorkspace("Blog");
 
-                XmlNodeList memberList = b.SelectNodes("struct/member");
+                var memberList = b.SelectNodes("struct/member");
                 if (memberList == null)
+                {
                     continue;
+                }
 
                 //bool isAdmin = false;
                 //bool isPrimary = false;
-                Uri url = null;
-                string blogid = "";
-                string blogName = "";
+                Uri? url = null;
+                var blogid = "";
+                var blogName = "";
                 Uri xmlrpc = null;
 
                 foreach (XmlNode m in memberList)
                 {
 
-                    XmlNodeList valueList = m.ChildNodes;
-                    string name = "";
-                    string value = "";
+                    var valueList = m.ChildNodes;
+                    var name = "";
+                    var value = "";
                     foreach (XmlNode v in valueList)
                     {
                         if (v.Name == "name")
@@ -296,13 +299,13 @@ class XmlRpcClient : BlogClient
                         xmlrpc = _endpoint;
                     }
 
-                    NodeXmlRpcEntryCollection col = new NodeXmlRpcEntryCollection(blogName, xmlrpc, blogid);
+                    var col = new NodeXmlRpcEntryCollection(blogName, xmlrpc, blogid);
 
 
                     // Categories
-                    List<NodeCategory> cats = await GetCategiries(xmlrpc, blogid);
+                    var cats = await GetCategiries(xmlrpc, blogid);
 
-                    foreach (NodeCategory c in cats)
+                    foreach (var c in cats)
                     {
                         col.Children.Add(c);
                     }
@@ -348,10 +351,10 @@ class XmlRpcClient : BlogClient
 
     public async Task<List<NodeCategory>> GetCategiries(Uri categoriesUrl, string blogid)
     {
-        List<NodeCategory> cats = new List<NodeCategory>();
+        var cats = new List<NodeCategory>();
 
-        XmlDocument xdoc = new XmlDocument();
-        XmlDeclaration xdec = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
+        var xdoc = new XmlDocument();
+        var xdec = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
         xdoc.AppendChild(xdec);
 
         XmlElement objRootNode, objMethodNode, objParamsNode, objParamNode, objValueNode, objTypeNode;
@@ -422,7 +425,7 @@ class XmlRpcClient : BlogClient
 
         if (response.IsSuccessStatusCode)
         {
-            string contenTypeString = response.Content.Headers.GetValues("Content-Type").FirstOrDefault();
+            var contenTypeString = response.Content.Headers.GetValues("Content-Type").FirstOrDefault();
 
             if (!contenTypeString.StartsWith("text/xml"))
             {
@@ -436,7 +439,7 @@ class XmlRpcClient : BlogClient
                 return cats;
             }
 
-            string s = await response.Content.ReadAsStringAsync();
+            var s = await response.Content.ReadAsStringAsync();
 
             //System.Diagnostics.Debug.WriteLine("GetCategiries response: " + s);
 
@@ -461,31 +464,34 @@ class XmlRpcClient : BlogClient
                 return cats;
             }
 
-            XmlNodeList catList;
-            catList = xdoc.SelectNodes("//methodResponse/params/param/value/array/data/value");
+            var catList = xdoc.SelectNodes("//methodResponse/params/param/value/array/data/value");
             if (catList == null)
+            {
                 return cats;
+            }
 
             foreach (XmlNode cal in catList)
             {
-                XmlNodeList memberList = cal.SelectNodes("struct/member");
+                var memberList = cal.SelectNodes("struct/member");
                 if (memberList == null)
+                {
                     continue;
+                }
 
-                string categoryName = "";
-                string categoryId = "";
-                string parentId = "";
-                string description = "";
-                string categoryDescription = "";
-                Uri htmlUrl = null;
-                Uri rssUrl = null;
+                var categoryName = "";
+                var categoryId = "";
+                var parentId = "";
+                var description = "";
+                var categoryDescription = "";
+                Uri? htmlUrl = null;
+                Uri? rssUrl = null;
                 
                 foreach (XmlNode m in memberList)
                 {
 
-                    XmlNodeList valueList = m.ChildNodes;
-                    string name = "";
-                    string value = "";
+                    var valueList = m.ChildNodes;
+                    var name = "";
+                    var value = "";
                     foreach (XmlNode v in valueList)
                     {
                         if (v.Name == "name")
@@ -546,13 +552,15 @@ class XmlRpcClient : BlogClient
                 
                 if (!string.IsNullOrEmpty(categoryName))
                 {
-                    NodeXmlRpcMTCategory category = new NodeXmlRpcMTCategory(categoryName);
-                    category.CategoryId = categoryId;
-                    category.ParentId = parentId;
-                    category.Description = description;
-                    category.CategoryDescription = categoryDescription;
-                    category.HtmlUrl = htmlUrl;
-                    category.RssUrl = rssUrl;
+                    var category = new NodeXmlRpcMTCategory(categoryName)
+                    {
+                        CategoryId = categoryId,
+                        ParentId = parentId,
+                        Description = description,
+                        CategoryDescription = categoryDescription,
+                        HtmlUrl = htmlUrl,
+                        RssUrl = rssUrl
+                    };
 
                     cats.Add(category);
                 }
@@ -582,15 +590,15 @@ class XmlRpcClient : BlogClient
         return cats;
     }
 
-    public override async Task<HttpClientEntryItemCollectionResultWrapper> GetEntries(Uri entryUri, string serviceId)
+    public async override Task<HttpClientEntryItemCollectionResultWrapper> GetEntries(Uri entryUri, string serviceId)
     {
-        HttpClientEntryItemCollectionResultWrapper res = new HttpClientEntryItemCollectionResultWrapper();
+        var res = new HttpClientEntryItemCollectionResultWrapper();
 
-        List<EntryItem> list = new List<EntryItem>();
+        var list = new List<EntryItem>();
         res.Entries = list;
 
-        XmlDocument xdoc = new XmlDocument();
-        XmlDeclaration xdec = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
+        var xdoc = new XmlDocument();
+        var xdec = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
         xdoc.AppendChild(xdec);
 
         XmlElement objRootNode, objMethodNode, objParamsNode, objParamNode, objValueNode, objTypeNode;
@@ -660,7 +668,7 @@ class XmlRpcClient : BlogClient
 
             if (response.IsSuccessStatusCode)
             {
-                string contenTypeString = response.Content.Headers.GetValues("Content-Type").FirstOrDefault();
+                var contenTypeString = response.Content.Headers.GetValues("Content-Type").FirstOrDefault();
 
                 if (!contenTypeString.StartsWith("text/xml"))
                 {
@@ -675,7 +683,7 @@ class XmlRpcClient : BlogClient
                     return res;
                 }
 
-                string s = await response.Content.ReadAsStringAsync();
+                var s = await response.Content.ReadAsStringAsync();
 
                 ToDebugWindow("<< HTTP Response " + response.StatusCode.ToString()
                 + Environment.NewLine
@@ -710,7 +718,7 @@ class XmlRpcClient : BlogClient
 
                 foreach (XmlNode l in entryList)
                 {
-                    MTEntry ent = new MTEntry("", serviceId, this);
+                    var ent = new MTEntry("", serviceId, this);
 
                     FillEntryItemFromXML(ent, l, entryUri, serviceId);
 
@@ -755,9 +763,11 @@ class XmlRpcClient : BlogClient
     private void FillEntryItemFromXML(MTEntry entItem, XmlNode entryNode, Uri xmlrpcUri, string serviceId)
     {
 
-        MTEntry entry = CreateMTEntryFromXML(entryNode, serviceId);
+        var entry = CreateMTEntryFromXML(entryNode, serviceId);
         if (entry == null)
+        {
             return;
+        }
 
         // multisite has independent endpoint. So we set it here.
         entry.EditUri = xmlrpcUri;
@@ -775,13 +785,15 @@ class XmlRpcClient : BlogClient
 
     }
 
-    public override  async Task<EntryFull> GetFullEntry(Uri entryUri, string serviceId, string postid) 
+    public async  override Task<EntryFull> GetFullEntry(Uri entryUri, string serviceId, string postid) 
     {
         if (string.IsNullOrEmpty(postid))
+        {
             throw new InvalidOperationException("XML-RPC requires postid");
+        }
 
-        XmlDocument xdoc = new XmlDocument();
-        XmlDeclaration xdec = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
+        var xdoc = new XmlDocument();
+        var xdec = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
         xdoc.AppendChild(xdec);
 
         XmlElement objRootNode, objMethodNode, objParamsNode, objParamNode, objValueNode, objTypeNode;
@@ -852,7 +864,7 @@ class XmlRpcClient : BlogClient
 
         if (response.IsSuccessStatusCode)
         {
-            string contenTypeString = response.Content.Headers.GetValues("Content-Type").FirstOrDefault();
+            var contenTypeString = response.Content.Headers.GetValues("Content-Type").FirstOrDefault();
 
             if (!contenTypeString.StartsWith("text/xml"))
             {
@@ -866,7 +878,7 @@ class XmlRpcClient : BlogClient
                 return null;
             }
 
-            string s = await response.Content.ReadAsStringAsync();
+            var s = await response.Content.ReadAsStringAsync();
 
             ToDebugWindow("<< HTTP Response " + response.StatusCode.ToString()
             + Environment.NewLine
@@ -893,32 +905,36 @@ class XmlRpcClient : BlogClient
 
         }
 
-        XmlNode entryNode = xdoc.SelectSingleNode("//methodResponse/params/param/value");
+        var entryNode = xdoc.SelectSingleNode("//methodResponse/params/param/value");
         if (entryNode == null)
+        {
             return null;
+        }
 
-        MTEntry entry = CreateMTEntryFromXML(entryNode, serviceId);
+        var entry = CreateMTEntryFromXML(entryNode, serviceId);
 
         return entry;
     }
 
-    private MTEntry CreateMTEntryFromXML(XmlNode entryNode, string serviceId)
+    private MTEntry? CreateMTEntryFromXML(XmlNode entryNode, string serviceId)
     {
 
-        XmlNodeList memberList = entryNode.SelectNodes("struct/member");
+        var memberList = entryNode.SelectNodes("struct/member");
         if (memberList == null)
+        {
             return null;
+        }
 
-        Uri url = null;
-        string postid = "";
-        string title = "";
-        string description = "";
+        Uri? url = null;
+        var postid = "";
+        var title = "";
+        var description = "";
 
         foreach (XmlNode m in memberList)
         {
-            XmlNodeList valueList = m.ChildNodes;
-            string name = "";
-            string value = "";
+            var valueList = m.ChildNodes;
+            var name = "";
+            var value = "";
             foreach (XmlNode v in valueList)
             {
                 if (v.Name == "name")
@@ -1018,24 +1034,26 @@ name: wp_post_thumbnail - value:
 
         }
 
-        MTEntry entry = new MTEntry(title, serviceId, this);
-        entry.AltHtmlUri = url;
-        entry.EntryId = postid;
-        //entry.EditUri = _endpoint; No, don't. Multisite has multiple endpoints for each blog.
+        var entry = new MTEntry(title, serviceId, this)
+        {
+            AltHtmlUri = url,
+            EntryId = postid,
+            //entry.EditUri = _endpoint; No, don't. Multisite has multiple endpoints for each blog.
 
-        entry.Content = description;
+            Content = description,
 
-        //TODO: MT doesn't have this flag? need to check.
-        entry.IsDraft =  false;
-        entry.Status = EditEntryItem.EditStatus.esNormal;
+            //TODO: MT doesn't have this flag? need to check.
+            IsDraft = false,
+            Status = EditEntryItem.EditStatus.esNormal
+        };
 
         return entry;
     }
 
-    public override async Task<bool> UpdateEntry(EntryFull entry)
+    public async override Task<bool> UpdateEntry(EntryFull entry)
     {
-        XmlDocument xdoc = new XmlDocument();
-        XmlDeclaration xdec = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
+        var xdoc = new XmlDocument();
+        var xdec = xdoc.CreateXmlDeclaration("1.0", "UTF-8", null);
         xdoc.AppendChild(xdec);
 
         XmlElement objRootNode, objMethodNode, objParamsNode, objParamNode, objValueNode, objTypeNode;
@@ -1085,13 +1103,13 @@ name: wp_post_thumbnail - value:
         objValueNode.AppendChild(objTypeNode);
 
         //
-        XmlElement structNode = xdoc.CreateElement(string.Empty, "struct", string.Empty);
-        XmlElement memberNode = xdoc.CreateElement(string.Empty, "member", string.Empty);
+        var structNode = xdoc.CreateElement(string.Empty, "struct", string.Empty);
+        var memberNode = xdoc.CreateElement(string.Empty, "member", string.Empty);
 
-        XmlElement nameNode = xdoc.CreateElement(string.Empty, "name", string.Empty);
+        var nameNode = xdoc.CreateElement(string.Empty, "name", string.Empty);
         //XmlText ntn = xdoc.CreateTextNode();
-        XmlElement valueNode = xdoc.CreateElement(string.Empty, "value", string.Empty);
-        XmlElement stringNode = xdoc.CreateElement(string.Empty, "string", string.Empty);
+        var valueNode = xdoc.CreateElement(string.Empty, "value", string.Empty);
+        var stringNode = xdoc.CreateElement(string.Empty, "string", string.Empty);
         //XmlText vtn = xdoc.CreateTextNode();
 
         //struct/member/name
@@ -1105,7 +1123,7 @@ name: wp_post_thumbnail - value:
         objParamNode.AppendChild(objValueNode);
 
         objTypeNode = xdoc.CreateElement(string.Empty, "bool", string.Empty);
-        string isPublish = entry.IsDraft ? "0" : "1";
+        var isPublish = entry.IsDraft ? "0" : "1";
         xt = xdoc.CreateTextNode(isPublish);
         objTypeNode.AppendChild(xt);
         objValueNode.AppendChild(objTypeNode);
@@ -1134,7 +1152,7 @@ name: wp_post_thumbnail - value:
 
         if (response.IsSuccessStatusCode)
         {
-            string contenTypeString = response.Content.Headers.GetValues("Content-Type").FirstOrDefault();
+            var contenTypeString = response.Content.Headers.GetValues("Content-Type").FirstOrDefault();
 
             if (!contenTypeString.StartsWith("text/xml"))
             {
@@ -1148,7 +1166,7 @@ name: wp_post_thumbnail - value:
                 return false;
             }
 
-            string s = await response.Content.ReadAsStringAsync();
+            var s = await response.Content.ReadAsStringAsync();
 
             //System.Diagnostics.Debug.WriteLine("metaWeblog.editPost response: " + s);
 
@@ -1181,7 +1199,7 @@ name: wp_post_thumbnail - value:
 
     }
 
-    public override async Task<bool> PostEntry(EntryFull entry)
+    public async override Task<bool> PostEntry(EntryFull entry)
     {
         await Task.Delay(1);
 
@@ -1191,7 +1209,7 @@ name: wp_post_thumbnail - value:
 
     }
 
-    public override async Task<bool> DeleteEntry(Uri editUri)
+    public async override Task<bool> DeleteEntry(Uri editUri)
     {
         await Task.Delay(1);
 

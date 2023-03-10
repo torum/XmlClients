@@ -1,16 +1,15 @@
-﻿using System.Collections.ObjectModel;
-using System.Windows.Input;
-using BlogDesk.Contracts.Services;
-using BlogDesk.Contracts.ViewModels;
-using BlogDesk.Views;
+﻿using BlogDesk.Views;
 using BlogWrite.Core.Models;
+using System.Collections.ObjectModel;
+using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml.Navigation;
+using BlogDesk.Contracts.Services;
 
 namespace BlogDesk.ViewModels;
 
-public partial class MainViewModel : ObservableRecipient, INavigationAware
+public class MainViewModel : ObservableRecipient
 {
 
     private ObservableCollection<EntryItem> _entries = new();
@@ -73,7 +72,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     public void CreateNewEditor()
     {
-        NewEditor();
+        //NewEditor();
     }
 
     private async void NewEditor()

@@ -176,7 +176,6 @@ public partial class EditorViewModel : ObservableRecipient
   </body>
 </html>";
 
-
     private int _selectedTabindex;
     public int SelectedTabindex
     {
@@ -213,14 +212,14 @@ public partial class EditorViewModel : ObservableRecipient
         set => SetProperty(ref _source, value);
     }
 
-    private string _entryContentText;
+    private string _entryContentText = "";
     public string EntryContentText
     {
         get => _entryContentText;
         set => SetProperty(ref _entryContentText, value);
     }
 
-    private string _entryContentHTML;
+    private string _entryContentHTML = "";
     public string EntryContentHTML
     {
         get => _entryContentHTML;
@@ -349,10 +348,14 @@ public partial class EditorViewModel : ObservableRecipient
     public void OnDebugOutput(BaseClient sender, string data)
     {
         if (string.IsNullOrEmpty(data))
+        {
             return;
+        }
 
         if (!IsDebugWindowEnabled)
+        {
             return;
+        }
 
         if (!App.CurrentDispatcherQueue.HasThreadAccess)
         {
@@ -366,7 +369,9 @@ public partial class EditorViewModel : ObservableRecipient
         debugEvents.Enqueue(data);
 
         if (debugEvents.Count > 100)
+        {
             debugEvents.Dequeue();
+        }
 
         DebugEventLog = string.Join('\n', debugEvents.Reverse());
 
@@ -420,15 +425,15 @@ public partial class EditorViewModel : ObservableRecipient
 
     #region == Events ==
 
-    public event EventHandler<string> WebView2RichEditSetFocus;
+    public event EventHandler<string>? WebView2RichEditSetFocus;
 
-    public event EventHandler<string> WebView2SourceEditSetFocus;
+    public event EventHandler<string>? WebView2SourceEditSetFocus;
 
-    public event EventHandler<string> WebView2PreviewBrowserSetFocus;
+    public event EventHandler<string>? WebView2PreviewBrowserSetFocus;
 
     //public event EventHandler<string> WindowClosing;
 
-    public event EventHandler<ElementTheme> ThemeChanged;
+    public event EventHandler<ElementTheme>? ThemeChanged;
 
     #endregion
 
@@ -492,21 +497,26 @@ public partial class EditorViewModel : ObservableRecipient
                 ThemeChanged?.Invoke(this, _theme);
             }
         });
-        
-        
-        // System theme changed.
-        _uiSettings.ColorValuesChanged += SystemUISettingColorValuesChanged;
-        
 
+        // subscribe to system theme changed event.
+        _uiSettings.ColorValuesChanged += SystemUISettingColorValuesChanged;
+
+        InitWebViews();
+    }
+
+    private void InitWebViews()
+    {
+        //
         WebViewServiceRichEdit.NavigationCompleted += OnRichEditWebView2NavigationCompleted;
         WebViewServiceRichEdit.CoreWebView2Initialized += OnRichEditCoreWebView2Initialized;
-        /*
+
         WebViewServiceSourceEdit.NavigationCompleted += OnSourceEditWebView2NavigationCompleted;
         WebViewServiceSourceEdit.CoreWebView2Initialized += OnSourceEditCoreWebView2Initialized;
 
         WebViewServicePreviewBrowser.NavigationCompleted += OnPreviewBrowserWebView2NavigationCompleted;
         WebViewServicePreviewBrowser.CoreWebView2Initialized += OnPreviewBrowserCoreWebView2Initialized;
-        */
+
+
     }
 
     private void OnMenuFileExit()
@@ -532,19 +542,28 @@ public partial class EditorViewModel : ObservableRecipient
 
         // TODO:
         WebViewServiceRichEdit.UnregisterEvents();
-        WebViewServiceRichEdit.CoreWebView2.DOMContentLoaded -= OnRichEditCoreWebView2DOMContentLoaded;
-        WebViewServiceRichEdit.CoreWebView2.WebMessageReceived -= OnRichEditWebMessageReceived;
-        WebViewServiceRichEdit.CoreWebView2.PermissionRequested -= OnRichEditCoreWebView2OnPermissionRequested;
+        if (WebViewServiceRichEdit.CoreWebView2 is not null)
+        {
+            WebViewServiceRichEdit.CoreWebView2.DOMContentLoaded -= OnRichEditCoreWebView2DOMContentLoaded;
+            WebViewServiceRichEdit.CoreWebView2.WebMessageReceived -= OnRichEditWebMessageReceived;
+            WebViewServiceRichEdit.CoreWebView2.PermissionRequested -= OnRichEditCoreWebView2OnPermissionRequested;
+        }
 
         WebViewServiceSourceEdit.UnregisterEvents();
-        WebViewServiceSourceEdit.CoreWebView2.DOMContentLoaded -= OnSourceEditCoreWebView2DOMContentLoaded;
-        WebViewServiceSourceEdit.CoreWebView2.WebMessageReceived -= OnSourceEditWebMessageReceived;
-        WebViewServiceSourceEdit.CoreWebView2.PermissionRequested -= OnSourceEditCoreWebView2OnPermissionRequested;
+        if (WebViewServiceSourceEdit.CoreWebView2 is not null)
+        {
+            WebViewServiceSourceEdit.CoreWebView2.DOMContentLoaded -= OnSourceEditCoreWebView2DOMContentLoaded;
+            WebViewServiceSourceEdit.CoreWebView2.WebMessageReceived -= OnSourceEditWebMessageReceived;
+            WebViewServiceSourceEdit.CoreWebView2.PermissionRequested -= OnSourceEditCoreWebView2OnPermissionRequested;
+        }
 
         WebViewServicePreviewBrowser.UnregisterEvents();
-        WebViewServicePreviewBrowser.CoreWebView2.DOMContentLoaded -= OnPreviewBrowserCoreWebView2DOMContentLoaded;
-        WebViewServicePreviewBrowser.CoreWebView2.NavigationStarting -= OnPreviewBrowserCoreWebView2NavigationStarting;
-        WebViewServicePreviewBrowser.CoreWebView2.FrameNavigationStarting -= OnPreviewBrowserCoreWebView2NavigationStarting;
+        if (WebViewServicePreviewBrowser.CoreWebView2 is not null)
+        {
+            WebViewServicePreviewBrowser.CoreWebView2.DOMContentLoaded -= OnPreviewBrowserCoreWebView2DOMContentLoaded;
+            WebViewServicePreviewBrowser.CoreWebView2.NavigationStarting -= OnPreviewBrowserCoreWebView2NavigationStarting;
+            WebViewServicePreviewBrowser.CoreWebView2.FrameNavigationStarting -= OnPreviewBrowserCoreWebView2NavigationStarting;
+        }
 
         _uiSettings.ColorValuesChanged -= SystemUISettingColorValuesChanged;
 
@@ -564,29 +583,35 @@ public partial class EditorViewModel : ObservableRecipient
             return;
         }
 
+        string thm;
+        if (_theme == ElementTheme.Dark)
+        {
+            thm = "dark";
+        }
+        else
+        {
+            thm = "light";
+        }
+
+        /* not good when Javascript is not present.
         App.CurrentDispatcherQueue?.TryEnqueue(async () =>
         {
-            string thm;
-            if (_theme == ElementTheme.Dark)
-            {
-                thm = "dark";
-            }
-            else
-            {
-                thm = "light";
-            }
-            await WebViewServiceRichEdit.CoreWebView2?.ExecuteScriptAsync($"toggleTheme(\"{thm}\");");
-
-            //Debug.WriteLine("ChangeRichEditTheme: " + thm);
+            await WebViewServiceRichEdit?.CoreWebView2?.ExecuteScriptAsync($"toggleTheme(\"{thm}\");");
+        });
+        */
+        App.CurrentDispatcherQueue?.TryEnqueue(() =>
+        {
+            // TODO: try catch
+            WebViewServiceRichEdit?.CoreWebView2?.ExecuteScriptAsync($"toggleTheme(\"{thm}\");");
         });
     }
 
     private async void OnEditorExecFormatBoldCommand()
     {
-        var scriptResult = await WebViewServiceRichEdit.CoreWebView2?.ExecuteScriptAsync("document.execCommand(\"bold\", false);");
+        var scriptResult = await WebViewServiceRichEdit?.CoreWebView2?.ExecuteScriptAsync("document.execCommand(\"bold\", false);");
         Debug.WriteLine(scriptResult);
 
-        var res = await WebViewServiceRichEdit.CoreWebView2.ExecuteScriptAsync(@"document.getElementById('editor').innerHTML");
+        var res = await WebViewServiceRichEdit?.CoreWebView2?.ExecuteScriptAsync(@"document.getElementById('editor').innerHTML");
 
         var json = JsonDocument.Parse(res);
         var text = json.RootElement.ToString();
@@ -596,10 +621,10 @@ public partial class EditorViewModel : ObservableRecipient
 
     private async void OnEditorExecFormatItalicCommand()
     {
-        var scriptResult = await WebViewServiceRichEdit.CoreWebView2?.ExecuteScriptAsync("document.execCommand(\"italic\", false);");
+        var scriptResult = await WebViewServiceRichEdit?.CoreWebView2?.ExecuteScriptAsync("document.execCommand(\"italic\", false);");
         Debug.WriteLine(scriptResult);
 
-        var res = await WebViewServiceRichEdit.CoreWebView2.ExecuteScriptAsync(@"document.getElementById('editor').innerHTML");
+        var res = await WebViewServiceRichEdit?.CoreWebView2?.ExecuteScriptAsync(@"document.getElementById('editor').innerHTML");
 
         var json = JsonDocument.Parse(res);
         var text = json.RootElement.ToString();
@@ -607,20 +632,20 @@ public partial class EditorViewModel : ObservableRecipient
         WriteToSource(text);
     }
 
-    private async void FocusRichEdit()
+    private void FocusRichEdit()
     {
         if (IsRichEditDOMLoaded)
         {
             WebView2RichEditSetFocus?.Invoke(this, "");
             //await WebViewServiceRichEdit.CoreWebView2?.ExecuteScriptAsync($"focusEditor();");
-            await WebViewServiceRichEdit.CoreWebView2?.ExecuteScriptAsync(@"document.getElementById('editor').focus();");
+            WebViewServiceRichEdit?.CoreWebView2?.ExecuteScriptAsync(@"document.getElementById('editor').focus();");
             //Debug.WriteLine("FocusEditor()");
         }
     }
 
     private async void OnTest()
     {
-        var scriptResult = await WebViewServiceRichEdit.CoreWebView2?.ExecuteScriptAsync("test();");
+        var scriptResult = await WebViewServiceRichEdit?.CoreWebView2?.ExecuteScriptAsync("test();");
         Debug.WriteLine(scriptResult);
 
         /*
@@ -663,13 +688,18 @@ public partial class EditorViewModel : ObservableRecipient
         if (webErrorStatus != default)
         {
             HasRichEditFailures = true;
+
+            // TODO:
+            Debug.WriteLine("OnRichEditWebView2NavigationCompleted webErrorStatus:" + webErrorStatus.ToString());
         }
     }
 
     private void OnRichEditCoreWebView2Initialized(object? sender, CoreWebView2InitializedEventArgs arg)
     {
         if (WebViewServiceRichEdit.CoreWebView2 is null)
+        {
             return;
+        }
 
         try
         {
@@ -703,7 +733,7 @@ public partial class EditorViewModel : ObservableRecipient
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex);
+            Debug.WriteLine("OnRichEditCoreWebView2Initialized: " + ex);
 
             throw;
         }
@@ -744,7 +774,7 @@ public partial class EditorViewModel : ObservableRecipient
         */
         ChangeRichEditTheme();
 
-        var res = await WebViewServiceRichEdit.CoreWebView2.ExecuteScriptAsync(@"document.getElementById('editor').innerHTML");
+        var res = await WebViewServiceRichEdit?.CoreWebView2?.ExecuteScriptAsync(@"document.getElementById('editor').innerHTML");
 
         var json = JsonDocument.Parse(res);
         var text = json.RootElement.ToString();
@@ -767,7 +797,7 @@ public partial class EditorViewModel : ObservableRecipient
         /*
         var scriptResult = await WebViewService.CoreWebView2.ExecuteScriptAsync(@"isSelectionInTag('B');");
         */
-        var scriptResult = await WebViewServiceRichEdit.CoreWebView2.ExecuteScriptAsync(@"document.queryCommandState('bold');");
+        var scriptResult = await WebViewServiceRichEdit?.CoreWebView2?.ExecuteScriptAsync(@"document.queryCommandState('bold');");
         if (scriptResult == "true")
         {
             Debug.WriteLine("BOLD");
@@ -776,10 +806,8 @@ public partial class EditorViewModel : ObservableRecipient
 
     private void WriteToSource(string source)
     {
-        Debug.WriteLine(source);
-        // TODO:
+        Debug.WriteLine("WriteToSource: " + source);
         //Source = string.IsNullOrEmpty(source) ? "" : Windows.Data.Html.HtmlUtilities.ConvertToText(source);
-
         //Source = Windows.Data.Html.HtmlUtilities.ConvertToText(source);
 
         /*
@@ -813,10 +841,10 @@ public partial class EditorViewModel : ObservableRecipient
 
     private void WriteToRichEdit()
     {
-        if (!IsRichEditDOMLoaded)
-            return;
-
-        WebViewServiceRichEdit.CoreWebView2?.PostWebMessageAsString(Source);
+        if (IsRichEditDOMLoaded)
+        {
+            WebViewServiceRichEdit?.CoreWebView2?.PostWebMessageAsString(Source);
+        }
     }
 
     #endregion
@@ -830,30 +858,29 @@ public partial class EditorViewModel : ObservableRecipient
             return;
         }
 
-        App.CurrentDispatcherQueue?.TryEnqueue(async () =>
+        string thm;
+        if (_theme == ElementTheme.Dark)
         {
-            string thm;
-            if (_theme == ElementTheme.Dark)
-            {
-                thm = "dark";
-            }
-            else
-            {
-                thm = "light";
-            }
-            await WebViewServiceSourceEdit.CoreWebView2?.ExecuteScriptAsync($"toggleTheme(\"{thm}\");");
+            thm = "dark";
+        }
+        else
+        {
+            thm = "light";
+        }
 
-            //Debug.WriteLine("ChangeSourceEditTheme: " + thm);
+        App.CurrentDispatcherQueue?.TryEnqueue( () =>
+        {
+            WebViewServiceSourceEdit?.CoreWebView2?.ExecuteScriptAsync($"toggleTheme(\"{thm}\");");
         });
     }
 
-    private async void FocusSourceEdit()
+    private void FocusSourceEdit()
     {
         if (IsSourceEditDOMLoaded)
         {
             WebView2SourceEditSetFocus?.Invoke(this, "");
             //await WebViewServiceSourceEdit.CoreWebView2?.ExecuteScriptAsync($"focusEditor();");
-            await WebViewServiceSourceEdit.CoreWebView2?.ExecuteScriptAsync(@"document.getElementById('editor').focus();");
+            WebViewServiceSourceEdit.CoreWebView2?.ExecuteScriptAsync(@"document.getElementById('editor').focus();");
             //Debug.WriteLine("FocusEditor()");
         }
     }
@@ -872,7 +899,9 @@ public partial class EditorViewModel : ObservableRecipient
     private void OnSourceEditCoreWebView2Initialized(object? sender, CoreWebView2InitializedEventArgs arg)
     {
         if (WebViewServiceSourceEdit.CoreWebView2 is null)
+        {
             return;
+        }
 
         //WebViewService.CoreWebView2?.AddHostObjectToScript("model", _jsModel);
 
@@ -961,7 +990,9 @@ public partial class EditorViewModel : ObservableRecipient
     private void WriteToSourceEdit()
     {
         if (!IsSourceEditDOMLoaded)
+        {
             return;
+        }
 
         WebViewServiceSourceEdit.CoreWebView2?.PostWebMessageAsString(Source);
     }
@@ -977,30 +1008,29 @@ public partial class EditorViewModel : ObservableRecipient
             return;
         }
 
-        App.CurrentDispatcherQueue?.TryEnqueue(async () =>
+        string thm;
+        if (_theme == ElementTheme.Dark)
         {
-            string thm;
-            if (_theme == ElementTheme.Dark)
-            {
-                thm = "dark";
-            }
-            else
-            {
-                thm = "light";
-            }
-            await WebViewServicePreviewBrowser.CoreWebView2?.ExecuteScriptAsync($"toggleTheme(\"{thm}\");");
+            thm = "dark";
+        }
+        else
+        {
+            thm = "light";
+        }
 
-            //Debug.WriteLine("ChangePreviewBrowserTheme: " + thm);
+        App.CurrentDispatcherQueue?.TryEnqueue(() =>
+        {
+            WebViewServicePreviewBrowser.CoreWebView2?.ExecuteScriptAsync($"toggleTheme(\"{thm}\");");
         });
     }
 
-    private async void FocusPreviewBrowser()
+    private void FocusPreviewBrowser()
     {
         if (IsPreviewBrowserDOMLoaded)
         {
             WebView2PreviewBrowserSetFocus?.Invoke(this, "");
             //await WebViewServiceSourceEdit.CoreWebView2?.ExecuteScriptAsync($"focusEditor();");
-            await WebViewServicePreviewBrowser.CoreWebView2?.ExecuteScriptAsync(@"document.getElementById('editor').focus();");
+            WebViewServicePreviewBrowser.CoreWebView2?.ExecuteScriptAsync(@"document.getElementById('editor').focus();");
             //Debug.WriteLine("FocusEditor()");
         }
     }
@@ -1019,7 +1049,9 @@ public partial class EditorViewModel : ObservableRecipient
     private void OnPreviewBrowserCoreWebView2Initialized(object? sender, CoreWebView2InitializedEventArgs arg)
     {
         if (WebViewServicePreviewBrowser.CoreWebView2 is null)
+        {
             return;
+        }
 
         //WebViewService.CoreWebView2?.AddHostObjectToScript("model", _jsModel);
 
@@ -1078,10 +1110,11 @@ public partial class EditorViewModel : ObservableRecipient
     private void WriteToPreviewBrowser()
     {
         if (!IsSourceEditDOMLoaded)
+        {
             return;
+        }
 
         WebViewServicePreviewBrowser.CoreWebView2?.PostWebMessageAsString(Source);
-
     }
 
     #endregion

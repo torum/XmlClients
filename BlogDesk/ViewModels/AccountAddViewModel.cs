@@ -13,7 +13,6 @@ namespace BlogDesk.ViewModels;
 public class AccountAddViewModel : ObservableRecipient, INavigationAware
 {
     private readonly INavigationService _navigationService;
-
     private readonly IAutoDiscoveryService _serviceDiscovery;
 
     #region == Properties ==
@@ -390,7 +389,7 @@ public class AccountAddViewModel : ObservableRecipient, INavigationAware
 
         try
         {
-            ServiceResultBase sr = await _serviceDiscovery.DiscoverService(uri, false);
+            var sr = await _serviceDiscovery.DiscoverService(uri, false);
 
             if (sr == null)
             {
@@ -452,7 +451,9 @@ public class AccountAddViewModel : ObservableRecipient, INavigationAware
                                         ServiceDocumentLinkItem li = new(s);
 
                                         if (li.IsSupported)
+                                        {
                                             LinkItems.Add(li);
+                                        }
                                     }
                                 }
                             }
@@ -504,7 +505,7 @@ public class AccountAddViewModel : ObservableRecipient, INavigationAware
             }
             else if (sr is ServiceResultFeed srf)
             {
-                FeedLink? feed = srf.FeedlinkInfo;
+                var feed = srf.FeedlinkInfo;
 
                 if (feed != null)
                 {
@@ -522,9 +523,9 @@ public class AccountAddViewModel : ObservableRecipient, INavigationAware
             }
             else if (sr is ServiceResultRsd srr)
             {
-                if (srr.Rsd is RsdLink)
+                if (srr.Rsd is not null)
                 {
-                    RsdLink hoge = srr.Rsd;
+                    var hoge = srr.Rsd;
 
                     if (hoge.Apis != null)
                     {
@@ -593,10 +594,14 @@ public class AccountAddViewModel : ObservableRecipient, INavigationAware
     private bool CanGo()
     {
         if (string.IsNullOrEmpty(WebsiteOrEndpointUrl))
+        {
             return false;
+        }
 
         if (!WebsiteOrEndpointUrl.StartsWith("http"))
+        {
             return false;
+        }
 
         return true;
     }
@@ -655,41 +660,51 @@ public class AccountAddViewModel : ObservableRecipient, INavigationAware
     private void OnAddSelectedAndClose()
     {
         if (SelectedLinkItem == null)
+        {
             return;
+        }
 
         if (IsXmlRpc)
         {
             if (string.IsNullOrEmpty(UserIdXmlRpc))
+            {
                 return;
+            }
 
             if (string.IsNullOrEmpty(PasswordXmlRpc))
+            {
                 return;
+            }
         }
 
         if (SelectedLinkItem is FeedLinkItem fli)
         {
             if (!string.IsNullOrEmpty(SelectedItemTitleLabel))
+            {
                 fli.FeedLinkData.Title = SelectedItemTitleLabel;
+            }
             /*
-            var vm = App.GetService<MainViewModel>();
-            vm.AddFeed(fli.FeedLinkData);
-            _navigationService.NavigateTo(typeof(MainViewModel).FullName!, null);
-            */
+var vm = App.GetService<MainViewModel>();
+vm.AddFeed(fli.FeedLinkData);
+_navigationService.NavigateTo(typeof(MainViewModel).FullName!, null);
+*/
         }
         else if (SelectedLinkItem is ServiceDocumentLinkItem sdli)
         {
             if (sdli.SearviceDocumentLinkData is RsdLink rl)
             {
-                RsdLink sd = rl;
+                var sd = rl;
 
                 if (!string.IsNullOrEmpty(SelectedItemTitleLabel))
+                {
                     sd.Title = SelectedItemTitleLabel;
+                }
                 /*
-                RegisterXmlRpcEventArgs arg = new();
-                arg.RsdLink = sd;
-                arg.UserIdXmlRpc = UserIdXmlRpc;
-                arg.PasswordXmlRpc = PasswordXmlRpc;
-                */
+RegisterXmlRpcEventArgs arg = new();
+arg.RsdLink = sd;
+arg.UserIdXmlRpc = UserIdXmlRpc;
+arg.PasswordXmlRpc = PasswordXmlRpc;
+*/
                 // TODO: check XML-RPC call?
 
                 // TODO
@@ -697,11 +712,12 @@ public class AccountAddViewModel : ObservableRecipient, INavigationAware
             }
             else if (sdli.SearviceDocumentLinkData is AppLink al)
             {
-                AppLink sd = al;
-                if (sd.NodeService != null)
+                if (al.NodeService != null)
                 {
                     if (!string.IsNullOrEmpty(SelectedItemTitleLabel))
-                        sd.NodeService.Name = SelectedItemTitleLabel;
+                    {
+                        al.NodeService.Name = SelectedItemTitleLabel;
+                    }
                 }
                 /*
                 RegisterAtomPubEventArgs arg = new();
@@ -716,10 +732,14 @@ public class AccountAddViewModel : ObservableRecipient, INavigationAware
     private bool CanAddSelectedAndClose()
     {
         if (SelectedLinkItem == null)
+        {
             return false;
+        }
 
         if (string.IsNullOrEmpty(SelectedItemTitleLabel))
+        {
             return false;
+        }
 
         //
         if (SelectedLinkItem is not FeedLinkItem)

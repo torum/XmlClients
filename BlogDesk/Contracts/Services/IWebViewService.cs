@@ -5,18 +5,22 @@ namespace BlogDesk.Contracts.Services;
 
 public interface IWebViewService
 {
-    public CoreWebView2? CoreWebView2
-    {
-
-        get;
-    }
-
     Uri? Source
     {
         get;
     }
+    
+    // Added
+    public WebView2? WebView
+    {
+        get;
+    }
 
-    void NavigateToString(string str);
+    // Added
+    public CoreWebView2? CoreWebView2
+    {
+        get;
+    }
 
     bool CanGoBack
     {
@@ -29,9 +33,14 @@ public interface IWebViewService
     }
 
     event EventHandler<CoreWebView2WebErrorStatus>? NavigationCompleted;
+    
+    // Added
     event EventHandler<CoreWebView2InitializedEventArgs>? CoreWebView2Initialized;
 
     void Initialize(WebView2 webView);
+    
+    // Added
+    void NavigateToString(string str);
 
     void GoBack();
 

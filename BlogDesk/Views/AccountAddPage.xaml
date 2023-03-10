@@ -17,14 +17,13 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <Grid Grid.Row="0" Grid.Column="0" Margin="6,0,6,6" CornerRadius="6" Background="{ThemeResource NavigationViewContentBackground}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
+        <Grid Grid.Row="0" Grid.Column="0" Margin="0,0,6,6" CornerRadius="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            
+
             <Button Grid.Row="0" Grid.Column="0" Margin="12,12,0,0" Padding="12" VerticalAlignment="Top" Background="Transparent" BorderThickness="0" Command="{x:Bind ViewModel.GoBackCommand}">
-                <!-- <SymbolIcon Symbol="Back" /> -->
                 <Viewbox Width="16" Height="16" VerticalAlignment="Center" HorizontalAlignment="Center">
                     <PathIcon Margin="-2,-2,0,0" Data="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"></PathIcon>
                 </Viewbox>
@@ -34,7 +33,14 @@
                 <ScrollViewer>
                     <StackPanel Margin="50,12,50,0" HorizontalAlignment="Left">
 
-                        <TextBlock x:Uid="FeedAddPage_Title_NewFeed" Margin="0,0,0,12" Style="{StaticResource PageTitleStyle}" />
+                        <Viewbox Width="45" Height="45" HorizontalAlignment="Left" Margin="0,12,0,12">
+                            <PathIcon Margin="0,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <PathIcon.Data>
+                                    M15,14C12.33,14 7,15.33 7,18V20H23V18C23,15.33 17.67,14 15,14M6,10V7H4V10H1V12H4V15H6V12H9V10M15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12Z</PathIcon.Data>
+                            </PathIcon>
+                        </Viewbox>
+                        
+                        <TextBlock Text="Add Account" Margin="0,12,0,12" Style="{StaticResource PageTitleStyle}" />
 
                         <Pivot Title="" Margin="0,-48,0,0" MinWidth="300" SelectedIndex="{x:Bind ViewModel.SelectedTabIndex, Mode=TwoWay}">
                             <Pivot.Resources>
@@ -43,49 +49,23 @@
                                 </Style>
                             </Pivot.Resources>
 
-                            <PivotItem Header="1. Input URL">
+                            <PivotItem Header="1. Input URL" Margin="0">
                                 <StackPanel Margin="0,12,0,0" HorizontalAlignment="Stretch">
 
                                     <TextBlock x:Uid="FeedAddPage_EnterAURL" />
 
-                                    <StackPanel Margin="24" HorizontalAlignment="Stretch">
+                                    <StackPanel Margin="0" HorizontalAlignment="Stretch">
 
                                         <TextBox Header="URL:" PlaceholderText="https://...." Text="{x:Bind ViewModel.WebsiteOrEndpointUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Stretch"/>
 
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
 
-                                            <Button x:Uid="FeedAddPage_Button_Next" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoCommand}"></Button>
+                                            <Button Content="Go" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoCommand}"></Button>
 
                                         </StackPanel>
                                     </StackPanel>
-                                    <!--
-                            <Grid MinWidth="300" MaxWidth="850" HorizontalAlignment="Left" Margin="24,0,12,12" Visibility="{x:Bind ViewModel.IsShowError,Mode=OneWay}">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
 
-
-                                <Viewbox Grid.Row="0" Grid.Column="0" Margin="12" HorizontalAlignment="Left" VerticalAlignment="Top" Stretch="Uniform" Width="24" Height="24">
-                                    <Canvas Opacity="1" Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <Path Opacity="0.9" Width="12" Height="12" Fill="Yellow" Stretch="Uniform" Data="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16"></Path>
-                                    </Canvas>
-                                </Viewbox>
-
-
-                                <RichTextBlock Grid.Row="0" Grid.Column="1" VerticalAlignment="Top" Margin="0,12,0,0">
-                                    <Paragraph>
-                                        <Run FontWeight="Bold" Text="{x:Bind ViewModel.StatusTitleText, Mode=OneWay}"/>
-                                    </Paragraph>
-                                    <Paragraph>
-                                        <Run FontWeight="Normal" Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"/>
-                                    </Paragraph>
-                                </RichTextBlock>
-
-                                
-                            </Grid>
--->
-                                    <Border Visibility="{x:Bind ViewModel.IsShowError, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}" Margin="24,24,24,0">
+                                    <Border Visibility="{x:Bind ViewModel.IsShowError, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}" Margin="0,24,0,0">
                                         <InfoBar IsOpen="{x:Bind ViewModel.IsShowError,Mode=TwoWay}" Severity="Warning" IsIconVisible="True" IsClosable="True" Margin="0" Title="{x:Bind ViewModel.StatusTitleText, Mode=OneWay}" Message="{x:Bind ViewModel.StatusText, Mode=OneWay}" />
                                     </Border>
 
@@ -129,9 +109,7 @@
                                                                 <ColumnDefinition Width="Auto"/>
                                                                 <ColumnDefinition Width="*"/>
                                                             </Grid.ColumnDefinitions>
-                                                            <!--
-                                                <Ellipse Grid.RowSpan="3" x:Name="Ellipse" Width ="24" Height="24" Margin="0,0,12,0" VerticalAlignment="Center" HorizontalAlignment="Center" Fill="{ThemeResource SystemControlBackgroundBaseMediumBrush}"/>
--->
+
                                                             <PathIcon Data="{Binding IconPath, Mode=OneWay}" Width ="24" Height="24" Margin="0,0,12,0"></PathIcon>
 
                                                             <TextBlock Grid.Row="0" Grid.Column="1" FontWeight="Bold" Text="Type:" Padding="3"/>
@@ -151,8 +129,8 @@
 
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
 
-                                            <Button x:Uid="FeedAddPage_Button_Back" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoToFirstTabCommand}"></Button>
-                                            <Button x:Uid="FeedAddPage_Button_Next" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoSelectedCommand}"></Button>
+                                            <Button Content="Back" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoToFirstTabCommand}"></Button>
+                                            <Button Content="Next" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoSelectedCommand}"></Button>
 
                                         </StackPanel>
 
@@ -196,75 +174,10 @@
 
                                             <Button x:Uid="FeedAddPage_Button_Back" HorizontalAlignment="Right" Margin="12,24,12,12" Command="{x:Bind ViewModel.GoToThirdTabCommand}"></Button>
                                             <Button Command="{x:Bind ViewModel.AddSelectedAndCloseCommand}" x:Uid="FeedAddPage_Button_Add" HorizontalAlignment="Right" Margin="12,24,12,12">
-                                                <!--
-                                            <PathIcon Data="M17,13H13V17H11V13H7V11H11V7H13V11H17M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"></PathIcon>
-                                            -->
                                             </Button>
                                         </StackPanel>
 
 
-                                        <!--
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="12"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="12"/>
-                                </Grid.ColumnDefinitions>
-
-                                <Grid Grid.Row="0" Grid.Column="1">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-
-
-
-
-                                    <StackPanel Grid.Row="0" Grid.Column="2" HorizontalAlignment="Right" Margin="6">
-
-
-                                    </StackPanel>
-                                </Grid>
-
-                                <Grid Grid.Row="1" Grid.Column="1" Margin="24 0 24 0">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-
-
-
-
-                                    <Border Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center" Margin="6 12 6 6" Header="XML-RPC API" Visibility="{Binding IsXmlRpc, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
-                                        <StackPanel HorizontalAlignment="Left" Margin="12">
-
-                                            <TextBlock Text="User ID" HorizontalAlignment="Left"" Margin="0 0 0 3"></TextBlock>
-
-                                            <TextBox HorizontalAlignment="Stretch" Width="200" Margin="0" Text="{Binding UserIdXmlRpc, UpdateSourceTrigger=PropertyChanged}"></TextBox>
-
-
-                                            <TextBlock Text="Password" HorizontalAlignment="Left" Margin="0 9 0 3"></TextBlock>
-
-                                            <TextBox HorizontalAlignment="Stretch" Width="200" Margin="0 0 0 12" Text="{Binding PasswordXmlRpc, UpdateSourceTrigger=PropertyChanged}"></TextBox>
-
-                                        </StackPanel>
-                                    </Border>
-                                </Grid>
-
-
-                            </Grid>
-                            -->
                                     </StackPanel>
 
                                 </StackPanel>
@@ -278,7 +191,7 @@
 
         </Grid>
 
-        <Border Grid.Row="1" Grid.Column="0" MaxHeight="200" Height="200" Margin="6,0,6,6" CornerRadius="6" Background="{ThemeResource NavigationViewContentBackground}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
+        <Border Grid.Row="1" Grid.Column="0" MaxHeight="200" Height="200" Margin="48,0,6,6" CornerRadius="6">
             <ScrollViewer>
                 <RichTextBlock Padding="6" ScrollViewer.VerticalScrollBarVisibility="Visible" Opacity="0.6">
                     <Paragraph>

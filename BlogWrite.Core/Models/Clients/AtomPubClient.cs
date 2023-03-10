@@ -1,20 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using System.Xml;
-using System.Xml.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
-using BlogWrite.Core.Models;
-using BlogWrite.Core.Models.Clients;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 
 namespace BlogWrite.Core.Models.Clients;
 
 // AtomPubClient - Implements Atom Publishing protocol 
-class AtomPubClient : BlogClient
+public class AtomPubClient : BlogClient
 {
     public AtomPubClient(string userName, string userPassword, Uri endpoint) : base(userName, userPassword, endpoint)
     {
@@ -26,9 +16,9 @@ class AtomPubClient : BlogClient
 
     public async override Task<NodeService> GetAccount(string accountName)
     {
-        NodeService account = new NodeService(accountName, _userName, _userPassword, _endpoint, ApiTypes.atAtomPub, ServiceTypes.AtomPub);
+        var account = new NodeService(accountName, _userName, _userPassword, _endpoint, ApiTypes.atAtomPub, ServiceTypes.AtomPub);
 
-        List<NodeWorkspace> blogs = await GetBlogs();
+        var blogs = await GetBlogs();
         foreach (var item in blogs)
         {
             item.Parent = account;
@@ -48,7 +38,7 @@ class AtomPubClient : BlogClient
 
         if (HTTPResponseMessage.IsSuccessStatusCode)
         {
-            string s = await HTTPResponseMessage.Content.ReadAsStringAsync();
+             var s = await HTTPResponseMessage.Content.ReadAsStringAsync();
 
             //System.Diagnostics.Debug.WriteLine("GET blogs(collection): " + s);
 
@@ -60,7 +50,7 @@ class AtomPubClient : BlogClient
                 + Environment.NewLine
                 + s + Environment.NewLine);
 
-            string contenTypeString = HTTPResponseMessage.Content.Headers.GetValues("Content-Type").FirstOrDefault();
+            var contenTypeString = HTTPResponseMessage.Content.Headers.GetValues("Content-Type").FirstOrDefault();
 
             if (!contenTypeString.StartsWith("application/atomsvc+xml"))
             {
@@ -74,7 +64,7 @@ class AtomPubClient : BlogClient
                 return blogs;
             }
 
-            XmlDocument xdoc = new XmlDocument();
+            var xdoc = new XmlDocument();
             try
             {
                 xdoc.LoadXml(s);
@@ -91,23 +81,28 @@ class AtomPubClient : BlogClient
                 return blogs;
             }
 
-            XmlNamespaceManager atomNsMgr = new XmlNamespaceManager(xdoc.NameTable);
+            var atomNsMgr = new XmlNamespaceManager(xdoc.NameTable);
             atomNsMgr.AddNamespace("atom", "http://www.w3.org/2005/Atom");
             atomNsMgr.AddNamespace("app", "http://www.w3.org/2007/app");
 
             XmlNodeList workspaceList;
             workspaceList = xdoc.SelectNodes("//app:service/app:workspace", atomNsMgr);
-            if (workspaceList == null) return blogs;
+            if (workspaceList == null)
+            {
+                return blogs;
+            }
 
             foreach (XmlNode n in workspaceList)
             {
-                XmlNode accountTitle = n.SelectSingleNode("atom:title", atomNsMgr);
+                var accountTitle = n.SelectSingleNode("atom:title", atomNsMgr);
                 if (accountTitle == null)
+                {
                     continue;
+                }
 
-                NodeWorkspace blog = new NodeWorkspace(accountTitle.InnerText);
+                var blog = new NodeWorkspace(accountTitle.InnerText);
 
-                List<NodeAtomPubEntryCollection> entries = await GetEntryNodesFromXML(n, atomNsMgr);
+                var entries = await GetEntryNodesFromXML(n, atomNsMgr);
                 foreach (var item in entries)
                 {
                     item.Parent = blog;
@@ -143,7 +138,7 @@ class AtomPubClient : BlogClient
 
     private async Task<List<NodeAtomPubEntryCollection>> GetEntryNodesFromXML(XmlNode w, XmlNamespaceManager atomNsMgr)
     {
-        List<NodeAtomPubEntryCollection> cols = new List<NodeAtomPubEntryCollection>();
+        var cols = new List<NodeAtomPubEntryCollection>();
 
         /*
 <?xml version="1.0" encoding="utf-8"?>
@@ -198,29 +193,34 @@ class AtomPubClient : BlogClient
         </service>
         */
 
-        XmlNodeList collectionList = w.SelectNodes("app:collection", atomNsMgr);
+        var collectionList = w.SelectNodes("app:collection", atomNsMgr);
         if (collectionList == null)
+        {
             return cols;
+        }
 
         foreach (XmlNode n in collectionList)
         {
             var hrefAttr = n.Attributes["href"].Value;
             if (hrefAttr == null)
+            {
                 continue;
+            }
 
-            XmlNode title = n.SelectSingleNode("atom:title", atomNsMgr);
+            var title = n.SelectSingleNode("atom:title", atomNsMgr);
             if (title == null)
+            {
                 continue;
+            }
 
-            NodeAtomPubEntryCollection entries = new NodeAtomPubEntryCollection(title.InnerText, new Uri(hrefAttr), hrefAttr);
+            var entries = new NodeAtomPubEntryCollection(title.InnerText, new Uri(hrefAttr), hrefAttr);
 
-
-            XmlNodeList acceptList = n.SelectNodes("app:accept", atomNsMgr);
+            var acceptList = n.SelectNodes("app:accept", atomNsMgr);
             if (acceptList != null)
             {
                 foreach (XmlNode a in acceptList)
                 {
-                    string acpt = a.InnerText;
+                    var acpt = a.InnerText;
                     if (!string.IsNullOrEmpty(acpt))
                     {
                         entries.AcceptTypes.Add(acpt);
@@ -266,19 +266,19 @@ class AtomPubClient : BlogClient
                 }
             }
             */
-            XmlNodeList categoriesList = n.SelectNodes("app:categories", atomNsMgr);
+            var categoriesList = n.SelectNodes("app:categories", atomNsMgr);
             if (categoriesList != null)
             {
                 foreach (XmlNode cats in categoriesList)
                 {
-                    NodeAtomPubCatetories categories = new NodeAtomPubCatetories("Categories");
+                    var categories = new NodeAtomPubCatetories("Categories");
                     categories.IsExpanded = true;
                     categories.Parent = entries;
 
                     Uri catHrefUri = null;
                     if (cats.Attributes["href"] != null)
                     {
-                        string cathref = cats.Attributes["href"].Value;
+                        var cathref = cats.Attributes["href"].Value;
                         if (!string.IsNullOrEmpty(cathref))
                         {
                             try
@@ -294,7 +294,7 @@ class AtomPubClient : BlogClient
 
                     if (cats.Attributes["fixed"] != null)
                     {
-                        string catFix = cats.Attributes["fixed"].Value;
+                        var catFix = cats.Attributes["fixed"].Value;
                         if (!string.IsNullOrEmpty(catFix))
                         {
                             if (catFix == "yes")
@@ -310,7 +310,7 @@ class AtomPubClient : BlogClient
 
                     if (cats.Attributes["scheme"] != null)
                     {
-                        string catScheme = cats.Attributes["scheme"].Value;
+                        var catScheme = cats.Attributes["scheme"].Value;
                         if (!string.IsNullOrEmpty(catScheme))
                         {
                             categories.Scheme = catScheme;
@@ -318,18 +318,18 @@ class AtomPubClient : BlogClient
                     }
                     // scheme
 
-                    XmlNodeList categoryList = cats.SelectNodes("atom:category", atomNsMgr);
+                    var categoryList = cats.SelectNodes("atom:category", atomNsMgr);
                     if (categoryList != null)
                     {
                         foreach (XmlNode cat in categoryList)
                         {
-                            NodeAtomPubCategory category = new NodeAtomPubCategory("Category");
+                            var category = new NodeAtomPubCategory("Category");
                             category.IsExpanded = true;
                             category.Parent = categories;
 
                             if (cat.Attributes["term"] != null)
                             {
-                                string term = cat.Attributes["term"].Value;
+                                var term = cat.Attributes["term"].Value;
                                 if (!string.IsNullOrEmpty(term))
                                 {
                                     category.Term = term;
@@ -338,7 +338,7 @@ class AtomPubClient : BlogClient
 
                             if (cat.Attributes["scheme"] != null)
                             {
-                                string scheme = cat.Attributes["scheme"].Value;
+                                var scheme = cat.Attributes["scheme"].Value;
                                 if (!string.IsNullOrEmpty(scheme))
                                 {
                                     category.Scheme = scheme;
@@ -348,7 +348,9 @@ class AtomPubClient : BlogClient
                             category.Name = category.Term;
 
                             if (string.IsNullOrEmpty(category.Scheme))
+                            {
                                 category.Scheme = categories.Scheme;
+                            }
 
                             categories.Children.Add(category);
                         }
@@ -374,7 +376,7 @@ class AtomPubClient : BlogClient
             // Get category document.
             if (entries.CategoriesUri != null)
             {
-                NodeAtomPubCatetories nc = await GetCategiries(entries.CategoriesUri);
+                var nc = await GetCategiries(entries.CategoriesUri);
 
                 entries.IsCategoryFixed = nc.IsCategoryFixed;
 
@@ -412,13 +414,13 @@ class AtomPubClient : BlogClient
 
     public async Task<NodeAtomPubCatetories> GetCategiries(Uri categoriesUrl)
     {
-        NodeAtomPubCatetories cats = new NodeAtomPubCatetories("AtomPub Categories");
+        var cats = new NodeAtomPubCatetories("AtomPub Categories");
 
         var HTTPResponseMessage = await Client.GetAsync(categoriesUrl);
 
         if (HTTPResponseMessage.IsSuccessStatusCode)
         {
-            string s = await HTTPResponseMessage.Content.ReadAsStringAsync();
+            var s = await HTTPResponseMessage.Content.ReadAsStringAsync();
 
             ToDebugWindow(">> HTTP Request GET "
                 + Environment.NewLine
@@ -437,7 +439,7 @@ class AtomPubClient : BlogClient
     </app:categories>
              */
 
-            string contenTypeString = HTTPResponseMessage.Content.Headers.GetValues("Content-Type").FirstOrDefault();
+            var contenTypeString = HTTPResponseMessage.Content.Headers.GetValues("Content-Type").FirstOrDefault();
 
             if (!contenTypeString.StartsWith("application/atomcat+xml"))
             {
@@ -451,7 +453,7 @@ class AtomPubClient : BlogClient
                 return cats;
             }
 
-            XmlDocument xdoc = new XmlDocument();
+            var xdoc = new XmlDocument();
             try
             {
                 xdoc.LoadXml(s);
@@ -468,7 +470,7 @@ class AtomPubClient : BlogClient
                 return cats;
             }
 
-            XmlNamespaceManager atomNsMgr = new XmlNamespaceManager(xdoc.NameTable);
+            var atomNsMgr = new XmlNamespaceManager(xdoc.NameTable);
             atomNsMgr.AddNamespace("atom", "http://www.w3.org/2005/Atom");
             atomNsMgr.AddNamespace("app", "http://www.w3.org/2007/app");
 
@@ -490,7 +492,7 @@ class AtomPubClient : BlogClient
 
             if (xdoc.DocumentElement.Attributes["scheme"] != null)
             {
-                string catScheme = xdoc.DocumentElement.Attributes["scheme"].Value;
+                var catScheme = xdoc.DocumentElement.Attributes["scheme"].Value;
                 if (!string.IsNullOrEmpty(catScheme))
                 {
                     cats.Scheme = catScheme;
@@ -500,13 +502,15 @@ class AtomPubClient : BlogClient
             XmlNodeList categoryList;
             categoryList = xdoc.SelectNodes("//app:categories/atom:category", atomNsMgr);
             if (categoryList == null)
+            {
                 return cats;
+            }
 
             foreach (XmlNode c in categoryList)
             {
                 if (c.Attributes["term"] != null)
                 {
-                    NodeAtomPubCategory category = new NodeAtomPubCategory(c.Attributes["term"].Value);
+                    var category = new NodeAtomPubCategory(c.Attributes["term"].Value);
 
                     if (c.Attributes["scheme"] != null)
                     {
@@ -514,7 +518,9 @@ class AtomPubClient : BlogClient
                     }
 
                     if (string.IsNullOrEmpty(category.Scheme))
+                    {
                         category.Scheme = cats.Scheme;
+                    }
 
                     cats.Children.Add(category);
                 }
@@ -539,11 +545,11 @@ class AtomPubClient : BlogClient
         return cats;
     }
 
-    public override async Task<HttpClientEntryItemCollectionResultWrapper> GetEntries(Uri entriesUrl, string serviceId)
+    public async override Task<HttpClientEntryItemCollectionResultWrapper> GetEntries(Uri entriesUrl, string serviceId)
     {
-        HttpClientEntryItemCollectionResultWrapper res = new HttpClientEntryItemCollectionResultWrapper();
+        var res = new HttpClientEntryItemCollectionResultWrapper();
 
-        List<EntryItem> list = new List<EntryItem>();
+        var list = new List<EntryItem>();
         res.Entries = list;
 
         //System.Diagnostics.Debug.WriteLine("GetEntries Uri: " + entriesUrl.AbsoluteUri);
@@ -551,7 +557,7 @@ class AtomPubClient : BlogClient
 
         if (HTTPResponseMessage.IsSuccessStatusCode)
         {
-            string s = await HTTPResponseMessage.Content.ReadAsStringAsync();
+            var s = await HTTPResponseMessage.Content.ReadAsStringAsync();
 
             ToDebugWindow(">> HTTP Request GET "
                 + Environment.NewLine
@@ -610,7 +616,7 @@ class AtomPubClient : BlogClient
    </feed>
             */
 
-            string contenTypeString = HTTPResponseMessage.Content.Headers.GetValues("Content-Type").FirstOrDefault();
+            var contenTypeString = HTTPResponseMessage.Content.Headers.GetValues("Content-Type").FirstOrDefault();
 
             if (!contenTypeString.StartsWith("application/atom+xml"))
             {
@@ -627,7 +633,7 @@ class AtomPubClient : BlogClient
                 return (res as HttpClientEntryItemCollectionResultWrapper);
             }
 
-            XmlDocument xdoc = new XmlDocument();
+            var xdoc = new XmlDocument();
             try
             {
                 xdoc.LoadXml(s);
@@ -647,23 +653,25 @@ class AtomPubClient : BlogClient
                 return res;
             }
 
-            XmlNamespaceManager atomNsMgr = new XmlNamespaceManager(xdoc.NameTable);
+            var atomNsMgr = new XmlNamespaceManager(xdoc.NameTable);
             atomNsMgr.AddNamespace("atom", "http://www.w3.org/2005/Atom");
             atomNsMgr.AddNamespace("app", "http://www.w3.org/2007/app");
 
             XmlNodeList entryList;
             entryList = xdoc.SelectNodes("//atom:feed/atom:entry", atomNsMgr);
             if (entryList == null)
+            {
                 if (entryList == null)
                 {
                     res.Entries = list;
 
                     return res;
                 }
+            }
 
             foreach (XmlNode l in entryList)
             {
-                AtomEntry ent = new AtomEntry("", serviceId, this);
+                var ent = new AtomEntry("", serviceId, this);
 
                 FillEntryItemFromXML(ent, l, atomNsMgr, serviceId);
 
@@ -691,10 +699,12 @@ class AtomPubClient : BlogClient
 
     private void FillEntryItemFromXML(AtomEntry entItem, XmlNode entryNode, XmlNamespaceManager atomNsMgr, string serviceId)
     {
-        AtomEntry entry = CreateAtomEntryFromXML(entryNode, atomNsMgr, serviceId);
+        var entry = CreateAtomEntryFromXML(entryNode, atomNsMgr, serviceId);
 
         if (entry == null)
+        {
             return;
+        }
 
         entItem.Name = entry.Name;
         //entItem.ID = entry.ID;
@@ -706,7 +716,7 @@ class AtomPubClient : BlogClient
         entItem.Status = entry.Status;
     }
 
-    public override async Task<EntryFull> GetFullEntry(Uri entryUri, string serviceId, string nil)
+    public async override Task<EntryFull>? GetFullEntry(Uri entryUri, string serviceId, string nil)
     {
         // TODO: 
         // HTTP Head, if_modified_since or If-None-Match etag or something... then  Get;
@@ -715,7 +725,7 @@ class AtomPubClient : BlogClient
 
         if (HTTPResponseMessage.IsSuccessStatusCode)
         {
-            string s = await HTTPResponseMessage.Content.ReadAsStringAsync();
+            var s = await HTTPResponseMessage.Content.ReadAsStringAsync();
 
             ToDebugWindow(">> HTTP Request GET "
                 + Environment.NewLine
@@ -725,9 +735,9 @@ class AtomPubClient : BlogClient
                 + Environment.NewLine
                 + s + Environment.NewLine);
 
-            string contenTypeString = HTTPResponseMessage.Content.Headers.GetValues("Content-Type").FirstOrDefault();
+            var contenTypeString = HTTPResponseMessage.Content.Headers.GetValues("Content-Type").FirstOrDefault();
 
-            if (!contenTypeString.StartsWith("application/atom+xml"))
+            if (contenTypeString is null || !contenTypeString.StartsWith("application/atom+xml"))
             {
                 System.Diagnostics.Debug.WriteLine("Content-Type is invalid: " + contenTypeString);
 
@@ -739,7 +749,7 @@ class AtomPubClient : BlogClient
                 return null;
             }
 
-            XmlDocument xdoc = new XmlDocument();
+            var xdoc = new XmlDocument();
             try
             {
                 xdoc.LoadXml(s);
@@ -756,26 +766,26 @@ class AtomPubClient : BlogClient
                 return null;
             }
 
-            XmlNamespaceManager atomNsMgr = new XmlNamespaceManager(xdoc.NameTable);
+            var atomNsMgr = new XmlNamespaceManager(xdoc.NameTable);
             atomNsMgr.AddNamespace("atom", "http://www.w3.org/2005/Atom");
             atomNsMgr.AddNamespace("app", "http://www.w3.org/2007/app");
             atomNsMgr.AddNamespace("hatena", "http://www.hatena.ne.jp/info/xmlns#");
 
-            XmlNode entryNode = xdoc.SelectSingleNode("//atom:entry", atomNsMgr);
+            var entryNode = xdoc.SelectSingleNode("//atom:entry", atomNsMgr);
             if (entryNode == null)
             {
                 System.Diagnostics.Debug.WriteLine("//atom:entry is null.");
                 return null;
             }
 
-            XmlNode cont = entryNode.SelectSingleNode("atom:content", atomNsMgr);
+            var cont = entryNode.SelectSingleNode("atom:content", atomNsMgr);
             if (cont == null)
             {
                 System.Diagnostics.Debug.WriteLine("//atom:content is null.");
                 return null;
             }
 
-            AtomEntry entry = CreateAtomEntryFromXML(entryNode, atomNsMgr, serviceId);
+            var entry = CreateAtomEntryFromXML(entryNode, atomNsMgr, serviceId);
 
 
 
@@ -828,21 +838,21 @@ class AtomPubClient : BlogClient
 			  </entry>
          */
 
-        XmlNode entryTitle = entryNode.SelectSingleNode("atom:title", atomNsMgr);
+        var entryTitle = entryNode.SelectSingleNode("atom:title", atomNsMgr);
         if (entryTitle == null)
         {
             System.Diagnostics.Debug.WriteLine("atom:title: is null. ");
             //return;
         }
 
-        XmlNode entryID = entryNode.SelectSingleNode("atom:id", atomNsMgr);
+        var entryID = entryNode.SelectSingleNode("atom:id", atomNsMgr);
         if (entryID == null)
         {
             System.Diagnostics.Debug.WriteLine("atom:id: is null. ");
             //return;
         }
 
-        XmlNodeList entryLinkUris = entryNode.SelectNodes("atom:link", atomNsMgr);
+        var entryLinkUris = entryNode.SelectNodes("atom:link", atomNsMgr);
         string relAttr;
         string hrefAttr;
         string typeAttr;
@@ -925,7 +935,7 @@ class AtomPubClient : BlogClient
         //summary
         //category
 
-        AtomEntry entry = new AtomEntry("", serviceId, this);
+        var entry = new AtomEntry("", serviceId, this);
         // TODO:
         //AtomEntryHatena
         /*
@@ -943,15 +953,14 @@ class AtomPubClient : BlogClient
         entry.EditUri = editUri;
         entry.AltHtmlUri = altUri;
 
-        XmlNode cont = entryNode.SelectSingleNode("atom:content", atomNsMgr);
+        var cont = entryNode.SelectSingleNode("atom:content", atomNsMgr);
         if (cont == null)
         {
             System.Diagnostics.Debug.WriteLine("//atom:content is null.");
         }
         else
         {
-
-            string contype = cont.Attributes["type"].Value;
+            var contype = cont.Attributes["type"].Value;
             if (!string.IsNullOrEmpty(contype))
             {
                 entry.ContentTypeString = contype;
@@ -986,26 +995,29 @@ class AtomPubClient : BlogClient
             }
 
             entry.Content = cont.InnerText;
-
         }
 
         //app:control/app:draft(yes/no)
-        XmlNode entryDraft = entryNode.SelectSingleNode("app:control/app:draft", atomNsMgr);
-        if (entryDraft == null) System.Diagnostics.Debug.WriteLine("app:draft: is null.");
+        var entryDraft = entryNode.SelectSingleNode("app:control/app:draft", atomNsMgr);
+        if (entryDraft == null)
+        {
+            System.Diagnostics.Debug.WriteLine("app:draft: is null.");
+        }
 
-        string draft = entryDraft?.InnerText;
-        entry.IsDraft = (String.Compare(draft, "yes", true) == 0) ? true : false;
+        var draft = entryDraft?.InnerText;
+        entry.IsDraft = string.Equals(draft, "yes", StringComparison.CurrentCultureIgnoreCase);
 
         entry.Status = entry.IsDraft ? EditEntryItem.EditStatus.esDraft : EditEntryItem.EditStatus.esNormal;
-
 
         return entry;
     }
 
-    public override async Task<bool> UpdateEntry(EntryFull entry)
+    public async override Task<bool> UpdateEntry(EntryFull entry)
     {
-        if (!(entry is AtomEntry))
+        if (entry is not AtomEntry)
+        {
             return false;
+        }
 
         var request = new HttpRequestMessage
         {
@@ -1101,13 +1113,13 @@ class AtomPubClient : BlogClient
 
         if (response.IsSuccessStatusCode)
         {
-            Uri entryUrl = response.Headers.Location;
+            var entryUrl = response.Headers.Location;
 
             if (entryUrl != null)
             {
                 entry.EditUri = entryUrl;
 
-                string contenTypeString = response.Content.Headers.GetValues("Content-Type").FirstOrDefault();
+                var contenTypeString = response.Content.Headers.GetValues("Content-Type").FirstOrDefault();
 
                 if (!contenTypeString.StartsWith("application/atom+xml"))
                 {
@@ -1164,7 +1176,7 @@ class AtomPubClient : BlogClient
 
     }
 
-    public override async Task<bool> DeleteEntry(Uri editUri)
+    public async override Task<bool> DeleteEntry(Uri editUri)
     {
         var request = new HttpRequestMessage
         {

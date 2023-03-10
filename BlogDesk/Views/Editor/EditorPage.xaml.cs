@@ -1,4 +1,6 @@
-﻿using BlogDesk.ViewModels;
+﻿using BlogDesk.Contracts.Services;
+using BlogDesk.Services;
+using BlogDesk.ViewModels;
 using BlogWrite.Core.Helpers;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -27,7 +29,7 @@ public sealed partial class EditorPage : Page
         EditorWindow.Activated += EditorWindow_Activated;
         EditorWindow.Closed += EditorWindow_Closed;
 
-        ViewModel = App.GetService<EditorViewModel>();
+        ViewModel = new EditorViewModel(new WebViewService(), new WebViewService(), new WebViewService());//App.GetService<EditorViewModel>();
 
         try
         {
@@ -45,19 +47,18 @@ public sealed partial class EditorPage : Page
             }
             throw;
         }
-
         // Init webview2
         ViewModel.WebViewServiceRichEdit.Initialize(WebViewRichEdit);
         ViewModel.WebViewServiceSourceEdit.Initialize(WebViewSourceEdit);
         ViewModel.WebViewServicePreviewBrowser.Initialize(WebViewPreviewBrowser);
 
         // Focus control
-        ViewModel.WebView2RichEditSetFocus += (sender, arg) => { this.OnWebView2RichEditSetFocus(arg); };
-        ViewModel.WebView2SourceEditSetFocus += (sender, arg) => { this.OnWebView2SourceEditSetFocus(arg); };
-        ViewModel.WebView2PreviewBrowserSetFocus += (sender, arg) => { this.OnWebView2PreviewBrowserSetFocus(arg); };
+        ViewModel.WebView2RichEditSetFocus += (sender, arg) => { OnWebView2RichEditSetFocus(); };
+        ViewModel.WebView2SourceEditSetFocus += (sender, arg) => { OnWebView2SourceEditSetFocus(); };
+        ViewModel.WebView2PreviewBrowserSetFocus += (sender, arg) => { OnWebView2PreviewBrowserSetFocus(); };
 
         // Theme change event from message received in the viewmodel.
-        ViewModel.ThemeChanged += (sender, arg) => { this.OnThemeChanged(arg); };
+        ViewModel.ThemeChanged += (sender, arg) => { OnThemeChanged(arg); };
 
         // This is for the case where theme is changed in settings page.
         if (App.MainWindow.Content is FrameworkElement rootElement)
@@ -110,10 +111,13 @@ public sealed partial class EditorPage : Page
         // Required.
         await Task.Delay(100);
 
-        WebViewRichEdit.Focus(FocusState.Programmatic);
+        if (WebViewRichEdit.Visibility == Visibility.Visible)
+        {
+            WebViewRichEdit.Focus(FocusState.Programmatic);
+        }
     }
 
-    private async void OnWebView2RichEditSetFocus(string arg)
+    private async void OnWebView2RichEditSetFocus()
     {
         if (WebViewRichEdit.Visibility == Visibility.Visible)
         {
@@ -124,7 +128,7 @@ public sealed partial class EditorPage : Page
         }
     }
 
-    private async void OnWebView2SourceEditSetFocus(string arg)
+    private async void OnWebView2SourceEditSetFocus()
     {
         if (WebViewSourceEdit.Visibility == Visibility.Visible)
         {
@@ -135,7 +139,7 @@ public sealed partial class EditorPage : Page
         }
     }
 
-    private async void OnWebView2PreviewBrowserSetFocus(string arg)
+    private async void OnWebView2PreviewBrowserSetFocus()
     {
         if (WebViewPreviewBrowser.Visibility == Visibility.Visible)
         {

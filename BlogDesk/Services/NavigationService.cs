@@ -2,9 +2,7 @@
 
 using BlogDesk.Contracts.Services;
 using BlogDesk.Contracts.ViewModels;
-using BlogWrite.Core.Helpers;
-
-using CommunityToolkit.WinUI.UI.Animations;
+using BlogDesk.Helpers;
 
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
@@ -92,7 +90,9 @@ public class NavigationService : INavigationService
         {
             _frame.Tag = clearNavigation;
             var vmBeforeNavigation = _frame.GetPageViewModel();
+            //var navigated = _frame.Navigate(pageType, parameter);
             var navigated = _frame.Navigate(pageType, parameter, new SlideNavigationTransitionInfo() { Effect = SlideNavigationTransitionEffect.FromLeft });
+
             if (navigated)
             {
                 _lastParameterUsed = parameter;
@@ -126,6 +126,4 @@ public class NavigationService : INavigationService
             Navigated?.Invoke(sender, e);
         }
     }
-
-    public void SetListDataItemForNextConnectedAnimation(object item) => Frame.SetListDataItemForNextConnectedAnimation(item);
 }
