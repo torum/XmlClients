@@ -1,5 +1,7 @@
 ﻿# BlogWrite.Core
 
-## FeedDesk
+Common code for:
 
-## BlogDesk
+## [FeedDesk](https://torum.github.io/BlogWrite/FeedDesk/)
+
+## [BlogDesk](https://torum.github.io/BlogWrite/BlogDesk/)

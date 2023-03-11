@@ -61,6 +61,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Update="Assets\BlogDesk.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Web\preview_script.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

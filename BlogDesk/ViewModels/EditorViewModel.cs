@@ -521,7 +521,7 @@ public partial class EditorViewModel : ObservableRecipient
 
     private void OnMenuFileExit()
     {
-        //
+        // Use event to invoke code behind?
     }
 
     private void OnMenuFileNew()
@@ -793,7 +793,7 @@ public partial class EditorViewModel : ObservableRecipient
         //Debug.WriteLine(text);
 
         WriteToSource(msg);
-
+        WriteToPreviewBrowser();
         /*
         var scriptResult = await WebViewService.CoreWebView2.ExecuteScriptAsync(@"isSelectionInTag('B');");
         */
@@ -806,8 +806,9 @@ public partial class EditorViewModel : ObservableRecipient
 
     private void WriteToSource(string source)
     {
-        Debug.WriteLine("WriteToSource: " + source);
-        //Source = string.IsNullOrEmpty(source) ? "" : Windows.Data.Html.HtmlUtilities.ConvertToText(source);
+        //Debug.WriteLine("WriteToSource: " + source);
+
+        Source = string.IsNullOrEmpty(source) ? "<p>&nbsp;</p>" : source;
         //Source = Windows.Data.Html.HtmlUtilities.ConvertToText(source);
 
         /*
@@ -981,10 +982,11 @@ public partial class EditorViewModel : ObservableRecipient
         var msg = args.TryGetWebMessageAsString();// args.WebMessageAsJson;
         //Debug.WriteLine(msg);
 
-        //WriteToSource(msg);
-
         // TODO:
-        Source = msg;
+        //Source = msg;
+
+        WriteToSource(msg);
+        WriteToPreviewBrowser();
     }
 
     private void WriteToSourceEdit()
@@ -1109,7 +1111,7 @@ public partial class EditorViewModel : ObservableRecipient
 
     private void WriteToPreviewBrowser()
     {
-        if (!IsSourceEditDOMLoaded)
+        if (!IsPreviewBrowserDOMLoaded)
         {
             return;
         }

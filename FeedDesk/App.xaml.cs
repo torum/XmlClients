@@ -183,14 +183,16 @@ public partial class App : Application
                 }
                 else
                 {
-                    // default acrylic.
-                    manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
+                    // default acrylic... no Mica.
+                    //manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
+                    manager.Backdrop = new WinUIEx.MicaSystemBackdrop();
                 }
             }
             else
             {
                 // just for me.
-                manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
+                //manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
+                manager.Backdrop = new WinUIEx.MicaSystemBackdrop();
             }
         }
         else if (Microsoft.UI.Composition.SystemBackdrops.MicaController.IsSupported())

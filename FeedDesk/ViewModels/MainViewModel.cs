@@ -1713,7 +1713,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
             {
                 feed.IsBusy = true;
 
-                if (feed == _selectedTreeViewItem)
+                if (feed == SelectedTreeViewItem)
                 {
                     EntryArchiveAllCommand.NotifyCanExecuteChanged();
                 }
@@ -1775,6 +1775,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                         if (feed == SelectedTreeViewItem)
                         {
                             Entries.Clear();
+                            // nah
+                            if (!feed.IsDisplayUnarchivedOnly)
+                            {
+                                //LoadEntriesAwaiter(feed);
+                                //await LoadEntriesAsync(SelectedTreeViewItem).ConfigureAwait(false);
+                            }
                         }
                     }
                     feed.IsBusy = false;
@@ -1787,6 +1793,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                         if (!feed.IsDisplayUnarchivedOnly)
                         {
                             await LoadEntriesAsync(SelectedTreeViewItem).ConfigureAwait(false);
+                            //LoadEntriesAwaiter(feed);
                         }
                     }
                 }
@@ -1803,7 +1810,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                 App.CurrentDispatcherQueue?.TryEnqueue(() =>
                 {
                     folder.IsBusy = true;// test
-                    if (folder == _selectedTreeViewItem)
+                    if (folder == SelectedTreeViewItem)
                     {
                         //Entries.Clear();
                         EntryArchiveAllCommand.NotifyCanExecuteChanged();
@@ -1835,7 +1842,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                             folder.EntryNewCount = 0;
                             ResetAllEntryCountAtChildNodes(folder.Children);
 
-                            if (folder == _selectedTreeViewItem)
+                            if (folder == SelectedTreeViewItem)
                             {
                                 Entries.Clear();
                             }
@@ -1846,7 +1853,8 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
                         {
                             if (!folder.IsDisplayUnarchivedOnly)
                             {
-                                await LoadEntriesAsync(SelectedTreeViewItem);
+                                await LoadEntriesAsync(folder).ConfigureAwait(false); ;
+                                //LoadEntriesAwaiter(folder);
                             }
                         }
                     }
@@ -2685,11 +2693,13 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         //await ArchiveAllAsync(SelectedTreeViewItem).ConfigureAwait(false);
 
         //Task.Run(() => ArchiveAllAsync(SelectedTreeViewItem).ConfigureAwait(false));
+
+        var nt = SelectedTreeViewItem;
         Task.Run(async () => 
         {
             try
             {
-                await ArchiveAllAsync(SelectedTreeViewItem).ConfigureAwait(false);
+                await ArchiveAllAsync(nt).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
