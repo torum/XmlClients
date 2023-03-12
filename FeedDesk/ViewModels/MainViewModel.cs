@@ -590,7 +590,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
 
     #endregion
 
-    #region == Debug Events ==
+    #region == Events ==
 
     public event EventHandler<bool>? ShowWaitDialog;
 
@@ -2449,24 +2449,27 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     #region == Feed OPML ex/import commands ==
 
     [RelayCommand(CanExecute = nameof(CanOpmlImport))]
-    public async void OpmlImport()
+    public void OpmlImport()
     {
         //_ = Task.Run(() => OpmlImportAsync().ConfigureAwait(false));
         // This is gonna freeze UI.
         //_ = OpmlImportAsync();
 
-        try
+        _ = Task.Run(async () => 
         {
-            await OpmlImportAsync().ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"OpmlImport: {ex.Message}");
-            App.CurrentDispatcherQueue?.TryEnqueue(() =>
+            try
             {
-                (App.Current as App)?.AppendErrorLog("OpmlImport", ex.Message);
-            });
-        }
+                await OpmlImportAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"OpmlImport: {ex.Message}");
+                App.CurrentDispatcherQueue?.TryEnqueue(() =>
+                {
+                    (App.Current as App)?.AppendErrorLog("OpmlImport", ex.Message);
+                });
+            }
+        });
     }
 
     public async Task OpmlImportAsync()

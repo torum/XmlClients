@@ -19,6 +19,7 @@ public sealed partial class MainPage : Page
     public MainPage()
     {
         ViewModel = App.GetService<MainViewModel>();
+
         try
         {
             InitializeComponent();
@@ -38,7 +39,6 @@ public sealed partial class MainPage : Page
 
         //ViewModel.DebugOutput += (sender, arg) => { OnDebugOutput(arg); };
         //ViewModel.DebugClear += () => OnDebugClear();
-
     }
 
     public async void OnShowWaitDialog(bool isShow)
@@ -55,8 +55,8 @@ public sealed partial class MainPage : Page
                     IsActive = true,
                 };
                 dialog.Content = ring;
-                dialog.XamlRoot = this.XamlRoot;
-                dialog.RequestedTheme = this.ActualTheme;
+                dialog.XamlRoot = XamlRoot;
+                dialog.RequestedTheme = ActualTheme;
                 dialog.Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style;
                 dialog.Title = "WaitDialog_Title".GetLocalized();
             }
