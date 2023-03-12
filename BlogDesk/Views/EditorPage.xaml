@@ -82,9 +82,22 @@
                             </MenuFlyoutItem>
                         </MenuBarItem.Items>
                     </MenuBarItem>
-
+                    <MenuBarItem Title="Edit">
+                        <MenuBarItem.KeyboardAccelerators>
+                            <KeyboardAccelerator Modifiers="Menu" Key="E"/>
+                        </MenuBarItem.KeyboardAccelerators>
+                    </MenuBarItem>
+                    <MenuBarItem Title="View">
+                        <MenuBarItem.KeyboardAccelerators>
+                            <KeyboardAccelerator Modifiers="Menu" Key="V"/>
+                        </MenuBarItem.KeyboardAccelerators>
+                    </MenuBarItem>
+                    <MenuBarItem Title="Tool">
+                        <MenuBarItem.KeyboardAccelerators>
+                            <KeyboardAccelerator Modifiers="Menu" Key="T"/>
+                        </MenuBarItem.KeyboardAccelerators>
+                    </MenuBarItem>
                 </MenuBar>
-
             </Grid>
 
             <Grid Grid.Row="0" Grid.Column="2" x:Name="AppTitleBar"></Grid>
