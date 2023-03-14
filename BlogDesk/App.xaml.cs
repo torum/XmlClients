@@ -14,6 +14,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Xaml;
 using System.Collections;
 using System.Collections.Immutable;
+using BlogDesk.Helpers;
 
 namespace BlogDesk;
 
@@ -51,7 +52,6 @@ public partial class App : Application
 
         return service;
     }
-
 
     public App()
     {
@@ -91,8 +91,11 @@ public partial class App : Application
             services.AddSingleton<ShellViewModel>();
             services.AddSingleton<AccountAddPage>();
             services.AddSingleton<AccountAddViewModel>();
-            //services.AddTransient<EditorViewModel>();
+
+            // Use AbstractFactory for editors.
+            services.AddEditorFactory<EditorPage>();
             //services.AddTransient<EditorPage>();
+            services.AddTransient<EditorViewModel>();
 
             // Configuration
             //services.Configure<LocalSettingsOptions>(context.Configuration.GetSection(nameof(LocalSettingsOptions)));

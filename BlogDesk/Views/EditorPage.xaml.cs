@@ -11,32 +11,31 @@ namespace BlogDesk.Views;
 
 public sealed partial class EditorPage : Page
 {
+    public EditorWindow Window
+    {
+        get;
+    }
+
     public EditorViewModel ViewModel
     {
         get;
     }
 
-    public EditorWindow EditorWindow
+    public EditorPage()//EditorWindow window, EditorViewModel viewModel
     {
-        get;
-    }
+        Window = new EditorWindow();
 
-    public EditorPage(EditorWindow window)
-    {
-        EditorWindow = window;
+        ViewModel = App.GetService<EditorViewModel>();
+        //ViewModel = App.GetService<EditorViewModel>();
+        //ViewModel = new EditorViewModel(new WebViewService(), new WebViewService(), new WebViewService());
 
-        EditorWindow.ExtendsContentIntoTitleBar = true;
-        EditorWindow.Activated += EditorWindow_Activated;
-        EditorWindow.Closed += EditorWindow_Closed;
+        Window.ExtendsContentIntoTitleBar = true;
 
-        ViewModel = new EditorViewModel(new WebViewService(), new WebViewService(), new WebViewService());//App.GetService<EditorViewModel>();
+        Window.Content = this;
 
         try
         {
             InitializeComponent();
-
-            // AppTitleBar needs InitializeComponent() beforehand.
-            EditorWindow.SetTitleBar(AppTitleBar);
         }
         catch (XamlParseException parseException)
         {
@@ -47,6 +46,13 @@ public sealed partial class EditorPage : Page
             }
             throw;
         }
+
+        // AppTitleBar needs InitializeComponent() beforehand.
+        Window.SetTitleBar(AppTitleBar);
+
+        Window.Activated += EditorWindow_Activated;
+        Window.Closed += EditorWindow_Closed;
+
         // Init webview2
         ViewModel.WebViewServiceRichEdit.Initialize(WebViewRichEdit);
         ViewModel.WebViewServiceSourceEdit.Initialize(WebViewSourceEdit);
@@ -72,7 +78,7 @@ public sealed partial class EditorPage : Page
         }
     }
 
-    private void EditorWindow_Activated(object sender, WindowActivatedEventArgs args)
+    public void EditorWindow_Activated(object sender, WindowActivatedEventArgs args)
     {
         var resource = args.WindowActivationState == WindowActivationState.Deactivated ? "WindowCaptionForegroundDisabled" : "WindowCaptionForeground";
 
@@ -81,10 +87,9 @@ public sealed partial class EditorPage : Page
         AppMenuBar.Opacity = args.WindowActivationState == WindowActivationState.Deactivated ? 0.4 : 0.7;
     }
 
-    private void EditorWindow_Closed(object sender, WindowEventArgs args)
+    public void EditorWindow_Closed(object sender, WindowEventArgs args)
     {
         // TODO:
-
         if (ViewModel.Closing())
         {
             WebViewRichEdit.Close();

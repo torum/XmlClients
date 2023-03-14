@@ -5,6 +5,38 @@
     xmlns:helpers="using:BlogWrite.Core.Helpers"
     Loaded="OnLoaded">
     <Grid>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+                <VisualState>
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="1280" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        
+                        <Setter Target="NavigationVewPageContent.Margin" Value="{StaticResource NavigationViewPageContentMargin}" />
+                        <Setter Target="NavigationViewControl.PaneDisplayMode" Value="Left" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState>
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="650" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="NavigationVewPageContent.Margin" Value="0,0,0,0" />
+                        <Setter Target="NavigationViewControl.PaneDisplayMode" Value="LeftCompact" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState>
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="NavigationVewPageContent.Margin" Value="0,44,0,0" />
+                        <Setter Target="NavigationViewControl.PaneDisplayMode" Value="LeftMinimal" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
         <!-- 
         <Grid x:Name="AppTitleBar"
               Canvas.ZIndex="1"
@@ -90,7 +122,7 @@
                 IsSettingsVisible="True"
                 IsTitleBarAutoPaddingEnabled="False"
                 OpenPaneLength ="256"
-                PaneDisplayMode="Auto"
+                PaneDisplayMode="Left"
                 ExpandedModeThresholdWidth="1280"
                 DisplayModeChanged="NavigationViewControl_DisplayModeChanged">
                 <NavigationView.MenuItems>
@@ -120,7 +152,7 @@
                     </NavigationViewItem>
                 </NavigationView.FooterMenuItems>
 
-                <Grid Margin="{StaticResource NavigationViewPageContentMargin}">
+                <Grid x:Name="NavigationVewPageContent" Margin="{StaticResource NavigationViewPageContentMargin}">
                     <Frame x:Name="NavigationFrame" />
                 </Grid>
                 

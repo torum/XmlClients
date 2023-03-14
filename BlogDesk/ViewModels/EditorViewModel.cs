@@ -24,6 +24,7 @@ namespace BlogDesk.ViewModels;
 
 public partial class EditorViewModel : ObservableRecipient
 {
+    #region == etc ==
 
     public ICommand MenuFileExitCommand
     {
@@ -239,6 +240,8 @@ public partial class EditorViewModel : ObservableRecipient
         get => _isContentHTML;
         set => SetProperty(ref _isContentHTML, value);
     }
+
+    #endregion
 
     #region == Flags ==
 
@@ -515,7 +518,6 @@ public partial class EditorViewModel : ObservableRecipient
 
         WebViewServicePreviewBrowser.NavigationCompleted += OnPreviewBrowserWebView2NavigationCompleted;
         WebViewServicePreviewBrowser.CoreWebView2Initialized += OnPreviewBrowserCoreWebView2Initialized;
-
 
     }
 

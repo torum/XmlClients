@@ -6,6 +6,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml.Navigation;
 using BlogDesk.Contracts.Services;
+using BlogDesk.Helpers;
+using BlogDesk.Services;
+using Microsoft.UI.Xaml;
 
 namespace BlogDesk.ViewModels;
 
@@ -43,11 +46,14 @@ public class MainViewModel : ObservableRecipient
     }
 
     private readonly INavigationService _navigationService;
+    private readonly IAbstractFactory<EditorPage> _editorFactory;
 
-    public MainViewModel(INavigationService navigationService)
+    public MainViewModel(INavigationService navigationService, IAbstractFactory<EditorPage> editorFactory)
     {
         _navigationService = navigationService;
         _navigationService.Navigated += OnNavigated;
+
+        _editorFactory = editorFactory;
 
         NewEditorCommand = new RelayCommand(OnNewEditor);
         AddAccountCommand = new RelayCommand(OnAddAccount);
@@ -67,19 +73,32 @@ public class MainViewModel : ObservableRecipient
 
     private void OnNewEditor()
     {
-        NewEditor();
+        CreateNewEditor();
     }
 
     public void CreateNewEditor()
     {
-        //NewEditor();
-    }
+        var editor = _editorFactory.Create();
 
-    private async void NewEditor()
-    {
-        EditorWindow window = new();
+        var editorEindow = editor.Window;
 
-        var editor = new EditorPage(window);
+        App.MainWindow.Closed += (s, a) =>
+        {
+            // TODO: when close is canceled.
+            //editorEindow.CanClose
+            editorEindow.Close();
+        };
+
+        editorEindow.Show();
+
+        /*
+        var window = new EditorWindow();
+        var viewModel = App.GetService<EditorViewModel>();
+        //var viewModel = new EditorViewModel(new WebViewService(), new WebViewService(), new WebViewService());
+
+        //var editor = new EditorPage(window, viewModel);
+        var editor = _editorFactory.Create();
+
         window.Content = editor;
 
         App.MainWindow.Closed += (s, a) =>
@@ -91,7 +110,9 @@ public class MainViewModel : ObservableRecipient
 
         await Task.Delay(200);
 
-        window.Activate();
+        window.Show();
+        //window.Activate();
+        */
     }
 
     private void OnAddAccount()
