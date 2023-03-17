@@ -10,13 +10,13 @@ A desktop feed reader. (work in progress)
 from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
 
 ### Features
-#### Implements following formats:  
+#### Implements following formats  
 * Atom 0.3
 * [The Atom Syndication Format](https://tools.ietf.org/html/rfc4287) (Atom 1.0)
 * [RDF Site Summary](https://www.w3.org/2001/09/rdfprimer/rss.html) (RSS 1.0)
 * [Really Simple Syndication](https://validator.w3.org/feed/docs/rss2.html) (RSS 2.0)
 
-#### Supported extentions:
+#### Supported extentions
 * media
 * hatena
 * dc
@@ -28,7 +28,7 @@ from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
 * Display enclosed or embeded images.
 * Podcasts audio and in-app playback.
 
-### Screenshots:
+### Screenshots
 
 ![FeedDesk](https://github.com/torum/BlogWrite/blob/master/docs/images/FeedDesk-Screenshot1-Dark.png?raw=true) 
 
@@ -60,11 +60,11 @@ Feel free to open issues and send PRs.
 --------------------------------
 
 
-## [BlogDesk](https://github.com/torum/BlogDesk):
+## [BlogDesk](https://github.com/torum/BlogDesk)
 A desktop blogging client. (under development)
 
 ### Features
-#### Implements following formats, protocols & APIs:  
+#### Implements following formats, protocols & APIs  
 
 * [The Atom Publishing Protocol](https://tools.ietf.org/html/rfc5023)
 * [XML-RPC API](https://codex.wordpress.org/XML-RPC_Support)
@@ -74,7 +74,7 @@ A desktop blogging client. (under development)
 [WordPress API](https://codex.wordpress.org/XML-RPC_WordPress_API))
 
 
-### Screenshots:
+### Screenshots
 
 N/A
 
