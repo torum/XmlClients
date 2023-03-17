@@ -3,7 +3,6 @@ Work In Progress.
 
 This project was originally started as a C#/WPF port of a blog editing client called "BlogWrite" developed in Delphi language. Currently, there are two apps called "[FeedDesk](https://github.com/torum/FeedDesk)" and "[BlogDesk](https://github.com/torum/BlogDesk)" developed in C#/WinUI3 and both use the same core source code. 
 
-
 ## [FeedDesk](https://github.com/torum/FeedDesk)
 A desktop feed reader. (work in progress)
 
