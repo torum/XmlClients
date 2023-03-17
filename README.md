@@ -1,20 +1,22 @@
 # BlogWrite project
-Work In Progress. This project was originally started as a C#/WPF port of a blog editing client called "BlogWrite" developed in Delphi language. Currently, there are two apps called "FeedDesk" and "BlogDesk" developed in C#/WinUI3 and both use the same core source code. 
+Work In Progress. 
 
-## [FeedDesk](https://github.com/torum/BlogWrite/tree/master/FeedDesk)
+This project was originally started as a C#/WPF port of a blog editing client called "BlogWrite" developed in Delphi language. Currently, there are two apps called "[FeedDesk](https://github.com/torum/FeedDesk)" and "[BlogDesk](https://github.com/torum/BlogDesk)" developed in C#/WinUI3 and both use the same core source code. This is a source code only repo.
+
+## [FeedDesk](https://github.com/torum/FeedDesk)
 A desktop feed reader. (work in progress)
 
 ### Download app
 from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
 
 ### Features
-#### Implements following formats:  
+#### Implements following formats  
 * Atom 0.3
 * [The Atom Syndication Format](https://tools.ietf.org/html/rfc4287) (Atom 1.0)
 * [RDF Site Summary](https://www.w3.org/2001/09/rdfprimer/rss.html) (RSS 1.0)
 * [Really Simple Syndication](https://validator.w3.org/feed/docs/rss2.html) (RSS 2.0)
 
-#### Supported extentions:
+#### Supported extentions
 * media
 * hatena
 * dc
@@ -26,21 +28,12 @@ from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
 * Display enclosed or embeded images.
 * Podcasts audio and in-app playback.
 
-### Screenshots:
+### Screenshots
 
 ![FeedDesk](https://github.com/torum/BlogWrite/blob/master/docs/images/FeedDesk-Screenshot1-Dark.png?raw=true) 
 
 ![FeedDesk](https://github.com/torum/BlogWrite/blob/master/docs/images/FeedDesk-Screenshot1-Light.png?raw=true) 
 
-![FeedDesk](https://github.com/torum/BlogWrite/blob/master/docs/images/FeedDesk-Screenshot1-Dark-Text.png?raw=true) 
-
-![FeedDesk](https://github.com/torum/BlogWrite/blob/master/docs/images/FeedDesk-Screenshot1-Dark-Podcast.png?raw=true) 
-
-![FeedDesk](https://github.com/torum/BlogWrite/blob/master/docs/images/FeedDesk-Screenshot1-Acrylic-Dark.png?raw=true) 
-
-![FeedDesk](https://github.com/torum/BlogWrite/blob/master/docs/images/FeedDesk-Screenshot1-Acrylic-Light.png?raw=true) 
-
-![FeedDesk](https://github.com/torum/BlogWrite/blob/master/docs/images/FeedDesk-Screenshot1-Light-vertical.png?raw=true) 
 
 ## Contributing
 Feel free to open issues and send PRs. 
@@ -63,11 +56,15 @@ Feel free to open issues and send PRs.
 3. Open solution in Visual Studio
 4. Select FeedDesk project, then compile and run.
 
-## [BlogDesk](https://github.com/torum/BlogWrite/tree/master/BlogDesk):
+
+--------------------------------
+
+
+## [BlogDesk](https://github.com/torum/BlogDesk)
 A desktop blogging client. (under development)
 
 ### Features
-#### Implements following formats, protocols & APIs:  
+#### Implements following formats, protocols & APIs  
 
 * [The Atom Publishing Protocol](https://tools.ietf.org/html/rfc5023)
 * [XML-RPC API](https://codex.wordpress.org/XML-RPC_Support)
@@ -77,7 +74,7 @@ A desktop blogging client. (under development)
 [WordPress API](https://codex.wordpress.org/XML-RPC_WordPress_API))
 
 
-### Screenshots:
+### Screenshots
 
 N/A
 
