@@ -20,7 +20,17 @@
                         <AdaptiveTrigger MinWindowWidth="1280" />
                     </VisualState.StateTriggers>
                     <VisualState.Setters>
-                        <Setter Target="SplitViewControl.IsPaneOpen" Value="true"/>
+                        <Setter Target="SplitViewControl.OpenPaneLength" Value="600"/>
+                        <Setter Target="SplitViewControl.DisplayMode" Value="CompactInline"/>
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState>
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="1007" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="SplitViewControl.OpenPaneLength" Value="420"/>
+                        <Setter Target="SplitViewControl.DisplayMode" Value="CompactInline"/>
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState>
@@ -28,7 +38,20 @@
                         <AdaptiveTrigger MinWindowWidth="0" />
                     </VisualState.StateTriggers>
                     <VisualState.Setters>
-                        <Setter Target="SplitViewControl.IsPaneOpen" Value="False"/>
+                        <Setter Target="SplitViewControl.IsPaneOpen" Value="false"/>
+                        <Setter Target="SplitViewControl.OpenPaneLength" Value="500"/>
+                        <Setter Target="SplitViewControl.DisplayMode" Value="CompactOverlay"/> 
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+            <VisualStateGroup>
+                <VisualState>
+                    <VisualState.StateTriggers>
+                        <StateTrigger IsActive="{x:Bind Path=ViewModel.IsPreviewPaneVisible, Mode=TwoWay}" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="PanelOpenClose.Icon" Value="OpenPane" />
+                        <Setter Target="PanelOpenClose.Label" Value="Preview" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
@@ -145,28 +168,49 @@
 
             </CommandBar>
 
+            <CommandBar Background="Transparent" IsOpen="False" DefaultLabelPosition="Right">
+
+                <AppBarButton x:Name="PanelOpenClose" Icon="ClosePane" Label="Preview" Command="{x:Bind ViewModel.TogglePreviewPaneVisibilityCommand}" IsCompact="True" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,0,0" Padding="0">
+                    <AppBarButton.KeyboardAccelerators>
+                        <KeyboardAccelerator Modifiers="Control" Key="P" />
+                    </AppBarButton.KeyboardAccelerators>
+                </AppBarButton>
+            </CommandBar>
+
             <!-- {x:Bind Path=PairVM.IsPaneVisible, Mode=TwoWay}  PaneBackground="Transparent" -->
-            <SplitView x:Name="SplitViewControl" Grid.Row="1" PaneBackground="Transparent" PanePlacement="Right" OpenPaneLength="280" CompactPaneLength="0" DisplayMode="CompactInline">
+            <SplitView x:Name="SplitViewControl" Grid.Row="1" PaneBackground="Transparent" PanePlacement="Right" CompactPaneLength="0" IsPaneOpen="{x:Bind Path=ViewModel.IsPreviewPaneVisible, Mode=TwoWay}" DisplayMode="CompactInline">
                 <SplitView.Pane>
-                    <Grid>
-                        
-                        
+                    <Grid Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}" CornerRadius="8,0,0,0" Margin="1,0,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <WebView2 x:Name="WebViewPreviewBrowser" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="6"/>
+
                     </Grid>
                 </SplitView.Pane>
 
                 <Grid>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="55*"/>
-                        <ColumnDefinition Width="45*"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
+
+                    <StackPanel>
+                        <TextBox Margin="8,2,8,0"></TextBox>
+                    </StackPanel>
                     
-                    <TabView Grid.Row="0" Grid.Column="0" SelectedIndex="{x:Bind ViewModel.SelectedTabindex, Mode=TwoWay}" Margin="0" TabWidthMode="Equal" IsAddTabButtonVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <TabView Grid.Row="1" Grid.Column="0" SelectedIndex="{x:Bind ViewModel.SelectedTabindex, Mode=TwoWay}" Margin="0" TabWidthMode="Equal" IsAddTabButtonVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                         <TabView.TabItems>
 
-                            <TabViewItem Header="Rich Text" IsClosable="False">
+                            <TabViewItem Header="Rich Edit" IsClosable="False">
                                 <!--
                     https://github.com/microsoft/microsoft-ui-xaml/issues/2495
                     https://github.com/microsoft/microsoft-ui-xaml/issues/7878
@@ -249,25 +293,6 @@
                         </TabView.TabItems>
                     </TabView>
 
-                    <!-- 
-                    <TabView Grid.Row="0" Grid.Column="1" Margin="0" TabWidthMode="Equal" IsAddTabButtonVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                        <TabViewItem Header="Preview" IsClosable="False">
-
-                        </TabViewItem>
-                    </TabView>
-                    -->
-                    <Grid Grid.Row="0" Grid.Column="1" Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}" CornerRadius="8,0,0,0" Margin="1,0,0,0">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <WebView2 x:Name="WebViewPreviewBrowser" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="6"/>
-
-                    </Grid>
                 </Grid>
                 
             </SplitView>

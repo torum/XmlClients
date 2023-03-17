@@ -322,6 +322,14 @@ public partial class EditorViewModel : ObservableRecipient
         set => SetProperty(ref _isPreviewBrowserDOMLoaded, value);
     }
 
+    private bool _isPreviewPaneVisible = false;
+    public bool IsPreviewPaneVisible
+
+    {
+        get => _isPreviewPaneVisible;
+        set => SetProperty(ref _isPreviewPaneVisible, value);
+    }
+
     #endregion
 
     #region == Error ==
@@ -424,6 +432,11 @@ public partial class EditorViewModel : ObservableRecipient
         get;
     }
 
+    public ICommand TogglePreviewPaneVisibilityCommand
+    {
+        get;
+    }
+
     #endregion
 
     #region == Events ==
@@ -452,6 +465,7 @@ public partial class EditorViewModel : ObservableRecipient
         TestCommand = new RelayCommand(OnTest);
         EditorExecFormatBoldCommand = new RelayCommand(OnEditorExecFormatBoldCommand);
         EditorExecFormatItalicCommand = new RelayCommand(OnEditorExecFormatItalicCommand);
+        TogglePreviewPaneVisibilityCommand = new RelayCommand(OnTogglePreviewPaneVisibilityCommand);
 
         // This does not consider the theme which is changed/specified in settings. Need to be set in SetTheme() from codebehind.
         if (App.Current.RequestedTheme == ApplicationTheme.Dark)
@@ -1124,6 +1138,11 @@ public partial class EditorViewModel : ObservableRecipient
     #endregion
 
     #endregion
+
+    private void OnTogglePreviewPaneVisibilityCommand()
+    {
+        IsPreviewPaneVisible = !IsPreviewPaneVisible;
+    }
 
 
     private async void SystemUISettingColorValuesChanged(UISettings sender, object args)
