@@ -29,26 +29,22 @@ public abstract class BlogClient : BaseClient
 
     public abstract Task<bool> DeleteEntry(Uri editUri);
 
-    public string AsUTF8Xml(XmlDocument xdoc)
+    public static string AsUTF8Xml(XmlDocument xdoc)
     {
         var sb = new StringBuilder();
-        using (var stringWriter = new StringWriterWithEncoding(sb, Encoding.UTF8))
-        using (var xmlTextWriter = XmlWriter.Create(stringWriter))
-        {
-            xdoc.WriteTo(xmlTextWriter);
-            xmlTextWriter.Flush();
-            return stringWriter.GetStringBuilder().ToString();
-        }
+        using var stringWriter = new StringWriterWithEncoding(sb, Encoding.UTF8);
+        using var xmlTextWriter = XmlWriter.Create(stringWriter);
+        xdoc.WriteTo(xmlTextWriter);
+        xmlTextWriter.Flush();
+        return stringWriter.GetStringBuilder().ToString();
     }
 
-    public string AsUTF16Xml(XmlDocument xdoc)
+    public static string AsUTF16Xml(XmlDocument xdoc)
     {
-        using (var stringWriter = new System.IO.StringWriter())
-        using (var xmlTextWriter = XmlWriter.Create(stringWriter))
-        {
-            xdoc.WriteTo(xmlTextWriter);
-            xmlTextWriter.Flush();
-            return stringWriter.GetStringBuilder().ToString();
-        }
+        using var stringWriter = new System.IO.StringWriter();
+        using var xmlTextWriter = XmlWriter.Create(stringWriter);
+        xdoc.WriteTo(xmlTextWriter);
+        xmlTextWriter.Flush();
+        return stringWriter.GetStringBuilder().ToString();
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Microsoft.UI.Xaml.Controls;
-using Microsoft.Web.WebView2.Core;
 
+using Microsoft.Web.WebView2.Core;
 namespace FeedDesk.Contracts.Services;
 
 public interface IWebViewService

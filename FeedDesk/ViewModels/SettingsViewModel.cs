@@ -5,8 +5,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FeedDesk.Contracts.Services;
 using FeedDesk.Contracts.ViewModels;
+using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Media;
 using Windows.ApplicationModel;
 using Windows.Storage;
 
@@ -14,7 +16,7 @@ namespace FeedDesk.ViewModels;
 
 public class SettingsViewModel : ObservableRecipient, INavigationAware
 {
-    private const string BackdropSettingsKey = "AppSystemBackdropOption";
+    //private const string BackdropSettingsKey = "AppSystemBackdropOption";
 
     private readonly INavigationService _navigationService;
 
@@ -80,6 +82,7 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
         _elementTheme = _themeSelectorService.Theme;
         _versionDescription = GetVersionDescription();
 
+        /*
         var manager = WinUIEx.WindowManager.Get(App.MainWindow);
         if (manager.Backdrop is WinUIEx.AcrylicSystemBackdrop)
         {
@@ -89,6 +92,7 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
         {
             Material = SystemBackdropOption.Mica;
         }
+        */
 
         if (Microsoft.UI.Composition.SystemBackdrops.DesktopAcrylicController.IsSupported())
         {
@@ -153,6 +157,41 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
     {
         if (backdrop != null)
         {
+            if (App.MainWindow is not null)
+            {
+                //var manager = WinUIEx.WindowManager.Get(App.MainWindow);
+
+                if (backdrop == "Mica")
+                {
+                    if (Microsoft.UI.Composition.SystemBackdrops.MicaController.IsSupported() || Microsoft.UI.Composition.SystemBackdrops.DesktopAcrylicController.IsSupported())
+                    {
+                        //manager.Backdrop = new WinUIEx.MicaSystemBackdrop();
+                        App.MainWindow.SystemBackdrop = new MicaBackdrop()
+                        {
+                            Kind = MicaKind.Base
+                        };
+                        if (RuntimeHelper.IsMSIX)
+                        {
+                            ApplicationData.Current.LocalSettings.Values[App.BackdropSettingsKey] = SystemBackdropOption.Mica.ToString();
+                        }
+                        Material = SystemBackdropOption.Mica;
+                    }
+                }
+                else if (backdrop == "Acrylic")
+                {
+                    if (Microsoft.UI.Composition.SystemBackdrops.DesktopAcrylicController.IsSupported())
+                    {
+                        //manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
+                        App.MainWindow.SystemBackdrop = new DesktopAcrylicBackdrop();
+                        if (RuntimeHelper.IsMSIX)
+                        {
+                            ApplicationData.Current.LocalSettings.Values[App.BackdropSettingsKey] = SystemBackdropOption.Acrylic.ToString();
+                        }
+                        Material = SystemBackdropOption.Acrylic;
+                    }
+                }
+            }
+            /*
             var manager = WinUIEx.WindowManager.Get(App.MainWindow);
 
             if (backdrop == "Mica")
@@ -180,6 +219,7 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
                     Material = SystemBackdropOption.Acrylic;
                 }
             }
+            */
         }
     }
 

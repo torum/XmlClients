@@ -24,7 +24,7 @@ public class ActivationService : IActivationService
     public async Task ActivateAsync(object activationArgs)
     {
         // Execute tasks before activation.
-        await InitializeAsync().ConfigureAwait(false); ;
+        await InitializeAsync();
 
         // Set the MainWindow Content.
         if (App.MainWindow.Content == null)
@@ -34,7 +34,7 @@ public class ActivationService : IActivationService
         }
 
         // Handle activation via ActivationHandlers.
-        await HandleActivationAsync(activationArgs).ConfigureAwait(false);
+        await HandleActivationAsync(activationArgs);
 
         // Test
         //await Task.Delay(100);
@@ -49,7 +49,7 @@ public class ActivationService : IActivationService
         App.MainWindow.BringToFront();
 
         // Execute tasks after activation.
-        await StartupAsync().ConfigureAwait(false);
+        await StartupAsync();
     }
 
     private async Task HandleActivationAsync(object activationArgs)

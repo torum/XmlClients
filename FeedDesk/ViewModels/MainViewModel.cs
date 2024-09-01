@@ -2636,7 +2636,7 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     }
 
     [RelayCommand(CanExecute = nameof(CanOpmlExport))]
-    public async void OpmlExport()
+    public async Task OpmlExport()
     {
         try
         {

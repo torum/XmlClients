@@ -716,7 +716,7 @@ public class AtomPubClient : BlogClient
         entItem.Status = entry.Status;
     }
 
-    public async override Task<EntryFull>? GetFullEntry(Uri entryUri, string serviceId, string nil)
+    public async override Task<EntryFull?> GetFullEntry(Uri entryUri, string serviceId, string nil)
     {
         // TODO: 
         // HTTP Head, if_modified_since or If-None-Match etag or something... then  Get;
@@ -965,33 +965,17 @@ public class AtomPubClient : BlogClient
             {
                 entry.ContentTypeString = contype;
 
-                switch (contype)
+                entry.ContentType = contype switch
                 {
-                    case "text":
-                        entry.ContentType = EntryFull.ContentTypes.text;
-                        break;
-                    case "html":
-                        entry.ContentType = EntryFull.ContentTypes.textHtml;
-                        break;
-                    case "xhtml":
-                        entry.ContentType = EntryFull.ContentTypes.textHtml;
-                        break;
-                    case "text/plain":
-                        entry.ContentType = EntryFull.ContentTypes.text;
-                        break;
-                    case "text/html":
-                        entry.ContentType = EntryFull.ContentTypes.textHtml;
-                        break;
-                    case "text/x-markdown":
-                        entry.ContentType = EntryFull.ContentTypes.markdown;
-                        break;
-                    case "text/x-hatena-syntax":
-                        entry.ContentType = EntryFull.ContentTypes.hatena;
-                        break;
-                    default:
-                        entry.ContentType = EntryFull.ContentTypes.text;
-                        break;
-                }
+                    "text" => EntryFull.ContentTypes.text,
+                    "html" => EntryFull.ContentTypes.textHtml,
+                    "xhtml" => EntryFull.ContentTypes.textHtml,
+                    "text/plain" => EntryFull.ContentTypes.text,
+                    "text/html" => EntryFull.ContentTypes.textHtml,
+                    "text/x-markdown" => EntryFull.ContentTypes.markdown,
+                    "text/x-hatena-syntax" => EntryFull.ContentTypes.hatena,
+                    _ => EntryFull.ContentTypes.text,
+                };
             }
 
             entry.Content = cont.InnerText;

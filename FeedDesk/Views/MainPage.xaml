@@ -472,7 +472,7 @@
 
                                         <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Bind Name}" x:Phase="0" Style="{ThemeResource NodeEntryTitleTextBlockStyle}" Padding="2" Margin="12,6,0,0"/>
 
-                                        <TextBlock Grid.Row="0" Grid.Column="2" Text="{x:Bind PublishedDateTimeFormatedAbout}" x:Phase="0" HorizontalAlignment="Right" Style="{ThemeResource NodeEntryTitleCaptionTextBlockStyle}" Padding="2" Margin="6,6,0,0"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="2" Text="{x:Bind PublishedDateTimeFormatedAbout}" x:Phase="1" HorizontalAlignment="Right" Style="{ThemeResource NodeEntryTitleCaptionTextBlockStyle}" Padding="2" Margin="6,6,0,0"/>
 
                                         <Grid Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2">
                                             <Grid.ColumnDefinitions>
@@ -480,15 +480,25 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
 
+                                            <StackPanel Orientation="Horizontal" Grid.Column="0" Margin="12,0,0,0">
+                                                <TextBlock x:Uid="FeedEntryItem_By" Style="{ThemeResource NodeEntryCaptionTextBlockStyle}" Padding="2" Margin="0" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis">
+                                                </TextBlock>
+                                                <TextBlock Text="{x:Bind Author}" x:Phase="1" Style="{ThemeResource NodeEntryCaptionTextBlockStyle}" Padding="2" Margin="0" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis">
+                                                </TextBlock>
+                                                <TextBlock x:Uid="FeedEntryItem_From" Style="{ThemeResource NodeEntryCaptionTextBlockStyle}" Padding="2" Margin="0" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis">
+                                                </TextBlock>
+                                                <TextBlock Text="{x:Bind Publisher}" x:Phase="1" Style="{ThemeResource NodeEntryCaptionTextBlockStyle}" Padding="2" Margin="0" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis">
+                                                </TextBlock>
+                                            </StackPanel>
+                                            <!--
                                             <TextBlock Grid.Column="0" Style="{ThemeResource NodeEntryCaptionTextBlockStyle}" Padding="2" Margin="12,0,0,6" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis">
                                                 <Run x:Uid="FeedEntryItem_By"/>
-                                                <Run Text="{x:Bind Author}"/>
+                                                <Run Text="{x:Bind Author}" x:Phase="1"/>
                                                 <Run x:Uid="FeedEntryItem_From"/>
-                                                <Run Text="{x:Bind Publisher}"/>
+                                                <Run Text="{x:Bind Publisher}" x:Phase="1"/>
                                             </TextBlock>
-
-                                            <TextBlock Grid.Column="1" Style="{ThemeResource NodeEntryCaptionTextBlockStyle}" Padding="2" Margin="12,0,0,6" MaxWidth="124" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis">
-                                                <Run Text="{x:Bind Host}"/>
+                                            -->
+                                            <TextBlock Grid.Column="1" Text="{x:Bind Host}" x:Phase="1" Style="{ThemeResource NodeEntryCaptionTextBlockStyle}" Padding="2" Margin="12,0,0,6" MaxWidth="124" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis">
                                             </TextBlock>
                                         </Grid>
                                     </Grid>

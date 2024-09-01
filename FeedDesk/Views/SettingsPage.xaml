@@ -101,8 +101,8 @@
 
                                         <TextBlock x:Uid="Settings_About_AppDescription" Margin="{StaticResource XSmallTopMargin}" Style="{ThemeResource BodyTextBlockStyle}" />
 
-                                        <HyperlinkButton x:Uid="Settings_About_Project_Page" NavigateUri="https://torum.github.io/BlogWrite/FeedDesk/" Margin="0,18,0,0"/>
-                                        <HyperlinkButton x:Uid="Settings_About_Project_GitHub" NavigateUri="https://github.com/torum/BlogWrite" Margin="0,12,0,0"/>
+                                        <HyperlinkButton x:Uid="Settings_About_Project_Page" NavigateUri="https://torum.github.io/FeedDesk/" Margin="0,18,0,0"/>
+                                        <HyperlinkButton x:Uid="Settings_About_Project_GitHub" NavigateUri="https://github.com/torum/FeedDesk" Margin="0,12,0,0"/>
 
                                         <TextBlock x:Uid="SettingsPage_PrivacyStatement" Style="{StaticResource SubtitleTextBlockStyle}" Margin="0,24,0,0" HorizontalAlignment="Left" />
 

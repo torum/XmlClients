@@ -101,14 +101,14 @@ public class ShellViewModel : ObservableRecipient
 
     private async void OnMenuHelpProjectPageCommand()
     {
-        Uri projectUri = new Uri("https://torum.github.io/BlogWrite/FeedDesk/");
+        Uri projectUri = new Uri("https://torum.github.io/FeedDesk/");
         
         await Windows.System.Launcher.LaunchUriAsync(projectUri);
     }
 
     private async void OnMenuHelpProjectGitHubCommand()
     {
-        Uri projectUri = new Uri("https://github.com/torum/BlogWrite");
+        Uri projectUri = new Uri("https://github.com/torum/FeedDesk");
 
         await Windows.System.Launcher.LaunchUriAsync(projectUri);
     }

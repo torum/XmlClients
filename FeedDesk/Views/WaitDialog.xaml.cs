@@ -6,6 +6,6 @@ public sealed partial class WaitDialog : ContentDialog
 {
     public WaitDialog()
     {
-        this.InitializeComponent();
+        InitializeComponent();
     }
 }

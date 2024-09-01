@@ -37,7 +37,7 @@ public partial class App : Application
     public string LogFilePath = System.Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + System.IO.Path.DirectorySeparatorChar + "FeedDesk_errors.txt";
     private readonly StringBuilder Errortxt = new();
 
-    private const string BackdropSettingsKey = "AppSystemBackdropOption";
+    public const string BackdropSettingsKey = "AppSystemBackdropOption";
 
     // MainWindow
     public static WindowEx MainWindow { get; } = new MainWindow();
@@ -154,14 +154,14 @@ public partial class App : Application
             Microsoft.Windows.AppLifecycle.AppInstance.GetCurrent().Activated += App_Activated;
         }
 
-        // 
+        /* 
         var manager = WinUIEx.WindowManager.Get(MainWindow);
         manager.PersistenceId = "MainWindowPersistanceId";
+        */
         
         // SystemBackdrop
         if (Microsoft.UI.Composition.SystemBackdrops.DesktopAcrylicController.IsSupported())
         {
-            //
             if (RuntimeHelper.IsMSIX)
             {
                 // Load preference from localsetting.
@@ -170,34 +170,34 @@ public partial class App : Application
                     var s = (string)obj;
                     if (s == SystemBackdropOption.Acrylic.ToString())
                     {
-                        manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
+                        //manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
                     }
                     else if (s == SystemBackdropOption.Mica.ToString())
                     {
-                        manager.Backdrop = new WinUIEx.MicaSystemBackdrop();
+                        //manager.Backdrop = new WinUIEx.MicaSystemBackdrop();
                     }
                     else
                     {
-                        manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
+                        //manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
                     }
                 }
                 else
                 {
                     // default acrylic... no Mica.
                     //manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
-                    manager.Backdrop = new WinUIEx.MicaSystemBackdrop();
+                    //manager.Backdrop = new WinUIEx.MicaSystemBackdrop();
                 }
             }
             else
             {
                 // just for me.
                 //manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
-                manager.Backdrop = new WinUIEx.MicaSystemBackdrop();
+                //manager.Backdrop = new WinUIEx.MicaSystemBackdrop();
             }
         }
         else if (Microsoft.UI.Composition.SystemBackdrops.MicaController.IsSupported())
         {
-            manager.Backdrop = new WinUIEx.MicaSystemBackdrop();
+            //manager.Backdrop = new WinUIEx.MicaSystemBackdrop();
         }
         else
         {
@@ -216,7 +216,7 @@ public partial class App : Application
 
             WinUIEx.WindowManager.PersistenceStorage = new FilePersistence(Path.Combine(AppDataFolder, "WinUIExPersistence.json"));
         }
-
+        
         // Nortification example.
         //App.GetService<IAppNotificationService>().Show(string.Format("AppNotificationSamplePayload".GetLocalized(), AppContext.BaseDirectory));
 
