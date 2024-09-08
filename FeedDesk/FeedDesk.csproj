@@ -1,10 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	  <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
-	  <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
-	  <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
-	  <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+	  <TargetFramework>net8.0-windows10.0.26100.0</TargetFramework>
+	  <WindowsSdkPackageVersion>10.0.26100.38</WindowsSdkPackageVersion>
+	  
+	  <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+	  <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion> 
+	  
 	  <RootNamespace>FeedDesk</RootNamespace>
 	  <ApplicationManifest>app.manifest</ApplicationManifest>
 	  <Platforms>x86;x64;ARM64</Platforms>
@@ -16,15 +18,16 @@
 	  <ImplicitUsings>enable</ImplicitUsings>
 	  <Nullable>enable</Nullable>
 
+
+	  <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+	  <!--
 	  <NeutralLanguage>en</NeutralLanguage>
 	  <DefaultLanguage>en-US</DefaultLanguage>
+	  -->
 
-	  <AssemblyVersion>1.0.15</AssemblyVersion>
+	  <AssemblyVersion>1.0.16</AssemblyVersion>
 	  <FileVersion>$(AssemblyVersion)</FileVersion>
 	  <Version>$(AssemblyVersion)</Version>
-	  <!--
-	  <PlatformTarget>x86</PlatformTarget>
-	  -->
 	  <ApplicationIcon>FeedDesk3.ico</ApplicationIcon>
 	  <Title>FeedDesk</Title>
 	  <Description>A desktop feed reader.</Description>
@@ -41,6 +44,10 @@
 	  <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
 	  <PublishTrimmed>False</PublishTrimmed>
 	  <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	  <PlatformTarget>AnyCPU</PlatformTarget>
+	  <RunAnalyzersDuringBuild>False</RunAnalyzersDuringBuild>
+	  <AppxPackageSigningEnabled>False</AppxPackageSigningEnabled>
+	  <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Assets\BadgeLogo.scale-100.png" />
@@ -92,7 +99,7 @@
     <PackageReference Include="System.Text.Json" Version="8.0.4" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
     <PackageReference Include="WinUIEx" Version="2.3.4" />
-	  <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240802000" />
+	  <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.240829007" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
@@ -166,41 +173,41 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <Optimize>False</Optimize>
     <DebugType>embedded</DebugType>
-    <NoWarn>1701;1702</NoWarn>
-    <WarningsAsErrors>$(WarningsAsErrors);NU1605</WarningsAsErrors>
+    <NoWarn></NoWarn>
+    <WarningsAsErrors></WarningsAsErrors>
     <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Optimize>False</Optimize>
     <DebugType>embedded</DebugType>
-    <NoWarn>1701;1702</NoWarn>
-    <WarningsAsErrors>$(WarningsAsErrors);NU1605</WarningsAsErrors>
+    <NoWarn></NoWarn>
+    <WarningsAsErrors></WarningsAsErrors>
     <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <DebugType>embedded</DebugType>
     <Optimize>False</Optimize>
-    <NoWarn>1701;1702</NoWarn>
-    <WarningsAsErrors>$(WarningsAsErrors);NU1605</WarningsAsErrors>
+    <NoWarn></NoWarn>
+    <WarningsAsErrors></WarningsAsErrors>
     <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DebugType>embedded</DebugType>
     <Optimize>False</Optimize>
-    <NoWarn>1701;1702</NoWarn>
-    <WarningsAsErrors>$(WarningsAsErrors);NU1605</WarningsAsErrors>
+    <NoWarn></NoWarn>
+    <WarningsAsErrors></WarningsAsErrors>
     <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|arm64'">
     <Optimize>False</Optimize>
-    <NoWarn>1701;1702</NoWarn>
-    <WarningsAsErrors>$(WarningsAsErrors);NU1605</WarningsAsErrors>
+    <NoWarn></NoWarn>
+    <WarningsAsErrors></WarningsAsErrors>
     <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|arm64'">
     <Optimize>False</Optimize>
-    <NoWarn>1701;1702</NoWarn>
-    <WarningsAsErrors>$(WarningsAsErrors);NU1605</WarningsAsErrors>
+    <NoWarn></NoWarn>
+    <WarningsAsErrors></WarningsAsErrors>
     <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
   </PropertyGroup>
 </Project>
