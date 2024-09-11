@@ -22,7 +22,7 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
 
     private readonly IThemeSelectorService _themeSelectorService;
     
-    private string _versionDescription;
+    //private string _versionDescription;
 
     private SystemBackdropOption _material = SystemBackdropOption.Mica;
     public SystemBackdropOption Material
@@ -52,12 +52,13 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
         get => _elementTheme;
         set => SetProperty(ref _elementTheme, value);
     }
-
+    /*
     public string VersionDescription
     {
         get => _versionDescription;
         set => SetProperty(ref _versionDescription, value);
     }
+    */
 
     public ICommand SwitchThemeCommand
     {
@@ -80,7 +81,7 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
 
         _themeSelectorService = themeSelectorService;
         _elementTheme = _themeSelectorService.Theme;
-        _versionDescription = GetVersionDescription();
+        //_versionDescription = GetVersionDescription();
 
         /*
         var manager = WinUIEx.WindowManager.Get(App.MainWindow);
@@ -135,7 +136,29 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
     {
     }
 
-    private static string GetVersionDescription()
+    public string VersionText
+    {
+        get
+        {
+            Version version;
+
+            if (RuntimeHelper.IsMSIX)
+            {
+                var packageVersion = Package.Current.Id.Version;
+
+                version = new(packageVersion.Major, packageVersion.Minor, packageVersion.Build, packageVersion.Revision);
+            }
+            else
+            {
+                version = Assembly.GetExecutingAssembly().GetName().Version!;
+                Debug.WriteLine("asdf" + Assembly.GetExecutingAssembly().GetName().Version.ToString());
+            }
+            
+            return $"{"Version".GetLocalized()} - {version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
+        }
+    }
+    /*
+    private string GetVersionDescription()
     {
         Version version;
 
@@ -152,6 +175,7 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
 
         return $"{"Version".GetLocalized()} - {version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
     }
+    */
 
     private void OnSwitchSystemBackdrop(string? backdrop)
     {

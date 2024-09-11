@@ -96,8 +96,8 @@
                                     <TextBlock x:Uid="Settings_About" Style="{ThemeResource SubtitleTextBlockStyle}" />
 
                                     <StackPanel Margin="{StaticResource XSmallTopMargin}">
-                                        
-                                        <TextBlock Text="{x:Bind ViewModel.VersionDescription, Mode=OneWay}" Style="{ThemeResource BodyTextBlockStyle}" />
+
+                                        <TextBlock Text="{x:Bind ViewModel.VersionText, Mode=OneWay}" Style="{ThemeResource BodyTextBlockStyle}" />
 
                                         <TextBlock x:Uid="Settings_About_AppDescription" Margin="{StaticResource XSmallTopMargin}" Style="{ThemeResource BodyTextBlockStyle}" />
 

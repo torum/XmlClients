@@ -9,7 +9,7 @@
 	  
 	  <RootNamespace>FeedDesk</RootNamespace>
 	  <ApplicationManifest>app.manifest</ApplicationManifest>
-	  <Platforms>x86;x64;ARM64</Platforms>
+	  <Platforms>x86;x64</Platforms>
 	  <RuntimeIdentifiers Condition="$([MSBuild]::GetTargetFrameworkVersion('$(TargetFramework)')) &gt;= 8">win-x86;win-x64;win-arm64</RuntimeIdentifiers>
 	  <RuntimeIdentifiers Condition="$([MSBuild]::GetTargetFrameworkVersion('$(TargetFramework)')) &lt; 8">win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
 	  <PublishProfile>win10-$(Platform).pubxml</PublishProfile>
@@ -17,7 +17,7 @@
 	  <EnableMsixTooling>true</EnableMsixTooling>
 	  <ImplicitUsings>enable</ImplicitUsings>
 	  <Nullable>enable</Nullable>
-
+	  <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 
 	  <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
 	  <!--
@@ -34,7 +34,6 @@
 	  <PackageProjectUrl>https://github.com/torum/BlogWrite</PackageProjectUrl>
 	  <RepositoryUrl>https://github.com/torum/BlogWrite</RepositoryUrl>
 	  <IncludeSymbols>True</IncludeSymbols>
-	  <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
 	  <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
 	  <AppxSymbolPackageEnabled>True</AppxSymbolPackageEnabled>
 	  <GenerateTestArtifacts>False</GenerateTestArtifacts>
@@ -173,30 +172,34 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <Optimize>False</Optimize>
     <DebugType>embedded</DebugType>
-    <NoWarn></NoWarn>
-    <WarningsAsErrors></WarningsAsErrors>
-    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <NoWarn>1701;1702;CA1416</NoWarn>
+    <WarningsAsErrors>$(WarningsAsErrors);NU1605</WarningsAsErrors>
+    <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+    <WarningLevel>7</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Optimize>False</Optimize>
     <DebugType>embedded</DebugType>
-    <NoWarn></NoWarn>
-    <WarningsAsErrors></WarningsAsErrors>
-    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <NoWarn>1701;1702;CA1416</NoWarn>
+    <WarningsAsErrors>$(WarningsAsErrors);NU1605</WarningsAsErrors>
+    <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+    <WarningLevel>7</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <DebugType>embedded</DebugType>
     <Optimize>False</Optimize>
-    <NoWarn></NoWarn>
-    <WarningsAsErrors></WarningsAsErrors>
-    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <NoWarn>1701;1702;CA1416</NoWarn>
+    <WarningsAsErrors>$(WarningsAsErrors);NU1605</WarningsAsErrors>
+    <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+    <WarningLevel>7</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DebugType>embedded</DebugType>
     <Optimize>False</Optimize>
-    <NoWarn></NoWarn>
-    <WarningsAsErrors></WarningsAsErrors>
-    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <NoWarn>1701;1702;CA1416</NoWarn>
+    <WarningsAsErrors>$(WarningsAsErrors);NU1605</WarningsAsErrors>
+    <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+    <WarningLevel>7</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|arm64'">
     <Optimize>False</Optimize>
