@@ -19,7 +19,7 @@ A desktop feed reader. (work in progress)
 Feel free to open issues and send PRs. 
 
 ## Technologies, Frameworks, Libraries
-* [.NET 6](https://github.com/dotnet/runtime)  
+* [.NET 8](https://github.com/dotnet/runtime)  
 * [WinUI3 (Windows App SDK)](https://github.com/microsoft/WindowsAppSDK) 
 * [Community Toolkit](https://github.com/CommunityToolkit) 
 * [WinUIEx](https://github.com/dotMorten/WinUIEx)
@@ -32,15 +32,17 @@ Feel free to open issues and send PRs.
 * Windows 10.0.19041.0 or higher
 
 ### Building
-1. Visual Studio 2022 with support for .NET Desktop App UI development (and optionally .NET Universal App development)
-2. Clone this repository
-3. Open solution in Visual Studio
+1. Visual Studio 2022 with support for .NET Desktop App UI development.
+2. Clone this repository.
+3. Open solution in Visual Studio.
 4. Select FeedDesk project, then compile and run.
 
 ## Download app
 from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
 
 ## Change log
+* v1.0.18  (2024/9/15)
+ Added GridSplitter(Pane resizer). Fixed minor scrollviewer pos issue. Fixed DB lock issue. Minor tweaks.
 * v1.0.11  (2023/2/29)
  Removed AngleSharp because AngleSharp spits some exception. Use HTMLAgilityPack instead.
 * v1.0.10.123 (2023/2/28)
