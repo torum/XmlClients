@@ -9,9 +9,9 @@
     xmlns:controls="using:Microsoft.UI.Xaml.Controls"
     NavigationCacheMode="Required"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     Loaded="Page_Loaded">
-
+    <!-- 
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"  -->
     <Grid x:Name="ContentArea">
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup>
@@ -51,7 +51,7 @@
                     </VisualState.StateTriggers>
                     <VisualState.Setters>
                         <Setter Target="PanelOpenClose.Icon" Value="OpenPane" />
-                        <Setter Target="PanelOpenClose.Label" Value="Preview" />
+                        <Setter Target="PanelOpenClose.Label" Value="" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
@@ -170,7 +170,7 @@
 
             <CommandBar Background="Transparent" IsOpen="False" DefaultLabelPosition="Right">
 
-                <AppBarButton x:Name="PanelOpenClose" Icon="ClosePane" Label="Preview" Command="{x:Bind ViewModel.TogglePreviewPaneVisibilityCommand}" IsCompact="True" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,0,0" Padding="0">
+                <AppBarButton x:Name="PanelOpenClose" Icon="ClosePane" Label="" Command="{x:Bind ViewModel.TogglePreviewPaneVisibilityCommand}" IsCompact="True" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,0,0" Padding="0">
                     <AppBarButton.KeyboardAccelerators>
                         <KeyboardAccelerator Modifiers="Control" Key="P" />
                     </AppBarButton.KeyboardAccelerators>
@@ -268,9 +268,9 @@
 
                                         </CommandBar>
                                     </Border>
-
+<!--
                                     <WebView2 x:Name="WebViewRichEdit" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="6"/>
-
+-->
                                 </Grid>
                             </TabViewItem>
 
@@ -284,8 +284,22 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
 
-
+<!--
                                     <WebView2 x:Name="WebViewSourceEdit" Grid.Row="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="6"/>
+-->
+                                </Grid>
+                            </TabViewItem>
+
+                            <TabViewItem Header="Entry Options" IsClosable="False">
+                                <Grid Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
 
                                 </Grid>
                             </TabViewItem>

@@ -54,8 +54,8 @@ public sealed partial class EditorPage : Page
         Window.Closed += EditorWindow_Closed;
 
         // Init webview2
-        ViewModel.WebViewServiceRichEdit.Initialize(WebViewRichEdit);
-        ViewModel.WebViewServiceSourceEdit.Initialize(WebViewSourceEdit);
+        //ViewModel.WebViewServiceRichEdit.Initialize(WebViewRichEdit);
+        //ViewModel.WebViewServiceSourceEdit.Initialize(WebViewSourceEdit);
         ViewModel.WebViewServicePreviewBrowser.Initialize(WebViewPreviewBrowser);
 
         // Focus control
@@ -89,12 +89,16 @@ public sealed partial class EditorPage : Page
 
     public void EditorWindow_Closed(object sender, WindowEventArgs args)
     {
-        // TODO:
+        Window.BringToFront();
+
+         // TODO:
         if (ViewModel.Closing())
         {
-            WebViewRichEdit.Close();
-            WebViewSourceEdit.Close();
-            WebViewPreviewBrowser.Close();
+            // https://github.com/microsoft/microsoft-ui-xaml/issues/7336
+            // already done this in viewmodel.
+            //WebViewRichEdit.Close();
+            //WebViewSourceEdit.Close();
+            //WebViewPreviewBrowser.Close();
         }
         else
         {
@@ -115,33 +119,41 @@ public sealed partial class EditorPage : Page
     {
         // Required.
         await Task.Delay(100);
-
+        /*
         if (WebViewRichEdit.Visibility == Visibility.Visible)
         {
+            Debug.WriteLine("WebViewRichEdit.Focus on Page_Loaded");
             WebViewRichEdit.Focus(FocusState.Programmatic);
         }
+        */
     }
 
     private async void OnWebView2RichEditSetFocus()
     {
+        /*
         if (WebViewRichEdit.Visibility == Visibility.Visible)
         {
             // Required.
             await Task.Delay(100);
 
+            Debug.WriteLine("OnWebView2RichEditSetFocus");
             WebViewRichEdit.Focus(FocusState.Programmatic);
         }
+        */
     }
 
     private async void OnWebView2SourceEditSetFocus()
     {
+        /*
         if (WebViewSourceEdit.Visibility == Visibility.Visible)
         {
             // Required.
             await Task.Delay(100);
 
+            Debug.WriteLine("OnWebView2SourceEditSetFocus");
             WebViewSourceEdit.Focus(FocusState.Programmatic);
         }
+        */
     }
 
     private async void OnWebView2PreviewBrowserSetFocus()
@@ -151,6 +163,7 @@ public sealed partial class EditorPage : Page
             // Required.
             await Task.Delay(100);
 
+            Debug.WriteLine("OnWebView2PreviewBrowserSetFocus");
             WebViewPreviewBrowser.Focus(FocusState.Programmatic);
         }
     }

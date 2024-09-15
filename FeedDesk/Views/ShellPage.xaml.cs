@@ -1,4 +1,6 @@
-﻿using BlogWrite.Core.Helpers;
+﻿using System.Xml;
+using System.Xml.Linq;
+using BlogWrite.Core.Helpers;
 using FeedDesk.Contracts.Services;
 using FeedDesk.ViewModels;
 using Microsoft.UI.Xaml;
@@ -56,6 +58,140 @@ public sealed partial class ShellPage : Page
 
         App.MainWindow.Activated += MainWindow_Activated;
         App.MainWindow.Closed += MainWindow_Closed;
+
+        #region == Load settings ==
+
+        // Ignore window size and position. Let WinEx do the Window resize. It handles save and restore perfectly including RestoreBound.
+
+        double height = 640;
+        double width = 480;
+
+        var filePath = App.AppConfigFilePath;
+        if (RuntimeHelper.IsMSIX)
+        {
+            filePath = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, App.AppName + ".config");
+        }
+
+        if (System.IO.File.Exists(filePath))
+        {
+            var xdoc = XDocument.Load(filePath);
+            //Debug.WriteLine(xdoc.ToString());
+
+            // Main window
+            if (App.MainWindow != null && xdoc.Root != null)
+            {
+                // Main Window element
+                var mainWindow = xdoc.Root.Element("MainWindow");
+                if (mainWindow != null)
+                {
+                    /*
+                    var hoge = mainWindow.Attribute("top");
+                    if (hoge != null)
+                    {
+                        (sender as Window).Top = double.Parse(hoge.Value);
+                    }
+                    */
+                    /*
+                    hoge = mainWindow.Attribute("left");
+                    if (hoge != null)
+                    {
+                        (sender as Window).Left = double.Parse(hoge.Value);
+                    }
+                    */
+                    var hoge = mainWindow.Attribute("height");
+                    if (hoge != null)
+                    {
+                        height = double.Parse(hoge.Value);
+                    }
+
+                    hoge = mainWindow.Attribute("width");
+                    if (hoge != null)
+                    {
+                        width = double.Parse(hoge.Value);
+                    }
+                    /*
+                    hoge = mainWindow.Attribute("state");
+                    if (hoge != null)
+                    {
+                        if (hoge.Value == "Maximized")
+                        {
+                            (sender as Window).WindowState = WindowState.Maximized;
+                        }
+                        else if (hoge.Value == "Normal")
+                        {
+                            (sender as Window).WindowState = WindowState.Normal;
+                        }
+                        else if (hoge.Value == "Minimized")
+                        {
+                            (sender as Window).WindowState = WindowState.Normal;
+                        }
+                    }
+                    */
+
+                    var xLeftPane = mainWindow.Element("LeftPane");
+                    if (xLeftPane != null)
+                    {
+                        if (xLeftPane.Attribute("width") != null)
+                        {
+                            var xvalue = xLeftPane.Attribute("width")?.Value;
+                            if (!string.IsNullOrEmpty(xvalue))
+                            {
+                                var w = double.Parse(xvalue);
+                                if (w > 256)
+                                {
+                                    MainViewModel.WidthLeftPane = w;
+                                }
+                            }
+                        }
+                    }
+
+                    var xDetailPane = mainWindow.Element("DetailPane");
+                    if (xDetailPane != null)
+                    {
+                        if (xDetailPane.Attribute("width") != null)
+                        {
+                            var xvalue = xDetailPane.Attribute("width")?.Value;
+                            if (!string.IsNullOrEmpty(xvalue))
+                            {
+                                var w = double.Parse(xvalue);
+                                if (w > 256)
+                                {
+                                    MainViewModel.WidthDetailPane = w;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Options
+                var opts = xdoc.Root.Element("Opts");
+                if (opts != null)
+                {
+                    /*
+                    var xvalue = opts.Attribute("IsChartTooltipVisible");
+                    if (xvalue != null)
+                    {
+                        if (!string.IsNullOrEmpty(xvalue.Value))
+                        {
+                            //MainViewModel.IsChartTooltipVisible = xvalue.Value == "True";
+                        }
+                    }
+
+                    xvalue = opts.Attribute("IsDebugSaveLog");
+                    if (xvalue != null)
+                    {
+                        if (!string.IsNullOrEmpty(xvalue.Value))
+                        {
+                            //MainViewModel.IsDebugSaveLog = xvalue.Value == "True";
+                        }
+                    }
+                    */
+                }
+
+            }
+        }
+
+        #endregion
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
@@ -97,6 +233,153 @@ public sealed partial class ShellPage : Page
 
         // Dispose httpclient.
         vm.CleanUp();
+
+        #region == Save setting ==
+
+        // Ignore window size and position. Let WinEx do the Window resize. It handles save and restore perfectly including RestoreBound.
+
+        XmlDocument doc = new();
+        var xmlDeclaration = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
+        doc.InsertBefore(xmlDeclaration, doc.DocumentElement);
+
+        // Root Document Element
+        var root = doc.CreateElement(string.Empty, "App", string.Empty);
+        doc.AppendChild(root);
+
+        //XmlAttribute attrs = doc.CreateAttribute("Version");
+        //attrs.Value = _appVer;
+        //root.SetAttributeNode(attrs);
+        XmlAttribute attrs;
+
+        // Main window
+        if (App.MainWindow != null)
+        {
+            // Main Window element
+            var mainWindow = doc.CreateElement(string.Empty, "MainWindow", string.Empty);
+
+            // Main Window attributes
+            attrs = doc.CreateAttribute("width");
+            /*
+            if (App.MainWindow.WindowState == WindowState.Maximized)
+            {
+                attrs.Value = //RestoreBounds.Width.ToString();
+            }
+            else
+            {
+                attrs.Value = App.MainWindow.AppWindow.Size.Width.ToString();
+            }
+            */
+            attrs.Value = App.MainWindow.AppWindow.Size.Width.ToString();//App.MainWindow.GetAppWindow().Size.Width.ToString();
+            mainWindow.SetAttributeNode(attrs);
+
+            attrs = doc.CreateAttribute("height");
+            /*
+            if ((sender as Window).WindowState == WindowState.Maximized)
+            {
+                attrs.Value = (sender as Window).RestoreBounds.Height.ToString();
+            }
+            else
+            {
+                attrs.Value = (sender as Window).Height.ToString();
+            }
+            */
+            attrs.Value = App.MainWindow.AppWindow.Size.Height.ToString();//App.MainWindow.GetAppWindow().Size.Height.ToString();
+            mainWindow.SetAttributeNode(attrs);
+
+            attrs = doc.CreateAttribute("top");
+            /*
+            if ((sender as Window).WindowState == WindowState.Maximized)
+            {
+                attrs.Value = (sender as Window).RestoreBounds.Top.ToString();
+            }
+            else
+            {
+                attrs.Value = (sender as Window).Top.ToString();
+            }
+            */
+            attrs.Value = App.MainWindow.AppWindow.Position.Y.ToString();
+            mainWindow.SetAttributeNode(attrs);
+
+            attrs = doc.CreateAttribute("left");
+            /*
+            if ((sender as Window).WindowState == WindowState.Maximized)
+            {
+                attrs.Value = (sender as Window).RestoreBounds.Left.ToString();
+            }
+            else
+            {
+                attrs.Value = (sender as Window).Left.ToString();
+            }
+            */
+            attrs.Value = App.MainWindow.AppWindow.Position.X.ToString();
+            mainWindow.SetAttributeNode(attrs);
+
+            attrs = doc.CreateAttribute("state");
+            if (App.MainWindow.WindowState == WindowState.Maximized)
+            {
+                attrs.Value = "Maximized";
+            }
+            else if (App.MainWindow.WindowState == WindowState.Normal)
+            {
+                attrs.Value = "Normal";
+
+            }
+            else if (App.MainWindow.WindowState == WindowState.Minimized)
+            {
+                attrs.Value = "Minimized";
+            }
+            mainWindow.SetAttributeNode(attrs);
+
+
+            var xLeftPane = doc.CreateElement(string.Empty, "LeftPane", string.Empty);
+            var xAttrs = doc.CreateAttribute("width");
+            xAttrs.Value = MainViewModel.WidthLeftPane.ToString();
+            xLeftPane.SetAttributeNode(xAttrs);
+
+            mainWindow.AppendChild(xLeftPane);
+
+            var xDetailPane = doc.CreateElement(string.Empty, "DetailPane", string.Empty);
+            xAttrs = doc.CreateAttribute("width");
+            xAttrs.Value = MainViewModel.WidthDetailPane.ToString();
+            xDetailPane.SetAttributeNode(xAttrs);
+
+            mainWindow.AppendChild(xDetailPane);
+
+            // set Main Window element to root.
+            root.AppendChild(mainWindow);
+
+        }
+
+        // Options
+        var xOpts = doc.CreateElement(string.Empty, "Opts", string.Empty);
+
+        //attrs = doc.CreateAttribute("isChartTooltipVisible");
+        //attrs.Value = MainViewModel.IsChartTooltipVisible.ToString();
+        //xOpts.SetAttributeNode(attrs);
+
+        //attrs = doc.CreateAttribute("isDebugSaveLog");
+        //attrs.Value = MainViewModel.IsDebugSaveLog.ToString();
+        //xOpts.SetAttributeNode(attrs);
+
+        root.AppendChild(xOpts);
+
+
+        var filePath = App.AppConfigFilePath;
+        if (RuntimeHelper.IsMSIX)
+        {
+            filePath = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, App.AppName + ".config");
+        }
+
+        try
+        {
+            doc.Save(filePath);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("MainWindow_Closed: " + ex + " while saving : " + filePath);
+        }
+
+        #endregion
 
         // Save err log.
         (App.Current as App)?.SaveErrorLog();

@@ -1,10 +1,13 @@
-﻿{
-    "profiles": {
-      "BlogDesk (Package)": {
-        "commandName": "MsixPackage"
-      },
-      "BlogDesk (Unpackaged)": {
-        "commandName": "Project"
-      }
+{
+  "profiles": {
+    "BlogDesk (Package)": {
+      "commandName": "MsixPackage",
+      "nativeDebugging": false
+    },
+    "BlogDesk (Unpackaged)": {
+      "commandName": "Project",
+      "nativeDebugging": false,
+      "jsWebView2Debugging": false
     }
+  }
 }

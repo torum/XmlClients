@@ -16,12 +16,9 @@ public sealed partial class MainWindow : WindowEx
         Content = null;
         Title = "AppDisplayName".GetLocalized();
 
-
-
         // SystemBackdrop
         if (Microsoft.UI.Composition.SystemBackdrops.DesktopAcrylicController.IsSupported())
         {
-            //manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
             if (RuntimeHelper.IsMSIX)
             {
                 // Load preference from localsetting.

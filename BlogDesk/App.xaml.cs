@@ -141,7 +141,7 @@ public partial class App : Application
         // 
         var manager = WinUIEx.WindowManager.Get(MainWindow);
         manager.PersistenceId = "MainWindowPersistanceId";
-        manager.Backdrop = new WinUIEx.MicaSystemBackdrop();
+        manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();//new WinUIEx.MicaSystemBackdrop();
 
         await App.GetService<IActivationService>().ActivateAsync(args);
     }

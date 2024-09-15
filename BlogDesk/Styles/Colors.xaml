@@ -11,7 +11,8 @@
                     
                     <SolidColorBrush x:Key="SolidBackgroundFillColorTertiaryBrush" Color="#272727" />
                     <StaticResource x:Key="TabViewItemHeaderBackgroundSelected" ResourceKey="SolidBackgroundFillColorTertiaryBrush" />
-                    
+
+
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

@@ -4,6 +4,7 @@ using FeedDesk.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Markup;
+using Windows.Storage;
 
 namespace FeedDesk.Views;
 
@@ -39,6 +40,12 @@ public sealed partial class MainPage : Page
 
         //ViewModel.DebugOutput += (sender, arg) => { OnDebugOutput(arg); };
         //ViewModel.DebugClear += () => OnDebugClear();
+
+        // Sets gridsplitter left.
+        LeftPaneGridColumn.Width = new GridLength(ViewModel.WidthLeftPane, GridUnitType.Pixel);
+        // DetailPane gridsplitter left
+        col2.Width = new GridLength(ViewModel.WidthDetailPane, GridUnitType.Pixel);
+        col1.Width = new GridLength(1.0, GridUnitType.Star);
     }
 
     public async void OnShowWaitDialog(bool isShow)
@@ -259,5 +266,21 @@ public sealed partial class MainPage : Page
         {
             item.IsSelected = true;
         }
+    }
+
+    private void LeftPane_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        ViewModel.WidthLeftPane = LeftPaneGridColumn.ActualWidth;
+    }
+
+    private void ListViewPane_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        ViewModel.WidthDetailPane = col2.ActualWidth;
+    }
+
+    private void ListViewEntryItem_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        //
+        DetailsPaneScrollViewer.ChangeView(0,0,1);
     }
 }

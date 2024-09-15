@@ -15,5 +15,8 @@ public sealed partial class MainPage : Page
     {
         ViewModel = App.GetService<MainViewModel>();
         InitializeComponent();
+
+        // Initialize WebView2 and Monaco editor.
+        ViewModel.WebViewServiceEditor.Initialize(WebViewEditor);
     }
 }

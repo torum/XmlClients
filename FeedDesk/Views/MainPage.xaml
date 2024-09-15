@@ -8,6 +8,7 @@
     xmlns:helper="using:BlogWrite.Core.Helpers"
     xmlns:local="using:FeedDesk.Views"
     xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    xmlns:communityToolkitControls="using:CommunityToolkit.WinUI.Controls"
     NavigationCacheMode="Required"
     mc:Ignorable="d">
     <Page.Resources>
@@ -78,9 +79,11 @@
                     <VisualState.StateTriggers>
                         <AdaptiveTrigger MinWindowWidth="1007" />
                     </VisualState.StateTriggers>
-                    <VisualState.Setters>
-                        <Setter Target="col1.Width" Value="3*" />
+                    <VisualState.Setters><!-- 
+                        <Setter Target="col1.Width" Value="3*"/>
                         <Setter Target="col2.Width" Value="4*" />
+                        -->
+                        <Setter Target="row2.Height" Value="0" />
                     </VisualState.Setters>
                 </VisualState>
                 <VisualState>
@@ -95,9 +98,14 @@
                         <Setter Target="row1.Height" Value="3.5*" />
                         <Setter Target="row2.Height" Value="6.5*" />
                         <Setter Target="col1.MaxWidth" Value="1000" />
+                        <Setter Target="col2.MinWidth" Value="0" />
                         <Setter Target="DetailsPane.Margin" Value="0,0,0,0"/>
                         <Setter Target="ListViewPane.CornerRadius" Value="0,0,0,0"/>
-                        <Setter Target="DetailsPane.CornerRadius" Value="0,0,0,0"/> 
+                        <Setter Target="DetailsPane.CornerRadius" Value="0,0,0,0"/>
+                        <Setter Target="ListViewPaneColumnGridSplitter.Visibility" Value="Collapsed"/>
+                        <Setter Target="ListViewPaneColumnGridSplitter.IsEnabled" Value="False"/>
+                        <Setter Target="ListViewPaneRowGridSplitter.Visibility" Value="Visible"/>
+                        <Setter Target="ListViewPaneRowGridSplitter.IsEnabled" Value="True"/>
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
@@ -109,8 +117,8 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*" MinWidth="256" MaxWidth="380"/>
-            <ColumnDefinition Width="7*"/>
+            <ColumnDefinition Width="256" MinWidth="256" MaxWidth="380" x:Name="LeftPaneGridColumn"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
@@ -123,7 +131,7 @@
         </Grid>
         
         <!-- Left pane -->
-        <Border Grid.Row="1" Grid.Column="0" Margin="0,0,0,0" CornerRadius="0" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
+        <Border x:Name="LeftPane" Grid.Row="1" Grid.Column="0" MinWidth="256" MaxWidth="380" SizeChanged="LeftPane_SizeChanged" Margin="0,0,0,0" CornerRadius="0" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -270,6 +278,17 @@
             </Grid>
         </Border>
 
+        <!-- Column Grid Splitter  -->
+        <communityToolkitControls:GridSplitter x:Name="LeftPaneColumnGridSplitter" Grid.Row="1" Grid.Column="1"
+                               Width="16"
+                               HorizontalAlignment="Left"
+                               ResizeBehavior="BasedOnAlignment"
+                               ResizeDirection="Auto">
+            <communityToolkitControls:GridSplitter.RenderTransform>
+                <TranslateTransform X="-7" />
+            </communityToolkitControls:GridSplitter.RenderTransform>
+        </communityToolkitControls:GridSplitter>
+
         <!-- Right pane -->
         <Grid Grid.Row="1" Grid.Column="1">
             <Grid.RowDefinitions>
@@ -329,11 +348,11 @@
                     <RowDefinition Height="Auto" x:Name="row2"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="3*" x:Name="col1" MaxWidth="680"/>
-                    <ColumnDefinition Width="4*" x:Name="col2" />
+                    <ColumnDefinition Width="3*" x:Name="col1" MinWidth="256"/>
+                    <ColumnDefinition Width="4*" x:Name="col2" MinWidth="256" />
                 </Grid.ColumnDefinitions>
 
-                <Border x:Name="ListViewPane" Grid.Row="0" Grid.Column="0" Margin="0,0,0,0" CornerRadius="0" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
+                <Border x:Name="ListViewPane" Grid.Row="0" Grid.Column="0" SizeChanged="ListViewPane_SizeChanged" Margin="0,0,0,0" CornerRadius="0" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -421,7 +440,7 @@
 
                         <!-- Entries listView
                          Background="{ThemeResource SolidBackgroundFillColorTertiaryBrush}" -->
-                        <ListView Grid.Row="1" x:Name="ListViewEntryItem" Background="{ThemeResource NavigationViewContentBackground}" ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedListViewItem, Mode=TwoWay}" IsDoubleTapEnabled="True" IsRightTapEnabled="True" SelectionMode="Single" Margin="0,0,0,0" Padding="0,2,0,0">
+                        <ListView Grid.Row="1" x:Name="ListViewEntryItem" Background="{ThemeResource NavigationViewContentBackground}" ItemsSource="{x:Bind ViewModel.Entries, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedListViewItem, Mode=TwoWay}" SelectionChanged="ListViewEntryItem_SelectionChanged" IsDoubleTapEnabled="True" IsRightTapEnabled="True" SelectionMode="Single" Margin="0,0,0,0" Padding="0,2,0,0">
                             <ListView.Resources>
 
                                 <MenuFlyout x:Key="ListItemContextMenu">
@@ -509,53 +528,97 @@
                     </Grid>
                 </Border>
 
-                <!-- Details pane 
-                    SolidBackgroundFillColorQuarternaryBrush SolidBackgroundFillColorTertiaryBrush -->
+                <!-- Column Grid Splitter  -->
+                <communityToolkitControls:GridSplitter x:Name="ListViewPaneColumnGridSplitter" Grid.Row="0" Grid.Column="1"
+                               Width="16"
+                               HorizontalAlignment="Left"
+                               ResizeBehavior="BasedOnAlignment"
+                               ResizeDirection="Auto">
+                    <communityToolkitControls:GridSplitter.RenderTransform>
+                        <TranslateTransform X="-7" />
+                    </communityToolkitControls:GridSplitter.RenderTransform>
+                </communityToolkitControls:GridSplitter>
+
+                <!-- Row Grid Splitter  -->
+                <communityToolkitControls:GridSplitter x:Name="ListViewPaneRowGridSplitter" Grid.Row="1" Visibility="Collapsed" IsEnabled="False"
+                               Height="16"
+                               VerticalAlignment="Top">
+                    <communityToolkitControls:GridSplitter.RenderTransform>
+                        <TranslateTransform Y="-7" />
+                    </communityToolkitControls:GridSplitter.RenderTransform>
+                </communityToolkitControls:GridSplitter>
+
+                <!-- Details pane --> 
+                   <!-- SolidBackgroundFillColorQuarternaryBrush SolidBackgroundFillColorTertiaryBrush -->
                 <Border x:Name="DetailsPane" Grid.Row="0" Grid.Column="1" Background="{ThemeResource LayerFillColorAltBrush}" Margin="0" CornerRadius="{ThemeResource NavigationViewContentChildGridCornerRadius}" BorderBrush="{ThemeResource NavigationViewContentGridBorderBrush}" BorderThickness="{ThemeResource NavigationViewContentChildGridBorderThickness}">
-                    <ScrollViewer Visibility="{x:Bind ViewModel.IsEntryDetailVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
+                    <ScrollViewer x:Name="DetailsPaneScrollViewer" Visibility="{x:Bind ViewModel.IsEntryDetailVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
 
                         <StackPanel Margin="24,12,24,24" MaxWidth="1024" Visibility="{x:Bind ViewModel.IsEntryDetailVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
 
-                            <RelativePanel HorizontalAlignment="Left" VerticalAlignment="Top" RelativePanel.AlignTopWithPanel="True" RelativePanel.AlignLeftWithPanel="True">
+                            <StackPanel>
 
-                                <Viewbox Margin="0" HorizontalAlignment="Stretch" VerticalAlignment="Top">
-                                    <Canvas Width="23.5" Height="23.5">
-                                        <Path Fill="#333" Opacity="0" Data="M19,19H5V5H19M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M13.96,12.29L11.21,15.83L9.25,13.47L6.5,17H17.5L13.96,12.29Z" />
-                                    </Canvas>
-                                </Viewbox>
-
-                                <StackPanel>
-
-                                    <TextBlock Visibility="{x:Bind ViewModel.IsNoAltLinkExists, Mode=OneWay}" Text="{x:Bind ViewModel.SelectedListViewItem.Name, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" Style="{ThemeResource TitleTextBlockStyle}" FontSize="{StaticResource LargeFontSize}" Opacity="0.9"/>
-                                    <TextBlock Visibility="{x:Bind ViewModel.IsAltLinkExists, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" Style="{ThemeResource TitleTextBlockStyle}" FontSize="{StaticResource LargeFontSize}" Opacity="0.9" LineHeight="36">
+                                <!-- Title -->
+                                <TextBlock Visibility="{x:Bind ViewModel.IsNoAltLinkExists, Mode=OneWay}" Text="{x:Bind ViewModel.SelectedListViewItem.Name, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" Style="{ThemeResource DetailTitleStyle}" FontSize="{StaticResource LargeFontSize}" Opacity="0.9"/>
+                                <TextBlock Visibility="{x:Bind ViewModel.IsAltLinkExists, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" Style="{ThemeResource DetailTitleStyle}" FontSize="{StaticResource LargeFontSize}" Opacity="0.9">
                                         <Hyperlink NavigateUri="{x:Bind ViewModel.SelectedListViewItem.AltHtmlUri, Mode=OneWay}"><Run Text="{x:Bind ViewModel.SelectedListViewItem.Name, Mode=OneWay}"></Run></Hyperlink>
-                                    </TextBlock>
+                                </TextBlock>
 
-                                    <StackPanel Visibility="{x:Bind ViewModel.IsCommentPageLinkExists, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
-                                        <HyperlinkButton x:Uid="MainPage_DetailsPane_CommentsPage" NavigateUri="{x:Bind ViewModel.SelectedListViewItem.CommentUri.AbsoluteUri, Mode=OneWay}" Margin="{StaticResource SmallTopMargin}" />
-                                    </StackPanel>
-
-                                    <StackPanel Visibility="{x:Bind ViewModel.IsImageLinkExists, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
-                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.ImageUri.AbsoluteUri, Mode=OneWay}" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource BodyTextBlockStyle}" Visibility="Collapsed"/>
-                                        <Border CornerRadius="6" HorizontalAlignment="Stretch" Margin="0,18,0,0" Height="270" MaxHeight="270">
-                                            <Border.Background>
-                                                <ImageBrush ImageSource="{x:Bind ViewModel.SelectedListViewItem.ImageUri.AbsoluteUri, Mode=OneWay}" Stretch="UniformToFill"/>
-                                            </Border.Background>
-                                            <!--
+                                <!-- ImageLink -->
+                                <StackPanel Visibility="{x:Bind ViewModel.IsImageLinkExists, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
+                                    <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.ImageUri.AbsoluteUri, Mode=OneWay}" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource BodyTextBlockStyle}" Visibility="Collapsed"/>
+                                    <Border CornerRadius="6" HorizontalAlignment="Stretch" Margin="0,16,0,0" Height="270" MaxHeight="270">
+                                        <Border.Background>
+                                            <ImageBrush ImageSource="{x:Bind ViewModel.SelectedListViewItem.ImageUri.AbsoluteUri, Mode=OneWay}" Stretch="UniformToFill"/>
+                                        </Border.Background>
+                                        <!--
                                             <Image Source="{x:Bind ViewModel.SelectedListViewItem.ImageUri.AbsoluteUri, Mode=OneWay}" HorizontalAlignment="Stretch" Margin="0,12,0,0" MaxHeight="270" Opacity="0"/>
                                              -->
-                                        </Border>
+                                    </Border>
+                                </StackPanel>
+                                
+                                <!-- CommentPage -->
+                                <StackPanel HorizontalAlignment="Right" Visibility="{x:Bind ViewModel.IsCommentPageLinkExists, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
+                                    <HyperlinkButton x:Uid="MainPage_DetailsPane_CommentsPage" NavigateUri="{x:Bind ViewModel.SelectedListViewItem.CommentUri.AbsoluteUri, Mode=OneWay}" Margin="{StaticResource SmallTopMargin}" />
+                                </StackPanel>
+
+                                <communityToolkitControls:WrapPanel Orientation="Horizontal" VerticalSpacing="4" HorizontalSpacing="0" Margin="0 0 0 4">
+
+                                    <!-- Publisher -->
+                                    <StackPanel Margin="0 0 24 0">
+                                        <TextBlock x:Uid="MainPage_DetailsPane_Publisher" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailBodyStrongStyle}" />
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Publisher, Mode=OneWay}" Opacity="0.6" Margin="{StaticResource XXSmallTopMargin}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
+                                    </StackPanel>
+                                    
+                                    <!-- Author -->
+                                    <StackPanel Margin="0 0 24 0">
+                                        <TextBlock x:Uid="MainPage_DetailsPane_Author" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailBodyStrongStyle}" />
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Author, Mode=OneWay}" Opacity="0.6" Margin="{StaticResource XXSmallTopMargin}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
                                     </StackPanel>
 
-                                    <StackPanel HorizontalAlignment="Left" Margin="0,6,0,0" Visibility="{x:Bind ViewModel.IsAudioLinkExists, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
-                                        <TextBlock Text="Audio" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailSubTitleStyle}" Opacity="0.9"/>
-
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,12,0,0" >
-                                            <Button x:Uid="MainPage_DetailsPane_PlayAudio" Command="{x:Bind ViewModel.DownloadAudioFileCommand, Mode=OneWay}" Margin="0,0,0,0" />
-                                            <Button x:Uid="MainPage_DetailsPane_CopyURL" Command="{x:Bind ViewModel.CopyAudioFileUrlToClipboardCommand, Mode=OneWay}" Margin="12,0,22,0"/>
-                                        </StackPanel>
+                                    <!-- Published -->
+                                    <StackPanel Margin="0 0 24 0">
+                                        <TextBlock x:Uid="MainPage_DetailsPane_Published" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailBodyStrongStyle}" />
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.PublishedDateTimeFormated, Mode=OneWay}" Opacity="0.6" Margin="{StaticResource XXSmallTopMargin}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
                                     </StackPanel>
-                                    <!--
+
+                                    <!-- Category -->
+                                    <StackPanel Margin="0 0 24 0">
+                                        <TextBlock x:Uid="MainPage_DetailsPane_Category" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailBodyStrongStyle}" />
+                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Category, Mode=OneWay}" Opacity="0.6" Margin="{StaticResource XXSmallTopMargin}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
+                                    </StackPanel>
+
+                                </communityToolkitControls:WrapPanel>
+                                
+                                <!-- AudioLink -->
+                                <StackPanel HorizontalAlignment="Left" Margin="0,6,0,0" Visibility="{x:Bind ViewModel.IsAudioLinkExists, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
+                                    <TextBlock Text="Audio" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailBodyStrongStyle}" Opacity="0.9"/>
+
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10,0,0" >
+                                        <Button x:Uid="MainPage_DetailsPane_PlayAudio" Command="{x:Bind ViewModel.DownloadAudioFileCommand, Mode=OneWay}" Margin="0,0,0,0" />
+                                        <Button x:Uid="MainPage_DetailsPane_CopyURL" Command="{x:Bind ViewModel.CopyAudioFileUrlToClipboardCommand, Mode=OneWay}" Margin="12,0,22,0"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <!--
                                             <StackPanel Visibility="{x:Bind ViewModel.IsAudioLinkExists, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
                                                 <StackPanel HorizontalAlignment="Left" Margin="0,6,0,0">
                                                     <MediaPlayerElement Source="{x:Bind ViewModel.MediaSource, Mode=OneWay}" Visibility="{x:Bind ViewModel.IsMediaPlayerVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}" HorizontalAlignment="Left" MaxWidth="740" AutoPlay="False" AreTransportControlsEnabled="True" />
@@ -567,45 +630,28 @@
                                             </StackPanel>
                                             -->
 
-                                    <StackPanel>
-                                        <TextBlock x:Uid="MainPage_DetailsPane_Author" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Author, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
-                                    </StackPanel>
-
-                                    <StackPanel>
-                                        <TextBlock x:Uid="MainPage_DetailsPane_Publisher" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Publisher, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
-                                    </StackPanel>
-
-                                    <StackPanel>
-                                        <TextBlock x:Uid="MainPage_DetailsPane_Published" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.PublishedDateTimeFormated, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
-                                    </StackPanel>
-
-                                    <StackPanel>
-                                        <TextBlock x:Uid="MainPage_DetailsPane_Category" Margin="{StaticResource SmallTopMargin}" Style="{StaticResource DetailSubTitleStyle}" />
-                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Category, Mode=OneWay}" Margin="{StaticResource XXSmallTopMargin}" TextWrapping="Wrap" Style="{StaticResource DetailBodyStyle}" />
-                                    </StackPanel>
-
-                                    <StackPanel Visibility="{x:Bind ViewModel.IsSummaryExists, Mode=OneWay}">
-                                        <TextBlock x:Uid="MainPage_DetailsPane_Summary" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailSubTitleStyle}"/>
-                                        <RichTextBlock helper:HtmlProperties.Html="{x:Bind ViewModel.SelectedListViewItem.Summary, Mode=OneWay}" Padding="2,4,0,6" Margin="0" IsTextSelectionEnabled="True" Style="{ThemeResource DetailBodyRichTextBlockStyle}" HorizontalAlignment="Stretch" HorizontalTextAlignment="Left"/>
-                                        <!-- 
+                                <!-- Summary -->
+                                <StackPanel Visibility="{x:Bind ViewModel.IsSummaryExists, Mode=OneWay}">
+                                    <TextBlock x:Uid="MainPage_DetailsPane_Summary" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailBodyStrongStyle}"/>
+                                    <RichTextBlock helper:HtmlProperties.Html="{x:Bind ViewModel.SelectedListViewItem.Summary, Mode=OneWay}" Padding="2,4,0,6" Margin="0" IsTextSelectionEnabled="True" Style="{ThemeResource DetailBodyRichTextBlockStyle}" HorizontalAlignment="Stretch" HorizontalTextAlignment="Left"/>
+                                    <!-- 
                                         <TextBlock Style="{ThemeResource DetailBodyStyle}" TextWrapping="Wrap" Text="{x:Bind ViewModel.SelectedListViewItem.Summary, Mode=OneWay}"/>
                                          -->
-                                    </StackPanel>
+                                </StackPanel>
 
-                                    <StackPanel Visibility="{x:Bind ViewModel.IsContentText, Mode=OneWay}">
-                                        <TextBlock x:Uid="MainPage_DetailsPane_Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailSubTitleStyle}"/>
-                                        <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Content, Mode=OneWay}" TextWrapping="Wrap" Style="{ThemeResource DetailBodyStyle}"/>
-                                    </StackPanel>
+                                <!-- ContentText -->
+                                <StackPanel Visibility="{x:Bind ViewModel.IsContentText, Mode=OneWay}">
+                                    <TextBlock x:Uid="MainPage_DetailsPane_Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailBodyStrongStyle}"/>
+                                    <TextBlock Text="{x:Bind ViewModel.SelectedListViewItem.Content, Mode=OneWay}" TextWrapping="Wrap" Style="{ThemeResource DetailBodyStyle}"/>
+                                </StackPanel>
 
-                                    <StackPanel Visibility="{x:Bind ViewModel.IsContentHTML, Mode=OneWay}">
-                                        <TextBlock x:Uid="MainPage_DetailsPane_Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailSubTitleStyle}"/>
-                                        <RichTextBlock helper:HtmlProperties.Html="{x:Bind ViewModel.SelectedListViewItem.Content, Mode=OneWay}" Padding="2,4,0,6" Margin="0" IsTextSelectionEnabled="True" Style="{ThemeResource DetailBodyRichTextBlockStyle}" HorizontalAlignment="Stretch" HorizontalTextAlignment="Left"/>
-                                    </StackPanel>
+                                <!-- ContentHTML -->
+                                <StackPanel Visibility="{x:Bind ViewModel.IsContentHTML, Mode=OneWay}">
+                                    <TextBlock x:Uid="MainPage_DetailsPane_Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource DetailBodyStrongStyle}"/>
+                                    <RichTextBlock helper:HtmlProperties.Html="{x:Bind ViewModel.SelectedListViewItem.Content, Mode=OneWay}" Padding="2,4,0,6" Margin="0" IsTextSelectionEnabled="True" Style="{ThemeResource DetailBodyRichTextBlockStyle}" HorizontalAlignment="Stretch" HorizontalTextAlignment="Left"/>
+                                </StackPanel>
 
-                                    <!--
+                                <!--
                                     <StackPanel Visibility="{x:Bind ViewModel.IsContentHTML, Mode=OneWay}">
                                         <TextBlock Text="Content" Margin="{StaticResource SmallTopMargin}" Style="{ThemeResource SubtitleTextBlockStyle}" Opacity="0.9"/>
                                         <TextBlock Text="(The content type is HTML)" Margin="{StaticResource SmallTopMargin}"></TextBlock>
@@ -635,11 +681,9 @@
                                     </StackPanel>
                                     -->
 
-                                    <StackPanel Margin="0,0,0,24"></StackPanel>
+                                <StackPanel Margin="0,0,0,24"></StackPanel>
 
-                                </StackPanel>
-
-                            </RelativePanel>
+                            </StackPanel>
 
                         </StackPanel>
 

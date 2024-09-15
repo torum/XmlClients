@@ -552,38 +552,48 @@ public partial class EditorViewModel : ObservableRecipient
 
     public bool Closing()
     {
-        //Debug.WriteLine("EditorViewModel Closing");
-
         // TODO: check if dirty.
-
-        // TODO:
-        WebViewServiceRichEdit.UnregisterEvents();
-        if (WebViewServiceRichEdit.CoreWebView2 is not null)
-        {
-            WebViewServiceRichEdit.CoreWebView2.DOMContentLoaded -= OnRichEditCoreWebView2DOMContentLoaded;
-            WebViewServiceRichEdit.CoreWebView2.WebMessageReceived -= OnRichEditWebMessageReceived;
-            WebViewServiceRichEdit.CoreWebView2.PermissionRequested -= OnRichEditCoreWebView2OnPermissionRequested;
-        }
-
-        WebViewServiceSourceEdit.UnregisterEvents();
-        if (WebViewServiceSourceEdit.CoreWebView2 is not null)
-        {
-            WebViewServiceSourceEdit.CoreWebView2.DOMContentLoaded -= OnSourceEditCoreWebView2DOMContentLoaded;
-            WebViewServiceSourceEdit.CoreWebView2.WebMessageReceived -= OnSourceEditWebMessageReceived;
-            WebViewServiceSourceEdit.CoreWebView2.PermissionRequested -= OnSourceEditCoreWebView2OnPermissionRequested;
-        }
-
-        WebViewServicePreviewBrowser.UnregisterEvents();
-        if (WebViewServicePreviewBrowser.CoreWebView2 is not null)
-        {
-            WebViewServicePreviewBrowser.CoreWebView2.DOMContentLoaded -= OnPreviewBrowserCoreWebView2DOMContentLoaded;
-            WebViewServicePreviewBrowser.CoreWebView2.NavigationStarting -= OnPreviewBrowserCoreWebView2NavigationStarting;
-            WebViewServicePreviewBrowser.CoreWebView2.FrameNavigationStarting -= OnPreviewBrowserCoreWebView2NavigationStarting;
-        }
 
         _uiSettings.ColorValuesChanged -= SystemUISettingColorValuesChanged;
 
         WeakReferenceMessenger.Default.UnregisterAll(this);
+
+
+        WebViewServiceRichEdit.UnregisterEvents();
+        if (WebViewServiceRichEdit.CoreWebView2 is not null)
+        {
+            WebViewServiceRichEdit.CoreWebView2.Stop();// jsut in case
+            WebViewServiceRichEdit.CoreWebView2.DOMContentLoaded -= OnRichEditCoreWebView2DOMContentLoaded;
+            WebViewServiceRichEdit.CoreWebView2.WebMessageReceived -= OnRichEditWebMessageReceived;
+            WebViewServiceRichEdit.CoreWebView2.PermissionRequested -= OnRichEditCoreWebView2OnPermissionRequested;
+
+        }
+        // https://github.com/microsoft/microsoft-ui-xaml/issues/7336
+        WebViewServiceRichEdit.WebView?.Close();
+
+        WebViewServiceSourceEdit.UnregisterEvents();
+        if (WebViewServiceSourceEdit.CoreWebView2 is not null)
+        {
+            WebViewServiceSourceEdit.CoreWebView2.Stop();// jsut in case
+            WebViewServiceSourceEdit.CoreWebView2.DOMContentLoaded -= OnSourceEditCoreWebView2DOMContentLoaded;
+            WebViewServiceSourceEdit.CoreWebView2.WebMessageReceived -= OnSourceEditWebMessageReceived;
+            WebViewServiceSourceEdit.CoreWebView2.PermissionRequested -= OnSourceEditCoreWebView2OnPermissionRequested;
+
+        }
+        // https://github.com/microsoft/microsoft-ui-xaml/issues/7336
+        WebViewServiceSourceEdit.WebView?.Close();
+
+        WebViewServicePreviewBrowser.UnregisterEvents();
+        if (WebViewServicePreviewBrowser.CoreWebView2 is not null)
+        {
+            WebViewServicePreviewBrowser.CoreWebView2.Stop();// jsut in case
+            WebViewServicePreviewBrowser.CoreWebView2.DOMContentLoaded -= OnPreviewBrowserCoreWebView2DOMContentLoaded;
+            WebViewServicePreviewBrowser.CoreWebView2.NavigationStarting -= OnPreviewBrowserCoreWebView2NavigationStarting;
+            WebViewServicePreviewBrowser.CoreWebView2.FrameNavigationStarting -= OnPreviewBrowserCoreWebView2NavigationStarting;
+
+        }
+        // https://github.com/microsoft/microsoft-ui-xaml/issues/7336
+        WebViewServicePreviewBrowser.WebView?.Close();
 
         return true;
     }

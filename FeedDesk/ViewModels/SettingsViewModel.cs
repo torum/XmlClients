@@ -16,8 +16,6 @@ namespace FeedDesk.ViewModels;
 
 public class SettingsViewModel : ObservableRecipient, INavigationAware
 {
-    //private const string BackdropSettingsKey = "AppSystemBackdropOption";
-
     private readonly INavigationService _navigationService;
 
     private readonly IThemeSelectorService _themeSelectorService;
@@ -83,17 +81,14 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
         _elementTheme = _themeSelectorService.Theme;
         //_versionDescription = GetVersionDescription();
 
-        /*
-        var manager = WinUIEx.WindowManager.Get(App.MainWindow);
-        if (manager.Backdrop is WinUIEx.AcrylicSystemBackdrop)
+
+        if (App.MainWindow.SystemBackdrop is DesktopAcrylicBackdrop)
         {
             Material = SystemBackdropOption.Acrylic;
-        }
-        else if (manager.Backdrop is WinUIEx.MicaSystemBackdrop)
+        }else if (App.MainWindow.SystemBackdrop is MicaBackdrop)
         {
             Material = SystemBackdropOption.Mica;
         }
-        */
 
         if (Microsoft.UI.Composition.SystemBackdrops.DesktopAcrylicController.IsSupported())
         {
@@ -151,7 +146,7 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
             else
             {
                 version = Assembly.GetExecutingAssembly().GetName().Version!;
-                Debug.WriteLine("asdf" + Assembly.GetExecutingAssembly().GetName().Version.ToString());
+                //Debug.WriteLine("asdf" + Assembly.GetExecutingAssembly().GetName().Version.ToString());
             }
             
             return $"{"Version".GetLocalized()} - {version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
@@ -183,13 +178,10 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
         {
             if (App.MainWindow is not null)
             {
-                //var manager = WinUIEx.WindowManager.Get(App.MainWindow);
-
                 if (backdrop == "Mica")
                 {
                     if (Microsoft.UI.Composition.SystemBackdrops.MicaController.IsSupported() || Microsoft.UI.Composition.SystemBackdrops.DesktopAcrylicController.IsSupported())
                     {
-                        //manager.Backdrop = new WinUIEx.MicaSystemBackdrop();
                         App.MainWindow.SystemBackdrop = new MicaBackdrop()
                         {
                             Kind = MicaKind.Base
@@ -205,7 +197,6 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
                 {
                     if (Microsoft.UI.Composition.SystemBackdrops.DesktopAcrylicController.IsSupported())
                     {
-                        //manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
                         App.MainWindow.SystemBackdrop = new DesktopAcrylicBackdrop();
                         if (RuntimeHelper.IsMSIX)
                         {
@@ -215,35 +206,6 @@ public class SettingsViewModel : ObservableRecipient, INavigationAware
                     }
                 }
             }
-            /*
-            var manager = WinUIEx.WindowManager.Get(App.MainWindow);
-
-            if (backdrop == "Mica")
-            {
-                // Win10 says not supported but works. So if Acrylic is supported, we assume it's ok.
-                if (Microsoft.UI.Composition.SystemBackdrops.MicaController.IsSupported() || Microsoft.UI.Composition.SystemBackdrops.DesktopAcrylicController.IsSupported())
-                {
-                    manager.Backdrop = new WinUIEx.MicaSystemBackdrop();
-                    if (RuntimeHelper.IsMSIX)
-                    {
-                        ApplicationData.Current.LocalSettings.Values[BackdropSettingsKey] = SystemBackdropOption.Mica.ToString();
-                    }
-                    Material = SystemBackdropOption.Mica;
-                }
-            }
-            else if (backdrop == "Acrylic")
-            {
-                if (Microsoft.UI.Composition.SystemBackdrops.DesktopAcrylicController.IsSupported())
-                {
-                    manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
-                    if (RuntimeHelper.IsMSIX)
-                    {
-                        ApplicationData.Current.LocalSettings.Values[BackdropSettingsKey] = SystemBackdropOption.Acrylic.ToString();
-                    }
-                    Material = SystemBackdropOption.Acrylic;
-                }
-            }
-            */
         }
     }
 

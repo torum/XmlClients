@@ -5,27 +5,19 @@
         <ResourceDictionary x:Key="Dark">
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary>
-                    <!-- 
-                    <Color x:Key="FeedIconColor">#F78E04</Color> 
-                    <Color x:Key="FeedIconColor">#FF9955</Color>
-                    <Color x:Key="FeedIconColor">#F4AD5D</Color>-->
-                    <Color x:Key="FeedIconColor">#FFF</Color>
-                    <SolidColorBrush x:Key="FeedIconBrush" Color="{StaticResource FeedIconColor}" />
-                    
+                    <SolidColorBrush x:Key="FeedIconBrush" Color="#FFF" />
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Light">
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary>
-                    <Color x:Key="FeedIconColor">#FF6600</Color>
-                    <SolidColorBrush x:Key="FeedIconBrush" Color="{StaticResource FeedIconColor}" />
+                    <SolidColorBrush x:Key="FeedIconBrush" Color="#FF6600" />
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
         <ResourceDictionary x:Key="HighContrast">
-            <Color x:Key="FeedIconColor">#FF6600</Color>
-            <SolidColorBrush x:Key="FeedIconBrush" Color="{StaticResource FeedIconColor}" />
+            <SolidColorBrush x:Key="FeedIconBrush" Color="#FF6600" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>

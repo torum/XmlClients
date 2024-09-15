@@ -25,8 +25,10 @@ public partial class App : Application
     private static readonly string _appName = "FeedDesk";//_resourceLoader.GetString("AppName");
     private static readonly string _appDeveloper = "torum";
     private static readonly string _envDataFolder = System.Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+    public static readonly string AppName = _appName;
     public static string AppDataFolder { get; } = _envDataFolder + System.IO.Path.DirectorySeparatorChar + _appDeveloper + System.IO.Path.DirectorySeparatorChar + _appName;
     public static string AppConfigFilePath { get; } = Path.Combine(AppDataFolder, _appName + ".config");
+
 
     // DispatcherQueue
     private static readonly Microsoft.UI.Dispatching.DispatcherQueue _currentDispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
@@ -154,56 +156,8 @@ public partial class App : Application
             Microsoft.Windows.AppLifecycle.AppInstance.GetCurrent().Activated += App_Activated;
         }
 
-        /* 
-        var manager = WinUIEx.WindowManager.Get(MainWindow);
-        manager.PersistenceId = "MainWindowPersistanceId";
-        */
-        
-        // SystemBackdrop
-        if (Microsoft.UI.Composition.SystemBackdrops.DesktopAcrylicController.IsSupported())
-        {
-            if (RuntimeHelper.IsMSIX)
-            {
-                // Load preference from localsetting.
-                if (ApplicationData.Current.LocalSettings.Values.TryGetValue(BackdropSettingsKey, out var obj))
-                {
-                    var s = (string)obj;
-                    if (s == SystemBackdropOption.Acrylic.ToString())
-                    {
-                        //manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
-                    }
-                    else if (s == SystemBackdropOption.Mica.ToString())
-                    {
-                        //manager.Backdrop = new WinUIEx.MicaSystemBackdrop();
-                    }
-                    else
-                    {
-                        //manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
-                    }
-                }
-                else
-                {
-                    // default acrylic... no Mica.
-                    //manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
-                    //manager.Backdrop = new WinUIEx.MicaSystemBackdrop();
-                }
-            }
-            else
-            {
-                // just for me.
-                //manager.Backdrop = new WinUIEx.AcrylicSystemBackdrop();
-                //manager.Backdrop = new WinUIEx.MicaSystemBackdrop();
-            }
-        }
-        else if (Microsoft.UI.Composition.SystemBackdrops.MicaController.IsSupported())
-        {
-            //manager.Backdrop = new WinUIEx.MicaSystemBackdrop();
-        }
-        else
-        {
-            // Memo: Without Backdrop, theme setting's theme is not gonna have any effect( "system default" will be used).
-            // So the selection option is disaabled in the setting.
-        }
+
+
 
         // WinUIEx Storage option.
         if (!RuntimeHelper.IsMSIX)

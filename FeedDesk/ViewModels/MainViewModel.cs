@@ -479,14 +479,12 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
         set => SetProperty(ref _isDebugWindowEnabled, value);
     }
 
-
     private bool _isEntryDetaileVisible = false;
     public bool IsEntryDetailVisible
     {
         get => _isEntryDetaileVisible;
         set => SetProperty(ref _isEntryDetaileVisible, value);
     }
-
 
     private bool _isFeedTreeLoaded = false;
     public bool IsFeedTreeLoaded => _isFeedTreeLoaded;
@@ -665,6 +663,24 @@ public partial class MainViewModel : ObservableRecipient, INavigationAware
     private readonly IFeedClientService _feedClientService;
 
     private readonly IOpmlService _opmlService;
+
+    #endregion
+
+    #region == Options ==
+
+    private double _widthLeftPane = 256;
+    public double WidthLeftPane
+    {
+        get => _widthLeftPane;
+        set => SetProperty(ref _widthLeftPane, value);
+    }
+
+    private double _widthDetailPane = 256;
+    public double WidthDetailPane
+    {
+        get => _widthDetailPane;
+        set => SetProperty(ref _widthDetailPane, value);
+    }
 
     #endregion
 
