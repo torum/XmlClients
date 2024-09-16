@@ -30,9 +30,9 @@ from [Microsoft Store](https://www.microsoft.com/store/apps/9PGDGKFSV6L9).
 
 ### Screenshots
 
-![FeedDesk](https://github.com/torum/BlogWrite/blob/master/docs/images/FeedDesk-Screenshot1-Dark.png?raw=true) 
+![FeedDesk](https://github.com/torum/XmlClients/blob/master/docs/images/FeedDesk-Screenshot1-Dark.png?raw=true) 
 
-![FeedDesk](https://github.com/torum/BlogWrite/blob/master/docs/images/FeedDesk-Screenshot1-Light.png?raw=true) 
+![FeedDesk](https://github.com/torum/XmlClients/blob/master/docs/images/FeedDesk-Screenshot1-Light.png?raw=true) 
 
 
 ## Contributing
