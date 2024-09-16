@@ -1,5 +1,3 @@
-﻿# BlogWrite project
-
 ## BlogDesk - Under developement
   
 A blog editing (web publishing) client with a feed reading functionality - C# port of "BlogWrite" originaly developed in Delphi.
