@@ -3,7 +3,7 @@
 using Microsoft.UI.Xaml.Controls;
 
 using FeedDesk.Contracts.Services;
-using BlogWrite.Core.Helpers;
+using XmlClients.Core.Helpers;
 using FeedDesk.ViewModels;
 
 namespace BlFeedDeskogWrite.Services;

@@ -1,4 +1,4 @@
-using BlogWrite.Core.Helpers;
+using XmlClients.Core.Helpers;
 using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml.Markup;
 using Microsoft.UI.Xaml.Media;

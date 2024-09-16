@@ -1,10 +1,10 @@
 ﻿using System.Collections.ObjectModel;
 using System.Xml;
-using BlogWrite.Core.Contracts.Services;
-using BlogWrite.Core.Helpers;
-using BlogWrite.Core.Models;
-using BlogWrite.Core.Models.Clients;
-using BlogWrite.Core.Services;
+using XmlClients.Core.Contracts.Services;
+using XmlClients.Core.Helpers;
+using XmlClients.Core.Models;
+using XmlClients.Core.Models.Clients;
+using XmlClients.Core.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FeedDesk.Contracts.Services;

@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using BlogWrite.Core.Helpers;
+using XmlClients.Core.Helpers;
 using BlogDesk.Contracts.Services;
 using BlogDesk.Helpers;
 using BlogDesk.ViewModels;

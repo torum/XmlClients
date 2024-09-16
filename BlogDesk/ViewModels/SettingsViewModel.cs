@@ -2,7 +2,7 @@
 using System.Windows.Input;
 using BlogDesk.Contracts.Services;
 using BlogDesk.Models;
-using BlogWrite.Core.Helpers;
+using XmlClients.Core.Helpers;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;

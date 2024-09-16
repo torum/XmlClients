@@ -1,7 +1,7 @@
 ﻿using BlogDesk.Contracts.Services;
 using BlogDesk.Services;
 using BlogDesk.ViewModels;
-using BlogWrite.Core.Helpers;
+using XmlClients.Core.Helpers;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Markup;

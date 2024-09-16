@@ -1,4 +1,4 @@
-﻿using BlogWrite.Core.Helpers;
+﻿using XmlClients.Core.Helpers;
 
 namespace BlogDesk;
 

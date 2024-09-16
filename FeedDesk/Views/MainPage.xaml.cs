@@ -1,5 +1,5 @@
-﻿using BlogWrite.Core.Helpers;
-using BlogWrite.Core.Models;
+﻿using XmlClients.Core.Helpers;
+using XmlClients.Core.Models;
 using FeedDesk.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

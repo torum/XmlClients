@@ -1,6 +1,6 @@
 ﻿using System.Web;
 using System.Windows.Input;
-using BlogWrite.Core.Models;
+using XmlClients.Core.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FeedDesk.Contracts.Services;

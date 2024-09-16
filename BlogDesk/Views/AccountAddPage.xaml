@@ -5,7 +5,7 @@
     xmlns:local="using:BlogDesk.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:model="using:BlogWrite.Core.Models"
+    xmlns:model="using:XmlClients.Core.Models"
     mc:Ignorable="d"
     NavigationCacheMode="Disabled">
     <Grid x:Name="ContentArea">

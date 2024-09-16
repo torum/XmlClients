@@ -44,7 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BlogWrite.Core\BlogWrite.Core.csproj" />
+    <ProjectReference Include="..\XmlClients.Core\XmlClients.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">

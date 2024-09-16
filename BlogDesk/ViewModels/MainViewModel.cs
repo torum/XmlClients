@@ -1,5 +1,5 @@
 ﻿using BlogDesk.Views;
-using BlogWrite.Core.Models;
+using XmlClients.Core.Models;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;

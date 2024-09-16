@@ -1,4 +1,4 @@
-﻿using BlogWrite.Core.Helpers;
+﻿using XmlClients.Core.Helpers;
 using FeedDesk.Contracts.Services;
 using Microsoft.UI.Xaml;
 using Windows.Storage;

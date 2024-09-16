@@ -1,6 +1,6 @@
 ﻿using System.Xml;
 using System.Xml.Linq;
-using BlogWrite.Core.Helpers;
+using XmlClients.Core.Helpers;
 using FeedDesk.Contracts.Services;
 using FeedDesk.ViewModels;
 using Microsoft.UI.Xaml;

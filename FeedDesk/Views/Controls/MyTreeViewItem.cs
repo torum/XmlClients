@@ -1,4 +1,4 @@
-﻿using BlogWrite.Core.Models;
+﻿using XmlClients.Core.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using DataPackageOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation;

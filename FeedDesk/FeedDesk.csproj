@@ -112,7 +112,7 @@
     <ProjectCapability Include="Msix" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\BlogWrite.Core\BlogWrite.Core.csproj" />
+    <ProjectReference Include="..\XmlClients.Core\XmlClients.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Page Update="Styles\FontSizes.xaml">

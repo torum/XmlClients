@@ -1,8 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows.Input;
-using BlogWrite.Core.Contracts.Services;
-using BlogWrite.Core.Models;
-using BlogWrite.Core.Services;
+using XmlClients.Core.Contracts.Services;
+using XmlClients.Core.Models;
+using XmlClients.Core.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FeedDesk.Contracts.Services;

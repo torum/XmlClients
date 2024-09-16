@@ -5,7 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
-    xmlns:helpers="using:BlogWrite.Core.Helpers"
+    xmlns:helpers="using:XmlClients.Core.Helpers"
     NavigationCacheMode="Required"
     Loaded="OnLoaded"
     Unloaded="OnUnloaded"
@@ -382,7 +382,7 @@
 
             <NavigationView.MenuItems>
 
-                <NavigationViewItem x:Uid="ShellNavigationItem_Feeds" helpers:NavigationHelper.NavigateTo="BlogWrite.ViewModels.FeedsViewModel">
+                <NavigationViewItem x:Uid="ShellNavigationItem_Feeds" helpers:NavigationHelper.NavigateTo="XmlClients.ViewModels.FeedsViewModel">
                     <NavigationViewItem.Icon>
                         <IconSourceElement>
                             <IconSourceElement.IconSource>

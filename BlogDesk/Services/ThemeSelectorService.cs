@@ -1,5 +1,5 @@
 ﻿using BlogDesk.Contracts.Services;
-using BlogWrite.Core.Helpers;
+using XmlClients.Core.Helpers;
 using Microsoft.UI.Xaml;
 using Windows.Storage;
 

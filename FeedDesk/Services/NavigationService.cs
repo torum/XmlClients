@@ -2,7 +2,7 @@
 
 using FeedDesk.Contracts.Services;
 using FeedDesk.Contracts.ViewModels;
-using BlogWrite.Core.Helpers;
+using XmlClients.Core.Helpers;
 
 //using CommunityToolkit.WinUI.Animations;
 using CommunityToolkit.WinUI.UI.Animations;
